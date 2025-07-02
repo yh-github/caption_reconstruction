@@ -1,5 +1,4 @@
-# src/toy_data.py
-from src.data_models import NarrativeOnlyClip
+from data_models import NarrativeOnlyClip
 
 def create_toy_transcript() -> list[NarrativeOnlyClip]:
     """

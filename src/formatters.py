@@ -1,5 +1,4 @@
-# src/formatters.py
-from src.data_models import NarrativeOnlyClip, StructuredClip
+from data_models import NarrativeOnlyClip, StructuredClip
 
 # =================================================================
 # == Formatter Functions
