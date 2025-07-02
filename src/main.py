@@ -7,10 +7,7 @@ import git
 import platform
 import random
 from importlib.metadata import version
-
-from src.data_models import get_clip_model
-from src.formatters import get_clip_formatter
-from src.toy_data import create_toy_transcript
+import google.generativeai as genai
 
 # =================================================================
 # == Basic Logging Setup
@@ -116,7 +113,7 @@ def build_prompt(masked_transcript, formatter, config):
     formatted_clips = [formatter(clip) for clip in masked_transcript]
 
     # TODO: Add a more sophisticated instruction based on the task
-    instruction = "Reconstruct the missing parts of the following video transcript:"
+    instruction = "You are an expert in video analysis. Your task is to fill in the [MASK] tokens in the following video transcript. Provide only the completed descriptions for the masked parts, each on a new line."
     final_prompt = instruction + "\n\n---\n\n" + "\n".join(formatted_clips)
 
     # For debugging, log the full prompt as an MLflow artifact
@@ -124,14 +121,26 @@ def build_prompt(masked_transcript, formatter, config):
     return final_prompt
 
 def call_llm(prompt, config):
-    """(SIMULATED) Calls the LLM API."""
-    logging.info("Calling LLM API... (SIMULATED)")
-    # In a real run, this would be:
-    # model = google.generativeai.GenerativeModel(config['llm']['model_name'])
-    # response = model.generate_content(prompt)
-    simulated_response = "This is a simulated response from the LLM, pretending to fill in a mask."
-    mlflow.log_text(simulated_response, "llm_response.txt")
-    return simulated_response
+    """Calls the LLM API to get the reconstructed transcript."""
+    logging.info("Calling LLM API...")
+    
+    # Configure the API key securely
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise ValueError("GEMINI_API_KEY environment variable not set.")
+    genai.configure(api_key=api_key)
+
+    model_name = config['llm']['model_name']
+    model = genai.GenerativeModel(model_name)
+
+    response = model.generate_content(prompt)
+    
+    llm_response_text = response.text
+    mlflow.log_text(llm_response_text, "llm_response.txt")
+    logging.info(f"LLM response received. Length: {len(llm_response_text)} characters.")
+    
+    return llm_response_text
+
 
 def evaluate_reconstruction(llm_response, ground_truth_transcript):
     """
@@ -174,3 +183,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
