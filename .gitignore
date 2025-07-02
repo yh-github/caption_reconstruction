@@ -1,0 +1,19 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / Installation
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# MLflow
+/mlruns/
+
+# Virtual environment
+/ve/
+.venv/
+venv/

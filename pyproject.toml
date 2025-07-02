@@ -1,0 +1,20 @@
+[project]
+name = "transcript_recon"
+version = "0.1.0"
+authors = [
+    # { name="Your Name", email="you@example.com" },
+]
+description = "A project to reconstruct masked video transcripts using LLMs."
+requires-python = ">=3.11"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "src"
+]
