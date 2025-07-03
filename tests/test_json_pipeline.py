@@ -6,7 +6,7 @@ from constants import DATA_MISSING
 
 def test_apply_masking_replaces_data_payload():
     """
-    Tests that the new masking logic correctly replaces the entire 'data'
+    Tests that the masking logic correctly replaces the entire 'data'
     field with the DATA_MISSING token.
     """
     # Arrange
@@ -18,7 +18,7 @@ def test_apply_masking_replaces_data_payload():
 
     # Assert
     mask_count = sum(1 for clip in masked_transcript if clip.data == DATA_MISSING)
-    data_object_count = sum(1 for clip in masked_transcript if clip.data != DATA_MISSING)
+    data_object_count = sum(1 for clip in masked_transcript if hasattr(clip.data, 'description'))
 
     assert mask_count == 5
     assert data_object_count == 5
@@ -31,10 +31,12 @@ def test_build_prompt_creates_valid_json():
     """
     # Arrange
     ground_truth = create_toy_transcript()
+    # Pass a dummy config to the build_prompt function
     config = {'masking': {'ratio': 0.3, 'scheme': 'random'}, 'random_seed': 10}
     masked_transcript = apply_masking(ground_truth, config)
 
     # Act
+    # The config argument was missing here
     prompt = build_prompt(masked_transcript, config)
     
     # Find the JSON part of the prompt
