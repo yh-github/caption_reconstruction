@@ -9,6 +9,7 @@ import random
 import json
 from importlib.metadata import version
 import google.generativeai as genai
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 # Local application imports
 from data_models import TranscriptClip
@@ -146,9 +147,14 @@ def build_prompt(masked_transcript: list[TranscriptClip], config: dict) -> str:
     mlflow.log_text(final_prompt, "prompt.txt")
     return final_prompt
 
+
+@retry(
+    wait=wait_random_exponential(min=1, max=60), # Wait 1-60 seconds between retries
+    stop=stop_after_attempt(5) # Stop after 5 attempts
+)
 def call_llm(prompt, config):
-    """Calls the LLM API to get the reconstructed transcript."""
-    logging.info("Calling LLM API...")
+    """Calls the LLM API, now with retry logic."""
+    logging.info("Attempting to call LLM API...")
 
     # Configure the API key securely
     api_key = os.getenv("GEMINI_API_KEY")
