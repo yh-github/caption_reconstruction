@@ -1,38 +1,34 @@
+# src/data_models.py
 from pydantic import BaseModel, Field
+from typing import Union
+from constants import DATA_MISSING
 
-# =================================================================
-# == Data Models - Pure Data Carriers
-# =================================================================
+# --- Data Payload Models ---
+# These models define the structure of the data when it's *not* masked.
 
-class BaseTranscriptClip(BaseModel):
-    """A base model ensuring all clips have a timestamp."""
-    timestamp: float = Field(
-        ...,
-        gt=0,
-        description="The end time of the clip in seconds."
-    )
-
-class NarrativeOnlyClip(BaseTranscriptClip):
-    """A simple clip with only a narrative description."""
+class NarrativeOnlyPayload(BaseModel):
+    """The data payload for a simple, description-only clip."""
     description: str
 
-class StructuredClip(BaseTranscriptClip):
-    """A more detailed clip including objects and verbs."""
+class StructuredPayload(BaseModel):
+    """The data payload for a clip with structured data."""
     description: str
     objects: list[str] = Field(default_factory=list)
     verbs: list[str] = Field(default_factory=list)
 
-# =================================================================
-# == Model Factory
-# =================================================================
 
-def get_clip_model(richness_level: str):
-    """Factory to select the appropriate Pydantic model from a config string."""
-    models = {
-        "narrative_only": NarrativeOnlyClip,
-        "structured": StructuredClip,
-    }
-    model = models.get(richness_level)
-    if model is None:
-        raise ValueError(f"Unknown richness_level: '{richness_level}'")
-    return model
+# --- Main Clip Model ---
+# This is the primary object for each timestamp in our transcript.
+
+class TranscriptClip(BaseModel):
+    """
+    Represents a single clip in the transcript.
+    The 'data' field can either hold a detailed payload object or our
+    special DATA_MISSING token.
+    """
+    timestamp: float = Field(..., gt=0)
+    data: Union[NarrativeOnlyPayload, StructuredPayload, str]
+
+    class Config:
+        # Pydantic configuration to allow custom types like our payload models
+        arbitrary_types_allowed = True
