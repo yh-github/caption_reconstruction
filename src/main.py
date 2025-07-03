@@ -6,8 +6,14 @@ import mlflow
 import git
 import platform
 import random
+import json
 from importlib.metadata import version
 import google.generativeai as genai
+
+# Local application imports
+from data_models import TranscriptClip
+from toy_data import create_toy_transcript
+from constants import DATA_MISSING
 
 # =================================================================
 # == Basic Logging Setup
@@ -23,37 +29,43 @@ logging.basicConfig(
 # == Pipeline Functions
 # =================================================================
 
+def check_git_repository_is_clean():
+    """
+    Checks if the Git repository has uncommitted changes.
+    Halts execution if the repository is dirty.
+    Returns the current commit hash if clean.
+    """
+    logging.info("Performing Git repository cleanliness check...")
+    repo = git.Repo(search_parent_directories=True)
+    if repo.is_dirty(untracked_files=True):
+        error_message = "Git repository is dirty. Commit or stash changes before running."
+        logging.error(error_message)
+        raise Exception(error_message)
+    logging.info("Git repository is clean.")
+    return repo.head.object.hexsha
+
 def load_config(config_path="config/base.yaml"):
     """Loads the YAML configuration file."""
     logging.info(f"Loading configuration from: {config_path}")
     with open(config_path, 'r') as f:
         return yaml.safe_load(f)
 
-def setup_mlflow_and_reproducibility(config):
+def setup_mlflow(config, git_commit_hash):
     """
-    Sets up the MLflow experiment, logs parameters, and performs
-    reproducibility checks to ensure a clean experimental environment.
+    Sets up the MLflow experiment and logs all parameters.
     """
-    logging.info("Setting up MLflow and reproducibility checks...")
+    logging.info("Setting up MLflow and logging parameters...")
     mlflow.set_experiment(config['experiment_name'])
 
-    repo = git.Repo(search_parent_directories=True)
-
-    # Critical Check: Ensure the repository is clean before running
-    if repo.is_dirty(untracked_files=True):
-        error_message = "Git repository is dirty. Commit or stash changes before running."
-        logging.error(error_message)
-        raise Exception(error_message)
-
     # Log key parameters for reproducibility
-    mlflow.log_param("git_commit_hash", repo.head.object.hexsha)
+    mlflow.log_param("git_commit_hash", git_commit_hash)
     mlflow.log_param("python_version", platform.python_version())
     mlflow.log_param("mlflow_version", version('mlflow'))
     mlflow.log_param("google_generativeai_version", version('google-generativeai'))
 
     # Log the entire configuration for full traceability
     mlflow.log_params(config)
-    logging.info("Reproducibility checks passed and parameters logged.")
+    logging.info("Reproducibility parameters logged.")
 
 def load_data(config):
     """Loads the transcript data based on the configuration."""
@@ -66,23 +78,24 @@ def load_data(config):
         # This will later handle loading from CSV files, etc.
         raise NotImplementedError(f"Data source type '{source_type}' is not supported yet.")
 
-def apply_masking(transcript, config):
+def apply_masking(transcript: list[TranscriptClip], config: dict) -> list[TranscriptClip]:
     """
-    Applies a masking strategy to the transcript based on the config.
+    Applies a masking strategy by replacing the entire 'data' payload of a
+    clip with the DATA_MISSING token.
     """
     masking_config = config['masking']
     ratio = masking_config['ratio']
     scheme = masking_config['scheme']
     seed = config['random_seed']
-    
+
     logging.info(f"Applying '{scheme}' masking with ratio {ratio:.2f}...")
-    
+
     # Initialize the random number generator for reproducible results
     random.seed(seed)
-    
+
     num_clips = len(transcript)
     num_to_mask = int(num_clips * ratio)
-    
+
     if num_to_mask == 0:
         logging.warning("Masking ratio is too low, no clips will be masked.")
         return transcript
@@ -95,26 +108,38 @@ def apply_masking(transcript, config):
     masked_transcript = []
     for i, clip in enumerate(transcript):
         if i in indices_to_mask:
-            # Create a new clip object with a masked description
+            # Create a new clip where the 'data' field is our special token
             masked_clip = clip.model_copy()
-            masked_clip.description = "[MASK]"
+            masked_clip.data = DATA_MISSING
             masked_transcript.append(masked_clip)
         else:
             masked_transcript.append(clip)
-            
+
     logging.info(f"Masked {num_to_mask} out of {num_clips} clips.")
     return masked_transcript
 
 
-def build_prompt(masked_transcript, formatter, config):
-    """Builds the final prompt string to be sent to the LLM."""
-    logging.info("Building LLM prompt...")
-    # This creates a list of formatted strings, one for each clip
-    formatted_clips = [formatter(clip) for clip in masked_transcript]
+def build_prompt(masked_transcript: list[TranscriptClip], config: dict) -> str:
+    """
+    Builds the final prompt by serializing the list of clips into a
+    clean JSON string for the LLM.
+    """
+    logging.info("Building LLM prompt as JSON...")
 
-    # TODO: Add a more sophisticated instruction based on the task
-    instruction = "You are an expert in video analysis. Your task is to fill in the [MASK] tokens in the following video transcript. Provide only the completed descriptions for the masked parts, each on a new line."
-    final_prompt = instruction + "\n\n---\n\n" + "\n".join(formatted_clips)
+    # Convert our list of Pydantic objects to a list of dictionaries
+    transcript_for_json = [clip.model_dump() for clip in masked_transcript]
+
+    instruction = (
+        "You are an expert video analyst. The following is a JSON list representing a "
+        "video transcript. Each object has a 'timestamp' and a 'data' field. "
+        f"If the 'data' field contains the token '{DATA_MISSING}', your task is to "
+        "replace that token with a valid JSON object containing a plausible 'description'.\n\n"
+        "Return the full, corrected JSON list."
+    )
+
+    # Serialize the list to a pretty-printed JSON string
+    json_prompt_data = json.dumps(transcript_for_json, indent=2)
+    final_prompt = f"{instruction}\n\n---\n\n{json_prompt_data}"
 
     # For debugging, log the full prompt as an MLflow artifact
     mlflow.log_text(final_prompt, "prompt.txt")
@@ -123,7 +148,7 @@ def build_prompt(masked_transcript, formatter, config):
 def call_llm(prompt, config):
     """Calls the LLM API to get the reconstructed transcript."""
     logging.info("Calling LLM API...")
-    
+
     # Configure the API key securely
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
@@ -134,11 +159,11 @@ def call_llm(prompt, config):
     model = genai.GenerativeModel(model_name)
 
     response = model.generate_content(prompt)
-    
+
     llm_response_text = response.text
     mlflow.log_text(llm_response_text, "llm_response.txt")
     logging.info(f"LLM response received. Length: {len(llm_response_text)} characters.")
-    
+
     return llm_response_text
 
 
@@ -155,16 +180,21 @@ def evaluate_reconstruction(llm_response, ground_truth_transcript):
 def main():
     """The main experimental pipeline."""
     logging.info("Starting experiment pipeline...")
+
+    # --- Critical Prerequisite Check ---
+    # Fail fast if the repository is not in a clean state.
+    git_commit_hash = check_git_repository_is_clean()
+
+    # Now that we've passed the check, start the MLflow run
     with mlflow.start_run():
         try:
             config = load_config()
-            setup_mlflow_and_reproducibility(config)
+            setup_mlflow(config, git_commit_hash)
 
             ground_truth = load_data(config)
-            formatter = get_clip_formatter(config['transcript_richness'])
 
             masked_transcript = apply_masking(ground_truth, config)
-            prompt = build_prompt(masked_transcript, formatter, config)
+            prompt = build_prompt(masked_transcript, config)
 
             llm_response = call_llm(prompt, config)
 
@@ -183,4 +213,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
