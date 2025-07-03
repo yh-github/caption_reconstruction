@@ -16,6 +16,8 @@ from data_models import TranscriptClip
 from toy_data import create_toy_transcript
 from constants import DATA_MISSING
 from parsers import parse_llm_response
+from evaluation import evaluate_reconstruction, initialize_cache
+
 
 # =================================================================
 # == Basic Logging Setup
@@ -196,6 +198,8 @@ def main():
     with mlflow.start_run():
         try:
             config = load_config()
+            cache_path = config.get('paths', {}).get('embedding_cache', 'cache/')
+            initialize_cache(cache_path)
             setup_mlflow(config, git_commit_hash)
 
             ground_truth = load_data(config)
@@ -208,12 +212,12 @@ def main():
 
             if parsed_reconstruction:
                 metrics = evaluate_reconstruction(parsed_reconstruction, ground_truth)
+                mlflow.log_metrics(metrics) # Log the real metrics
+
                 logging.info("Pipeline finished successfully!")
                 logging.info(f"Final Metrics: {metrics}")
             else:
                 logging.error("Could not parse LLM response. Halting evaluation.")
-
-            metrics = evaluate_reconstruction(llm_response, ground_truth)
 
             logging.info("Pipeline finished successfully!")
             logging.info(f"Final Metrics: {metrics}")
