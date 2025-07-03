@@ -14,6 +14,7 @@ import google.generativeai as genai
 from data_models import TranscriptClip
 from toy_data import create_toy_transcript
 from constants import DATA_MISSING
+from parsers import parse_llm_response
 
 # =================================================================
 # == Basic Logging Setup
@@ -196,7 +197,15 @@ def main():
             masked_transcript = apply_masking(ground_truth, config)
             prompt = build_prompt(masked_transcript, config)
 
-            llm_response = call_llm(prompt, config)
+            llm_response_text = call_llm(prompt, config)
+            parsed_reconstruction = parse_llm_response(llm_response_text)
+
+            if parsed_reconstruction:
+                metrics = evaluate_reconstruction(parsed_reconstruction, ground_truth)
+                logging.info("Pipeline finished successfully!")
+                logging.info(f"Final Metrics: {metrics}")
+            else:
+                logging.error("Could not parse LLM response. Halting evaluation.")
 
             metrics = evaluate_reconstruction(llm_response, ground_truth)
 
