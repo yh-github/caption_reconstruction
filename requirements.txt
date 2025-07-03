@@ -14,6 +14,14 @@ PyYAML==6.0.2			# For parsing our .yaml configuration files
 mlflow==3.1.1			# For tracking experiments, logging metrics, and managing results
 GitPython==3.1.44		# For programmatically interacting with the Git repository (e.g., getting commit hash)
 
+# --- Stability & Error Handling ---
+tenacity==9.1.2			# For robust retry logic (e.g., exponential backoff)
+
+# --- Evaluation & Caching ---
+bert-score==0.3.13		# For semantic similarity evaluation
+torch==2.7.1			# A required backend for bert-score
+joblib==1.4.2			# For caching expensive function calls (e.g., embeddings)
+
 # --- Testing ---
 pytest==8.3.2
 pytest-mock==3.12.0
