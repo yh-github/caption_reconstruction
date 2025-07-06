@@ -2,18 +2,17 @@
 import logging
 import json
 import mlflow
-import random
 
-# Local application imports
 from data_models import TranscriptClip
 from toy_data import create_toy_transcript
 from constants import DATA_MISSING
 from llm_interaction import call_llm
 from parsers import parse_llm_response
 from evaluation import evaluate_reconstruction
+import random
 
 def load_data(config):
-    """Loads the transcript data based on the configuration."""
+    # ... (This function can be moved here from main.py)
     source_type = config.get('data', {}).get('source_type', 'toy_example')
     logging.info(f"Loading data from source: {source_type}")
     if source_type == 'toy_example':
@@ -22,7 +21,7 @@ def load_data(config):
         raise NotImplementedError(f"Data source type '{source_type}' is not supported yet.")
 
 def apply_masking(transcript: list[TranscriptClip], config: dict) -> list[TranscriptClip]:
-    """Applies a masking strategy to the transcript based on the config."""
+    # ... (This function can be moved here from main.py)
     masking_config = config['masking']
     ratio = masking_config['ratio']
     scheme = masking_config['scheme']
@@ -49,8 +48,9 @@ def apply_masking(transcript: list[TranscriptClip], config: dict) -> list[Transc
     logging.info(f"Masked {num_to_mask} out of {num_clips} clips.")
     return masked_transcript
 
-def build_prompt(masked_transcript: list[TranscriptClip]) -> str:
-    """Builds the final JSON prompt to be sent to the LLM."""
+
+def build_prompt(masked_transcript: list[TranscriptClip], config: dict) -> str:
+    # ... (This function can be moved here from main.py)
     logging.info("Building LLM prompt as JSON...")
     transcript_for_json = [clip.model_dump() for clip in masked_transcript]
     json_prompt_data = json.dumps(transcript_for_json, indent=2)
@@ -69,9 +69,9 @@ def run_experiment(config, llm_model):
     """
     ground_truth = load_data(config)
     masked_transcript = apply_masking(ground_truth, config)
-    prompt = build_prompt(masked_transcript)
+    prompt = build_prompt(masked_transcript, config)
     
-    llm_response_text = call_llm(llm_model, prompt)
+    llm_response_text = call_llm(llm_model, prompt, config)
     mlflow.log_text(llm_response_text, "llm_response.txt")
     
     parsed_reconstruction = parse_llm_response(llm_response_text)
