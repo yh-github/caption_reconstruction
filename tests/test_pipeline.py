@@ -29,7 +29,8 @@ def test_build_prompt_creates_valid_json():
     masked_transcript = apply_masking(ground_truth, config)
 
     # Act
-    prompt = build_prompt(masked_transcript)
+    # The config argument was missing here. Now it's added.
+    prompt = build_prompt(masked_transcript, config)
     
     # Assert
     json_part = prompt.split("---\n\n")[1]
