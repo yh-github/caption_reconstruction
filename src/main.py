@@ -48,17 +48,33 @@ def check_git_repository_is_clean():
     logging.info("Git repository is clean.")
     return repo.head.object.hexsha
 
-def load_config(config_path="config/base.yaml"):
-    """Loads the YAML configuration file."""
-    logging.info(f"Loading configuration from: {config_path}")
-    with open(config_path, 'r') as f:
-        return yaml.safe_load(f)
+def load_config(
+    system_config_path="config/system.yaml",
+    experiment_config_path="config/base.yaml"
+):
+    """
+    Loads both system and experiment configurations and merges them.
+    Experiment-specific configs will override system-level configs if a
+    key is present in both.
+    """
+    logging.info(f"Loading system config from: {system_config_path}")
+    with open(system_config_path, 'r') as f:
+        system_config = yaml.safe_load(f)
+
+    logging.info(f"Loading experiment config from: {experiment_config_path}")
+    with open(experiment_config_path, 'r') as f:
+        experiment_config = yaml.safe_load(f)
+
+    # Merge the two dictionaries. The second dict's values override the first's.
+    merged_config = {**system_config, **experiment_config}
+    return merged_config
 
 def setup_mlflow(config, git_commit_hash):
     """
     Sets up the MLflow experiment and logs all parameters.
     """
     logging.info("Setting up MLflow and logging parameters...")
+    mlflow.set_tracking_uri(config['paths']['mlflow_tracking_uri'])
     mlflow.set_experiment(config['experiment_name'])
 
     # Log key parameters for reproducibility
@@ -194,12 +210,14 @@ def main():
     # Fail fast if the repository is not in a clean state.
     git_commit_hash = check_git_repository_is_clean()
 
+    config = load_config()
+
+    cache_path = config['paths']['joblib_cache']
+    initialize_cache(cache_path)
+
     # Now that we've passed the check, start the MLflow run
     with mlflow.start_run():
         try:
-            config = load_config()
-            cache_path = config.get('paths', {}).get('embedding_cache', 'cache/')
-            initialize_cache(cache_path)
             setup_mlflow(config, git_commit_hash)
 
             ground_truth = load_data(config)

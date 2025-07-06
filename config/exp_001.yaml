@@ -1,0 +1,13 @@
+# config/exp_001.yaml
+
+experiment_name: "Test impact of masking ratio"
+base_model: "gemini-1.5-pro"
+transcript_richness: "narrative_only"
+
+# --- Key Independent Variables ---
+masking_params:
+  ratio: 0.5  # We can change this to 0.25, 0.75, etc. for other runs
+  scheme: "random" # Or "contiguous", "systematic"
+
+# --- Other settings ---
+output_dir: "results/exp_001"
