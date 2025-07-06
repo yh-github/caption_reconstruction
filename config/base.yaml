@@ -9,7 +9,8 @@ transcript_richness: "narrative_only" # Default richness level
 
 # --- LLM Configuration ---
 llm:
-  model_name: "gemini-1.5-pro-latest" # Using the 'latest' tag is good practice
+  #model_name: "gemini-1.5-pro-latest" # Using the 'latest' tag is good practice
+  model_name: "gemini-2.0-flash-exp"
   temperature: 0.7
   max_output_tokens: 1024
 

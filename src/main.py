@@ -22,12 +22,25 @@ from evaluation import evaluate_reconstruction, initialize_cache
 # =================================================================
 # == Basic Logging Setup
 # =================================================================
-# Configures a logger to print messages to the console.
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
+def setup_logging(log_path="run.log"):
+    """Configures logging to write to both the console and a file."""
+    # Get the root logger
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+
+    # Remove any existing handlers to avoid duplicate logs
+    if logger.hasHandlers():
+        logger.handlers.clear()
+
+    # Create a console handler
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+    logger.addHandler(console_handler)
+
+    # Create a file handler
+    file_handler = logging.FileHandler(log_path)
+    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+    logger.addHandler(file_handler)
 
 # =================================================================
 # == Pipeline Functions
@@ -167,7 +180,7 @@ def build_prompt(masked_transcript: list[TranscriptClip], config: dict) -> str:
 
 
 @retry(
-    wait=wait_random_exponential(min=1, max=60), # Wait 1-60 seconds between retries
+    wait=wait_random_exponential(min=5, max=120), # Wait 5-120 seconds between retries
     stop=stop_after_attempt(5) # Stop after 5 attempts
 )
 def call_llm(prompt, config):
@@ -204,11 +217,14 @@ def evaluate_reconstruction(llm_response, ground_truth_transcript):
 
 def main():
     """The main experimental pipeline."""
-    logging.info("Starting experiment pipeline...")
 
     # --- Critical Prerequisite Check ---
     # Fail fast if the repository is not in a clean state.
     git_commit_hash = check_git_repository_is_clean()
+
+    setup_logging()
+    logging.info("Starting experiment pipeline...")
+
 
     config = load_config()
 
@@ -219,6 +235,7 @@ def main():
     with mlflow.start_run():
         try:
             setup_mlflow(config, git_commit_hash)
+            mlflow.log_artifact("run.log")
 
             ground_truth = load_data(config)
 
@@ -239,7 +256,6 @@ def main():
 
             logging.info("Pipeline finished successfully!")
             logging.info(f"Final Metrics: {metrics}")
-
         except Exception as e:
             logging.error(f"Pipeline failed with an error: {e}", exc_info=True)
             # The 'with mlflow.start_run()' context manager ensures the run is

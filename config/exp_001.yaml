@@ -1,7 +1,6 @@
 # config/exp_001.yaml
 
 experiment_name: "Test impact of masking ratio"
-base_model: "gemini-1.5-pro"
 transcript_richness: "narrative_only"
 
 # --- Key Independent Variables ---
