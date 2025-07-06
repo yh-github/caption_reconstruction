@@ -1,86 +1,103 @@
-# src/pipeline.py
+# src/main.py
+import os
 import logging
-import json
 import mlflow
-import random
+import git
+import platform
+from importlib.metadata import version
 
 # Local application imports
-from data_models import TranscriptClip
-from toy_data import create_toy_transcript
-from constants import DATA_MISSING
-from llm_interaction import call_llm
-from parsers import parse_llm_response
-from evaluation import evaluate_reconstruction
+from config_loader import load_config
+from llm_interaction import initialize_llm
+from pipeline import run_experiment
+from evaluation import initialize_cache
 
-def load_data(config):
-    """Loads the transcript data based on the configuration."""
-    source_type = config.get('data', {}).get('source_type', 'toy_example')
-    logging.info(f"Loading data from source: {source_type}")
-    if source_type == 'toy_example':
-        return create_toy_transcript()
-    else:
-        raise NotImplementedError(f"Data source type '{source_type}' is not supported yet.")
-
-def apply_masking(transcript: list[TranscriptClip], config: dict) -> list[TranscriptClip]:
-    """Applies a masking strategy to the transcript based on the config."""
-    masking_config = config['masking']
-    ratio = masking_config['ratio']
-    scheme = masking_config['scheme']
-    seed = config['random_seed']
-    logging.info(f"Applying '{scheme}' masking with ratio {ratio:.2f}...")
-    random.seed(seed)
-    num_clips = len(transcript)
-    num_to_mask = int(num_clips * ratio)
-    if num_to_mask == 0:
-        logging.warning("Masking ratio is too low, no clips will be masked.")
-        return transcript
-    if scheme == 'random':
-        indices_to_mask = sorted(random.sample(range(num_clips), k=num_to_mask))
-    else:
-        raise NotImplementedError(f"Masking scheme '{scheme}' is not implemented yet.")
-    masked_transcript = []
-    for i, clip in enumerate(transcript):
-        if i in indices_to_mask:
-            masked_clip = clip.model_copy()
-            masked_clip.data = DATA_MISSING
-            masked_transcript.append(masked_clip)
-        else:
-            masked_transcript.append(clip)
-    logging.info(f"Masked {num_to_mask} out of {num_clips} clips.")
-    return masked_transcript
-
-def build_prompt(masked_transcript: list[TranscriptClip]) -> str:
-    """Builds the final JSON prompt to be sent to the LLM."""
-    logging.info("Building LLM prompt as JSON...")
-    transcript_for_json = [clip.model_dump() for clip in masked_transcript]
-    json_prompt_data = json.dumps(transcript_for_json, indent=2)
-    instruction = (
-        "You are an expert video analyst. Reconstruct the full data object for any "
-        f"timestamp where the 'data' field is the token '{DATA_MISSING}'. "
-        "Return the complete JSON list with all masks filled."
-    )
-    final_prompt = f"{instruction}\n\n{json_prompt_data}"
-    mlflow.log_text(final_prompt, "prompt.txt")
-    return final_prompt
-
-def run_experiment(config, llm_model):
+def setup_logging(run_id: str):
     """
-    Runs a single, complete experiment from data loading to evaluation.
+    Configures logging to write to both the console and a unique file
+    for the given MLflow run ID.
     """
-    ground_truth = load_data(config)
-    masked_transcript = apply_masking(ground_truth, config)
-    prompt = build_prompt(masked_transcript)
+    log_dir = "logs"
+    os.makedirs(log_dir, exist_ok=True)
+    log_path = os.path.join(log_dir, f"{run_id}.log")
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+
+    # Clear existing handlers to prevent duplicate logs
+    if logger.hasHandlers():
+        logger.handlers.clear()
+
+    # Setup console handler
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+    logger.addHandler(console_handler)
+
+    # Setup file handler
+    file_handler = logging.FileHandler(log_path, mode='w')
+    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+    logger.addHandler(file_handler)
+
+    return log_path
+
+
+def check_git_repository_is_clean():
+    # ... (function is the same)
+    logging.info("Performing Git repository cleanliness check...")
+    repo = git.Repo(search_parent_directories=True)
+    if repo.is_dirty(untracked_files=True):
+        error_message = "Git repository is dirty. Commit or stash changes before running."
+        logging.error(error_message)
+        raise Exception(error_message)
+    logging.info("Git repository is clean.")
+    return repo.head.object.hexsha
+
+def setup_mlflow(config, git_commit_hash):
+    # ... (function is the same)
+    logging.info("Setting up MLflow and logging parameters...")
+    mlflow.set_tracking_uri(config['paths']['mlflow_tracking_uri'])
+    mlflow.set_experiment(config['experiment_name'])
+    mlflow.log_param("git_commit_hash", git_commit_hash)
+    mlflow.log_param("python_version", platform.python_version())
+    mlflow.log_param("mlflow_version", version('mlflow'))
+    mlflow.log_params(config)
+    logging.info("Reproducibility parameters logged.")
+
+def main():
+    """
+    Main entry point for running a single experiment.
+    Orchestrates initialization, setup, and execution.
+    """
+    # Initial console-only logging for pre-checks
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     
-    llm_response_text = call_llm(llm_model, prompt)
-    mlflow.log_text(llm_response_text, "llm_response.txt")
-    
-    parsed_reconstruction = parse_llm_response(llm_response_text)
-    
-    if parsed_reconstruction:
-        metrics = evaluate_reconstruction(parsed_reconstruction, ground_truth)
-        mlflow.log_metrics(metrics)
-        logging.info("Pipeline finished successfully!")
-        logging.info(f"Final Metrics: {metrics}")
-    else:
-        logging.error("Could not parse LLM response. Halting evaluation.")
-        mlflow.log_metric("parsing_failed", 1)
+    try:
+        git_commit_hash = check_git_repository_is_clean()
+        config = load_config()
+        initialize_cache(config.get('paths', {}).get('joblib_cache', 'cache/'))
+        llm_model = initialize_llm(config)
+
+        with mlflow.start_run() as run:
+            # Get the unique run ID from MLflow
+            run_id = run.info.run_id
+            
+            # Set up proper logging for this run
+            log_file_path = setup_logging(run_id)
+            
+            logging.info(f"--- Starting New Experiment Run ---")
+            logging.info(f"MLflow Run ID: {run_id}")
+
+            setup_mlflow(config, git_commit_hash)
+            run_experiment(config, llm_model)
+            
+            # Log the full run log as an MLflow artifact
+            mlflow.log_artifact(log_file_path)
+
+    except Exception as e:
+        logging.error(f"Experiment failed with a critical error: {e}", exc_info=True)
+        raise
+
+    print("\nRun `mlflow ui` in your terminal to view the full results.")
+
+if __name__ == "__main__":
+    main()
