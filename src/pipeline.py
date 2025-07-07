@@ -90,28 +90,24 @@ def build_prompt(masked_transcript: list[TranscriptClip], config: dict) -> str:
         
     return final_prompt
 
-def run_experiment(config, llm_model):
-    # ... (function is the same)
+from reconstruction_strategies import ReconstructionStrategy
+
+def run_experiment(config: dict, reconstruction_strategy: ReconstructionStrategy):
+    """
+    Runs a single, complete experiment using a given reconstruction strategy.
+    """
     ground_truth = load_data(config)
     masked_transcript = apply_masking(ground_truth, config)
-    # Pass the config to build_prompt
-    prompt = build_prompt(masked_transcript, config)
-    
-    llm_response_text = call_llm(llm_model, prompt)
-    
-    # Check if MLflow is active before logging
-    if mlflow.active_run():
-        mlflow.log_text(llm_response_text, "llm_response.txt")
-    
-    parsed_reconstruction = parse_llm_response(llm_response_text)
-    
+
+    # --- Reconstruction ---
+    parsed_reconstruction = reconstruction_strategy.reconstruct(masked_transcript)
+
+    # --- Evaluation ---
     if parsed_reconstruction:
         metrics = evaluate_reconstruction(parsed_reconstruction, ground_truth)
-        if mlflow.active_run():
-            mlflow.log_metrics(metrics)
+        mlflow.log_metrics(metrics)
         logging.info("Pipeline finished successfully!")
         logging.info(f"Final Metrics: {metrics}")
     else:
-        logging.error("Could not parse LLM response. Halting evaluation.")
-        if mlflow.active_run():
-            mlflow.log_metric("parsing_failed", 1)
+        logging.error("Reconstruction failed. Halting evaluation.")
+        mlflow.log_metric("reconstruction_failed", 1)
