@@ -31,3 +31,23 @@ def test_repeat_last_known_baseline_starts_with_mask():
     result = repeat_last_known_baseline(masked_transcript)
     assert result[0].data == DATA_MISSING # Should remain masked
 
+def test_repeat_last_known_baseline_starts_with_mask():
+    """
+    Tests that the baseline correctly back-fills when the first clip is masked.
+    """
+    # Arrange
+    masked_transcript = [
+        TranscriptClip(timestamp=1.0, data=DATA_MISSING),
+        TranscriptClip(timestamp=2.0, data=DATA_MISSING),
+        TranscriptClip(timestamp=3.0, data=NarrativeOnlyPayload(description="third")),
+    ]
+    
+    # Act
+    result = repeat_last_known_baseline(masked_transcript)
+
+    # Assert
+    # The first two clips should be filled with the data from the third clip.
+    assert result[0].data.description == "third"
+    assert result[1].data.description == "third"
+    # The third clip should be untouched.
+    assert result[2].data.description == "third"
