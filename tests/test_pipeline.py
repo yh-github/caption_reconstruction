@@ -39,3 +39,32 @@ def test_build_prompt_creates_valid_json():
     assert len(data) == 10
     mask_count_in_json = sum(1 for item in data if item['data'] == DATA_MISSING)
     assert mask_count_in_json == 3
+
+def test_apply_masking_contiguous():
+    """Tests that contiguous masking creates a single block of masked clips."""
+    ground_truth = create_toy_transcript()
+    config = {'masking': {'ratio': 0.3, 'scheme': 'contiguous'}, 'random_seed': 5}
+    
+    masked_transcript = apply_masking(ground_truth, config)
+    
+    # Find the indices of the masked clips
+    masked_indices = [i for i, clip in enumerate(masked_transcript) if clip.data == DATA_MISSING]
+    
+    assert len(masked_indices) == 3
+    # Check if the indices are a continuous block (e.g., [4, 5, 6])
+    assert masked_indices[-1] - masked_indices[0] == len(masked_indices) - 1
+
+def test_apply_masking_systematic():
+    """Tests that systematic masking creates a regular pattern."""
+    ground_truth = create_toy_transcript()
+    # Ratio of 0.3 on 10 clips means 3 masks, so step should be 10 // 3 = 3
+    config = {'masking': {'ratio': 0.3, 'scheme': 'systematic'}, 'random_seed': 1}
+    
+    masked_transcript = apply_masking(ground_truth, config)
+    
+    masked_indices = [i for i, clip in enumerate(masked_transcript) if clip.data == DATA_MISSING]
+    
+    assert len(masked_indices) > 0
+    # Check that the difference between consecutive masked indices is constant
+    steps = [masked_indices[i] - masked_indices[i-1] for i in range(1, len(masked_indices))]
+    assert all(s == steps[0] for s in steps)

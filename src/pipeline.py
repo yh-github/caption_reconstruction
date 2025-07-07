@@ -13,7 +13,6 @@ from parsers import parse_llm_response
 from evaluation import evaluate_reconstruction
 
 def load_data(config):
-    # ... (function is the same)
     source_type = config.get('data', {}).get('source_type', 'toy_example')
     logging.info(f"Loading data from source: {source_type}")
     if source_type == 'toy_example':
@@ -21,23 +20,43 @@ def load_data(config):
     else:
         raise NotImplementedError(f"Data source type '{source_type}' is not supported yet.")
 
+
 def apply_masking(transcript: list[TranscriptClip], config: dict) -> list[TranscriptClip]:
-    # ... (function is the same)
+    """Applies a masking strategy to the transcript based on the config."""
     masking_config = config['masking']
     ratio = masking_config['ratio']
     scheme = masking_config['scheme']
     seed = config['random_seed']
+
     logging.info(f"Applying '{scheme}' masking with ratio {ratio:.2f}...")
     random.seed(seed)
+
     num_clips = len(transcript)
     num_to_mask = int(num_clips * ratio)
+
     if num_to_mask == 0:
         logging.warning("Masking ratio is too low, no clips will be masked.")
         return transcript
+
+    indices_to_mask = set()
     if scheme == 'random':
-        indices_to_mask = sorted(random.sample(range(num_clips), k=num_to_mask))
+        indices_to_mask = set(random.sample(range(num_clips), k=num_to_mask))
+
+    elif scheme == 'contiguous':
+        start_index = random.randint(0, num_clips - num_to_mask)
+        indices_to_mask = set(range(start_index, start_index + num_to_mask))
+
+    elif scheme == 'systematic':
+        # Mask every Nth item. Calculate N to get the desired ratio.
+        if num_to_mask == 0: return transcript # Avoid division by zero
+        step = num_clips // num_to_mask
+        # Start at a random offset to avoid always masking the same first elements
+        start_offset = random.randint(0, step - 1)
+        indices_to_mask = set(range(start_offset, num_clips, step))
+
     else:
         raise NotImplementedError(f"Masking scheme '{scheme}' is not implemented yet.")
+
     masked_transcript = []
     for i, clip in enumerate(transcript):
         if i in indices_to_mask:
@@ -46,9 +65,9 @@ def apply_masking(transcript: list[TranscriptClip], config: dict) -> list[Transc
             masked_transcript.append(masked_clip)
         else:
             masked_transcript.append(clip)
-    logging.info(f"Masked {num_to_mask} out of {num_clips} clips.")
-    return masked_transcript
 
+    logging.info(f"Masked {len(indices_to_mask)} out of {num_clips} clips.")
+    return masked_transcript
 
 # Corrected function signature and logic
 def build_prompt(masked_transcript: list[TranscriptClip], config: dict) -> str:
