@@ -71,11 +71,13 @@ def main():
     # Initial console-only logging for pre-checks
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-    lock = FileLock(".lock")
+    lock_filename = ".lock"
+    lock = FileLock(lock_filename)
     
     try:
+        logging.info(f"Waiting for exclusive resource lock (filelock '{lock_filename}') by PID {os.getpid()}...")
         with lock:
-            logging.info(f"Lock acquired by PID {os.getpid()}. Starting experiment...")
+            logging.info(f"Lock acquired by PID {os.getpid()}. Starting experiment.")
 
             git_commit_hash = check_git_repository_is_clean()
             config = load_config("config/base.yaml")
@@ -106,6 +108,7 @@ def main():
         logging.error(f"Experiment failed with a critical error: {e}", exc_info=True)
         raise
 
+    logging.info(f'PID {os.getpid()} DONE.')
     print("\n✅ Finished successfully.")
     print("\nRun `mlflow ui` in your terminal to view the full results.")
 
