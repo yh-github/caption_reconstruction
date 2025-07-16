@@ -1,10 +1,9 @@
-# src/config_loader.py
 import yaml
 import logging
 
 def load_config(
-    system_config_path="config/system.yaml",
-    experiment_config_path="config/base.yaml"
+    experiment_config_path,
+    system_config_path="config/system.yaml"
 ):
     """
     Loads both system and experiment configurations and merges them.
