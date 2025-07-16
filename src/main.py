@@ -12,6 +12,7 @@ from llm_interaction import initialize_llm
 from pipeline import run_experiment
 from evaluation import initialize_cache
 from exceptions import UserFacingError
+from queue_lock import QueueLock
 
 def setup_logging(run_id: str):
     """
@@ -69,6 +70,9 @@ def main():
     """
     # Initial console-only logging for pre-checks
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+    queue_lock = QueueLock()
+    queue_lock.acquire()
     
     try:
         git_commit_hash = check_git_repository_is_clean()
@@ -99,7 +103,11 @@ def main():
     except Exception as e:
         logging.error(f"Experiment failed with a critical error: {e}", exc_info=True)
         raise
+    finally:
+        queue_lock.release()
 
+
+    print("\n✅ Finished successfully.")
     print("\nRun `mlflow ui` in your terminal to view the full results.")
 
 if __name__ == "__main__":
