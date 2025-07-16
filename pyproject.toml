@@ -2,9 +2,9 @@
 name = "transcript_recon"
 version = "0.1.0"
 authors = [
-    # { name="Your Name", email="you@example.com" },
+	{ name="Yoav Haimovitch", email="yoavh@technion.ac.il" },
 ]
-description = "A project to reconstruct masked video transcripts using LLMs."
+description = "A project to reconstruct masked video captions using LLMs."
 requires-python = ">=3.11"
 
 [build-system]
@@ -15,6 +15,7 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.pytest.ini_options]
-pythonpath = [
-  "src"
-]
+pythonpath = [ "src" ]
+asyncio_mode="auto"
+asyncio_default_fixture_loop_scope = "function"
+

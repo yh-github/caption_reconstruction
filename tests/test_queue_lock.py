@@ -1,6 +1,7 @@
 # tests/test_queue_lock.py
 import os
 import time
+import pytest
 from multiprocessing import Process
 from queue_lock import QueueLock
 
@@ -11,6 +12,7 @@ def child_process_action(lock_file):
     lock.release()
     exit(0)
 
+@pytest.mark.filterwarnings("ignore:This process.*is multi-threaded, use of fork.*:DeprecationWarning")
 def test_queue_lock_blocks_and_acquires():
     lock_file = "test_queue.lock"
     if os.path.exists(lock_file):
