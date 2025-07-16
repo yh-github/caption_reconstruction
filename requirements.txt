@@ -23,5 +23,5 @@ torch==2.7.1			# A required backend for bert-score
 joblib==1.4.2			# For caching expensive function calls (e.g., embeddings)
 
 # --- Testing ---
-pytest==8.3.2
+pytest==8.4.1
 pytest-mock==3.12.0
