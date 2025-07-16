@@ -1,4 +1,4 @@
-# src/main.py
+import sys
 import os
 import logging
 import mlflow
@@ -11,6 +11,7 @@ from config_loader import load_config
 from llm_interaction import initialize_llm
 from pipeline import run_experiment
 from evaluation import initialize_cache
+from exceptions import UserFacingError
 
 def setup_logging(run_id: str):
     """
@@ -42,18 +43,16 @@ def setup_logging(run_id: str):
 
 
 def check_git_repository_is_clean():
-    # ... (function is the same)
     logging.info("Performing Git repository cleanliness check...")
     repo = git.Repo(search_parent_directories=True)
     if repo.is_dirty(untracked_files=True):
         error_message = "Git repository is dirty. Commit or stash changes before running."
         logging.error(error_message)
-        raise Exception(error_message)
+        raise UserFacingError(error_message)
     logging.info("Git repository is clean.")
     return repo.head.object.hexsha
 
 def setup_mlflow(config, git_commit_hash):
-    # ... (function is the same)
     logging.info("Setting up MLflow and logging parameters...")
     mlflow.set_tracking_uri(config['paths']['mlflow_tracking_uri'])
     mlflow.set_experiment(config['experiment_name'])
@@ -93,6 +92,10 @@ def main():
             # Log the full run log as an MLflow artifact
             mlflow.log_artifact(log_file_path)
 
+    except UserFacingError as e:
+        # no stack trace, clear actionable message.
+        print(f"\n❌ Error: {e}", file=sys.stderr)
+        sys.exit(1)
     except Exception as e:
         logging.error(f"Experiment failed with a critical error: {e}", exc_info=True)
         raise
