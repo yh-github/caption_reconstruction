@@ -3,18 +3,7 @@ import os
 import json
 import logging
 from abc import ABC, abstractmethod
-from data_models import CaptionedClip, NarrativeOnlyPayload
-
-class BaseDataLoader(ABC):
-    """
-    An abstract base class for data loaders.
-    Defines a common interface for all dataset-specific loaders.
-    """
-    @abstractmethod
-    def load(self) -> list[CaptionedClip]:
-        """Loads data from a source and returns a list of CaptionedClip objects."""
-        pass
-
+from data_models import CaptionedClip, CaptionedVideo, NarrativeOnlyPayload
 
 def _parse_storytelling_timestamp(ts_str: str) -> float:
     """Helper to parse MM:SS format into seconds."""
@@ -23,59 +12,67 @@ def _parse_storytelling_timestamp(ts_str: str) -> float:
     seconds = int(parts[1])
     return float(minutes * 60 + seconds)
 
+
+class BaseDataLoader(ABC):
+    """Abstract base class for all data loaders."""
+    @abstractmethod
+    def load(self) -> list[CaptionedVideo]:
+        """Loads data and returns a list of CaptionedVideo objects."""
+        pass
+
 class VideoStorytellingLoader(BaseDataLoader):
-    """Loads data from the Video Storytelling dataset format (many TXT files)."""
-    def __init__(self, data_path: str):
+    """Loads data from the Video Storytelling dataset format."""
+    def __init__(self, data_path: str, file_limit=None):
         self.data_path = data_path
+        self.file_limit = file_limit
 
-    def load(self) -> list[CaptionedClip]:
+    def load(self) -> list[CaptionedVideo]:
         logging.info(f"Loading from Video Storytelling dataset at: {self.data_path}")
-        all_clips = []
-        for filename in os.listdir(self.data_path):
-            if filename.endswith(".txt"):
-                file_path = os.path.join(self.data_path, filename)
-                with open(file_path, 'r') as f:
-                    lines = f.readlines()
-                    # First line is video ID, rest are captions
-                    for line in lines[1:]:
-                        parts = line.strip().split()
-                        if len(parts) < 3:
-                            continue
+        all_videos = []
+        filenames = sorted([f for f in os.listdir(self.data_path) if f.endswith(".txt")])
+        if self.file_limit:
+            filenames = filenames[:self.file_limit]
 
-                        end_time_str = parts[1]
-                        description = " ".join(parts[2:])
-
-                        clip = CaptionedClip(
-                            timestamp=_parse_storytelling_timestamp(end_time_str),
-                            data=NarrativeOnlyPayload(description=description)
-                        )
-                        all_clips.append(clip)
-        return all_clips
+        for filename in filenames:
+            video_id = filename.replace('.txt', '')
+            file_path = os.path.join(self.data_path, filename)
+            clips = []
+            with open(file_path, 'r') as f:
+                lines = f.readlines()[1:] # Skip video ID line
+                for line in lines:
+                    parts = line.strip().split()
+                    if len(parts) < 3: continue
+                    end_time_str = parts[1]
+                    description = " ".join(parts[2:])
+                    clips.append(CaptionedClip(
+                        timestamp=_parse_storytelling_timestamp(end_time_str),
+                        data=NarrativeOnlyPayload(description=description)
+                    ))
+            all_videos.append(CaptionedVideo(video_id=video_id, clips=clips))
+        return all_videos
 
 class VatexLoader(BaseDataLoader):
-    """Loads data from the VATEX dataset format (a single large JSON file)."""
+    """Loads data from the VATEX dataset format."""
     def __init__(self, data_path: str):
         self.data_path = data_path
 
-    def load(self) -> list[CaptionedClip]:
+    def load(self) -> list[CaptionedVideo]:
         logging.info(f"Loading from VATEX dataset at: {self.data_path}")
-        all_clips = []
+        all_videos = []
         with open(self.data_path, 'r') as f:
             data = json.load(f)
-        
+
         for video_info in data:
             video_id = video_info["videoID"]
-            # We only use the first 5 captions, as specified.
             captions = video_info["enCap"][:5]
-            
+            clips = []
             for i, caption in enumerate(captions):
-                # Since there are no timestamps, we generate placeholder ones.
-                clip = CaptionedClip(
+                clips.append(CaptionedClip(
                     timestamp=float(i + 1),
                     data=NarrativeOnlyPayload(description=caption)
-                )
-                all_clips.append(clip)
-        return all_clips
+                ))
+            all_videos.append(CaptionedVideo(video_id=video_id, clips=clips))
+        return all_videos
 
 def get_data_loader(config: dict) -> BaseDataLoader:
     """
