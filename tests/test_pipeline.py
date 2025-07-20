@@ -40,10 +40,10 @@ def test_build_prompt_creates_valid_json():
     mask_count_in_json = sum(1 for item in data if item['data'] == DATA_MISSING)
     assert mask_count_in_json == 3
 
-def test_apply_masking_contiguous():
+def test_apply_masking_contiguous_random():
     """Tests that contiguous masking creates a single block of masked clips."""
     ground_truth = create_toy_transcript()
-    config = {'masking': {'ratio': 0.3, 'scheme': 'contiguous'}, 'random_seed': 5}
+    config = {'masking': {'ratio': 0.3, 'scheme': 'contiguous_random'}, 'random_seed': 5}
     
     masked_transcript = apply_masking(ground_truth, config)
     
@@ -57,8 +57,7 @@ def test_apply_masking_contiguous():
 def test_apply_masking_systematic():
     """Tests that systematic masking creates a regular pattern."""
     ground_truth = create_toy_transcript()
-    # Ratio of 0.3 on 10 clips means 3 masks, so step should be 10 // 3 = 3
-    config = {'masking': {'ratio': 0.3, 'scheme': 'systematic'}, 'random_seed': 1}
+    config = {'masking': {'num_to_mask': 3, 'scheme': 'systematic'}, 'random_seed': 1}
     
     masked_transcript = apply_masking(ground_truth, config)
     
@@ -101,3 +100,28 @@ def test_apply_masking_empty_transcript():
     
     assert masked_transcript == []
 
+def test_apply_masking_contiguous_controlled():
+    """
+    Tests that contiguous_controlled masking creates a precise block
+    of masked clips based on the config.
+    """
+    # Arrange
+    ground_truth = create_toy_transcript()
+    # This config says to start at index 3 and mask 4 clips
+    config = {
+        'masking': {
+            'scheme': 'contiguous_controlled',
+            'mask_index': 3,
+            'num_to_mask': 4
+        }
+    }
+
+    # Act
+    masked_transcript = apply_masking(ground_truth, config)
+
+    # Find the indices of the masked clips
+    masked_indices = {i for i, clip in enumerate(masked_transcript) if clip.data == DATA_MISSING}
+
+    # Assert that the masked indices are exactly {3, 4, 5, 6}
+    expected_indices = {3, 4, 5, 6}
+    assert masked_indices == expected_indices

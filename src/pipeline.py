@@ -1,4 +1,3 @@
-# src/pipeline.py
 import logging
 import json
 import mlflow
@@ -20,34 +19,39 @@ def load_data(config):
     else:
         raise NotImplementedError(f"Data source type '{source_type}' is not supported yet.")
 
-
 def apply_masking(transcript: list[TranscriptClip], config: dict) -> list[TranscriptClip]:
     """Applies a masking strategy to the transcript based on the config."""
     masking_config = config['masking']
-    ratio = masking_config['ratio']
     scheme = masking_config['scheme']
-    seed = config['random_seed']
+    seed = config.get('random_seed', None)
 
-    logging.info(f"Applying '{scheme}' masking with ratio {ratio:.2f}...")
-    random.seed(seed)
+    if seed:
+        random.seed(seed)
 
     num_clips = len(transcript)
-    num_to_mask = int(num_clips * ratio)
-
-    if num_to_mask == 0:
-        logging.warning("Masking ratio is too low, no clips will be masked.")
-        return transcript
-
     indices_to_mask = set()
+
     if scheme == 'random':
+        ratio = masking_config['ratio']
+        num_to_mask = int(num_clips * ratio)
         indices_to_mask = set(random.sample(range(num_clips), k=num_to_mask))
 
-    elif scheme == 'contiguous':
+    elif scheme == 'contiguous_random':
+        ratio = masking_config['ratio']
+        num_to_mask = int(num_clips * ratio)
         start_index = random.randint(0, num_clips - num_to_mask)
+        indices_to_mask = set(range(start_index, start_index + num_to_mask))
+
+    elif scheme == 'contiguous_controlled':
+        start_index = masking_config.get('mask_index')
+        num_to_mask = masking_config.get('num_to_mask')
+        if start_index is None or num_to_mask is None:
+            raise ValueError("'mask_index' and 'num_to_mask' must be provided for contiguous_controlled scheme.")
         indices_to_mask = set(range(start_index, start_index + num_to_mask))
 
     elif scheme == 'systematic':
         # Mask every Nth item. Calculate N to get the desired ratio.
+        num_to_mask = masking_config.get('num_to_mask')
         if num_to_mask == 0: return transcript # Avoid division by zero
         step = num_clips // num_to_mask
         # Start at a random offset to avoid always masking the same first elements
@@ -66,10 +70,9 @@ def apply_masking(transcript: list[TranscriptClip], config: dict) -> list[Transc
         else:
             masked_transcript.append(clip)
 
-    logging.info(f"Masked {len(indices_to_mask)} out of {num_clips} clips.")
+    logging.info(f"Masked {len(indices_to_mask)} out of {num_clips} clips using '{scheme}' scheme.")
     return masked_transcript
 
-# Corrected function signature and logic
 def build_prompt(masked_transcript: list[TranscriptClip], config: dict) -> str:
     """Builds the final JSON prompt to be sent to the LLM."""
     logging.info("Building LLM prompt as JSON...")
@@ -90,24 +93,3 @@ def build_prompt(masked_transcript: list[TranscriptClip], config: dict) -> str:
         
     return final_prompt
 
-from reconstruction_strategies import ReconstructionStrategy
-
-def run_experiment(config: dict, reconstruction_strategy: ReconstructionStrategy):
-    """
-    Runs a single, complete experiment using a given reconstruction strategy.
-    """
-    ground_truth = load_data(config)
-    masked_transcript = apply_masking(ground_truth, config)
-
-    # --- Reconstruction ---
-    parsed_reconstruction = reconstruction_strategy.reconstruct(masked_transcript)
-
-    # --- Evaluation ---
-    if parsed_reconstruction:
-        metrics = evaluate_reconstruction(parsed_reconstruction, ground_truth)
-        mlflow.log_metrics(metrics)
-        logging.info("Pipeline finished successfully!")
-        logging.info(f"Final Metrics: {metrics}")
-    else:
-        logging.error("Reconstruction failed. Halting evaluation.")
-        mlflow.log_metric("reconstruction_failed", 1)
