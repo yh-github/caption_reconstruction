@@ -22,16 +22,16 @@ class BaseDataLoader(ABC):
 
 class VideoStorytellingLoader(BaseDataLoader):
     """Loads data from the Video Storytelling dataset format."""
-    def __init__(self, data_path: str, file_limit=None):
+    def __init__(self, data_path: str, limit=None):
         self.data_path = data_path
-        self.file_limit = file_limit
+        self.limit = limit
 
     def load(self) -> list[CaptionedVideo]:
         logging.info(f"Loading from Video Storytelling dataset at: {self.data_path}")
         all_videos = []
         filenames = sorted([f for f in os.listdir(self.data_path) if f.endswith(".txt")])
-        if self.file_limit:
-            filenames = filenames[:self.file_limit]
+        if self.limit:
+            filenames = filenames[:self.limit]
 
         for filename in filenames:
             video_id = filename.replace('.txt', '')
