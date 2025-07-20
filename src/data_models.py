@@ -27,3 +27,12 @@ class CaptionedClip(BaseModel):
 
     timestamp: float = Field(..., gt=0)
     data: Union[NarrativeOnlyPayload, StructuredPayload, str]
+
+
+class CaptionedVideo(BaseModel):
+    """
+    Represents a complete transcript for a single video, including metadata
+    and the sequence of clips.
+    """
+    video_id: str = Field(..., description="A unique identifier for the video.")
+    clips: list[CaptionedClip] = Field(..., description="An ordered list of captioned clips.")
