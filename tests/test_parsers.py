@@ -1,7 +1,7 @@
 # tests/test_parsers.py
 import pytest
 from parsers import parse_llm_response
-from data_models import TranscriptClip
+from data_models import CaptionedClip
 
 def test_parse_llm_response_success():
     """
@@ -31,7 +31,7 @@ def test_parse_llm_response_success():
     # Assert
     assert parsed_clips is not None
     assert len(parsed_clips) == 2
-    assert isinstance(parsed_clips[0], TranscriptClip)
+    assert isinstance(parsed_clips[0], CaptionedClip)
     assert parsed_clips[1].data.description == "The person picks up a book."
 
 def test_parse_llm_response_invalid_json():

@@ -16,9 +16,9 @@ class StructuredPayload(BaseModel):
 
 
 # --- Main Clip Model ---
-class TranscriptClip(BaseModel):
+class CaptionedClip(BaseModel):
     """
-    Represents a single clip in the transcript.
+    Represents a single clip in the caption.
     The 'data' field can either hold a detailed payload object or our
     special DATA_MISSING token.
     """

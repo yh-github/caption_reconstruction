@@ -4,8 +4,8 @@ import mlflow
 import random
 
 # Local application imports
-from data_models import TranscriptClip
-from toy_data import create_toy_transcript
+from data_models import CaptionedClip
+from toy_data import create_toy_captions
 from constants import DATA_MISSING
 from llm_interaction import call_llm
 from parsers import parse_llm_response
@@ -15,12 +15,12 @@ def load_data(config):
     source_type = config.get('data', {}).get('source_type', 'toy_example')
     logging.info(f"Loading data from source: {source_type}")
     if source_type == 'toy_example':
-        return create_toy_transcript()
+        return create_toy_captions()
     else:
         raise NotImplementedError(f"Data source type '{source_type}' is not supported yet.")
 
-def apply_masking(transcript: list[TranscriptClip], config: dict) -> list[TranscriptClip]:
-    """Applies a masking strategy to the transcript based on the config."""
+def apply_masking(caption: list[CaptionedClip], config: dict) -> list[CaptionedClip]:
+    """Applies a masking strategy to the caption based on the config."""
     masking_config = config['masking']
     scheme = masking_config['scheme']
     seed = config.get('random_seed', None)
@@ -28,7 +28,7 @@ def apply_masking(transcript: list[TranscriptClip], config: dict) -> list[Transc
     if seed:
         random.seed(seed)
 
-    num_clips = len(transcript)
+    num_clips = len(caption)
     indices_to_mask = set()
 
     if scheme == 'random':
@@ -52,7 +52,7 @@ def apply_masking(transcript: list[TranscriptClip], config: dict) -> list[Transc
     elif scheme == 'systematic':
         # Mask every Nth item. Calculate N to get the desired ratio.
         num_to_mask = masking_config.get('num_to_mask')
-        if num_to_mask == 0: return transcript # Avoid division by zero
+        if num_to_mask == 0: return caption # Avoid division by zero
         step = num_clips // num_to_mask
         # Start at a random offset to avoid always masking the same first elements
         start_offset = random.randint(0, step - 1)
@@ -61,23 +61,23 @@ def apply_masking(transcript: list[TranscriptClip], config: dict) -> list[Transc
     else:
         raise NotImplementedError(f"Masking scheme '{scheme}' is not implemented yet.")
 
-    masked_transcript = []
-    for i, clip in enumerate(transcript):
+    masked_captions = []
+    for i, clip in enumerate(caption):
         if i in indices_to_mask:
             masked_clip = clip.model_copy()
             masked_clip.data = DATA_MISSING
-            masked_transcript.append(masked_clip)
+            masked_captions.append(masked_clip)
         else:
-            masked_transcript.append(clip)
+            masked_captions.append(clip)
 
     logging.info(f"Masked {len(indices_to_mask)} out of {num_clips} clips using '{scheme}' scheme.")
-    return masked_transcript
+    return masked_captions
 
-def build_prompt(masked_transcript: list[TranscriptClip], config: dict) -> str:
+def build_prompt(masked_captions: list[CaptionedClip], config: dict) -> str:
     """Builds the final JSON prompt to be sent to the LLM."""
     logging.info("Building LLM prompt as JSON...")
-    transcript_for_json = [clip.model_dump() for clip in masked_transcript]
-    json_prompt_data = json.dumps(transcript_for_json, indent=2)
+    caption_for_json = [clip.model_dump() for clip in masked_captions]
+    json_prompt_data = json.dumps(caption_for_json, indent=2)
     
     instruction = (
         "You are an expert video analyst. Reconstruct the full data object for any "

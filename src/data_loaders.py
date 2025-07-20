@@ -3,7 +3,7 @@ import os
 import json
 import logging
 from abc import ABC, abstractmethod
-from data_models import TranscriptClip, NarrativeOnlyPayload
+from data_models import CaptionedClip, NarrativeOnlyPayload
 
 class BaseDataLoader(ABC):
     """
@@ -11,8 +11,8 @@ class BaseDataLoader(ABC):
     Defines a common interface for all dataset-specific loaders.
     """
     @abstractmethod
-    def load(self) -> list[TranscriptClip]:
-        """Loads data from a source and returns a list of TranscriptClip objects."""
+    def load(self) -> list[CaptionedClip]:
+        """Loads data from a source and returns a list of CaptionedClip objects."""
         pass
 
 
@@ -28,7 +28,7 @@ class VideoStorytellingLoader(BaseDataLoader):
     def __init__(self, data_path: str):
         self.data_path = data_path
 
-    def load(self) -> list[TranscriptClip]:
+    def load(self) -> list[CaptionedClip]:
         logging.info(f"Loading from Video Storytelling dataset at: {self.data_path}")
         all_clips = []
         for filename in os.listdir(self.data_path):
@@ -45,7 +45,7 @@ class VideoStorytellingLoader(BaseDataLoader):
                         end_time_str = parts[1]
                         description = " ".join(parts[2:])
 
-                        clip = TranscriptClip(
+                        clip = CaptionedClip(
                             timestamp=_parse_storytelling_timestamp(end_time_str),
                             data=NarrativeOnlyPayload(description=description)
                         )
@@ -57,7 +57,7 @@ class VatexLoader(BaseDataLoader):
     def __init__(self, data_path: str):
         self.data_path = data_path
 
-    def load(self) -> list[TranscriptClip]:
+    def load(self) -> list[CaptionedClip]:
         logging.info(f"Loading from VATEX dataset at: {self.data_path}")
         all_clips = []
         with open(self.data_path, 'r') as f:
@@ -70,7 +70,7 @@ class VatexLoader(BaseDataLoader):
             
             for i, caption in enumerate(captions):
                 # Since there are no timestamps, we generate placeholder ones.
-                clip = TranscriptClip(
+                clip = CaptionedClip(
                     timestamp=float(i + 1),
                     data=NarrativeOnlyPayload(description=caption)
                 )

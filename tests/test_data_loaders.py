@@ -1,7 +1,7 @@
 # tests/test_data_loaders.py
 import pytest
 from data_loaders import VatexLoader, get_data_loader
-from data_models import TranscriptClip
+from data_models import CaptionedClip
 from data_loaders import VideoStorytellingLoader
 
 def test_video_storytelling_loader():
@@ -20,7 +20,7 @@ def test_video_storytelling_loader():
     assert len(clips) == 3
 
     # Check the first clip
-    assert isinstance(clips[0], TranscriptClip)
+    assert isinstance(clips[0], CaptionedClip)
     assert clips[0].data.description == "seating of wedding party and family"
     assert clips[0].timestamp == 120.0 # 2 minutes = 120 seconds
 
@@ -44,7 +44,7 @@ def test_vatex_loader():
     assert len(clips) == 10
     
     # Check the first video's clips
-    assert isinstance(clips[0], TranscriptClip)
+    assert isinstance(clips[0], CaptionedClip)
     assert clips[0].data.description == "caption 1a"
     assert clips[0].timestamp == 1.0
     

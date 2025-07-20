@@ -1,8 +1,8 @@
-from data_models import TranscriptClip, NarrativeOnlyPayload
+from data_models import CaptionedClip, NarrativeOnlyPayload
 
-def create_toy_transcript() -> list[TranscriptClip]:
+def create_toy_captions() -> list[CaptionedClip]:
     """
-    Creates and returns a simple, manually-defined transcript with 10 clips.
+    Creates and returns a simple, manually-defined caption with 10 clips.
     This serves as our initial ground-truth data for building and debugging
     the experimental pipeline.
     """
@@ -19,13 +19,13 @@ def create_toy_transcript() -> list[TranscriptClip]:
         {"timestamp": 10.0, "description": "The person walks out of the room to the left."}
     ]
 
-    # Create the list of TranscriptClip objects, wrapping the data in the payload model.
-    transcript = [
-        TranscriptClip(
+    # Create the list of CaptionedClip objects, wrapping the data in the payload model.
+    caption = [
+        CaptionedClip(
             timestamp=item["timestamp"],
             data=NarrativeOnlyPayload(description=item["description"])
         )
         for item in clips_data
     ]
     
-    return transcript
+    return caption

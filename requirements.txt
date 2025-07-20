@@ -1,5 +1,5 @@
 # =================================================================
-# == Project: Masked Video Transcript Reconstruction
+# == Project: Masked Video Caption Reconstruction
 # ==
 # == To install all dependencies, run:
 # == pip install -r requirements.txt

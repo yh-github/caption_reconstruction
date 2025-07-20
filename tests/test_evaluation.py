@@ -6,7 +6,7 @@ import torch
 
 from evaluation import evaluate_reconstruction
 
-from data_models import TranscriptClip, NarrativeOnlyPayload
+from data_models import CaptionedClip, NarrativeOnlyPayload
 
 from constants import DATA_MISSING
 
@@ -42,29 +42,29 @@ def test_evaluate_reconstruction_with_bert_score(mocker):
 
 
 
-    # Create a ground truth transcript
+    # Create a ground truth caption
 
     ground_truth = [
 
-        TranscriptClip(timestamp=1.0, data=NarrativeOnlyPayload(description="original one")),
+        CaptionedClip(timestamp=1.0, data=NarrativeOnlyPayload(description="original one")),
 
-        TranscriptClip(timestamp=2.0, data=NarrativeOnlyPayload(description="original two")),
+        CaptionedClip(timestamp=2.0, data=NarrativeOnlyPayload(description="original two")),
 
-        TranscriptClip(timestamp=3.0, data=NarrativeOnlyPayload(description="original three")),
+        CaptionedClip(timestamp=3.0, data=NarrativeOnlyPayload(description="original three")),
 
     ]
 
     
 
-    # Create a reconstructed transcript where the middle clip was filled in
+    # Create a reconstructed caption where the middle clip was filled in
 
     reconstruction = [
 
-        TranscriptClip(timestamp=1.0, data=DATA_MISSING),
+        CaptionedClip(timestamp=1.0, data=DATA_MISSING),
 
-        TranscriptClip(timestamp=2.0, data=NarrativeOnlyPayload(description="reconstructed two")),
+        CaptionedClip(timestamp=2.0, data=NarrativeOnlyPayload(description="reconstructed two")),
 
-        TranscriptClip(timestamp=3.0, data=DATA_MISSING),
+        CaptionedClip(timestamp=3.0, data=DATA_MISSING),
 
     ]
 

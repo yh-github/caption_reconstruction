@@ -1,7 +1,7 @@
 # config/exp_001.yaml
 
 experiment_name: "Test impact of masking ratio"
-transcript_richness: "narrative_only"
+caption_richness: "narrative_only"
 
 # --- Key Independent Variables ---
 masking_params:

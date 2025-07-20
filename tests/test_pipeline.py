@@ -1,7 +1,7 @@
 # tests/test_pipeline.py
 import json
 from pipeline import apply_masking, build_prompt
-from toy_data import create_toy_transcript
+from toy_data import create_toy_captions
 from constants import DATA_MISSING
 
 def test_apply_masking_replaces_data_payload():
@@ -9,14 +9,14 @@ def test_apply_masking_replaces_data_payload():
     Tests that the masking logic correctly replaces the 'data' field.
     """
     # Arrange
-    ground_truth = create_toy_transcript()
+    ground_truth = create_toy_captions()
     config = {'masking': {'ratio': 0.5, 'scheme': 'random'}, 'random_seed': 42}
 
     # Act
-    masked_transcript = apply_masking(ground_truth, config)
+    masked_captions = apply_masking(ground_truth, config)
 
     # Assert
-    mask_count = sum(1 for clip in masked_transcript if clip.data == DATA_MISSING)
+    mask_count = sum(1 for clip in masked_captions if clip.data == DATA_MISSING)
     assert mask_count == 5
 
 def test_build_prompt_creates_valid_json():
@@ -24,13 +24,13 @@ def test_build_prompt_creates_valid_json():
     Tests that the prompt builder creates a valid JSON string.
     """
     # Arrange
-    ground_truth = create_toy_transcript()
+    ground_truth = create_toy_captions()
     config = {'masking': {'ratio': 0.3, 'scheme': 'random'}, 'random_seed': 10}
-    masked_transcript = apply_masking(ground_truth, config)
+    masked_captions = apply_masking(ground_truth, config)
 
     # Act
     # The config argument was missing here. Now it's added.
-    prompt = build_prompt(masked_transcript, config)
+    prompt = build_prompt(masked_captions, config)
     
     # Assert
     json_part = prompt.split("---\n\n")[1]
@@ -42,13 +42,13 @@ def test_build_prompt_creates_valid_json():
 
 def test_apply_masking_contiguous_random():
     """Tests that contiguous masking creates a single block of masked clips."""
-    ground_truth = create_toy_transcript()
+    ground_truth = create_toy_captions()
     config = {'masking': {'ratio': 0.3, 'scheme': 'contiguous_random'}, 'random_seed': 5}
     
-    masked_transcript = apply_masking(ground_truth, config)
+    masked_captions = apply_masking(ground_truth, config)
     
     # Find the indices of the masked clips
-    masked_indices = [i for i, clip in enumerate(masked_transcript) if clip.data == DATA_MISSING]
+    masked_indices = [i for i, clip in enumerate(masked_captions) if clip.data == DATA_MISSING]
     
     assert len(masked_indices) == 3
     # Check if the indices are a continuous block (e.g., [4, 5, 6])
@@ -56,12 +56,12 @@ def test_apply_masking_contiguous_random():
 
 def test_apply_masking_systematic():
     """Tests that systematic masking creates a regular pattern."""
-    ground_truth = create_toy_transcript()
+    ground_truth = create_toy_captions()
     config = {'masking': {'num_to_mask': 3, 'scheme': 'systematic'}, 'random_seed': 1}
     
-    masked_transcript = apply_masking(ground_truth, config)
+    masked_captions = apply_masking(ground_truth, config)
     
-    masked_indices = [i for i, clip in enumerate(masked_transcript) if clip.data == DATA_MISSING]
+    masked_indices = [i for i, clip in enumerate(masked_captions) if clip.data == DATA_MISSING]
     
     assert len(masked_indices) > 0
     # Check that the difference between consecutive masked indices is constant
@@ -72,33 +72,33 @@ def test_apply_masking_systematic():
 
 def test_apply_masking_zero_ratio():
     """Tests that a masking ratio of 0.0 results in no masked clips."""
-    ground_truth = create_toy_transcript()
+    ground_truth = create_toy_captions()
     config = {'masking': {'ratio': 0.0, 'scheme': 'random'}, 'random_seed': 42}
     
-    masked_transcript = apply_masking(ground_truth, config)
+    masked_captions = apply_masking(ground_truth, config)
     
-    mask_count = sum(1 for clip in masked_transcript if clip.data == DATA_MISSING)
+    mask_count = sum(1 for clip in masked_captions if clip.data == DATA_MISSING)
     assert mask_count == 0
-    assert len(masked_transcript) == len(ground_truth)
+    assert len(masked_captions) == len(ground_truth)
 
 def test_apply_masking_full_ratio():
     """Tests that a masking ratio of 1.0 results in all clips being masked."""
-    ground_truth = create_toy_transcript()
+    ground_truth = create_toy_captions()
     config = {'masking': {'ratio': 1.0, 'scheme': 'random'}, 'random_seed': 42}
     
-    masked_transcript = apply_masking(ground_truth, config)
+    masked_captions = apply_masking(ground_truth, config)
     
-    mask_count = sum(1 for clip in masked_transcript if clip.data == DATA_MISSING)
+    mask_count = sum(1 for clip in masked_captions if clip.data == DATA_MISSING)
     assert mask_count == len(ground_truth)
 
-def test_apply_masking_empty_transcript():
-    """Tests that the function handles an empty transcript gracefully."""
+def test_apply_masking_empty_caption():
+    """Tests that the function handles an empty caption gracefully."""
     ground_truth = []
     config = {'masking': {'ratio': 0.5, 'scheme': 'random'}, 'random_seed': 42}
     
-    masked_transcript = apply_masking(ground_truth, config)
+    masked_captions = apply_masking(ground_truth, config)
     
-    assert masked_transcript == []
+    assert masked_captions == []
 
 def test_apply_masking_contiguous_controlled():
     """
@@ -106,7 +106,7 @@ def test_apply_masking_contiguous_controlled():
     of masked clips based on the config.
     """
     # Arrange
-    ground_truth = create_toy_transcript()
+    ground_truth = create_toy_captions()
     # This config says to start at index 3 and mask 4 clips
     config = {
         'masking': {
@@ -117,10 +117,10 @@ def test_apply_masking_contiguous_controlled():
     }
 
     # Act
-    masked_transcript = apply_masking(ground_truth, config)
+    masked_captions = apply_masking(ground_truth, config)
 
     # Find the indices of the masked clips
-    masked_indices = {i for i, clip in enumerate(masked_transcript) if clip.data == DATA_MISSING}
+    masked_indices = {i for i, clip in enumerate(masked_captions) if clip.data == DATA_MISSING}
 
     # Assert that the masked indices are exactly {3, 4, 5, 6}
     expected_indices = {3, 4, 5, 6}

@@ -4,8 +4,8 @@
 # =================================================================
 
 # --- Experiment Settings ---
-experiment_name: "MaskedTranscriptReconstruction"
-transcript_richness: "narrative_only" # Default richness level
+experiment_name: "MaskedCaptionsReconstruction"
+caption_richness: "narrative_only" # Default richness level
 
 # --- LLM Configuration ---
 llm:

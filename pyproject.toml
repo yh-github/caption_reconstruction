@@ -1,5 +1,5 @@
 [project]
-name = "transcript_recon"
+name = "caption_recon"
 version = "0.1.0"
 authors = [
 	{ name="Yoav Haimovitch", email="yoavh@technion.ac.il" },

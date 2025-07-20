@@ -1,30 +1,30 @@
 # src/baselines.py
 import logging
-from data_models import TranscriptClip
+from data_models import CaptionedClip
 from constants import DATA_MISSING
 
-def repeat_last_known_baseline(masked_transcript: list[TranscriptClip]) -> list[TranscriptClip]:
+def repeat_last_known_baseline(masked_captions: list[CaptionedClip]) -> list[CaptionedClip]:
     """
     Fills masked clips by repeating the data from the last known clip.
     If the initial clips are masked, it back-fills them using the first
     available non-masked clip.
     """
     logging.info("Running 'repeat_last_known' baseline...")
-    if not masked_transcript:
+    if not masked_captions:
         return []
 
     # --- First Pass: Find the first available data payload ---
     first_valid_data = None
-    for clip in masked_transcript:
+    for clip in masked_captions:
         if clip.data != DATA_MISSING:
             first_valid_data = clip.data
             break
 
-    # --- Second Pass: Reconstruct the transcript ---
+    # --- Second Pass: Reconstruct the caption ---
     reconstructed_clips = []
     last_known_data = first_valid_data # Start with the first valid data
 
-    for clip in masked_transcript:
+    for clip in masked_captions:
         new_clip = clip.model_copy()
         if clip.data != DATA_MISSING:
             # This is an unmasked clip, so we use its data and update our memory.

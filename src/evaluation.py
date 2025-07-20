@@ -2,7 +2,7 @@
 import logging
 from joblib import Memory
 from bert_score import score as bert_score
-from data_models import TranscriptClip
+from data_models import CaptionedClip
 from constants import DATA_MISSING
 
 # --- Caching Setup ---
@@ -33,8 +33,8 @@ def get_embedding(text: str):
     return [len(text)] 
 
 def evaluate_reconstruction(
-    reconstructed_clips: list[TranscriptClip],
-    ground_truth_clips: list[TranscriptClip]
+    reconstructed_clips: list[CaptionedClip],
+    ground_truth_clips: list[CaptionedClip]
 ) -> dict:
     """
     Evaluates the quality of the reconstruction using BERTScore.
@@ -43,8 +43,8 @@ def evaluate_reconstruction(
     from the ground truth and calculates the semantic similarity.
 
     Args:
-        reconstructed_clips: The full transcript list returned and parsed from the LLM.
-        ground_truth_clips: The original, unmasked transcript.
+        reconstructed_clips: The full caption list returned and parsed from the LLM.
+        ground_truth_clips: The original, unmasked caption.
 
     Returns:
         A dictionary containing the precision, recall, and F1 score from BERTScore.
