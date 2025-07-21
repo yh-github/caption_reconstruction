@@ -12,5 +12,4 @@ paths:
   joblib_cache: "cache/"
 
   # The location of the input data source.
-  # This will later be a path to a CSV file.
-  data_source: "toy_example"
+  datasets_root: "datasets/"
