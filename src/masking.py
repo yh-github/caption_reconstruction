@@ -5,10 +5,10 @@ from abc import ABC, abstractmethod
 from data_models import CaptionedClip
 from constants import DATA_MISSING
 
-class BaseMaskingStrategy(ABC):
+class MaskingStrategy(ABC):
     """Abstract base class for all masking strategies."""
-    def __init__(self, prn_generator: random.Random):
-        self.prn = prn_generator # Store the dedicated generator instance
+    def __init__(self, scheme: str):
+        self.scheme = scheme
 
     @abstractmethod
     def _get_indices_to_mask(self, num_clips: int) -> set:
@@ -26,70 +26,96 @@ class BaseMaskingStrategy(ABC):
             else:
                 masked_captions.append(clip)
         
-        logging.info(f"Masked {len(indices_to_mask)} of {len(caption)} clips.")
+        logging.info(f"Masked {len(indices_to_mask)} of {len(caption)} clips using '{self.scheme}'.")
         return masked_captions
 
-class RandomMasking(BaseMaskingStrategy):
+    def __repr__(self) -> str:
+        """Generates a descriptive string for the strategy and its parameters."""
+        params = self._get_params_for_repr()
+        param_str = "_".join(f"{k}={v}" for k, v in params.items())
+        return f"{self.scheme}_{param_str}"
+
+    @abstractmethod
+    def _get_params_for_repr(self) -> dict:
+        """Returns a dictionary of parameters for the string representation."""
+        pass
+
+class RandomMasking(MaskingStrategy):
     """Masks a random selection of clips based on a ratio."""
     def __init__(self, ratio: float, prn_generator: random.Random):
-        super().__init__(prn_generator)
+        super().__init__("random")
         self.ratio = ratio
+        self.prn = prn_generator
 
     def _get_indices_to_mask(self, num_clips: int) -> set:
         num_to_mask = int(num_clips * self.ratio)
         return set(self.prn.sample(range(num_clips), k=num_to_mask))
 
-class ContiguousRandomMasking(BaseMaskingStrategy):
-    """Masks a single, randomly placed contiguous block of clips."""
-    def __init__(self, ratio: float, prn_generator: random.Random):
-        super().__init__(prn_generator)
-        self.ratio = ratio
+    def _get_params_for_repr(self) -> dict:
+        return {"ratio": self.ratio}
+
+class PartitionMasking(MaskingStrategy):
+    """A generic strategy that divides a sequence into partitions and masks a block."""
+    def __init__(self, num_partitions: int, start_partition: int, num_parts_to_mask: int):
+        super().__init__("partition")
+        self.num_partitions = num_partitions
+        self.start_partition = start_partition
+        self.num_parts_to_mask = num_parts_to_mask
 
     def _get_indices_to_mask(self, num_clips: int) -> set:
-        num_to_mask = int(num_clips * self.ratio)
-        if num_to_mask == 0: return set()
-        start_index = self.prn.randint(0, num_clips - num_to_mask)
-        return set(range(start_index, start_index + num_to_mask))
+        if self.num_partitions > num_clips:
+            return set() # Cannot partition if there are more partitions than items
 
-class ContiguousControlledMasking(BaseMaskingStrategy):
-    """Masks a specific, contiguous block of clips."""
-    def __init__(self, start_index: int, num_to_mask: int, prn_generator: random.Random):
-        super().__init__(prn_generator)
-        self.start_index = start_index
-        self.num_to_mask = num_to_mask
+        base_size = num_clips // self.num_partitions
+        remainder = num_clips % self.num_partitions
+        
+        partitions = []
+        current_index = 0
+        for i in range(self.num_partitions):
+            part_size = base_size + 1 if i < remainder else base_size
+            partitions.append(list(range(current_index, current_index + part_size)))
+            current_index += part_size
 
-    def _get_indices_to_mask(self, num_clips: int) -> set:
-        return set(range(self.start_index, self.start_index + self.num_to_mask))
+        indices_to_mask = set()
+        end_partition = self.start_partition + self.num_parts_to_mask
+        for i in range(self.start_partition, end_partition):
+            if i < len(partitions):
+                indices_to_mask.update(partitions[i])
+        return indices_to_mask
 
-class SystematicMasking(BaseMaskingStrategy):
-    """Masks clips at a regular interval."""
-    def __init__(self, ratio: float, prn_generator: random.Random):
-        super().__init__(prn_generator)
-        self.ratio = ratio
+    def _get_params_for_repr(self) -> dict:
+        return {"num_partitions": self.num_partitions, "start_partition": self.start_partition, "num_parts_to_mask": self.num_parts_to_mask}
 
-    def _get_indices_to_mask(self, num_clips: int) -> set:
-        num_to_mask = int(num_clips * self.ratio)
-        if num_to_mask == 0: return set()
-        step = num_clips // num_to_mask
-        start_offset = self.prn.randint(0, step - 1)
-        return set(range(start_offset, num_clips, step))
+def get_masking_strategies(masking_configs: list, master_seed: int) -> list[MaskingStrategy]:
+    """
+    Factory function that reads a list of masking configurations and generates
+    a list of all specified masking strategy instances.
+    """
+    strategies = []
 
-def get_masking_strategy(masking_config: dict, seed: int) -> BaseMaskingStrategy:
-    """Factory function that reads the config and builds the correct masking strategy."""
-    masking_prn = random.Random(seed) # Create the dedicated PRN generator
-    scheme = masking_config.get("scheme")
+    for config in masking_configs:
+        scheme = config.get("scheme")
+        if scheme == "random":
+            seed = config.get("seed", 0) # TODO: if "seed" is a list, iterate over all values
+            for ratio in config.get("ratio", []):
+                strategies.append(RandomMasking(ratio=ratio, prn_generator=random.Random(master_seed+seed) ))
 
-    if scheme == "random":
-        return RandomMasking(ratio=masking_config['ratio'], prn_generator=masking_prn)
-    elif scheme == "contiguous_random":
-        return ContiguousRandomMasking(ratio=masking_config['ratio'], prn_generator=masking_prn)
-    elif scheme == "contiguous_controlled":
-        return ContiguousControlledMasking(
-            start_index=masking_config['mask_index'],
-            num_to_mask=masking_config['num_to_mask'],
-            prn_generator=masking_prn
-        )
-    elif scheme == "systematic":
-        return SystematicMasking(ratio=masking_config['ratio'], prn_generator=masking_prn)
-    else:
-        raise NotImplementedError(f"Masking scheme '{scheme}' is not implemented.")
+        elif scheme == "partition":
+            num_partitions = config["num_partitions"]
+
+            for num_to_mask in config.get("num_parts_to_mask", []):
+                if num_to_mask > num_partitions:
+                    continue
+
+                max_start_part = num_partitions - num_to_mask
+                for start_part in range(max_start_part + 1):
+                    strategies.append(PartitionMasking(
+                        num_partitions=num_partitions,
+                        start_partition=start_part,
+                        num_parts_to_mask=num_to_mask
+                    ))
+        else:
+            raise NotImplementedError(f"Masking scheme '{scheme}' is not implemented.")
+
+    return strategies
+

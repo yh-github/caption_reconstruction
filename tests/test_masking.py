@@ -1,70 +1,115 @@
-# tests/test_masking.py
 import pytest
-import random
-from masking import get_masking_strategy, RandomMasking, ContiguousControlledMasking, ContiguousRandomMasking, SystematicMasking
+from masking import PartitionMasking, get_masking_strategies
 from data_models import CaptionedClip, NarrativeOnlyPayload
 from constants import DATA_MISSING
-from data_loaders import ToyDataLoader
 
-@pytest.fixture(scope="module")
-def toy_captions():
-    loader = ToyDataLoader("datasets/toy_dataset/data.json")
-    return loader.load()[0].clips
+# --- The Fixture (no longer parameterized) ---
+@pytest.fixture
+def captions_of_length(request):
+    """
+    A factory fixture that creates a list of CaptionedClip objects
+    of a specified length.
+    """
+    def _create_captions(num_clips):
+        return [CaptionedClip(timestamp=i+1, data=NarrativeOnlyPayload(description=f"Clip {i+1}")) for i in range(num_clips)]
+    return _create_captions
 
-def test_factory_creates_correct_strategy_types():
-    """Tests that the factory function returns the correct strategy objects."""
+# --- The New, Specific Tests ---
+
+@pytest.mark.parametrize(
+    "num_clips, num_partitions, start_partition, expected_indices",
+    [
+        (10, 5, 1, {2, 3}),      # Test 1: 10 clips, 5 parts, mask 2nd part
+        (7, 3, 2, {5, 6}),       # Test 2: 7 clips, 3 parts, mask 3rd part
+        (20, 10, 8, {16, 17}),   # Test 3: 20 clips, 10 parts, mask 9th part
+    ]
+)
+def test_partition_masking_scenarios(captions_of_length, num_clips, num_partitions, start_partition, expected_indices):
+    """
+    Tests specific partition masking scenarios on videos of various lengths.
+    Each row in the @pytest.mark.parametrize decorator will run as a separate test.
+    """
     # Arrange
-    configs = {
-        "random": {"scheme": "random", "ratio": 0.5},
-        "contiguous_controlled": {"scheme": "contiguous_controlled", "mask_index": 1, "num_to_mask": 1},
-        "contiguous_random": {"scheme": "contiguous_random", "ratio": 0.5},
-        "systematic": {"scheme": "systematic", "ratio": 0.3}
-    }
+    # "Call" the fixture with the specific parameter for this test run
+    captions = captions_of_length(num_clips)
+    strategy = PartitionMasking(
+        num_partitions=num_partitions,
+        start_partition=start_partition,
+        num_parts_to_mask=1
+    )
 
-    # Act & Assert
-    # We now pass the specific masking_config dictionary to the factory.
-    strategy_r = get_masking_strategy(configs["random"], seed=42)
-    assert isinstance(strategy_r, RandomMasking)
-
-    strategy_cc = get_masking_strategy(configs["contiguous_controlled"], seed=42)
-    assert isinstance(strategy_cc, ContiguousControlledMasking)
-
-    strategy_cr = get_masking_strategy(configs["contiguous_random"], seed=42)
-    assert isinstance(strategy_cr, ContiguousRandomMasking)
-
-    strategy_s = get_masking_strategy(configs["systematic"], seed=42)
-    assert isinstance(strategy_s, SystematicMasking)
-
-def test_contiguous_controlled_masking(toy_captions):
-    masking_config = {'scheme': 'contiguous_controlled', 'mask_index': 3, 'num_to_mask': 4}
-    strategy = get_masking_strategy(masking_config, seed=1)
-    masked = strategy.apply(toy_captions)
+    # Act
+    masked = strategy.apply(captions)
     masked_indices = {i for i, c in enumerate(masked) if c.data == DATA_MISSING}
-    assert masked_indices == {3, 4, 5, 6}
 
-def test_systematic_masking_is_deterministic(toy_captions):
-    masking_config = {'scheme': 'systematic', 'ratio': 0.3}
-    strategy = get_masking_strategy(masking_config, seed=1)
-    masked = strategy.apply(toy_captions)
+    # Assert
+    assert masked_indices == expected_indices
+
+def test_partition_masking_on_5_clips(captions_of_length):
+    """
+    A specific, standalone test for the 5-clip edge case.
+    """
+    # Arrange
+    captions = captions_of_length(5)
+    strategy = PartitionMasking(num_partitions=5, start_partition=2, num_parts_to_mask=1)
+
+    # Act
+    masked = strategy.apply(captions)
     masked_indices = {i for i, c in enumerate(masked) if c.data == DATA_MISSING}
-    assert masked_indices == {0, 3, 6, 9}
 
-def test_masking_zero_ratio(toy_captions):
-    masking_config = {'scheme': 'random', 'ratio': 0.0}
-    strategy = get_masking_strategy(masking_config, seed=42)
-    masked = strategy.apply(toy_captions)
-    mask_count = sum(1 for c in masked if c.data == DATA_MISSING)
-    assert mask_count == 0
+    # Assert
+    assert masked_indices == {2}
 
-def test_masking_full_ratio(toy_captions):
-    masking_config = {'scheme': 'random', 'ratio': 1.0}
-    strategy = get_masking_strategy(masking_config, seed=42)
-    masked = strategy.apply(toy_captions)
-    mask_count = sum(1 for c in masked if c.data == DATA_MISSING)
-    assert mask_count == len(toy_captions)
+def test_factory_generates_correct_number_of_strategies_1_2():
+    """
+    Tests that get_masking_strategies correctly generates the total number
+    of strategy instances from a grid search configuration.
+    """
+    # Arrange: This config defines a grid search over two partition sizes (1 and 2)
+    masking_configs = [{
+        "scheme": "partition",
+        "num_partitions": 5,
+        "num_parts_to_mask": [1, 2] # Test two different mask sizes
+    }]
 
-def test_masking_empty_caption_list():
-    masking_config = {'scheme': 'random', 'ratio': 0.5}
-    strategy = get_masking_strategy(masking_config, seed=42)
-    masked = strategy.apply([])
-    assert masked == []
+    # Act
+    # We pass a sample video length, as the factory is data-aware.
+    strategies = get_masking_strategies(
+        masking_configs=masking_configs,
+        master_seed=42
+    )
+
+    # Assert
+    # For a 5-partition system:
+    # - Masks of size 1 have 5 possible start positions (0-4).
+    # - Masks of size 2 have 4 possible start positions (0-3).
+    # Total = 5 + 4 = 9 strategies should be generated.
+    assert len(strategies) == 9
+    assert all(isinstance(s, PartitionMasking) for s in strategies)
+
+
+def test_factory_generates_correct_number_of_strategies_1_2_3_4():
+    """
+    Tests that the factory correctly generates the total number of
+    strategy instances from a grid search over masks of size 1, 2, 3, and 4.
+    """
+    # Arrange
+    masking_configs = [{
+        "scheme": "partition",
+        "num_partitions": 5,
+        "num_parts_to_mask": [1, 2, 3, 4]
+    }]
+
+    # Act
+    strategies = get_masking_strategies(masking_configs, master_seed=42)
+
+    # Assert
+    # For a 5-partition system:
+    # - Masks of size 1 have 5 possible starts.
+    # - Masks of size 2 have 4 possible starts.
+    # - Masks of size 3 have 3 possible starts.
+    # - Masks of size 4 have 2 possible starts.
+    # Total = 5 + 4 + 3 + 2 = 14 strategies should be generated.
+    assert len(strategies) == 14
+    assert all(isinstance(s, PartitionMasking) for s in strategies)
+
