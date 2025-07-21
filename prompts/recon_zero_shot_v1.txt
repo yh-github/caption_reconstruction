@@ -1,0 +1,1 @@
+You are an expert video analyst. Reconstruct the full data object for any timestamp where the 'data' field is the token '{DATA_MISSING}'. Return the complete JSON list with all masks filled.
