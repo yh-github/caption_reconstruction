@@ -1,0 +1,27 @@
+# A configuration file for a simple experiment batch.
+# This runs the 'repeat last known' baseline on the toy dataset,
+# iterating through all possible single-partition masks.
+
+batch_name: "Baseline on Toy Dataset"
+
+# --- Parameters that are constant for all runs in this batch ---
+base_params:
+  experiment_name: "MaskedCaptionsReconstruction"
+  master_seed: 42
+  # The data config now points to our file-based toy dataset
+  data_config:
+    name: "toy_dataset"
+    path: "datasets/toy_dataset/data.json"
+
+# --- A list of strategies to test (in this case, just one) ---
+recon_strategy:
+  - name: "baseline_repeat_last"
+    type: "baseline_repeat_last"
+
+# --- A list of masking rules to generate strategies from ---
+masking_configs:
+  - scheme: "partition"
+    num_partitions: 5
+    # This will generate 5 separate masking strategies, one for each
+    # possible single-partition mask.
+    num_parts_to_mask: [1]
