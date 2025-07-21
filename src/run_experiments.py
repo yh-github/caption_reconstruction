@@ -7,7 +7,7 @@ from filelock import FileLock
 from utils import check_git_repository_is_clean, setup_mlflow
 from config_loader import load_config
 from reconstruction_strategies import build_reconstruction_strategy
-
+from data_loaders import get_data_loader
 from experiment_runner import ExperimentRunner
 from exceptions import UserFacingError
 
