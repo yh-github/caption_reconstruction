@@ -1,12 +1,16 @@
 import logging
+import sys
 import mlflow
 from filelock import FileLock
 
 # Local imports
 from utils import check_git_repository_is_clean, setup_mlflow
 from config_loader import load_config
-from strategy_builder import setup_experiment_strategy
+from reconstruction_strategies import build_reconstruction_strategy
+
 from experiment_runner import ExperimentRunner
+from exceptions import UserFacingError
+
 
 def init():
     # --- 1. Pre-flight Checks and Setup ---
@@ -29,10 +33,10 @@ def main(config):
             logging.info(f"--- Starting Experiment Batch: {parent_run_name} ---")
             
             # --- Loop 1: Reconstruction Strategy ---
-            for strategy_params in config.get("strategies", []):
+            for strategy_params in config.get("recon_strategy", []):
                 
                 # Build the strategy object once for this block
-                recon_strategy = setup_experiment_strategy(strategy_params)
+                recon_strategy = build_reconstruction_strategy(strategy_params)
                 masking_strategies = get_masking_strategies(
                     masking_configs=config["masking_configs"],
                     master_seed=config["master_seed"]
