@@ -20,6 +20,31 @@ class BaseDataLoader(ABC):
         """Loads data and returns a list of CaptionedVideo objects."""
         pass
 
+class ToyDataLoader(BaseDataLoader):
+    """
+    This serves as our initial ground-truth data for building and debugging
+    the experimental pipeline.
+    """
+    def __init__(self, data_path: str):
+        self.data_path = data_path
+
+    def load(self) -> list[CaptionedVideo]:
+        all_videos = []
+        with open(self.data_path, 'r') as f:
+            data = json.load(f)
+        
+        for video_data in data:
+            clips = [
+                CaptionedClip(
+                    timestamp=clip_data["timestamp"],
+                    data=NarrativeOnlyPayload(description=clip_data["description"])
+                ) for clip_data in video_data["clips"]
+            ]
+            all_videos.append(
+                CaptionedVideo(video_id=video_data["video_id"], clips=clips)
+            )
+        return all_videos
+
 class VideoStorytellingLoader(BaseDataLoader):
     """Loads data from the Video Storytelling dataset format."""
     def __init__(self, data_path: str, limit=None):
@@ -90,5 +115,8 @@ def get_data_loader(config: dict) -> BaseDataLoader:
         return VatexLoader(data_path)
     elif dataset_name == "video_storytelling":
         return VideoStorytellingLoader(data_path)
+    elif dataset_name == "toy_data":
+        return ToyDataLoader()
     else:
         raise NotImplementedError(f"No data loader found for dataset: '{dataset_name}'")
+

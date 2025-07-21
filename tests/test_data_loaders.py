@@ -1,7 +1,34 @@
-# tests/test_data_loaders.py
 import pytest
-from data_loaders import VatexLoader, VideoStorytellingLoader, get_data_loader
+from data_loaders import ToyDataLoader, VatexLoader, VideoStorytellingLoader, get_data_loader
 from data_models import CaptionedVideo, CaptionedClip
+
+def test_toy_data_loader_from_file():
+    """
+    Tests that the ToyDataLoader correctly loads and parses the mock
+    JSON data file into a CaptionedVideo object.
+    """
+    # Arrange
+    # Point the loader to our new standard toy data file
+    mock_file_path = "datasets/toy_dataset/data.json"
+    loader = ToyDataLoader(mock_file_path)
+
+    # Act
+    videos = loader.load()
+
+    # Assert
+    # 1. Check the high-level structure
+    assert len(videos) == 1
+    assert isinstance(videos[0], CaptionedVideo)
+
+    # 2. Check the details of the loaded video
+    video = videos[0]
+    assert video.video_id == "toy_video_1"
+    assert len(video.clips) == 10
+
+    # 3. Spot-check a specific clip to ensure data is correct
+    assert video.clips[2].data.description == "The person picks up a red book from the table."
+    assert video.clips[2].timestamp == 3.0
+
 
 def test_video_storytelling_loader():
     """
@@ -60,3 +87,4 @@ def test_get_data_loader_factory():
     assert isinstance(story_loader, VideoStorytellingLoader)
     with pytest.raises(NotImplementedError):
         get_data_loader(bad_config)
+
