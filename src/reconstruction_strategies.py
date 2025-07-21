@@ -76,3 +76,54 @@ class LLMStrategy(ReconstructionStrategy):
             return None
 
 
+def build_reconstruction_strategy(strategy_config: dict) -> ReconstructionStrategy:
+    """
+    Factory function that reads the strategy-specific config and builds
+    the correct reconstruction strategy object.
+    """
+    strategy_type = strategy_config.get("type")
+    if not strategy_type:
+        raise ValueError("'type' must be specified in the strategy configuration.")
+
+    if strategy_type == "llm":
+        return LLMStrategy(config=strategy_config)
+    elif strategy_type == "baseline_repeat_last":
+        return BaselineStrategy(config=strategy_config)
+    # Add other strategies here in the future
+    else:
+        raise NotImplementedError(f"Strategy type '{strategy_type}' is not implemented.")
+
+
+class ReconstructionStrategyBuilder:
+    """
+    A builder class responsible for creating reconstruction strategy objects.
+    It initializes and holds the LLM client, ensuring it's created only once.
+    """
+    def __init__(self, config: dict):
+        self.llm_model = None
+        self.config = config
+
+    def get_strategy(self, strategy_config: dict) -> ReconstructionStrategy:
+        """
+        Builds and returns a specific strategy instance based on the config.
+        """
+        strategy_type = strategy_config.get("type")
+        if not strategy_type:
+            raise ConfigError("'type' must be specified in the strategy configuration.")
+
+        if strategy_type == "llm":
+            if self.llm_model is None:
+                self.llm_model = initialize_llm(self.config)
+            prompt_builder = get_prompt_builder(strategy_config)
+            # Inject the pre-initialized LLM model into the strategy
+            return LLMStrategy(
+                name=strategy_config.get("name"),
+                llm_model=self.llm_model,
+                prompt_builder=prompt_builder
+            )
+
+        elif strategy_type == "baseline_repeat_last":
+            return BaselineRepeatStrategy()
+
+        else:
+            raise NotImplementedError(f"Strategy type '{strategy_type}' is not implemented.")
