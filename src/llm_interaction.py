@@ -19,8 +19,8 @@ def initialize_llm(config):
 
 @retry(
     wait=wait_random_exponential(min=5, max=120),
-    stop=stop_after_attempt(6)
-    #Do we need this: ,retry=retry_if_exception_type(google.api_core.exceptions.ResourceExhausted)
+    stop=stop_after_attempt(6),
+    retry=retry_if_exception_type(google.api_core.exceptions.ResourceExhausted)
 )
 def call_llm(model, prompt):
     """Calls the LLM API using its dedicated JSON mode."""
