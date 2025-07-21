@@ -1,0 +1,33 @@
+# Defines the default parameters for a single experiment run.
+
+# --- High-Level Experiment Info ---
+experiment_name: "MaskedCaptionsReconstruction"
+
+# --- Strategy Configuration ---
+# This block now defines the entire reconstruction strategy.
+strategy:
+  # A unique, descriptive name for this specific strategy.
+  name: "llm_zero_shot_v1" 
+  # This tells our strategy_builder which class to instantiate.
+  type: "llm" 
+  # Strategy-specific parameters:
+  model_name: "gemini-1.5-flash-latest"
+  prompt_template: "prompts/reconstruction_v1.txt"
+
+# --- LLM Generation Parameters ---
+generation_params:
+  temperature: 0.7
+
+# --- Data Configuration ---
+data:
+  # The name of the dataset to use for this experiment.
+  # The loader will find it inside the 'datasets_root' path.
+  name: "storytelling" 
+  caption_richness: "narrative_only"
+
+# --- Default Hyperparameters ---
+masking:
+  scheme: "random"
+  ratio: 0.5
+
+random_seed: 42
