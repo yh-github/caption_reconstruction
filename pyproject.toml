@@ -1,8 +1,8 @@
 [project]
-name = "caption_recon"
-version = "0.1.0"
+name = "caption_reconstruction"
+version = "0.1.1"
 authors = [
-	{ name="Yoav Haimovitch", email="yoavh@technion.ac.il" },
+	{ name="Yoav Haimovitch", email="yoav.haimovitch@post.runi.ac.il" },
 ]
 description = "A project to reconstruct masked video captions using LLMs."
 requires-python = ">=3.11"
