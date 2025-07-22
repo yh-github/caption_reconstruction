@@ -1,36 +1,7 @@
-# src/evaluation.py
 import logging
-from joblib import Memory
 from bert_score import score as bert_score
 from data_models import CaptionedClip
 from constants import DATA_MISSING
-
-# --- Caching Setup ---
-# Initialize a memory object. This will create a cache directory and
-# store the results of the decorated function there.
-# We will get the cache path from our config.
-memory = None
-
-def initialize_cache(cache_path: str):
-    """Initializes the joblib cache at a specified path."""
-    global memory
-    logging.info(f"Initializing cache at: {cache_path}")
-    memory = Memory(cache_path, verbose=0)
-
-# --- Embedding and Evaluation Functions ---
-
-# This function is a placeholder for a real embedding function.
-# In a real scenario, this would call an LLM's embedding endpoint.
-# The @memory.cache decorator ensures the result is cached.
-def get_embedding(text: str):
-    """
-    (SIMULATED) A placeholder for a function that would fetch text embeddings.
-    NOTE: For the purpose of this example, we return a dummy value.
-    The real power comes from the caching, not the function itself.
-    """
-    logging.debug(f"Cache miss. Generating dummy embedding for: '{text}'")
-    # In a real implementation, this would be a high-dimensional vector.
-    return [len(text)] 
 
 def evaluate_reconstruction(
     reconstructed_clips: list[CaptionedClip],

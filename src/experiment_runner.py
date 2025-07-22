@@ -4,6 +4,8 @@ import mlflow
 from data_loaders import BaseDataLoader
 from masking import MaskingStrategy
 from reconstruction_strategies import ReconstructionStrategy
+from evaluation import evaluate_reconstruction
+
 
 class ExperimentRunner:
     """
@@ -35,8 +37,8 @@ class ExperimentRunner:
             reconstructed_video = self.reconstruction_strategy.reconstruct(masked_video)
             
             if reconstructed_video:
-                # metrics = evaluate_reconstruction(reconstructed_video, video)
-                # mlflow.log_metrics(metrics)
+                metrics = evaluate_reconstruction(reconstructed_video.clips, video.clips)
+                mlflow.log_metrics(metrics)
                 logging.info(f"Successfully processed video: {video.video_id}")
             else:
                 logging.error(f"Reconstruction failed for video: {video.video_id}")
