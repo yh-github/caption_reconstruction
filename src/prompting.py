@@ -26,10 +26,9 @@ class JSONPromptBuilder(BasePromptBuilder):
     @staticmethod
     def from_config(config: dict):
         """Constructs the builder from a configuration dictionary."""
-        template_path = config.get("strategy", {}).get("prompt_template")
+        template_path = config.get("prompt_template")
         if not template_path:
             raise ValueError("Prompt template path not specified in config.")
-        # This method now calls the 'from_path' method
         return JSONPromptBuilder.from_path(template_path)
 
     @staticmethod
@@ -37,7 +36,6 @@ class JSONPromptBuilder(BasePromptBuilder):
         """Constructs the builder from a file path."""
         with open(template_path, 'r') as f:
             template_string = f.read().strip()
-        # This method now calls the 'from_string' method
         return JSONPromptBuilder.from_string(template_string)
 
     @staticmethod

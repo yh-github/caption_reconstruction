@@ -91,8 +91,11 @@ def done(log_path):
 if __name__ == "__main__":
     try:
         config = init()
-        log_path = main(config)
-        done(log_path)
+        if len(sys.argv) > 2 and sys.argv[2]=='--dry-run':
+            print(f"prepared {len(list(build_experiments(config)))} experiments")
+        else:
+            log_path = main(config)
+            done(log_path)
     except UserFacingError as e:
         print(f"\n❌ Error: {e}", file=sys.stderr)
         sys.exit(1)
