@@ -6,7 +6,7 @@ from data_models import CaptionedVideo
 from llm_interaction import call_llm, initialize_llm
 from parsers import parse_llm_response
 from prompting import BasePromptBuilder, JSONPromptBuilder
-from src.exceptions import UserFacingError
+from exceptions import UserFacingError
 
 
 class ReconstructionStrategy(ABC):

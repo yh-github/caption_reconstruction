@@ -4,8 +4,8 @@ import sys
 import mlflow
 from filelock import FileLock
 
-from src.masking import get_masking_strategies
 # Local imports
+from masking import get_masking_strategies
 from utils import check_git_repository_is_clean, setup_mlflow, object_to_dict, setup_logging
 from config_loader import load_config
 from reconstruction_strategies import ReconstructionStrategyBuilder
