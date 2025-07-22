@@ -55,7 +55,7 @@ def test_vatex_loader():
     """
     # Arrange
     mock_file_path = "tests/fixtures/vatex_mock/mock_data.json"
-    loader = VatexLoader(mock_file_path)
+    loader = VatexLoader(mock_file_path, limit=5)
 
     # Act
     videos = loader.load()

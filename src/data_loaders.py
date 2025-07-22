@@ -78,8 +78,9 @@ class VideoStorytellingLoader(BaseDataLoader):
 
 class VatexLoader(BaseDataLoader):
     """Loads data from the VATEX dataset format."""
-    def __init__(self, data_path: str):
+    def __init__(self, data_path: str, limit: int|None=None):
         self.data_path = data_path
+        self.limit = limit
 
     def load(self) -> list[CaptionedVideo]:
         logging.info(f"Loading from VATEX dataset at: {self.data_path}")
@@ -97,6 +98,8 @@ class VatexLoader(BaseDataLoader):
                     data=NarrativeOnlyPayload(description=caption)
                 ))
             all_videos.append(CaptionedVideo(video_id=video_id, clips=clips))
+            if self.limit and self.limit <= len(all_videos):
+                break
         return all_videos
 
 def get_data_loader(data_config: dict) -> BaseDataLoader:
