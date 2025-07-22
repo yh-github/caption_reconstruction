@@ -1,3 +1,5 @@
+import platform
+from importlib.metadata import version
 import logging
 import os
 import sys
@@ -41,6 +43,11 @@ def main(config):
         with mlflow.start_run(run_name=parent_run_name) as parent_run:
             log_path = setup_logging(parent_run.info.run_id)
             logging.info(f"--- Starting Experiment Batch: {parent_run_name} ---")
+
+            # Log reproducibility parameters
+            mlflow.log_param("git_commit_hash", git_commit_hash)
+            mlflow.log_param("python_version", platform.python_version())
+            mlflow.log_param("mlflow_version", version('mlflow'))
 
             for runner, run_params in build_experiments(config):
                 run_name = runner.run_name

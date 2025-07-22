@@ -72,11 +72,6 @@ def setup_mlflow(
     mlflow.set_tracking_uri(tracking_uri)
     mlflow.set_experiment(experiment_name)
 
-    # Log reproducibility parameters
-    mlflow.log_param("git_commit_hash", git_commit_hash)
-    mlflow.log_param("python_version", platform.python_version())
-    mlflow.log_param("mlflow_version", version('mlflow'))
-
 def object_to_dict(obj: object) -> dict:
     """
     Recursively converts an object and its attributes into a dictionary
