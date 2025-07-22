@@ -58,7 +58,7 @@ class ExperimentRunner:
             mlflow.log_metric("mean_precision", mean_precision)
             mlflow.log_metric("mean_recall", mean_recall)
 
-            logging.info(f"Logged aggregated metrics for run. Mean F1: {mean_f1:.4f}")
+            logging.info(f"{self.run_name} Logged aggregated metrics. Mean F1: {mean_f1:.4f}")
         else:
             logging.warning("No metrics were generated to log.")
 
