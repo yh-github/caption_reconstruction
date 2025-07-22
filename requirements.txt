@@ -6,9 +6,9 @@
 # =================================================================
 
 # --- Core Libraries ---
-google-genai==1.25.0		# For interacting with the Gemini API
-pydantic==2.11.7		# For robust data modeling and validation
-PyYAML==6.0.2			# For parsing our .yaml configuration files
+google-generativeai==0.8.5	# For interacting with the Gemini API
+pydantic==2.11.7		    # For robust data modeling and validation
+PyYAML==6.0.2			    # For parsing our .yaml configuration files
 
 # --- Experiment Management & Reproducibility ---
 mlflow==3.1.1			# For tracking experiments, logging metrics, and managing results
