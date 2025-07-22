@@ -30,11 +30,11 @@ def main(config):
     git_commit_hash = check_git_repository_is_clean()
     
     # --- 2. The Experiment Loops ---
-    with FileLock("experiment.lock"):
+    with FileLock(".lock"):
         parent_run_name = config.get("batch_name", "ExperimentBatch")
         
         with mlflow.start_run(run_name=parent_run_name) as parent_run:
-            setup_logging(parent_run.run_id)
+            setup_logging(parent_run.info.run_id)
             logging.info(f"--- Starting Experiment Batch: {parent_run_name} ---")
 
             for runner, run_params in build_experiments(config):
