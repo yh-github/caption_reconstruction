@@ -85,6 +85,7 @@ def done(log_path):
     print("\n✅ Finished successfully.")
     print("\nRun `mlflow ui` in your terminal to view the full results.")
     print("\nView log in", log_path)
+    print()
 
 
 if __name__ == "__main__":
