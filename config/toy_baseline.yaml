@@ -10,7 +10,7 @@ base_params:
   master_seed: 42
 
 data_config:
-    name: "toy_dataset"
+    name: "toy_data"
     path: "datasets/toy_dataset/data.json"
 
 # --- A list of strategies to test (in this case, just one) ---
