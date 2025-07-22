@@ -63,7 +63,6 @@ def setup_mlflow(
     experiment_name: str,
     tracking_uri: str,
     git_commit_hash: str,
-    run_params: dict
 ):
     """
     Sets up the MLflow experiment and logs all specified parameters.
@@ -77,11 +76,6 @@ def setup_mlflow(
     mlflow.log_param("git_commit_hash", git_commit_hash)
     mlflow.log_param("python_version", platform.python_version())
     mlflow.log_param("mlflow_version", version('mlflow'))
-
-    # Log all other run-specific parameters
-    mlflow.log_params(run_params)
-
-    logging.info("Reproducibility parameters logged.")
 
 def object_to_dict(obj: object) -> dict:
     """

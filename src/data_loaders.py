@@ -115,7 +115,7 @@ def get_data_loader(data_config: dict) -> BaseDataLoader:
     elif dataset_name == "video_storytelling":
         return VideoStorytellingLoader(data_path)
     elif dataset_name == "toy_data":
-        return ToyDataLoader()
+        return ToyDataLoader(data_path)
     else:
         raise NotImplementedError(f"No data loader found for dataset: '{dataset_name}'")
 
