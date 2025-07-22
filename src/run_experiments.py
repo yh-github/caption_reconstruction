@@ -33,8 +33,7 @@ def main(config):
 
     setup_mlflow(
         experiment_name=experiment_name,
-        tracking_uri=mlflow_uri,
-        git_commit_hash=git_commit_hash,
+        tracking_uri=mlflow_uri
     )
     # --- 2. The Experiment Loops ---
     with FileLock(".lock"):

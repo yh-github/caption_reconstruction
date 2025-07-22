@@ -61,8 +61,7 @@ def setup_mlflowOLD(config, git_commit_hash):
 
 def setup_mlflow(
     experiment_name: str,
-    tracking_uri: str,
-    git_commit_hash: str,
+    tracking_uri: str
 ):
     """
     Sets up the MLflow experiment and logs all specified parameters.
