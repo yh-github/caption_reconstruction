@@ -28,26 +28,27 @@ def main(config):
     experiment_name=config['base_params']['experiment_name']
 
     git_commit_hash = check_git_repository_is_clean()
-    
+
+    setup_mlflow(
+        experiment_name=experiment_name,
+        tracking_uri=mlflow_uri,
+        git_commit_hash=git_commit_hash,
+    )
     # --- 2. The Experiment Loops ---
     with FileLock(".lock"):
         parent_run_name = config.get("batch_name", "ExperimentBatch")
-        
+
         with mlflow.start_run(run_name=parent_run_name) as parent_run:
             log_path = setup_logging(parent_run.info.run_id)
             logging.info(f"--- Starting Experiment Batch: {parent_run_name} ---")
-            setup_mlflow(
-                experiment_name=experiment_name,
-                tracking_uri=mlflow_uri,
-                git_commit_hash=git_commit_hash,
-            )
 
             for runner, run_params in build_experiments(config):
                 run_name = runner.run_name
                 with mlflow.start_run(run_name=run_name, nested=True) as child_run:
                     logging.info(f"--- Starting Nested Run: {run_name} ---")
                     mlflow.log_params(run_params)
-                    runner.run()
+                    metrics = runner.run()
+                    mlflow.log_metrics(metrics)
     return log_path
             
 def build_experiments(config):

@@ -47,18 +47,21 @@ class ExperimentRunner:
                 logging.error(f"Reconstruction failed for video: {video.video_id}")
                 # mlflow.log_metric("reconstruction_failed", 1)
 
-        if all_metrics:
-            # Calculate the mean for each metric across all videos
-            mean_f1 = statistics.mean([m['bert_score_f1'] for m in all_metrics])
-            mean_precision = statistics.mean([m['bert_score_precision'] for m in all_metrics])
-            mean_recall = statistics.mean([m['bert_score_recall'] for m in all_metrics])
-
-            mlflow.log_metric("num_of_instances", len(all_metrics))
-            mlflow.log_metric("mean_f1_score", mean_f1)
-            mlflow.log_metric("mean_precision", mean_precision)
-            mlflow.log_metric("mean_recall", mean_recall)
-
-            logging.info(f"{self.run_name} Logged aggregated metrics. Mean F1: {mean_f1:.4f}")
-        else:
+        if not all_metrics:
             logging.warning("No metrics were generated to log.")
+            return {}
+        # Calculate the mean for each metric across all videos
+        mean_f1 = statistics.mean([m['bert_score_f1'] for m in all_metrics])
+        mean_precision = statistics.mean([m['bert_score_precision'] for m in all_metrics])
+        mean_recall = statistics.mean([m['bert_score_recall'] for m in all_metrics])
+
+        logging.info(f"{self.run_name} Logged aggregated metrics. Mean F1: {mean_f1:.4f}")
+
+        return {
+            "num_of_instances": len(all_metrics),
+            "mean_f1_score": mean_f1,
+            "mean_precision": mean_precision,
+            "mean_recall": mean_recall
+        }
+
 
