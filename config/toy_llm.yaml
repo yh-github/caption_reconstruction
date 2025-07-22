@@ -1,0 +1,27 @@
+batch_name: "Toy Dataset"
+
+# --- Parameters that are constant for all runs in this batch ---
+base_params:
+  experiment_name: "MaskedCaptionsReconstruction"
+  master_seed: 42
+
+data_config:
+    name: "toy_data"
+    path: "datasets/toy_dataset/data.json"
+
+llm:
+    model_name: "gemini-2.0-flash-exp"
+    temperature: 0.5
+
+recon_strategy:
+  - name: "baseline_repeat_last"
+    type: "baseline_repeat_last"
+  - name: "llm_zero_shot_v1"
+    type: "llm"
+    prompt_template: "prompts/recon_zero_shot_v1.txt"
+
+# --- A list of masking rules to generate strategies from ---
+masking_configs:
+  - scheme: "partition"
+    num_partitions: 2
+    num_parts_to_mask: [1]
