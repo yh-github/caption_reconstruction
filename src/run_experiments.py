@@ -53,7 +53,7 @@ def main(config):
 def build_experiments(config):
     data_loader = get_data_loader(config["data_config"])
     # --- Loop 1: Reconstruction Strategy ---
-    rs_builder = ReconstructionStrategyBuilder(config["recon_strategy"])
+    rs_builder = ReconstructionStrategyBuilder(config)
     for strategy_params in config.get("recon_strategy", []):
         
         # Build the strategy object once for this block
