@@ -109,14 +109,15 @@ def get_data_loader(data_config: dict) -> BaseDataLoader:
     """
     dataset_name = data_config.get("name")
     data_path = data_config.get("path")
+    limit = data_config.get("limit")
 
     if not dataset_name or not data_path:
         raise ValueError("Dataset 'name' and 'path' must be specified in the config.")
 
     if dataset_name == "vatex":
-        return VatexLoader(data_path)
+        return VatexLoader(data_path, limit)
     elif dataset_name == "video_storytelling":
-        return VideoStorytellingLoader(data_path)
+        return VideoStorytellingLoader(data_path, limit)
     elif dataset_name == "toy_data":
         return ToyDataLoader(data_path)
     else:
