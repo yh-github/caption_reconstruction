@@ -99,12 +99,11 @@ class VatexLoader(BaseDataLoader):
             all_videos.append(CaptionedVideo(video_id=video_id, clips=clips))
         return all_videos
 
-def get_data_loader(config: dict) -> BaseDataLoader:
+def get_data_loader(data_config: dict) -> BaseDataLoader:
     """
     Factory function that reads the config and returns the appropriate
     data loader instance.
     """
-    data_config = config.get("data", {})
     dataset_name = data_config.get("name")
     data_path = data_config.get("path")
 

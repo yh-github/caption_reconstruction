@@ -20,6 +20,9 @@ class ExperimentRunner:
         self.masking_strategy = masking_strategy
         self.reconstruction_strategy = reconstruction_strategy
 
+    def get_config_dict(self):
+
+
     def run(self):
         """Runs the full experiment from data loading to evaluation."""
         all_videos = self.data_loader.load()

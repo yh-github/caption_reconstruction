@@ -8,8 +8,8 @@ batch_name: "Baseline on Toy Dataset"
 base_params:
   experiment_name: "MaskedCaptionsReconstruction"
   master_seed: 42
-  # The data config now points to our file-based toy dataset
-  data_config:
+
+data_config:
     name: "toy_dataset"
     path: "datasets/toy_dataset/data.json"
 

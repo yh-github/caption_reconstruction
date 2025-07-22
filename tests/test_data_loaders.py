@@ -17,7 +17,7 @@ def test_toy_data_loader_from_file():
 
     # Assert
     # 1. Check the high-level structure
-    assert len(videos) == 1
+    assert len(videos) == 2
     assert isinstance(videos[0], CaptionedVideo)
 
     # 2. Check the details of the loaded video
@@ -74,9 +74,9 @@ def test_get_data_loader_factory():
     based on the configuration.
     """
     # Arrange
-    vatex_config = {"data": {"name": "vatex", "path": "some/path.json"}}
-    story_config = {"data": {"name": "video_storytelling", "path": "some/dir"}}
-    bad_config = {"data": {"name": "unknown_dataset", "path": "..."}}
+    vatex_config = {"name": "vatex", "path": "some/path.json"}
+    story_config = {"name": "video_storytelling", "path": "some/dir"}
+    bad_config = {"name": "unknown_dataset", "path": "..."}
 
     # Act
     vatex_loader = get_data_loader(vatex_config)

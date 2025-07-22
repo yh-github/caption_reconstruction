@@ -47,7 +47,7 @@ def check_git_repository_is_clean():
     logging.info("Git repository is clean.")
     return repo.head.object.hexsha
 
-def setup_mlflow(config, git_commit_hash):
+def setup_mlflowOLD(config, git_commit_hash):
     """Sets up MLflow experiment and logs all parameters."""
     logging.info("Setting up MLflow and logging parameters...")
     mlflow.set_tracking_uri(config['paths']['mlflow_tracking_uri'])
@@ -57,3 +57,49 @@ def setup_mlflow(config, git_commit_hash):
     mlflow.log_param("mlflow_version", version('mlflow'))
     mlflow.log_params(config)
     logging.info("Reproducibility parameters logged.")
+
+
+def setup_mlflow(
+    experiment_name: str,
+    tracking_uri: str,
+    git_commit_hash: str,
+    run_params: dict
+):
+    """
+    Sets up the MLflow experiment and logs all specified parameters.
+    All dependencies are now explicit arguments.
+    """
+    logging.info("Setting up MLflow and logging parameters...")
+    mlflow.set_tracking_uri(tracking_uri)
+    mlflow.set_experiment(experiment_name)
+
+    # Log reproducibility parameters
+    mlflow.log_param("git_commit_hash", git_commit_hash)
+    mlflow.log_param("python_version", platform.python_version())
+    mlflow.log_param("mlflow_version", version('mlflow'))
+
+    # Log all other run-specific parameters
+    mlflow.log_params(run_params)
+
+    logging.info("Reproducibility parameters logged.")
+
+def object_to_dict(obj: object) -> dict:
+    """
+    Recursively converts an object and its attributes into a dictionary
+    that is safe for logging as MLflow parameters.
+    """
+    if not hasattr(obj, '__dict__'):
+        return {"type": obj.__class__.__name__}
+
+    # Start with the object's class name
+    param_dict = {"type": obj.__class__.__name__}
+
+    for key, value in vars(obj).items():
+        # If the attribute is another custom object, recurse
+        if hasattr(value, '__dict__'):
+            param_dict[key] = object_to_dict(value)
+        # Only include simple, loggable types
+        elif isinstance(value, (str, int, float, bool)):
+            param_dict[key] = value
+
+    return param_dict
