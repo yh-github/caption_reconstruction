@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 from constants import DATA_MISSING
 from data_models import CaptionedVideo
-from llm_interaction import call_llm, initialize_llm
+from llm_interaction import LLM_Manager, build_llm_manager
 from parsers import parse_llm_response
 from prompting import BasePromptBuilder, JSONPromptBuilder
 from exceptions import UserFacingError
@@ -69,7 +69,7 @@ class LLMStrategy(ReconstructionStrategy):
     def reconstruct(self, masked_video: CaptionedVideo) -> CaptionedVideo | None:
         try:
             prompt = self.prompt_builder.build_prompt(masked_video)
-            llm_response_text = call_llm(self.llm_model, prompt)
+            llm_response_text = self.llm_model.call(prompt)
             return parse_llm_response(llm_response_text)
         except Exception as e:
             logging.error(f"{e} for {masked_video.video_id=}")
@@ -81,7 +81,7 @@ class ReconstructionStrategyBuilder:
     It initializes and holds the LLM client, ensuring it's created only once.
     """
     def __init__(self, config: dict):
-        self.llm_model = None
+        self.llm_model: LLM_Manager|None = None
         self.config = config
 
     def get_strategy(self, strategy_config: dict) -> ReconstructionStrategy:
@@ -94,9 +94,8 @@ class ReconstructionStrategyBuilder:
 
         if strategy_type == "llm":
             if self.llm_model is None:
-                self.llm_model = initialize_llm(self.config)
+                self.llm_model = build_llm_manager(self.config)
             prompt_builder = JSONPromptBuilder.from_config(strategy_config)
-            # Inject the pre-initialized LLM model into the strategy
             return LLMStrategy(
                 name=strategy_config.get("name"),
                 llm_model=self.llm_model,
