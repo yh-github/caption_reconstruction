@@ -1,4 +1,6 @@
 # src/experiment_runner.py
+
+import statistics
 import logging
 import mlflow
 from data_loaders import BaseDataLoader
@@ -27,7 +29,8 @@ class ExperimentRunner:
     def run(self):
         """Runs the full experiment from data loading to evaluation."""
         all_videos = self.data_loader.load()
-        
+        all_metrics = []
+
         for video in all_videos:
             logging.info(f"--- Processing Video: {video.video_id} ---")
             masked_clips = self.masking_strategy.apply(video.clips)
@@ -37,9 +40,25 @@ class ExperimentRunner:
             reconstructed_video = self.reconstruction_strategy.reconstruct(masked_video)
             
             if reconstructed_video:
-                metrics = evaluate_reconstruction(reconstructed_video.clips, video.clips)
-                mlflow.log_metrics(metrics)
-                logging.info(f"Successfully processed video: {video.video_id}")
+                video_metrics = evaluate_reconstruction(reconstructed_video.clips, video.clips)
+                all_metrics.append(video_metrics)
+                logging.debug(f"Successfully processed video: {video.video_id}")
             else:
                 logging.error(f"Reconstruction failed for video: {video.video_id}")
-                mlflow.log_metric("reconstruction_failed", 1)
+                # mlflow.log_metric("reconstruction_failed", 1)
+
+        if all_metrics:
+            # Calculate the mean for each metric across all videos
+            mean_f1 = statistics.mean([m['bert_score_f1'] for m in all_metrics])
+            mean_precision = statistics.mean([m['bert_score_precision'] for m in all_metrics])
+            mean_recall = statistics.mean([m['bert_score_recall'] for m in all_metrics])
+
+            mlflow.log_metric("num_of_instances", len(all_metrics))
+            mlflow.log_metric("mean_f1_score", mean_f1)
+            mlflow.log_metric("mean_precision", mean_precision)
+            mlflow.log_metric("mean_recall", mean_recall)
+
+            logging.info(f"Logged aggregated metrics for run. Mean F1: {mean_f1:.4f}")
+        else:
+            logging.warning("No metrics were generated to log.")
+
