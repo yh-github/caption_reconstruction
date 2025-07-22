@@ -70,7 +70,9 @@ class LLMStrategy(ReconstructionStrategy):
         try:
             prompt = self.prompt_builder.build_prompt(masked_video)
             llm_response_text = self.llm_model.call(prompt)
-            return parse_llm_response(llm_response_text)
+            reconstructed_clips = parse_llm_response(llm_response_text)
+            reconstructed_video = masked_video.model_copy(update={'clips': reconstructed_clips})
+            return reconstructed_video
         except Exception as e:
             logging.error(f"{e} for {masked_video.video_id=}")
             return None
