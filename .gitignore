@@ -21,3 +21,4 @@ logs/
 try_code/
 .lock
 .idea/
+cache/
