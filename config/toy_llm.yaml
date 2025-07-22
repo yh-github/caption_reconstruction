@@ -1,4 +1,4 @@
-batch_name: "Toy Dataset"
+batch_name: "Toy Dataset 2"
 
 # --- Parameters that are constant for all runs in this batch ---
 base_params:
