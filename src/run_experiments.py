@@ -1,12 +1,14 @@
 import logging
+import os
 import sys
 import mlflow
 from filelock import FileLock
 
+from src.masking import get_masking_strategies
 # Local imports
-from utils import check_git_repository_is_clean, setup_mlflow, object_to_dict
+from utils import check_git_repository_is_clean, setup_mlflow, object_to_dict, setup_logging
 from config_loader import load_config
-from reconstruction_strategies import build_reconstruction_strategy
+from reconstruction_strategies import ReconstructionStrategyBuilder
 from data_loaders import get_data_loader
 from experiment_runner import ExperimentRunner
 from exceptions import UserFacingError
@@ -24,7 +26,6 @@ def init():
 def main(config):
     mlflow_uri = config['paths']['mlflow_tracking_uri']
     experiment_name=config['base_params']['experiment_name']
-    data_loader = get_data_loader(config["data_config"])
 
     git_commit_hash = check_git_repository_is_clean()
     
@@ -33,10 +34,11 @@ def main(config):
         parent_run_name = config.get("batch_name", "ExperimentBatch")
         
         with mlflow.start_run(run_name=parent_run_name) as parent_run:
+            setup_logging(parent_run.run_id)
             logging.info(f"--- Starting Experiment Batch: {parent_run_name} ---")
 
             for runner, run_params in build_experiments(config):
-                run_name = f"{strategy_params.get('name', 'strategy')}_{masking_strategy}"
+                run_name = runner.run_name
                 setup_mlflow(
                     experiment_name=experiment_name,
                     tracking_uri=mlflow_uri,
@@ -48,26 +50,33 @@ def main(config):
                     runner.run()
             
 def build_experiments(config):
+    data_loader = get_data_loader(config["data_config"])
     # --- Loop 1: Reconstruction Strategy ---
+    rs_builder = ReconstructionStrategyBuilder(config["recon_strategy"])
     for strategy_params in config.get("recon_strategy", []):
         
         # Build the strategy object once for this block
-        recon_strategy = build_reconstruction_strategy(strategy_params)
+        recon_strategy = rs_builder.get_strategy(strategy_params)
         masking_strategies = get_masking_strategies(
             masking_configs=config["masking_configs"],
             master_seed=config["master_seed"]
         )
 
         # --- Loop 2: Iterate over the generated masking strategies ---
-        for masking_strategy in masking_strategies:
+        for masker in masking_strategies:
             # Build the final runner object with all components
             run_conf = {
-                **conf.get('base_params'),
+                **config.get('base_params'),
                 'data_config': config["data_config"],
                 'masking': object_to_dict(masker),
                 'recon_strategy': object_to_dict(recon_strategy)
             }
-            runner = ExperimentRunner(data_loader=data_loader, masker=masking_strategy, recon_strategy=recon_strategy)
+            runner = ExperimentRunner(
+                run_name=f"{recon_strategy}_{masker}",
+                data_loader=data_loader,
+                masking_strategy=masker,
+                reconstruction_strategy=recon_strategy
+            )
             yield runner, run_conf
 
 def done():

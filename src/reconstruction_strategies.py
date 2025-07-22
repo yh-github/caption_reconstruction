@@ -1,13 +1,13 @@
+import logging
 from abc import ABC, abstractmethod
-import mlflow
 
-from data_models import CaptionedClip, CaptionedVideo
-from llm_interaction import call_llm
-from parsers import parse_llm_response
-from baselines import repeat_last_known_baseline
-
-from prompting import BasePromptBuilder
 from constants import DATA_MISSING
+from data_models import CaptionedVideo
+from llm_interaction import call_llm, initialize_llm
+from parsers import parse_llm_response
+from prompting import BasePromptBuilder, JSONPromptBuilder
+from src.exceptions import UserFacingError
+
 
 class ReconstructionStrategy(ABC):
     """An abstract base class for all reconstruction methods."""
@@ -64,7 +64,7 @@ class LLMStrategy(ReconstructionStrategy):
     def __init__(self, name: str, llm_model, prompt_builder: BasePromptBuilder):
         super().__init__(name)
         self.llm_model = llm_model
-        self.prompt_builder = prompt_builder # Injected dependency
+        self.prompt_builder = prompt_builder
 
     def reconstruct(self, masked_video: CaptionedVideo) -> CaptionedVideo | None:
         try:
@@ -74,25 +74,6 @@ class LLMStrategy(ReconstructionStrategy):
         except Exception as e:
             logging.error(f"{e} for {masked_video.video_id=}")
             return None
-
-
-def build_reconstruction_strategy(strategy_config: dict) -> ReconstructionStrategy:
-    """
-    Factory function that reads the strategy-specific config and builds
-    the correct reconstruction strategy object.
-    """
-    strategy_type = strategy_config.get("type")
-    if not strategy_type:
-        raise ValueError("'type' must be specified in the strategy configuration.")
-
-    if strategy_type == "llm":
-        return LLMStrategy(config=strategy_config)
-    elif strategy_type == "baseline_repeat_last":
-        return BaselineStrategy(config=strategy_config)
-    # Add other strategies here in the future
-    else:
-        raise NotImplementedError(f"Strategy type '{strategy_type}' is not implemented.")
-
 
 class ReconstructionStrategyBuilder:
     """
@@ -109,12 +90,12 @@ class ReconstructionStrategyBuilder:
         """
         strategy_type = strategy_config.get("type")
         if not strategy_type:
-            raise ConfigError("'type' must be specified in the strategy configuration.")
+            raise UserFacingError("'type' must be specified in the strategy configuration.")
 
         if strategy_type == "llm":
             if self.llm_model is None:
                 self.llm_model = initialize_llm(self.config)
-            prompt_builder = get_prompt_builder(strategy_config)
+            prompt_builder = JSONPromptBuilder.from_config(strategy_config)
             # Inject the pre-initialized LLM model into the strategy
             return LLMStrategy(
                 name=strategy_config.get("name"),

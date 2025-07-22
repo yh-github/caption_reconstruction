@@ -12,16 +12,15 @@ class ExperimentRunner:
     """
     def __init__(
         self,
+        run_name: str,
         data_loader: BaseDataLoader,
         masking_strategy: MaskingStrategy,
         reconstruction_strategy: ReconstructionStrategy
     ):
+        self.run_name = run_name
         self.data_loader = data_loader
         self.masking_strategy = masking_strategy
         self.reconstruction_strategy = reconstruction_strategy
-
-    def get_config_dict(self):
-
 
     def run(self):
         """Runs the full experiment from data loading to evaluation."""
