@@ -13,3 +13,6 @@ paths:
 
   # The location of the input data source.
   datasets_root: "datasets/"
+
+  # experiment logs
+  log_dir: "logs"

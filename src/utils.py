@@ -7,12 +7,11 @@ import platform
 from importlib.metadata import version
 from exceptions import UserFacingError
 
-def setup_logging(run_id: str):
+def setup_logging(log_dir: str, run_id: str):
     """
     Configures logging to write to both the console and a unique file
     for the given MLflow run ID.
     """
-    log_dir = "logs"
     os.makedirs(log_dir, exist_ok=True)
     log_path = os.path.join(log_dir, f"{run_id}.log")
 
