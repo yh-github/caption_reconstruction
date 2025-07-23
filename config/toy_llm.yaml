@@ -6,12 +6,16 @@ base_params:
   master_seed: 42
 
 data_config:
-    name: "toy_data"
-    path: "datasets/toy_dataset/data.json"
+  name: "toy_data"
+  path: "datasets/toy_dataset/data.json"
 
 llm:
-    model_name: "gemini-2.0-flash-exp"
-    temperature: 0.5
+  model_name: "gemini-2.0-flash-exp"
+  temperature: 0.5
+
+evaluation:
+  model: "microsoft/deberta-v2-xxlarge-mnli"
+  idf: True
 
 recon_strategy:
   - name: "baseline_repeat_last"

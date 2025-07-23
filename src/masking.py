@@ -14,8 +14,8 @@ class MaskingStrategy(ABC):
     def _get_indices_to_mask(self, num_clips: int) -> set:
         pass
 
-    def apply(self, caption: list[CaptionedClip]) -> list[CaptionedClip]:
-        indices_to_mask = self._get_indices_to_mask(len(caption))
+    def apply(self, caption: list[CaptionedClip]) -> tuple[list[CaptionedClip], set]:
+        indices_to_mask: set = self._get_indices_to_mask(len(caption))
         
         masked_captions = []
         for i, clip in enumerate(caption):
@@ -27,7 +27,7 @@ class MaskingStrategy(ABC):
                 masked_captions.append(clip)
         
         logging.debug(f"Masked {len(indices_to_mask)} of {len(caption)} clips using '{self.scheme}'.")
-        return masked_captions
+        return masked_captions, indices_to_mask
 
     def __repr__(self) -> str:
         """Generates a descriptive string for the strategy and its parameters."""

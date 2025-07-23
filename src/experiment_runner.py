@@ -6,7 +6,7 @@ import mlflow
 from data_loaders import BaseDataLoader
 from masking import MaskingStrategy
 from reconstruction_strategies import ReconstructionStrategy
-from evaluation import evaluate_reconstruction
+from evaluation import ReconstructionEvaluator
 
 
 class ExperimentRunner:
@@ -19,12 +19,14 @@ class ExperimentRunner:
         run_name: str,
         data_loader: BaseDataLoader,
         masking_strategy: MaskingStrategy,
-        reconstruction_strategy: ReconstructionStrategy
+        reconstruction_strategy: ReconstructionStrategy,
+        evaluator: ReconstructionEvaluator
     ):
         self.run_name = run_name
         self.data_loader = data_loader
         self.masking_strategy = masking_strategy
         self.reconstruction_strategy = reconstruction_strategy
+        self.evaluator = evaluator
 
     def run(self):
         """Runs the full experiment from data loading to evaluation."""
@@ -33,14 +35,14 @@ class ExperimentRunner:
 
         for video in all_videos:
             logging.debug(f"--- Processing Video: {video.video_id} ---")
-            masked_clips = self.masking_strategy.apply(video.clips)
+            masked_clips, masked_indices = self.masking_strategy.apply(video.clips)
             
             masked_video = video.model_copy(update={'clips': masked_clips})
 
             reconstructed_video = self.reconstruction_strategy.reconstruct(masked_video)
             
             if reconstructed_video:
-                video_metrics = evaluate_reconstruction(reconstructed_video.clips, video.clips)
+                video_metrics = self.evaluator.evaluate(reconstructed_video.clips, video.clips, masked_indices)
                 logging.info(f"Evaluation complete for {video.video_id}. BERTScore {video_metrics}")
                 all_metrics.append(video_metrics)
                 logging.debug(f"Successfully processed video: {video.video_id}")

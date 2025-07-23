@@ -8,7 +8,8 @@ from filelock import FileLock
 
 # Local imports
 from masking import get_masking_strategies
-from utils import check_git_repository_is_clean, setup_mlflow, object_to_dict, setup_logging, get_notification_logger
+from evaluation import ReconstructionEvaluator
+from utils import check_git_repository_is_clean, object_to_dict, setup_logging, get_notification_logger
 from config_loader import load_config
 from reconstruction_strategies import ReconstructionStrategyBuilder
 from data_loaders import get_data_loader
@@ -69,6 +70,8 @@ def main(config):
 def build_experiments(config):
     data_loader = get_data_loader(config["data_config"])
     # --- Loop 1: Reconstruction Strategy ---
+    eval_conf = config.get('evaluation', {})
+    evaluator = ReconstructionEvaluator(model_type=eval_conf.get('model'), idf=eval_conf.get('idf'))
     rs_builder = ReconstructionStrategyBuilder(config)
     for strategy_params in config.get("recon_strategy", []):
         
@@ -92,7 +95,8 @@ def build_experiments(config):
                 run_name=f"{recon_strategy}__{masker}",
                 data_loader=data_loader,
                 masking_strategy=masker,
-                reconstruction_strategy=recon_strategy
+                reconstruction_strategy=recon_strategy,
+                evaluator=evaluator
             )
             yield runner, run_conf
 
