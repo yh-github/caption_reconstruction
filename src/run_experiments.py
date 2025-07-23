@@ -41,6 +41,7 @@ def main(config):
 
         with mlflow.start_run(run_name=parent_run_name) as parent_run:
             log_path = setup_logging(log_dir=config['paths']['log_dir'], run_id=parent_run.info.run_id)
+            print(f'{log_path = }')
             logging.info(f"--- Starting Experiment Batch: {parent_run_name} ---")
 
             os.environ["TRANSFORMERS_VERBOSITY"] = "error"
