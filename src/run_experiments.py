@@ -28,6 +28,7 @@ def init():
 def main(config):
     # mlflow_uri = config['paths']['mlflow_tracking_uri']
     # experiment_name=config['base_params']['experiment_name']
+    os.environ["TRANSFORMERS_VERBOSITY"] = "error"
 
     notifier = get_notification_logger()
 
