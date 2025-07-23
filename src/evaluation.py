@@ -10,7 +10,7 @@ class ReconstructionEvaluator:
     Encapsulates the logic for evaluating caption reconstruction using BERTScore.
     """
 
-    def __init__(self, model_type: str = "microsoft/deberta-v2-xxlarge-mnli", idf: bool = True):
+    def __init__(self, model_type: str|None=None, idf: bool = False):
         """
         Initializes the evaluator with configuration for BERTScore.
 
