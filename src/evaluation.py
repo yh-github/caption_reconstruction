@@ -47,8 +47,8 @@ def evaluate_reconstruction(
     P, R, F1 = bert_score(
         cands=candidates,
         refs=references,
-        lang="en",
-        # model_type="sentence-transformers/all-mpnet-base-v2",
+        # lang="en",
+        model_type="sentence-transformers/all-mpnet-base-v2",
         idf=True,
         verbose=False
     )
