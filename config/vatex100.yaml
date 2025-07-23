@@ -1,0 +1,26 @@
+batch_name: "Vatex100"
+
+base_params:
+  experiment_name: "MaskedCaptionsReconstruction"
+  master_seed: 42
+
+data_config:
+  name: "vatex"
+  path: "datasets/vatex/vatex_training_v1.0.json"
+  limit: 100
+
+llm:
+    model_name: "gemini-2.0-flash-001"
+    temperature: 0.5
+
+recon_strategy:
+  - name: "llm_zero_shot_v1"
+    type: "llm"
+    prompt_template: "prompts/recon_zero_shot_v1.txt"
+  - name: "baseline_repeat_last"
+    type: "baseline_repeat_last"
+
+masking_configs:
+  - scheme: "partition"
+    num_partitions: 5
+    num_parts_to_mask: [1,2,3,4]
