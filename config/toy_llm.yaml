@@ -13,10 +13,6 @@ llm:
   model_name: "gemini-2.0-flash-exp"
   temperature: 0.5
 
-evaluation:
-  model: "microsoft/deberta-v2-xxlarge-mnli"
-  idf: True
-
 recon_strategy:
   - name: "baseline_repeat_last"
     type: "baseline_repeat_last"

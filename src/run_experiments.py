@@ -71,7 +71,7 @@ def build_experiments(config):
     data_loader = get_data_loader(config["data_config"])
     # --- Loop 1: Reconstruction Strategy ---
     eval_conf = config.get('evaluation', {})
-    evaluator = ReconstructionEvaluator(model_type=eval_conf.get('model'), idf=eval_conf.get('idf'))
+    evaluator = ReconstructionEvaluator(model_type=eval_conf.get('model', "microsoft/deberta-v2-xxlarge-mnli"), idf=eval_conf.get('idf', True))
     rs_builder = ReconstructionStrategyBuilder(config)
     for strategy_params in config.get("recon_strategy", []):
         
