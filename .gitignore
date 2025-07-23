@@ -22,3 +22,4 @@ try_code/
 .lock
 .idea/
 cache/
+notebooks/.ipynb_checkpoints/
