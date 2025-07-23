@@ -5,7 +5,7 @@ base_params:
   master_seed: 42
 
 data_config:
-  name: "vatex"
+  name: "video_storytelling"
   path: "datasets/storytelling/"
   limit: 50
 
