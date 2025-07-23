@@ -8,12 +8,12 @@ from tenacity import retry, wait_random_exponential, stop_after_attempt, retry_i
 import google.api_core.exceptions
 
 def build_llm_manager(config):
-    logging.info("Initializing Gemini model...")
+    llm_config = config['llm']
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise ValueError("GEMINI_API_KEY environment variable not set.")
     genai.configure(api_key=api_key)
-    llm_config = config['llm']
+    logging.info(f"Initializing Gemini model {llm_config['model_name']}...")
     return LLM_Manager(
         base_cache_dir=config['paths']['joblib_cache'].removesuffix('/'),
         model_name=llm_config['model_name'],

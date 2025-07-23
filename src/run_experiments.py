@@ -8,7 +8,7 @@ from filelock import FileLock
 
 # Local imports
 from masking import get_masking_strategies
-from utils import check_git_repository_is_clean, setup_mlflow, object_to_dict, setup_logging
+from utils import check_git_repository_is_clean, setup_mlflow, object_to_dict, setup_logging, get_notification_logger
 from config_loader import load_config
 from reconstruction_strategies import ReconstructionStrategyBuilder
 from data_loaders import get_data_loader
@@ -26,8 +26,10 @@ def init():
     return load_config(sys.argv[1])
 
 def main(config):
-    mlflow_uri = config['paths']['mlflow_tracking_uri']
-    experiment_name=config['base_params']['experiment_name']
+    # mlflow_uri = config['paths']['mlflow_tracking_uri']
+    # experiment_name=config['base_params']['experiment_name']
+
+    notifier = get_notification_logger()
 
     git_commit_hash = check_git_repository_is_clean()
 
@@ -52,6 +54,13 @@ def main(config):
                     mlflow.log_params(run_params)
                     metrics = runner.run()
                     mlflow.log_metrics(metrics)
+                    log_message = (f"{run_name} Logged aggregated metrics on"
+                                   f" {metrics['num_of_instances']} instances."
+                                   f" Mean F1: {metrics['mean_f1_score']:.4f}"
+                                   f" Mean P: {metrics['mean_precision']:.4f}"
+                                   f" Mean R: {metrics['mean_recall']:.4f}")
+                    logging.info(log_message)
+                    notifier.info(log_message)
     return log_path
             
 def build_experiments(config):

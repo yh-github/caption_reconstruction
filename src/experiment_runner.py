@@ -56,7 +56,7 @@ class ExperimentRunner:
         mean_precision = statistics.mean([m['bert_score_precision'] for m in all_metrics])
         mean_recall = statistics.mean([m['bert_score_recall'] for m in all_metrics])
 
-        logging.info(f"{self.run_name} Logged aggregated metrics. Mean F1: {mean_f1:.4f} Mean P: {mean_precision:.4f} Mean Recall: {mean_recall:.4f}")
+
 
         return {
             "num_of_instances": len(all_metrics),

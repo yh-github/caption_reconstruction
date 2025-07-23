@@ -1,22 +1,59 @@
 # src/utils.py
 import os
-import logging
 import mlflow
 import git
-import platform
-from importlib.metadata import version
 from exceptions import UserFacingError
+import logging
 
-def setup_logging(log_dir: str, run_id: str):
+NOTICE_LEVEL_NUM = 25 # Between INFO (20) and WARNING (30)
+NOTICE_LEVEL_NAME = "NOTICE"
+
+def add_notice_log_level():
+    """
+    Adds a new 'NOTICE' log level between INFO and WARNING.
+    """
+    logging.addLevelName(NOTICE_LEVEL_NUM, NOTICE_LEVEL_NAME)
+
+    def notice(self, message, *args, **kws):
+        if self.isEnabledFor(NOTICE_LEVEL_NUM):
+            # Yes, logger takes its '*args' as 'args'.
+            self._log(NOTICE_LEVEL_NUM, message, args, **kws)
+
+    logging.Logger.notice = notice
+
+def get_notification_logger():
+    """
+    Creates a simple logger that only prints INFO messages to the console.
+    """
+    # Create a new logger with a unique name
+    notification_logger = logging.getLogger('NotificationLogger')
+    notification_logger.setLevel(logging.INFO)
+
+    # Prevent messages from being passed to the root logger to avoid duplicates
+    notification_logger.propagate = False
+
+    # If the logger already has handlers, don't add more
+    if not notification_logger.handlers:
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.INFO)
+        console_handler.setFormatter(logging.Formatter('ℹ️ %(asctime)s - NOTICE %(levelname)s - %(message)s'))
+        notification_logger.addHandler(console_handler)
+
+    return notification_logger
+
+def setup_logging(log_dir: str, run_id: str, console_level=logging.WARN, base_level=logging.INFO):
     """
     Configures logging to write to both the console and a unique file
     for the given MLflow run ID.
     """
+
+    # add_notice_log_level()
+
     os.makedirs(log_dir, exist_ok=True)
     log_path = os.path.join(log_dir, f"{run_id}.log")
 
     logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
+    logger.setLevel(base_level)
 
     # Clear existing handlers to prevent duplicate logs
     if logger.hasHandlers():
@@ -24,6 +61,7 @@ def setup_logging(log_dir: str, run_id: str):
 
     # Setup console handler
     console_handler = logging.StreamHandler()
+    console_handler.setLevel(console_level)
     console_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
     logger.addHandler(console_handler)
 
@@ -45,18 +83,6 @@ def check_git_repository_is_clean():
         raise UserFacingError(error_message)
     logging.info("Git repository is clean.")
     return repo.head.object.hexsha
-
-def setup_mlflowOLD(config, git_commit_hash):
-    """Sets up MLflow experiment and logs all parameters."""
-    logging.info("Setting up MLflow and logging parameters...")
-    mlflow.set_tracking_uri(config['paths']['mlflow_tracking_uri'])
-    mlflow.set_experiment(config['experiment_name'])
-    mlflow.log_param("git_commit_hash", git_commit_hash)
-    mlflow.log_param("python_version", platform.python_version())
-    mlflow.log_param("mlflow_version", version('mlflow'))
-    mlflow.log_params(config)
-    logging.info("Reproducibility parameters logged.")
-
 
 def setup_mlflow(
     experiment_name: str,
