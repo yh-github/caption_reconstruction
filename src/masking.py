@@ -32,8 +32,8 @@ class MaskingStrategy(ABC):
     def __repr__(self) -> str:
         """Generates a descriptive string for the strategy and its parameters."""
         params = self._get_params_for_repr()
-        param_str = "_".join(f"{k}={v}" for k, v in params.items())
-        return f"{self.scheme}_{param_str}"
+        param_str = ", ".join(f"{k}={v}" for k, v in params.items())
+        return f"{self.scheme}({param_str})"
 
     @abstractmethod
     def _get_params_for_repr(self) -> dict:

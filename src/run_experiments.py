@@ -77,7 +77,7 @@ def build_experiments(config):
                 'recon_strategy': object_to_dict(recon_strategy)
             }
             runner = ExperimentRunner(
-                run_name=f"{recon_strategy}_{masker}",
+                run_name=f"{recon_strategy}__{masker}",
                 data_loader=data_loader,
                 masking_strategy=masker,
                 reconstruction_strategy=recon_strategy
