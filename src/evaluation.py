@@ -44,9 +44,14 @@ def evaluate_reconstruction(
         return {"bert_score_precision": 0, "bert_score_recall": 0, "bert_score_f1": 0}
 
     # Calculate BERTScore
-    # The 'lang="en"' argument defaults to a standard English model.
-    # We can make this configurable later.
-    P, R, F1 = bert_score(candidates, references, lang="en", verbose=False)
+    P, R, F1 = bert_score(
+        cands=candidates,
+        refs=references,
+        lang="en",
+        # model_type="sentence-transformers/all-mpnet-base-v2",
+        idf=True,
+        verbose=False
+    )
 
     # Return the results as a dictionary of floats
     metrics = {
