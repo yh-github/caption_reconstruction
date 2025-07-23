@@ -44,9 +44,12 @@ class LLM_Manager:
         self.cached_call = self.disk_cache.cache(self._call_retry, ignore=['self'])
 
     @retry(
-        wait=wait_random_exponential(min=5, max=120),
+        wait=wait_random_exponential(multiplier=2, min=60, max=60*5),
         stop=stop_after_attempt(6),
-        retry=retry_if_exception_type(google.api_core.exceptions.ResourceExhausted)
+        retry=retry_if_exception_type((
+            google.api_core.exceptions.ResourceExhausted,  # For rate limits
+            google.api_core.exceptions.ServerError  # For all 5xx server issues
+        ))
     )
     def _invoke_llm(self, prompt):
         return self.llm.generate_content(prompt)
