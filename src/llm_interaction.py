@@ -34,7 +34,7 @@ class LLM_Manager:
         )
 
         self.llm = genai.GenerativeModel(
-            model_name="gemini-2.0-flash-exp",
+            model_name=model_name,
             generation_config=generation_config,
             system_instruction=system_prompt
         )
