@@ -48,7 +48,7 @@ def evaluate_reconstruction(
         cands=candidates,
         refs=references,
         # lang="en",
-        model_type="sentence-transformers/all-mpnet-base-v2",
+        model_type="microsoft/deberta-v2-xxlarge-mnli",
         idf=True,
         verbose=False
     )
