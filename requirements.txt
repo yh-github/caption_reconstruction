@@ -20,7 +20,7 @@ tenacity==9.1.2			# For robust retry logic (e.g., exponential backoff)
 
 # --- Evaluation & Caching ---
 bert-score==0.3.13		# For semantic similarity evaluation
-torch==2.7.1			# A required backend for bert-score
+torch==2.6.0			# A required backend for bert-score
 joblib==1.4.2			# For caching expensive function calls (e.g., embeddings)
 
 # --- Testing ---
