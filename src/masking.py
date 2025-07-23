@@ -26,7 +26,7 @@ class MaskingStrategy(ABC):
             else:
                 masked_captions.append(clip)
         
-        logging.info(f"Masked {len(indices_to_mask)} of {len(caption)} clips using '{self.scheme}'.")
+        logging.debug(f"Masked {len(indices_to_mask)} of {len(caption)} clips using '{self.scheme}'.")
         return masked_captions
 
     def __repr__(self) -> str:

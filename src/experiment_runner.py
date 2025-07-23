@@ -32,7 +32,7 @@ class ExperimentRunner:
         all_metrics = []
 
         for video in all_videos:
-            logging.info(f"--- Processing Video: {video.video_id} ---")
+            logging.debug(f"--- Processing Video: {video.video_id} ---")
             masked_clips = self.masking_strategy.apply(video.clips)
             
             masked_video = video.model_copy(update={'clips': masked_clips})
@@ -41,6 +41,7 @@ class ExperimentRunner:
             
             if reconstructed_video:
                 video_metrics = evaluate_reconstruction(reconstructed_video.clips, video.clips)
+                logging.info(f"Evaluation complete for {video.video_id}. BERTScore {video_metrics}")
                 all_metrics.append(video_metrics)
                 logging.debug(f"Successfully processed video: {video.video_id}")
             else:
@@ -55,7 +56,7 @@ class ExperimentRunner:
         mean_precision = statistics.mean([m['bert_score_precision'] for m in all_metrics])
         mean_recall = statistics.mean([m['bert_score_recall'] for m in all_metrics])
 
-        logging.info(f"{self.run_name} Logged aggregated metrics. Mean F1: {mean_f1:.4f}")
+        logging.info(f"{self.run_name} Logged aggregated metrics. Mean F1: {mean_f1:.4f} Mean P: {mean_precision:.4f} Mean Recall: {mean_recall:.4f}")
 
         return {
             "num_of_instances": len(all_metrics),

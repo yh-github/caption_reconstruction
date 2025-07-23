@@ -20,7 +20,7 @@ def evaluate_reconstruction(
     Returns:
         A dictionary containing the precision, recall, and F1 score from BERTScore.
     """
-    logging.info("Evaluating reconstruction using BERTScore...")
+    logging.debug("Evaluating reconstruction using BERTScore...")
     
     # Align the ground truth and reconstructed descriptions
     # We only want to compare the clips that were originally masked.
@@ -55,5 +55,4 @@ def evaluate_reconstruction(
         "bert_score_f1": F1.mean().item()
     }
     
-    logging.info(f"Evaluation complete. BERTScore F1: {metrics['bert_score_f1']:.4f}")
     return metrics

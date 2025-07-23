@@ -52,7 +52,7 @@ class VideoStorytellingLoader(BaseDataLoader):
         self.limit = limit
 
     def load(self) -> list[CaptionedVideo]:
-        logging.info(f"Loading from Video Storytelling dataset at: {self.data_path}")
+        logging.info(f"Loading from Video Storytelling dataset at: {self.data_path} {self.limit=}")
         all_videos = []
         filenames = sorted([f for f in os.listdir(self.data_path) if f.endswith(".txt")])
         if self.limit:
@@ -83,7 +83,7 @@ class VatexLoader(BaseDataLoader):
         self.limit = limit
 
     def load(self) -> list[CaptionedVideo]:
-        logging.info(f"Loading from VATEX dataset at: {self.data_path}")
+        logging.info(f"Loading from VATEX dataset at: {self.data_path} {self.limit=}")
         all_videos = []
         with open(self.data_path, 'r') as f:
             data = json.load(f)

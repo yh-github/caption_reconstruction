@@ -25,7 +25,7 @@ def parse_llm_response(response_text: str) -> list[CaptionedClip] | None:
         A list of CaptionedClip objects if parsing is successful,
         otherwise returns None.
     """
-    logging.info("Parsing LLM response...")
+    logging.debug("Parsing LLM response...")
     try:
         # Pydantic can directly validate the JSON string.
         # This is a robust way to parse and validate in one step.
@@ -34,7 +34,7 @@ def parse_llm_response(response_text: str) -> list[CaptionedClip] | None:
         
         validated_response = LLMResponse.model_validate_json(wrapped_json_string)
         
-        logging.info("LLM response parsed and validated successfully.")
+        logging.debug("LLM response parsed and validated successfully.")
         return validated_response.reconstructed_caption
 
     except json.JSONDecodeError:
