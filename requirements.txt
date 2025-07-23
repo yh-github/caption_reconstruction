@@ -22,6 +22,8 @@ tenacity==8.5.0			# For robust retry logic (e.g., exponential backoff)
 bert-score==0.3.13		# For semantic similarity evaluation
 torch==2.6.0			# A required backend for bert-score
 joblib==1.4.2			# For caching expensive function calls (e.g., embeddings)
+tiktoken==0.9.0
+
 
 # --- Testing ---
 pytest==8.4.1
