@@ -59,7 +59,8 @@ class ReconstructionEvaluator:
             model_type=self.model_type,
             idf=self.idf,
             verbose=False,
-            use_fast_tokenizer=False
+            use_fast_tokenizer=False,
+            lang="en"
         )
 
         # Return the results as a dictionary of floats
