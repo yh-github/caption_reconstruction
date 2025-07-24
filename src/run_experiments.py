@@ -72,7 +72,7 @@ def build_experiments(config):
     data_loader = get_data_loader(config["data_config"])
     # --- Loop 1: Reconstruction Strategy ---
     eval_conf = config.get('evaluation', {})
-    evaluator = ReconstructionEvaluator(model_type=eval_conf.get('model'))
+    evaluator = ReconstructionEvaluator(model_type=eval_conf.get('model'), verbose=len(sys.argv) > 2 and sys.argv[2] == '--verbose')
     rs_builder = ReconstructionStrategyBuilder(config)
     for strategy_params in config.get("recon_strategy", []):
         

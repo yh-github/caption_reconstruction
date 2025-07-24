@@ -10,7 +10,7 @@ class ReconstructionEvaluator:
     Encapsulates the logic for evaluating caption reconstruction using BERTScore.
     """
 
-    def __init__(self, model_type: str|None=None, idf: bool = False):
+    def __init__(self, model_type:str|None=None, idf:bool=False, verbose=False):
         """
         Initializes the evaluator with configuration for BERTScore.
 
@@ -20,6 +20,7 @@ class ReconstructionEvaluator:
         """
         self.model_type = model_type
         self.idf = idf
+        self.verbose = verbose
         logger.info(f"ReconstructionEvaluator initialized with model: {self.model_type}, idf: {self.idf}")
 
     def evaluate(
@@ -70,7 +71,21 @@ class ReconstructionEvaluator:
             "bert_score_f1": F1.mean().item()
         }
 
+        if self.verbose:
+            print('---')
+            self.print_out(reconstructed_clips, ground_truth_clips, masked_indices)
+            print(metrics)
+            print('---')
+
         return metrics
+
+    def print_out(self, reconstructed_clips, ground_truth_clips, masked_indices):
+        for i in range(len(ground_truth_clips)):
+            s = ground_truth_clips[i]
+            if i in masked_indices:
+                s = f'~~{s}~~'
+            s = f'{s}\t{reconstructed_clips[i]}'
+            print(s)
 
     def _align_clips(self, reconstructed_clips, ground_truth_clips, masked_indices):
         """
