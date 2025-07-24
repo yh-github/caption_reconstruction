@@ -120,6 +120,9 @@ if __name__ == "__main__":
     except UserFacingError as e:
         print(f"\n❌ Error: {e}", file=sys.stderr)
         sys.exit(1)
+    except KeyboardInterrupt:
+        print("\n\n🛑 Experiment batch cancelled by user. Shutting down gracefully.")
+        sys.exit(130) # 130 is the standard exit code for Ctrl+C
     except Exception as e:
         logging.error(f"Experiment failed with a critical error: {e}", exc_info=True)
         raise
