@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
-from src.config_loader import load_config
-from src.data_loaders import get_data_loader
+from config_loader import load_config
+from data_loaders import get_data_loader
 
 # --- 1. Configuration ---
 config = {
