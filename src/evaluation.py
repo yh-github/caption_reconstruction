@@ -73,22 +73,22 @@ class ReconstructionEvaluator:
 
         if self.verbose:
             print('---')
-            self.print_out(reconstructed_clips, ground_truth_clips, masked_indices, F1)
+            self.print_out(reconstructed_clips, ground_truth_clips, masked_indices, F1, P, R)
             print(metrics)
             print('---')
 
         return metrics
 
-    def print_out(self, reconstructed_clips, ground_truth_clips, masked_indices, F1):
+    def print_out(self, reconstructed_clips, ground_truth_clips, masked_indices, F1, P, R):
         j = 0
         for i in range(len(ground_truth_clips)):
             orig = ground_truth_clips[i].data.description
             recon = reconstructed_clips[i].data.description
             if i in masked_indices:
-                s = f'~~{orig}~~\t{recon}\t{F1[j]:.2f}'
+                s = f'|~~{orig}~~|{recon}|{F1[j]:.2f}|{P[j]:.2f}|{R[j]:.2f}|'
                 j += 1
             else:
-                s = f'{orig}\t{recon}\t-'
+                s = f'{orig}|{recon}|-|-|-|'
             print(s)
 
     def _align_clips(self, reconstructed_clips, ground_truth_clips, masked_indices):
