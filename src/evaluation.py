@@ -81,10 +81,10 @@ class ReconstructionEvaluator:
 
     def print_out(self, reconstructed_clips, ground_truth_clips, masked_indices):
         for i in range(len(ground_truth_clips)):
-            s = ground_truth_clips[i]
+            s = ground_truth_clips[i].data.description
             if i in masked_indices:
                 s = f'~~{s}~~'
-            s = f'{s}\t{reconstructed_clips[i]}'
+            s = f'{s}\t{reconstructed_clips[i].data.description}'
             print(s)
 
     def _align_clips(self, reconstructed_clips, ground_truth_clips, masked_indices):
