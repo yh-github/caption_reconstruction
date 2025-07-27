@@ -27,7 +27,6 @@ class ReconstructionEvaluator:
             use_fast_tokenizer=False,
             lang="en"
         )
-
         logger.info(f"ReconstructionEvaluator initialized with model: {self.model_type}, idf: {self.idf}")
 
     def evaluate(
@@ -106,3 +105,9 @@ class ReconstructionEvaluator:
             references.append(ground_truth_clips[i].data.description)
 
         return candidates, references
+
+    def calc_idf(self, sents: list[str]):
+        self.idf = True
+        logger.info(f'calc_idf for {len(sents)} sentences')
+        self.bert_scorer.compute_idf(sents=sents)
+        logger.info(f'finished calc_idf for {len(sents)} sentences, idf_dict size = {len(self.bert_scorer._idf_dict.keys())}')
