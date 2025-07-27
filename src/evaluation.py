@@ -84,6 +84,7 @@ class ReconstructionEvaluator:
         for i in range(len(ground_truth_clips)):
             orig = ground_truth_clips[i].data.description
             recon = reconstructed_clips[i].data.description
+            print(f'|original|reconstructed|F1|P|R|')
             if i in masked_indices:
                 s = f'|~~{orig}~~|{recon}|{F1[j]:.2f}|{P[j]:.2f}|{R[j]:.2f}|'
                 j += 1
