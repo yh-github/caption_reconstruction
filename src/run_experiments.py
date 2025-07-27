@@ -9,7 +9,7 @@ from filelock import FileLock
 # Local imports
 from masking import get_masking_strategies
 from evaluation import ReconstructionEvaluator
-from utils import check_git_repository_is_clean, object_to_dict, setup_logging, get_notification_logger
+from utils import check_git_repository_is_clean, object_to_dict, setup_logging, get_notification_logger, flush_loggers
 from config_loader import load_config
 from reconstruction_strategies import ReconstructionStrategyBuilder
 from data_loaders import get_data_loader
@@ -66,6 +66,7 @@ def main(config):
                                    f" Mean R: {metrics['mean_recall']:.4f}")
                     logging.info(log_message)
                     notifier.info(log_message)
+                    flush_loggers()
     return log_path
             
 def build_experiments(config):

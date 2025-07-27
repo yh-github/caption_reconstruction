@@ -72,6 +72,13 @@ def setup_logging(log_dir: str, run_id: str, console_level=logging.WARN, base_le
 
     return log_path
 
+def flush_loggers():
+    """
+    Forces all handlers attached to the root logger to flush their buffers.
+    """
+    for handler in logging.getLogger().handlers:
+        handler.flush()
+
 
 def check_git_repository_is_clean():
     """Checks for uncommitted changes and raises a specific error if dirty."""
