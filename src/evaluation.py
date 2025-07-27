@@ -67,9 +67,9 @@ class ReconstructionEvaluator:
 
         # Return the results as a dictionary of floats
         metrics = {
-            "bert_score_precision": P.mean().item(),
-            "bert_score_recall": R.mean().item(),
-            "bert_score_f1": F1.mean().item()
+            "bert_score_precision": P.min().item(),
+            "bert_score_recall": R.min().item(),
+            "bert_score_f1": F1.min().item()
         }
 
         if self.verbose:
@@ -108,6 +108,6 @@ class ReconstructionEvaluator:
 
     def calc_idf(self, sents: list[str]):
         self.idf = True
-        logger.info(f'calc_idf for {len(sents)} sentences')
+        print(f'calc_idf for {len(sents)} sentences')
         self.bert_scorer.compute_idf(sents=sents)
-        logger.info(f'finished calc_idf for {len(sents)} sentences, idf_dict size = {len(self.bert_scorer._idf_dict.keys())}')
+        print(f'finished calc_idf for {len(sents)} sentences, idf_dict size = {len(self.bert_scorer._idf_dict.keys())}')

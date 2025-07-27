@@ -74,10 +74,11 @@ def build_experiments(config):
     eval_conf = config.get('evaluation', {})
 
     evaluator = ReconstructionEvaluator(
-        model_type=eval_conf.get('model'),
-        verbose=len(sys.argv) > 2 and sys.argv[2] == '--verbose'
+        model_type=eval_conf.get('model', 'microsoft/deberta-large-mnli'),
+        verbose=len(sys.argv) > 2 and sys.argv[2] == '--verbose',
+        idf=eval_conf.get('idf', True)
     )
-    evaluator.calc_idf(sents=[c.data.description for x in data_loader.load() for c in x.clips])
+    evaluator.calc_idf(sents=data_loader.load_all_sentences())
 
     rs_builder = ReconstructionStrategyBuilder(config)
     for strategy_params in config.get("recon_strategy", []):

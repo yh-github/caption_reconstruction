@@ -16,9 +16,12 @@ def _parse_storytelling_timestamp(ts_str: str) -> float:
 class BaseDataLoader(ABC):
     """Abstract base class for all data loaders."""
     @abstractmethod
-    def load(self) -> list[CaptionedVideo]:
+    def load(self, limit:int|None=None) -> list[CaptionedVideo]:
         """Loads data and returns a list of CaptionedVideo objects."""
         pass
+
+    def load_all_sentences(self) -> list[str]:
+        return [c.data.description for x in self.load(limit=10*1000*1000) for c in x.clips]
 
 class ToyDataLoader(BaseDataLoader):
     """
@@ -28,11 +31,13 @@ class ToyDataLoader(BaseDataLoader):
     def __init__(self, data_path: str):
         self.data_path = data_path
 
-    def load(self) -> list[CaptionedVideo]:
+    def load(self, limit:int|None=None) -> list[CaptionedVideo]:
         all_videos = []
         with open(self.data_path, 'r') as f:
             data = json.load(f)
-        
+
+        if limit:
+            data = data[:limit]
         for video_data in data:
             clips = [
                 CaptionedClip(
@@ -51,12 +56,12 @@ class VideoStorytellingLoader(BaseDataLoader):
         self.data_path = data_path
         self.limit = limit
 
-    def load(self) -> list[CaptionedVideo]:
+    def load(self, limit:int|None=None) -> list[CaptionedVideo]:
         logging.info(f"Loading from Video Storytelling dataset at: {self.data_path} {self.limit=}")
         all_videos = []
         filenames = sorted([f for f in os.listdir(self.data_path) if f.endswith(".txt")])
-        if self.limit:
-            filenames = filenames[:self.limit]
+        if _limit := limit or self.limit:
+            filenames = filenames[:_limit]
 
         for filename in filenames:
             video_id = filename.replace('.txt', '')
@@ -82,11 +87,14 @@ class VatexLoader(BaseDataLoader):
         self.data_path = data_path
         self.limit = limit
 
-    def load(self) -> list[CaptionedVideo]:
+    def load(self, limit:int|None=None) -> list[CaptionedVideo]:
         logging.info(f"Loading from VATEX dataset at: {self.data_path} {self.limit=}")
         all_videos = []
         with open(self.data_path, 'r') as f:
             data = json.load(f)
+
+        if _limit:= limit or self.limit:
+            data = data[:_limit]
 
         for video_info in data:
             video_id = video_info["videoID"]
@@ -98,8 +106,6 @@ class VatexLoader(BaseDataLoader):
                     data=NarrativeOnlyPayload(description=caption)
                 ))
             all_videos.append(CaptionedVideo(video_id=video_id, clips=clips))
-            if self.limit and self.limit <= len(all_videos):
-                break
         return all_videos
 
 def get_data_loader(data_config: dict) -> BaseDataLoader:
