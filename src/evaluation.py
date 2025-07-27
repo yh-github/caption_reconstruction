@@ -1,5 +1,5 @@
 import logging
-from bert_score import score as bert_score_func
+from bert_score import BERTScorer
 from data_models import CaptionedClip
 
 logger = logging.getLogger(__name__)
@@ -21,6 +21,13 @@ class ReconstructionEvaluator:
         self.model_type = model_type
         self.idf = idf
         self.verbose = verbose
+        self.bert_scorer = BERTScorer(
+            model_type=self.model_type,
+            idf=self.idf,
+            use_fast_tokenizer=False,
+            lang="en"
+        )
+
         logger.info(f"ReconstructionEvaluator initialized with model: {self.model_type}, idf: {self.idf}")
 
     def evaluate(
@@ -53,15 +60,10 @@ class ReconstructionEvaluator:
 
         logger.debug(f"Calculating BERTScore for {len(candidates)} clip pairs.")
 
-        # Calculate BERTScore using the instance attributes
-        P, R, F1 = bert_score_func(
+        P, R, F1 = self.bert_scorer.score(
             cands=candidates,
             refs=references,
-            model_type=self.model_type,
-            idf=self.idf,
-            verbose=False,
-            use_fast_tokenizer=False,
-            lang="en"
+            batch_size=4
         )
 
         # Return the results as a dictionary of floats
