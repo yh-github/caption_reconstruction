@@ -48,7 +48,7 @@ class ExperimentRunner:
                 continue
 
             video_metrics = self.evaluator.evaluate(reconstructed_video.clips, video.clips, masked_indices)
-            logging.info(f"Evaluation complete for video_id={video.video_id} mertrics={metrics_to_json(video_metrics)}")
+            logging.info(f"Evaluation complete for video_id={video.video_id} metrics={metrics_to_json(video_metrics)}")
             all_metrics.append(video_metrics)
             logging.debug(f"Successfully processed video: {video.video_id}")
 
