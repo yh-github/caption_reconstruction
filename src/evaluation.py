@@ -77,7 +77,7 @@ class ReconstructionEvaluator:
         # Return the results as a dictionary of floats
         metrics = {
             "num_captions": len(ground_truth_clips),
-            "num_masked": list(masked_indices),
+            "masked": list(masked_indices),
             "bs_p": P,
             "bs_r": R,
             "bs_f1": F1
