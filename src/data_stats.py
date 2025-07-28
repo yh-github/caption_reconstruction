@@ -8,7 +8,7 @@ config = {
     "data_config": {
         "name": "video_storytelling",
         "path": "./datasets/storytelling",
-        "limit": 100
+        "limit": 200
     }
 }
 

@@ -26,8 +26,8 @@ def test_toy_data_loader_from_file():
     assert len(video.clips) == 10
 
     # 3. Spot-check a specific clip to ensure data is correct
-    assert video.clips[2].data.description == "The person picks up a red book from the table."
-    assert video.clips[2].timestamp == 3.0
+    assert video.clips[2].data.caption == "The person picks up a red book from the table."
+    assert video.clips[2].timestamp.end == 3.0
 
 
 def test_video_storytelling_loader():
@@ -48,6 +48,9 @@ def test_video_storytelling_loader():
     # Check the contents of the video object
     assert videos[0].video_id == "4nAse9fEOww.mp4"
     assert len(videos[0].clips) == 3
+
+    assert videos[0].clips[0].timestamp.start==30.0
+    assert videos[0].clips[0].timestamp.end==120.0
 
 def test_vatex_loader():
     """

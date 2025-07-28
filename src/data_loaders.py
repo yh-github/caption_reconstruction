@@ -1,9 +1,9 @@
-# src/data_loaders.py
 import os
 import json
 import logging
 from abc import ABC, abstractmethod
-from data_models import CaptionedClip, CaptionedVideo, NarrativeOnlyPayload
+from data_models import CaptionedClip, CaptionedVideo, NarrativeOnlyPayload, TimestampRange
+
 
 def _parse_storytelling_timestamp(ts_str: str) -> float:
     """Helper to parse MM:SS format into seconds."""
@@ -41,8 +41,8 @@ class ToyDataLoader(BaseDataLoader):
         for video_data in data:
             clips = [
                 CaptionedClip(
-                    timestamp=clip_data["timestamp"],
-                    data=NarrativeOnlyPayload(description=clip_data["description"])
+                    timestamp=TimestampRange(start=clip_data["timestamp"]-1, end=clip_data["timestamp"]),
+                    data=NarrativeOnlyPayload(caption=clip_data["description"])
                 ) for clip_data in video_data["clips"]
             ]
             all_videos.append(
@@ -72,11 +72,13 @@ class VideoStorytellingLoader(BaseDataLoader):
                 for line in lines:
                     parts = line.strip().split()
                     if len(parts) < 3: continue
+                    start_time_str = parts[0]
                     end_time_str = parts[1]
                     description = " ".join(parts[2:])
                     clips.append(CaptionedClip(
-                        timestamp=_parse_storytelling_timestamp(end_time_str),
-                        data=NarrativeOnlyPayload(description=description)
+                        timestamp=TimestampRange(start=_parse_storytelling_timestamp(start_time_str),
+                                                 end=_parse_storytelling_timestamp(end_time_str)),
+                        data=NarrativeOnlyPayload(caption=description)
                     ))
             all_videos.append(CaptionedVideo(video_id=video_id, clips=clips))
         return all_videos
@@ -102,8 +104,8 @@ class VatexLoader(BaseDataLoader):
             clips = []
             for i, caption in enumerate(captions):
                 clips.append(CaptionedClip(
-                    timestamp=float(i + 1),
-                    data=NarrativeOnlyPayload(description=caption)
+                    timestamp=TimestampRange(start=float(i), end=float(i + 1)),
+                    data=NarrativeOnlyPayload(caption=caption)
                 ))
             all_videos.append(CaptionedVideo(video_id=video_id, clips=clips))
         return all_videos
