@@ -94,8 +94,8 @@ class ReconstructionEvaluator:
     def print_out(self, reconstructed_clips, ground_truth_clips, masked_indices, F1, P, R):
         j = 0
         for i in range(len(ground_truth_clips)):
-            orig = ground_truth_clips[i].data.description
-            recon = reconstructed_clips[i].data.description
+            orig = ground_truth_clips[i].data.caption
+            recon = reconstructed_clips[i].data.caption
             print(f'|original|reconstructed|F1|P|R|')
             if i in masked_indices:
                 s = f'|~~{orig}~~|{recon}|{F1[j]:.2f}|{P[j]:.2f}|{R[j]:.2f}|'
@@ -112,8 +112,8 @@ class ReconstructionEvaluator:
         candidates = []
 
         for i in masked_indices:
-            candidates.append(reconstructed_clips[i].data.description)
-            references.append(ground_truth_clips[i].data.description)
+            candidates.append(reconstructed_clips[i].data.caption)
+            references.append(ground_truth_clips[i].data.caption)
 
         return candidates, references
 
