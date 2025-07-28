@@ -1,11 +1,8 @@
-# src/masking.py
-import logging
 import random
 from abc import ABC, abstractmethod
 from data_models import CaptionedClip
 from constants import DATA_MISSING
 from data_models import CaptionedVideo
-from src.data_models import CaptionedVideo
 
 
 class MaskingStrategy(ABC):
@@ -28,13 +25,9 @@ class MaskingStrategy(ABC):
                 masked_captions.append(clip)
         return masked_captions
 
-
     def apply(self, captions: list[CaptionedClip]) -> tuple[list[CaptionedClip], set]:
         indices_to_mask: set = self._get_indices_to_mask(len(captions))
-
         masked_captions = self.mask_list(captions, indices_to_mask)
-
-        logging.debug(f"Masked {len(indices_to_mask)} of {len(captions)} clips using '{self.scheme}'.")
         return masked_captions, indices_to_mask
 
     def __repr__(self) -> str:
