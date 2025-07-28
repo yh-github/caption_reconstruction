@@ -5,24 +5,14 @@ import json
 
 logger = logging.getLogger(__name__)
 
-def tensor_to_str_list(t):
-    return '['+ ','.join([f'{x:.6f}' for x in t]) +']'
-
-def metrics_to_str(metrics):
+def metrics_to_json(metrics):
     m = {}
     for k,v in metrics.items():
         if k.startswith('bs_'):
-            m[k] = [round(x, 6) for x in v]
+            m[k] = [round(x.item(), 6) for x in v]
         else:
             m[k] = v
     return json.dumps(m)
-    # return {
-    #     "num_captions": metrics['num_captions'],
-    #     "num_masked": metrics['num_masked'],
-    #     "bs_p": tensor_to_str_list(metrics['bs_p']),
-    #     "bs_r": tensor_to_str_list(metrics['bs_r']),
-    #     "bs_f1": tensor_to_str_list(metrics['bs_f1'])
-    # }
 
 class ReconstructionEvaluator:
     """
@@ -87,7 +77,7 @@ class ReconstructionEvaluator:
         # Return the results as a dictionary of floats
         metrics = {
             "num_captions": len(ground_truth_clips),
-            "num_masked": masked_indices,
+            "num_masked": list(masked_indices),
             "bs_p": P,
             "bs_r": R,
             "bs_f1": F1

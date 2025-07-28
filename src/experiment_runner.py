@@ -5,7 +5,7 @@ import logging
 from data_loaders import BaseDataLoader
 from masking import MaskingStrategy
 from reconstruction_strategies import ReconstructionStrategy
-from evaluation import ReconstructionEvaluator, metrics_to_str
+from evaluation import ReconstructionEvaluator, metrics_to_json
 
 
 
@@ -43,7 +43,7 @@ class ExperimentRunner:
             
             if reconstructed_video:
                 video_metrics = self.evaluator.evaluate(reconstructed_video.clips, video.clips, masked_indices)
-                logging.info(f"Evaluation complete for video_id={video.video_id}. {metrics_to_str(video_metrics)}")
+                logging.info(f"Evaluation complete for video_id={video.video_id} mertrics={metrics_to_json(video_metrics)}")
                 all_metrics.append(video_metrics)
                 logging.debug(f"Successfully processed video: {video.video_id}")
             else:
