@@ -35,20 +35,23 @@ class ExperimentRunner:
 
         for video in all_videos:
             logging.debug(f"--- Processing Video: {video.video_id} ---")
-            masked_clips, masked_indices = self.masking_strategy.apply(video.clips)
-            
-            masked_video = video.model_copy(update={'clips': masked_clips})
+
+            masked_video = self.masking_strategy.mask_video(video)
+            if not masked_video:
+                logging.warning(f"Not masking video {video.video_id} size={len(video.clips)} with {self.masking_strategy}")
+                continue
 
             reconstructed_video = self.reconstruction_strategy.reconstruct(masked_video)
-            
-            if reconstructed_video:
-                video_metrics = self.evaluator.evaluate(reconstructed_video.clips, video.clips, masked_indices)
-                logging.info(f"Evaluation complete for video_id={video.video_id} mertrics={metrics_to_json(video_metrics)}")
-                all_metrics.append(video_metrics)
-                logging.debug(f"Successfully processed video: {video.video_id}")
-            else:
+            if not reconstructed_video:
                 logging.error(f"Reconstruction failed for video: {video.video_id}")
                 # mlflow.log_metric("reconstruction_failed", 1)
+                continue
+
+            video_metrics = self.evaluator.evaluate(reconstructed_video.clips, video.clips, masked_indices)
+            logging.info(f"Evaluation complete for video_id={video.video_id} mertrics={metrics_to_json(video_metrics)}")
+            all_metrics.append(video_metrics)
+            logging.debug(f"Successfully processed video: {video.video_id}")
+
 
         if not all_metrics:
             logging.warning("No metrics were generated to log.")

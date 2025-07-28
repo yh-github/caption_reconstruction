@@ -4,6 +4,8 @@ import random
 from abc import ABC, abstractmethod
 from data_models import CaptionedClip
 from constants import DATA_MISSING
+from data_models import CaptionedVideo
+
 
 class MaskingStrategy(ABC):
     """Abstract base class for all masking strategies."""
@@ -14,19 +16,24 @@ class MaskingStrategy(ABC):
     def _get_indices_to_mask(self, num_clips: int) -> set:
         pass
 
-    def apply(self, caption: list[CaptionedClip]) -> tuple[list[CaptionedClip], set]:
-        indices_to_mask: set = self._get_indices_to_mask(len(caption))
-        
+    def mask_list(self, captions:list[CaptionedClip], indices_to_mask:set):
         masked_captions = []
-        for i, clip in enumerate(caption):
+        for i, clip in enumerate(captions):
             if i in indices_to_mask:
                 masked_clip = clip.model_copy()
                 masked_clip.data = DATA_MISSING
                 masked_captions.append(masked_clip)
             else:
                 masked_captions.append(clip)
-        
-        logging.debug(f"Masked {len(indices_to_mask)} of {len(caption)} clips using '{self.scheme}'.")
+        return masked_captions
+
+
+    def apply(self, captions: list[CaptionedClip]) -> tuple[list[CaptionedClip], set]:
+        indices_to_mask: set = self._get_indices_to_mask(len(captions))
+
+        masked_captions = self.mask_list(captions, indices_to_mask)
+
+        logging.debug(f"Masked {len(indices_to_mask)} of {len(captions)} clips using '{self.scheme}'.")
         return masked_captions, indices_to_mask
 
     def __repr__(self) -> str:
@@ -39,6 +46,15 @@ class MaskingStrategy(ABC):
     def _get_params_for_repr(self) -> dict:
         """Returns a dictionary of parameters for the string representation."""
         pass
+
+    def mask_video(self, video: CaptionedVideo) -> CaptionedVideo|None:
+        indices_to_mask: set = self._get_indices_to_mask(len(video.clips))
+        if not indices_to_mask:
+            return None
+        masked_clips = self.mask_list(video.clips, indices_to_mask)
+        masked_video = video.model_copy(update={'clips': masked_clips})
+        return masked_video
+
 
 class RandomMasking(MaskingStrategy):
     """Masks a random selection of clips based on a ratio."""
@@ -79,13 +95,12 @@ class ContiguousMasking(MaskingStrategy):
     def _get_params_for_repr(self) -> dict:
         return {"seed": self.seed, "width": self.width}
 
-    def _get_indices_to_mask(self, num_clips: int) -> set:
+    def _get_indices_to_mask(self, num_clips: int) -> set[int]|None:
         """
         Determines the start index and returns the set of indices to be masked.
         """
-        if self.width > num_clips:
-            # If the requested width is larger than the clip count, mask everything
-            return set(range(num_clips)) # FIXME: this should be handled outside, so perhaps an Exception
+        if self.width >= num_clips:
+            return None
 
         # The last possible starting position for the mask
         last_possible_start = num_clips - self.width
