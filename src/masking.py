@@ -54,6 +54,48 @@ class RandomMasking(MaskingStrategy):
     def _get_params_for_repr(self) -> dict:
         return {"ratio": self.ratio}
 
+
+class ContiguousMasking(MaskingStrategy):
+    """
+    A masking strategy that masks a single, contiguous block of clips.
+    """
+
+    def __init__(self, seed: int, width: int):
+        """
+        Initializes the contiguous masking strategy.
+
+        Args:
+            prn_generator: A random number generator instance for reproducibility.
+            width: The number of contiguous captions to mask.
+        """
+        super().__init__(scheme="contiguous")
+        if not width > 0:
+            raise ValueError("Masking width must be greater than 0.")
+
+        self.seed = seed
+        self.prn_generator = random.Random(seed)
+        self.width = width
+
+    def _get_params_for_repr(self) -> dict:
+        return {"seed": self.seed, "width": self.width}
+
+    def _get_indices_to_mask(self, num_clips: int) -> set:
+        """
+        Determines the start index and returns the set of indices to be masked.
+        """
+        if self.width > num_clips:
+            # If the requested width is larger than the clip count, mask everything
+            return set(range(num_clips)) # FIXME: this should be handled outside, so perhaps an Exception
+
+        # The last possible starting position for the mask
+        last_possible_start = num_clips - self.width
+
+        # Choose a random starting index for the contiguous block
+        start_index = self.prn_generator.randint(0, last_possible_start)
+
+        # Create the set of indices to mask
+        return set(range(start_index, start_index + self.width))
+
 class PartitionMasking(MaskingStrategy):
     """A generic strategy that divides a sequence into partitions and masks a block."""
     def __init__(self, num_partitions: int, start_partition: int, num_parts_to_mask: int):
@@ -94,12 +136,21 @@ def get_masking_strategies(masking_configs: list, master_seed: int) -> list[Mask
     strategies = []
 
     for config in masking_configs:
+        def get_list(fieldname:str) -> list:
+            res = config.get(fieldname, [])
+            if not isinstance(res, list):
+                res = [res]
+            return res
+
         scheme = config.get("scheme")
         if scheme == "random":
             seed = config.get("seed", 0) # TODO: if "seed" is a list, iterate over all values
             for ratio in config.get("ratio", []):
                 strategies.append(RandomMasking(ratio=ratio, prn_generator=random.Random(master_seed+seed) ))
-
+        elif scheme == "contiguous":
+            for seed in get_list("seed"):
+                for width in get_list("width"):
+                    strategies.append(ContiguousMasking(seed=master_seed+seed, width=width))
         elif scheme == "partition":
             num_partitions = config["num_partitions"]
 

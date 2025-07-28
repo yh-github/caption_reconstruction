@@ -121,7 +121,13 @@ if __name__ == "__main__":
     try:
         config = init()
         if len(sys.argv) > 2 and sys.argv[2]=='--dry-run':
-            print(f"prepared {len(list(build_experiments(config)))} experiments")
+            xs = [x for x, _ in build_experiments(config)]
+            print(f"prepared {len(xs)} experiments")
+            if len(sys.argv) > 3 and sys.argv[3] == '--verbose':
+                print()
+                for x in xs:
+                    print(x.run_name)
+                print()
         else:
             log_path = main(config)
             done(log_path)

@@ -22,6 +22,9 @@ recon_strategy:
 
 # --- A list of masking rules to generate strategies from ---
 masking_configs:
-  - scheme: "partition"
-    num_partitions: 2
-    num_parts_to_mask: [1]
+  - scheme: "contiguous"
+    width: [1,3]
+    seed: [1,2]
+  #- scheme: "partition"
+   # num_partitions: 2
+    #num_parts_to_mask: [1]
