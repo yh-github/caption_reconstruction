@@ -1,6 +1,7 @@
 import logging
 from bert_score import BERTScorer
 from data_models import CaptionedClip
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -8,13 +9,20 @@ def tensor_to_str_list(t):
     return '['+ ','.join([f'{x:.6f}' for x in t]) +']'
 
 def metrics_to_str(metrics):
-    return {
-        "num_captions": metrics['num_captions'],
-        "num_masked": metrics['num_masked'],
-        "bs_p": tensor_to_str_list(metrics['bs_p']),
-        "bs_r": tensor_to_str_list(metrics['bs_r']),
-        "bs_f1": tensor_to_str_list(metrics['bs_f1'])
-    }
+    m = {}
+    for k,v in metrics.items():
+        if k.startswith('bs_'):
+            m[k] = [round(x, 6) for x in v]
+        else:
+            m[k] = v
+    return json.dumps(m)
+    # return {
+    #     "num_captions": metrics['num_captions'],
+    #     "num_masked": metrics['num_masked'],
+    #     "bs_p": tensor_to_str_list(metrics['bs_p']),
+    #     "bs_r": tensor_to_str_list(metrics['bs_r']),
+    #     "bs_f1": tensor_to_str_list(metrics['bs_f1'])
+    # }
 
 class ReconstructionEvaluator:
     """
