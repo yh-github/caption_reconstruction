@@ -21,7 +21,7 @@ class BaseDataLoader(ABC):
         pass
 
     def load_all_sentences(self) -> list[str]:
-        return [c.data.description for x in self.load(limit=10*1000*1000) for c in x.clips]
+        return [c.data.caption for x in self.load(limit=10*1000*1000) for c in x.clips]
 
 class ToyDataLoader(BaseDataLoader):
     """

@@ -3,7 +3,7 @@ from unittest.mock import patch, MagicMock
 
 # Import all the classes and functions we need to test or use
 from reconstruction_strategies import BaselineRepeatStrategy, LLMStrategy, ReconstructionStrategyBuilder
-from data_models import CaptionedVideo, CaptionedClip, NarrativeOnlyPayload
+from src.data_models import CaptionedVideo, CaptionedClip, NarrativeOnlyPayload
 from constants import DATA_MISSING
 from exceptions import UserFacingError
 
@@ -18,7 +18,7 @@ def test_baseline_strategy_reconstruction():
     masked_video = CaptionedVideo(
         video_id="test_video",
         clips=[
-            CaptionedClip(timestamp=1.0, data=NarrativeOnlyPayload(description="first")),
+            CaptionedClip(timestamp=TimestampRange(start=0.0, end=1.0), data=NarrativeOnlyPayload(caption="first")),
             CaptionedClip(timestamp=2.0, data=DATA_MISSING),
             CaptionedClip(timestamp=3.0, data=DATA_MISSING),
             CaptionedClip(timestamp=4.0, data=NarrativeOnlyPayload(description="fourth")),

@@ -21,7 +21,7 @@ class JSONPromptBuilder(BasePromptBuilder):
         captions_for_json = [clip.model_dump() for clip in masked_video.clips]
         json_prompt_data = json.dumps(captions_for_json, indent=2)
 
-        return f"{instruction}\n\n---\n\n{json_prompt_data}"
+        return f"{instruction}\n\n{json_prompt_data}"
 
     @staticmethod
     def from_config(config: dict):
