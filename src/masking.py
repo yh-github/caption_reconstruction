@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from data_models import CaptionedClip
 from constants import DATA_MISSING
 from data_models import CaptionedVideo
+from src.data_models import CaptionedVideo
 
 
 class MaskingStrategy(ABC):
@@ -47,13 +48,13 @@ class MaskingStrategy(ABC):
         """Returns a dictionary of parameters for the string representation."""
         pass
 
-    def mask_video(self, video: CaptionedVideo) -> CaptionedVideo|None:
+    def mask_video(self, video: CaptionedVideo) -> tuple[None, None] | tuple[CaptionedVideo, set[int]]:
         indices_to_mask: set = self._get_indices_to_mask(len(video.clips))
         if not indices_to_mask:
-            return None
+            return None, None
         masked_clips = self.mask_list(video.clips, indices_to_mask)
         masked_video = video.model_copy(update={'clips': masked_clips})
-        return masked_video
+        return masked_video, indices_to_mask
 
 
 class RandomMasking(MaskingStrategy):

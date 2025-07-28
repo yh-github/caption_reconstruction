@@ -36,7 +36,7 @@ class ExperimentRunner:
         for video in all_videos:
             logging.debug(f"--- Processing Video: {video.video_id} ---")
 
-            masked_video = self.masking_strategy.mask_video(video)
+            masked_video, masked_indices = self.masking_strategy.mask_video(video)
             if not masked_video:
                 logging.warning(f"Not masking video {video.video_id} size={len(video.clips)} with {self.masking_strategy}")
                 continue
