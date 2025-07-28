@@ -16,9 +16,9 @@ llm:
 recon_strategy:
   - name: "baseline_repeat_last"
     type: "baseline_repeat_last"
-  - name: "llm_zero_shot_v1"
+  - name: "llm_zero_shot_v2"
     type: "llm"
-    prompt_template: "prompts/recon_zero_shot_v1.txt"
+    prompt_template: "prompts/recon_zero_shot_v2.txt"
 
 # --- A list of masking rules to generate strategies from ---
 masking_configs:
