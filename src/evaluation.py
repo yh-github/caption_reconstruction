@@ -4,6 +4,17 @@ from data_models import CaptionedClip
 
 logger = logging.getLogger(__name__)
 
+def tensor_to_str_list(t):
+    return '['+ ','.join([f'{x:.6f}' for x in t]) +']'
+
+def metrics_to_str(metrics):
+    return {
+        "num_captions": metrics['num_captions'],
+        "num_masked": metrics['num_masked'],
+        "bs_p": tensor_to_str_list(metrics['bs_p']),
+        "bs_r": tensor_to_str_list(metrics['bs_r']),
+        "bs_f1": tensor_to_str_list(metrics['bs_f1'])
+    }
 
 class ReconstructionEvaluator:
     """
@@ -55,7 +66,7 @@ class ReconstructionEvaluator:
 
         if not candidates:
             logger.warning("No reconstructed clips found to evaluate.")
-            return {"bert_score_precision": 0.0, "bert_score_recall": 0.0, "bert_score_f1": 0.0}
+            return {}
 
         logger.debug(f"Calculating BERTScore for {len(candidates)} clip pairs.")
 
@@ -67,9 +78,11 @@ class ReconstructionEvaluator:
 
         # Return the results as a dictionary of floats
         metrics = {
-            "bert_score_precision": P.min().item(),
-            "bert_score_recall": R.min().item(),
-            "bert_score_f1": F1.min().item()
+            "num_captions": len(ground_truth_clips),
+            "num_masked": masked_indices,
+            "bs_p": P,
+            "bs_r": R,
+            "bs_f1": F1
         }
 
         if self.verbose:

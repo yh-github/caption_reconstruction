@@ -2,11 +2,11 @@
 
 import statistics
 import logging
-import mlflow
 from data_loaders import BaseDataLoader
 from masking import MaskingStrategy
 from reconstruction_strategies import ReconstructionStrategy
-from evaluation import ReconstructionEvaluator
+from evaluation import ReconstructionEvaluator, metrics_to_str
+
 
 
 class ExperimentRunner:
@@ -43,7 +43,7 @@ class ExperimentRunner:
             
             if reconstructed_video:
                 video_metrics = self.evaluator.evaluate(reconstructed_video.clips, video.clips, masked_indices)
-                logging.info(f"Evaluation complete for {video.video_id}. BERTScore {video_metrics}")
+                logging.info(f"Evaluation complete for video_id={video.video_id}. {metrics_to_str(video_metrics)}")
                 all_metrics.append(video_metrics)
                 logging.debug(f"Successfully processed video: {video.video_id}")
             else:
@@ -54,11 +54,9 @@ class ExperimentRunner:
             logging.warning("No metrics were generated to log.")
             return {}
         # Calculate the mean for each metric across all videos
-        mean_f1 = statistics.mean([m['bert_score_f1'] for m in all_metrics])
-        mean_precision = statistics.mean([m['bert_score_precision'] for m in all_metrics])
-        mean_recall = statistics.mean([m['bert_score_recall'] for m in all_metrics])
-
-
+        mean_f1 = statistics.mean([m['bs_f1'].mean().item() for m in all_metrics])
+        mean_precision = statistics.mean([m['bs_p'].mean().item() for m in all_metrics])
+        mean_recall = statistics.mean([m['bs_r'].mean().item() for m in all_metrics])
 
         return {
             "num_of_instances": len(all_metrics),
@@ -66,5 +64,3 @@ class ExperimentRunner:
             "mean_precision": mean_precision,
             "mean_recall": mean_recall
         }
-
-
