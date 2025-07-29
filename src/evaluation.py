@@ -5,14 +5,17 @@ import json
 
 logger = logging.getLogger(__name__)
 
-def metrics_to_json(metrics):
+def round_metrics(metrics, ndigits=6):
     m = {}
     for k,v in metrics.items():
         if k.startswith('bs_'):
-            m[k] = [round(x.item(), 6) for x in v]
+            m[k] = [round(x.item(), ndigits) for x in v]
         else:
             m[k] = v
-    return json.dumps(m)
+    return m
+
+def metrics_to_json(metrics):
+    return json.dumps(round_metrics(metrics))
 
 class ReconstructionEvaluator:
     """
@@ -104,15 +107,15 @@ class ReconstructionEvaluator:
                 s = f'{orig}|{recon}|-|-|-|'
             print(s)
 
-    def _align_clips(self, reconstructed_clips, ground_truth_clips, masked_indices):
+    def _align_clips(self, reconstructed_clips: dict[int, CaptionedClip], ground_truth_clips):
         """
         Private helper method to extract reference and candidate sentences.
         """
         references = []
         candidates = []
 
-        for i in masked_indices:
-            candidates.append(reconstructed_clips[i].data.caption)
+        for i, c in reconstructed_clips.items():
+            candidates.append(c.data.caption)
             references.append(ground_truth_clips[i].data.caption)
 
         return candidates, references

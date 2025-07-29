@@ -1,10 +1,8 @@
 import pytest
 from unittest.mock import patch, MagicMock
 
-# Import all the classes and functions we need to test or use
 from reconstruction_strategies import BaselineRepeatStrategy, LLMStrategy, ReconstructionStrategyBuilder
-from data_models import CaptionedVideo, CaptionedClip, NarrativeOnlyPayload
-from data_models import DATA_MISSING
+from data_models import CaptionedVideo, CaptionedClip, NarrativeOnlyPayload, TimestampRange, DATA_MISSING
 from exceptions import UserFacingError
 
 # --- Tests for BaselineRepeatStrategy ---
@@ -19,22 +17,21 @@ def test_baseline_strategy_reconstruction():
         video_id="test_video",
         clips=[
             CaptionedClip(timestamp=TimestampRange(start=0.0, end=1.0), data=NarrativeOnlyPayload(caption="first")),
-            CaptionedClip(timestamp=2.0, data=DATA_MISSING),
-            CaptionedClip(timestamp=3.0, data=DATA_MISSING),
-            CaptionedClip(timestamp=4.0, data=NarrativeOnlyPayload(description="fourth")),
-            CaptionedClip(timestamp=5.0, data=DATA_MISSING),
+            CaptionedClip(timestamp=TimestampRange(start=0.0, end=1.0), data=DATA_MISSING),
+            CaptionedClip(timestamp=TimestampRange(start=0.0, end=1.0), data=DATA_MISSING),
+            CaptionedClip(timestamp=TimestampRange(start=0.0, end=1.0), data=NarrativeOnlyPayload(caption="fourth")),
+            CaptionedClip(timestamp=TimestampRange(start=0.0, end=1.0), data=DATA_MISSING),
         ]
     )
     baseline_strategy = BaselineRepeatStrategy()
 
     # Act
-    reconstructed_video = baseline_strategy.reconstruct(masked_video)
-    reconstructed_clips = reconstructed_video.clips
+    r = baseline_strategy.reconstruct(masked_video)
 
     # Assert
-    assert reconstructed_clips[1].data.description == "first"
-    assert reconstructed_clips[2].data.description == "first"
-    assert reconstructed_clips[4].data.description == "fourth"
+    assert r.reconstructed_clips[1].data.caption == "first"
+    assert r.reconstructed_clips[2].data.caption == "first"
+    assert r.reconstructed_clips[4].data.caption == "fourth"
 
 def test_baseline_strategy_handles_initial_mask():
     """
@@ -45,17 +42,17 @@ def test_baseline_strategy_handles_initial_mask():
     masked_video = CaptionedVideo(
         video_id="test_video_initial_mask",
         clips=[
-            CaptionedClip(timestamp=1.0, data=DATA_MISSING),
-            CaptionedClip(timestamp=2.0, data=NarrativeOnlyPayload(description="second")),
+            CaptionedClip(timestamp=TimestampRange(start=0.0, end=1.0), data=DATA_MISSING),
+            CaptionedClip(timestamp=TimestampRange(start=0.0, end=1.0), data=NarrativeOnlyPayload(caption="second")),
         ]
     )
     baseline_strategy = BaselineRepeatStrategy()
 
     # Act
-    reconstructed_video = baseline_strategy.reconstruct(masked_video)
+    r = baseline_strategy.reconstruct(masked_video)
 
     # Assert
-    assert reconstructed_video.clips[0].data.description == "second"
+    assert r.reconstructed_clips[0].data.caption == "second"
 
 
 # --- Test for LLMStrategy ---

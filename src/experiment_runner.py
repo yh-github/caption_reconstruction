@@ -1,10 +1,11 @@
 import statistics
 import logging
+
 from data_loaders import BaseDataLoader
 from masking import MaskingStrategy
-from reconstruction_strategies import ReconstructionStrategy
+from reconstruction_strategies import ReconstructionStrategy, Reconstructed
 from evaluation import ReconstructionEvaluator, metrics_to_json
-from data_models import DATA_MISSING
+from src.evaluation import round_metrics
 
 
 class ExperimentRunner:
@@ -38,31 +39,40 @@ class ExperimentRunner:
             masked_video, masked_indices = self.masking_strategy.mask_video(video)
             if not masked_video:
                 logging.warning(f"Not masking video {video.video_id} size={len(video.clips)} with {self.masking_strategy}")
+                all_recon_videos.append(f"SKIP {video.video_id=} NOT_MASKING")
                 continue
 
-            reconstructed_video = self.reconstruction_strategy.reconstruct(masked_video)
-            if not reconstructed_video:
+            reconstructed = self.reconstruction_strategy.reconstruct(masked_video)
+            if not reconstructed or not reconstructed.reconstructed_clips:
                 logging.error(f"Reconstruction failed for video: {video.video_id}")
-                # mlflow.log_metric("reconstruction_failed", 1)
+                all_recon_videos.append(f"SKIP {video.video_id=} FAIL")
                 continue
 
-            all_recon_videos.append('{' +
-                f'"masked_indices":{list(masked_indices)}, '
-                f'"reconstructed_video":{reconstructed_video.model_dump_json()}'
-            + '}')
+            if reconstructed.reconstructed_clips.keys() != masked_indices and not reconstructed.debug_data:
+                crit_msg = f"Reconstruction failed for video: {video.video_id}, {reconstructed.reconstructed_clips.keys()=} != {masked_indices=}"
+                logging.critical(crit_msg)
+                raise Exception(crit_msg)
 
-            for c in reconstructed_video.clips:
-                if c == DATA_MISSING:
-                    logging.warning(f'Masked data found in {reconstructed_video}')
-                    continue
+            if reconstructed.debug_data and reconstructed.debug_data.get('failed',0):
+                logging.warning(f'Masked data found in reconstructed_video {video.video_id}, skipping')
+                all_recon_videos.append(reconstructed.skip('failed>0').model_dump_json())
+                continue
+            elif reconstructed.reconstructed_clips.keys() != masked_indices:
+                logging.warning(f'Bad indices found in reconstructed_video {video.video_id}, {reconstructed.indices=}, {masked_indices=}, skipping')
+                all_recon_videos.append(reconstructed.skip(f"{masked_indices=}").model_dump_json())
+                continue
+            elif reconstructed.debug_data:
+                logging.warning(f'Problems found in reconstructed_video {video.video_id}, proceeding anyway')
 
-            video_metrics = self.evaluator.evaluate(reconstructed_video.clips, video.clips, masked_indices)
+            video_metrics = self.evaluator.evaluate(reconstructed.reconstructed_clips, video.clips, masked_indices)
             logging.info(f"Evaluation complete for "
                          f"video_id={video.video_id} "
                          f"metrics={metrics_to_json(video_metrics)}")
+
+            all_recon_videos.append(reconstructed.with_metrics(round_metrics(video_metrics)).model_dump_json())
+
             all_metrics.append(video_metrics)
             logging.debug(f"Successfully processed video: {video.video_id}")
-
 
         if not all_metrics:
             logging.warning("No metrics were generated to log.")

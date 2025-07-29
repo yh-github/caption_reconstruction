@@ -1,12 +1,40 @@
 import logging
 from abc import ABC, abstractmethod
-
-from data_models import DATA_MISSING
+from data_models import DATA_MISSING, CaptionedClip
 from data_models import CaptionedVideo
 from llm_interaction import LLM_Manager, build_llm_manager
 from parsers import parse_llm_response
 from prompting import BasePromptBuilder, JSONPromptBuilder
 from exceptions import UserFacingError
+from pydantic import BaseModel
+
+class Reconstructed(BaseModel):
+    video_id: str
+    reconstructed_clips: dict[int, CaptionedClip]
+    debug_data: dict|None = None
+    skip_reason: str|None = None
+    metrics: dict|None = None
+
+    def align(self, orig_clips: list[CaptionedClip]) -> tuple[list[str], list[str]]:
+        """
+        Helper method to extract reference and candidate sentences.
+        """
+        references = []
+        candidates = []
+
+        for i, c in self.reconstructed_clips.items():
+            candidates.append(c.data.caption)
+            references.append(orig_clips[i].data.caption)
+
+        return candidates, references
+
+    def skip(self, reason: str):
+        self.skip_reason = reason
+        return self
+
+    def with_metrics(self, metrics: dict):
+        self.metrics = metrics
+        return self
 
 
 class ReconstructionStrategy(ABC):
@@ -18,7 +46,7 @@ class ReconstructionStrategy(ABC):
         return self.name
 
     @abstractmethod
-    def reconstruct(self, masked_video: CaptionedVideo) -> CaptionedVideo | None:
+    def reconstruct(self, masked_video: CaptionedVideo) -> Reconstructed | None:
         """Takes a masked CaptionedVideo and returns a reconstructed one."""
         pass
 
@@ -27,14 +55,12 @@ class BaselineRepeatStrategy(ReconstructionStrategy):
     def __init__(self):
         super().__init__('BaselineRepeatStrategy')
 
-    def reconstruct(self, masked_video: CaptionedVideo) -> CaptionedVideo | None:
+    def reconstruct(self, masked_video: CaptionedVideo) -> Reconstructed | None:
         """
         Fills masked clips by repeating the data from the last known clip.
         If initial clips are masked, it back-fills them with the first valid data.
         """
         masked_clips = masked_video.clips
-        if not masked_clips:
-            return masked_video
 
         # First Pass: Find the first available data payload
         first_valid_data = None
@@ -44,20 +70,23 @@ class BaselineRepeatStrategy(ReconstructionStrategy):
                 break
 
         # Second Pass: Reconstruct the transcript
-        reconstructed_clips = []
+        reconstructed_clips = {}
         last_known_data = first_valid_data
 
-        for clip in masked_clips:
-            new_clip = clip.model_copy()
+        for i, clip in enumerate(masked_clips):
+            # new_clip = clip.model_copy()
             if clip.data != DATA_MISSING:
                 last_known_data = clip.data
-                new_clip.data = clip.data
+                # new_clip.data = clip.data
             else:
                 # Fill the masked clip with the last known data
-                new_clip.data = last_known_data
-            reconstructed_clips.append(new_clip)
+                new_clip = clip.model_copy(update={'data': last_known_data})
+                # new_clip.data = last_known_data
+                reconstructed_clips[i]=new_clip
 
-        return masked_video.model_copy(update={'clips': reconstructed_clips})
+        # return masked_video.model_copy(update={'clips': reconstructed_clips})
+        return Reconstructed(video_id=masked_video.video_id, reconstructed_clips=reconstructed_clips)
+
 
 class LLMStrategy(ReconstructionStrategy):
     """The strategy for using an LLM for reconstruction."""
@@ -66,13 +95,40 @@ class LLMStrategy(ReconstructionStrategy):
         self.llm_model = llm_model
         self.prompt_builder = prompt_builder
 
-    def reconstruct(self, masked_video: CaptionedVideo) -> CaptionedVideo | None:
+    def reconstruct(self, masked_video: CaptionedVideo) -> Reconstructed | None:
         try:
             prompt = self.prompt_builder.build_prompt(masked_video)
             llm_response_text = self.llm_model.call(prompt)
             reconstructed_clips = parse_llm_response(llm_response_text)
-            reconstructed_video = masked_video.model_copy(update={'clips': reconstructed_clips})
-            return reconstructed_video
+            assert reconstructed_clips and len(reconstructed_clips)==len(masked_video.clips)
+            ok = []
+            failed = []
+            changed_unmasked = []
+            reconstructed_dict = {}
+            for i, c in enumerate(masked_video.clips):
+                if c.data == DATA_MISSING:
+                    if reconstructed_clips[i] == DATA_MISSING:
+                        failed.append(i)
+                    else:
+                        ok.append(i)
+                        reconstructed_dict[i] = reconstructed_clips[i]
+                else:
+                    if c.data != reconstructed_clips[i]:
+                        changed_unmasked.append(i)
+            # reconstructed_video = masked_video.model_copy(update={'clips': reconstructed_clips})
+            debug_data=None
+            if failed or changed_unmasked:
+                debug_data = {
+                    "ok": ok,
+                    "failed": failed,
+                    "changed_unmasked": changed_unmasked,
+                    "llm_response_text": llm_response_text
+                }
+            return Reconstructed(
+                video_id=masked_video.video_id,
+                reconstructed_clips=reconstructed_dict,
+                debug_data=debug_data
+            )
         except Exception as e:
             logging.error(f"{e} for {masked_video.video_id=}")
             return None
