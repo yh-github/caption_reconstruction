@@ -40,7 +40,7 @@ def main():
 
     cmd = sys.argv[1]
     config = load_config(sys.argv[2])
-    art_path = sys.argv[3]
+    art_path = sys.argv[3].removeprefix('file://')
 
     data_loader = get_data_loader(config["data_config"])
 
@@ -53,7 +53,8 @@ def main():
     else:
         reconstructed_data = load_recon(path=art_path, video_id=cmd)
 
-    print(f"Analyzing reconstruction for video_id: '{reconstructed_data.video_id}'\n")
+    print()
+    print(f"Analyzing reconstruction for video_id: '{reconstructed_data.video_id}'")
 
     # --- Find the Original Video ---
     original_video = data_loader.find(reconstructed_data.video_id)
@@ -66,36 +67,39 @@ def main():
         llm_response = reconstructed_data.debug_data.pop('llm_response_text')
         print(reconstructed_data.debug_data)
         print('LLM_RESPONSE:')
-        # print(llm_response)
+        print(llm_response)
         print(':LLM_RESPONSE')
-        # print(original_video.model_dump_json(indent=4))
-    else:
-        print("ALL GOOD:")
-        print(reconstructed_data.model_dump_json(indent=4))
-        print(":ALL GOOD")
+        print("ORIG:")
+        print(original_video.model_dump_json(indent=4))
+        print(":ORIG")
+        return
 
     # --- Print the Comparison ---
     # print(f"--- Comparison for Video: {original_video.video_id} ---")
     # print(f'| Index | Original Caption | Reconstructed Caption | Metrics |')
     # print(f'|---|---|---|---|')  # Markdown table header separator
-    #
-    # for i, original_clip in enumerate(original_video.clips):
-    #     original_desc = original_clip.data.caption
-    #
-    #     # Check if this clip was reconstructed
-    #     if i in reconstructed_data.reconstructed_clips:
-    #         recon_clip = reconstructed_data.reconstructed_clips[i]
-    #         recon_desc = recon_clip.data.caption
-    #
-    #         # Format the metrics for this specific clip
-    #         f1 = reconstructed_data.metrics.get('bs_f1')[i]
-    #         metrics_str = f"F1=f1"
-    #
-    #         # Use markdown for emphasis
-    #         print(f'| {i} | ~~*{original_desc}*~~ | **{recon_desc}** | {metrics_str} |')
-    #     else:
-    #         # This clip was not in the masked set
-    #         print(f'| {i} | {original_desc} | - | - |')
+
+    j = 0
+    for i, original_clip in enumerate(original_video.clips):
+        original_desc = original_clip.data.caption
+
+        # Check if this clip was reconstructed
+        if i in reconstructed_data.reconstructed_clips:
+            recon_clip = reconstructed_data.reconstructed_clips[i]
+            recon_desc = recon_clip.data.caption
+
+            # Format the metrics for this specific clip
+            f1 = reconstructed_data.metrics.get('bs_f1')[j]
+            j += 1
+            metrics_str = f"F1={f1}"
+
+            # Use markdown for emphasis
+            print(f'{i}. ~~{original_desc}~~')
+            print('  ', recon_desc)
+            print('  ', metrics_str)
+        else:
+            # This clip was not in the masked set
+            print(f'{i}. {original_desc}')
 
 
 if __name__ == "__main__":
