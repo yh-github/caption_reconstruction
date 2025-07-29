@@ -23,6 +23,10 @@ class BaseDataLoader(ABC):
     def load_all_sentences(self) -> list[str]:
         return [c.data.caption for x in self.load(limit=10*1000*1000) for c in x.clips]
 
+    def find(self, video_id):
+        return next((v for v in self.load() if v.video_id == video_id), None) # TODO load_iter
+
+
 class ToyDataLoader(BaseDataLoader):
     """
     This serves as our initial ground-truth data for building and debugging
@@ -56,32 +60,36 @@ class VideoStorytellingLoader(BaseDataLoader):
         self.data_path = data_path
         self.limit = limit
 
+    def find(self, video_id):
+        return self.load_file(video_id+".txt")
+
     def load(self, limit:int|None=None) -> list[CaptionedVideo]:
         logging.info(f"Loading from Video Storytelling dataset at: {self.data_path} {self.limit=}")
-        all_videos = []
         filenames = sorted([f for f in os.listdir(self.data_path) if f.endswith(".txt")])
         if _limit := limit or self.limit:
             filenames = filenames[:_limit]
 
-        for filename in filenames:
-            video_id = filename.replace('.txt', '')
-            file_path = os.path.join(self.data_path, filename)
-            clips = []
-            with open(file_path, 'r') as f:
-                lines = f.readlines()[1:] # Skip video ID line
-                for line in lines:
-                    parts = line.strip().split()
-                    if len(parts) < 3: continue
-                    start_time_str = parts[0]
-                    end_time_str = parts[1]
-                    description = " ".join(parts[2:])
-                    clips.append(CaptionedClip(
-                        timestamp=TimestampRange(start=_parse_storytelling_timestamp(start_time_str),
-                                                 end=_parse_storytelling_timestamp(end_time_str)),
-                        data=NarrativeOnlyPayload(caption=description)
-                    ))
-            all_videos.append(CaptionedVideo(video_id=video_id, clips=clips))
-        return all_videos
+        return [self.load_file(filename) for filename in filenames]
+
+    def load_file(self, filename:str) -> CaptionedVideo:
+        file_path = os.path.join(self.data_path, filename)
+        video_id = filename.replace('.txt', '')
+        clips = []
+        with open(file_path, 'r') as f:
+            lines = f.readlines()[1:]  # Skip video ID line
+            for line in lines:
+                parts = line.strip().split()
+                if len(parts) < 3: continue
+                start_time_str = parts[0]
+                end_time_str = parts[1]
+                description = " ".join(parts[2:])
+                clips.append(CaptionedClip(
+                    timestamp=TimestampRange(start=_parse_storytelling_timestamp(start_time_str),
+                                             end=_parse_storytelling_timestamp(end_time_str)),
+                    data=NarrativeOnlyPayload(caption=description)
+                ))
+            return CaptionedVideo(video_id=video_id, clips=clips)
+
 
 class VatexLoader(BaseDataLoader):
     """Loads data from the VATEX dataset format."""

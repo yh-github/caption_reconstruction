@@ -116,7 +116,7 @@ class LLMStrategy(ReconstructionStrategy):
                         ok.append(i)
                         reconstructed_dict[i] = reconstructed_clips[i]
                 else:
-                    if c.data != reconstructed_clips[i]:
+                    if c != reconstructed_clips[i]:
                         changed_unmasked.append(i)
             # reconstructed_video = masked_video.model_copy(update={'clips': reconstructed_clips})
             debug_data=None
