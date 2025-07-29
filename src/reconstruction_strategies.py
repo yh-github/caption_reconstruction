@@ -110,11 +110,14 @@ class LLMStrategy(ReconstructionStrategy):
             reconstructed_dict = {}
             for i, c in enumerate(masked_video.clips):
                 if c.data == DATA_MISSING:
-                    if reconstructed_clips[i] == DATA_MISSING:
-                        failed.append(i)
-                    else:
+                    if hasattr(reconstructed_clips[i], 'data') and \
+                        hasattr(reconstructed_clips[i], 'caption') \
+                            and reconstructed_clips[i].data.caption\
+                            and reconstructed_clips[i].data.caption != DATA_MISSING:
                         ok.append(i)
                         reconstructed_dict[i] = reconstructed_clips[i]
+                    else:
+                        failed.append(i)
                 else:
                     if c != reconstructed_clips[i]:
                         changed_unmasked.append(i)
