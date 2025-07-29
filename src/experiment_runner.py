@@ -27,7 +27,7 @@ class ExperimentRunner:
         self.reconstruction_strategy = reconstruction_strategy
         self.evaluator = evaluator
 
-    def run(self):
+    def run(self) -> tuple[dict, list[str]]:
         """Runs the full experiment from data loading to evaluation."""
         all_videos:list[CaptionedVideo] = self.data_loader.load()
         all_metrics:list[dict] = []

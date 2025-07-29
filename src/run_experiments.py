@@ -38,7 +38,7 @@ def main(config):
     # --- 2. The Experiment Loops ---
     with FileLock(".lock"):
         parent_run_name = config.get("batch_name", "ExperimentBatch")
-
+        mlflow.set_experiment(experiment_name="dev")
         with mlflow.start_run(run_name=parent_run_name) as parent_run:
             log_path = setup_logging(log_dir=config['paths']['log_dir'], run_id=parent_run.info.run_id)
             print(f'{log_path = }')
