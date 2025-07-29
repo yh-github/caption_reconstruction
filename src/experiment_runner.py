@@ -3,10 +3,11 @@ import logging
 
 from data_loaders import BaseDataLoader
 from masking import MaskingStrategy
-from reconstruction_strategies import ReconstructionStrategy, Reconstructed
+from reconstruction_strategies import ReconstructionStrategy
 from evaluation import ReconstructionEvaluator, metrics_to_json, round_metrics
+from data_models import CaptionedVideo
 
- 
+
 class ExperimentRunner:
     """
     Encapsulates and runs a single, atomic experiment.
@@ -28,9 +29,9 @@ class ExperimentRunner:
 
     def run(self):
         """Runs the full experiment from data loading to evaluation."""
-        all_videos = self.data_loader.load()
-        all_metrics = []
-        all_recon_videos = []
+        all_videos:list[CaptionedVideo] = self.data_loader.load()
+        all_metrics:list[dict] = []
+        all_recon_videos:list[str] = []
 
         for video in all_videos:
             logging.debug(f"--- Processing Video: {video.video_id} ---")
@@ -63,23 +64,32 @@ class ExperimentRunner:
             elif reconstructed.debug_data:
                 logging.warning(f'Problems found in reconstructed_video {video.video_id}, proceeding anyway')
 
-            video_metrics = self.evaluator.evaluate(reconstructed.reconstructed_clips, video.clips, masked_indices)
-            logging.info(f"Evaluation complete for "
-                         f"video_id={video.video_id} "
-                         f"metrics={metrics_to_json(video_metrics)}")
-
-            all_recon_videos.append(reconstructed.with_metrics(round_metrics(video_metrics)).model_dump_json())
+            video_metrics = self.evaluator.evaluate(reconstructed, video)
 
             all_metrics.append(video_metrics)
+
+            metrics = round_metrics(video_metrics)
+            all_recon_videos.append(reconstructed.with_metrics(metrics).model_dump_json())
+
+            metrics.update({
+                "num_captions": len(video.clips),
+                "masked": list(masked_indices)
+            })
+
+            logging.info(f"Evaluation complete for "
+                         f"video_id={video.video_id} "
+                         f"metrics={metrics_to_json(metrics)}")
+
             logging.debug(f"Successfully processed video: {video.video_id}")
 
         if not all_metrics:
             logging.warning("No metrics were generated to log.")
             return {}
-        # Calculate the mean for each metric across all videos
-        mean_f1 = statistics.mean([m['bs_f1'].mean().item() for m in all_metrics])
-        mean_precision = statistics.mean([m['bs_p'].mean().item() for m in all_metrics])
-        mean_recall = statistics.mean([m['bs_r'].mean().item() for m in all_metrics])
+
+        # TODO: keep only the sums (NA as 0)
+        mean_f1 = statistics.mean([m['bs_f1'].min().item() for m in all_metrics])
+        mean_precision = statistics.mean([m['bs_p'].min().item() for m in all_metrics])
+        mean_recall = statistics.mean([m['bs_r'].min().item() for m in all_metrics])
 
         agg_metrics = {
             "num_of_instances": len(all_metrics),
