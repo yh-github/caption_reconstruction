@@ -30,6 +30,7 @@ class ExperimentRunner:
         """Runs the full experiment from data loading to evaluation."""
         all_videos = self.data_loader.load()
         all_metrics = []
+        all_recon_videos = []
 
         for video in all_videos:
             logging.debug(f"--- Processing Video: {video.video_id} ---")
@@ -45,14 +46,20 @@ class ExperimentRunner:
                 # mlflow.log_metric("reconstruction_failed", 1)
                 continue
 
+            all_recon_videos.append('{' +
+                f'"masked_indices":{list(masked_indices)}, '
+                f'"reconstructed_video":{reconstructed_video.model_dump_json()}'
+            + '}')
+
             for c in reconstructed_video.clips:
                 if c == DATA_MISSING:
                     logging.warning(f'Masked data found in {reconstructed_video}')
                     continue
 
-
             video_metrics = self.evaluator.evaluate(reconstructed_video.clips, video.clips, masked_indices)
-            logging.info(f"Evaluation complete for video_id={video.video_id} metrics={metrics_to_json(video_metrics)}")
+            logging.info(f"Evaluation complete for "
+                         f"video_id={video.video_id} "
+                         f"metrics={metrics_to_json(video_metrics)}")
             all_metrics.append(video_metrics)
             logging.debug(f"Successfully processed video: {video.video_id}")
 
@@ -65,9 +72,11 @@ class ExperimentRunner:
         mean_precision = statistics.mean([m['bs_p'].mean().item() for m in all_metrics])
         mean_recall = statistics.mean([m['bs_r'].mean().item() for m in all_metrics])
 
-        return {
+        agg_metrics = {
             "num_of_instances": len(all_metrics),
             "mean_f1_score": mean_f1,
             "mean_precision": mean_precision,
             "mean_recall": mean_recall
         }
+
+        return agg_metrics, all_recon_videos

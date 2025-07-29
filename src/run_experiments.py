@@ -57,8 +57,11 @@ def main(config):
                 with mlflow.start_run(run_name=run_name, nested=True) as child_run:
                     logging.info(f"--- Starting Nested Run: {run_name} ---")
                     mlflow.log_params(run_params)
-                    metrics = runner.run()
+                    metrics, all_recon_videos = runner.run()
+
                     mlflow.log_metrics(metrics)
+                    mlflow.log_text(text="\n".join(all_recon_videos), artifact_file='all_recon_videos.jsonl')
+
                     log_message = (f"{run_name} Logged aggregated metrics on"
                                    f" {metrics['num_of_instances']} instances."
                                    f" Mean F1: {metrics['mean_f1_score']:.4f}"
