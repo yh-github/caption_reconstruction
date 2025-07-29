@@ -1,7 +1,7 @@
 import pytest
 from masking import PartitionMasking, get_masking_strategies
 from data_models import CaptionedClip, NarrativeOnlyPayload
-from constants import DATA_MISSING
+from data_models import DATA_MISSING
 
 # --- The Fixture (no changes needed) ---
 @pytest.fixture

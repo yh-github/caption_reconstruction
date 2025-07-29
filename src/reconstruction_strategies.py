@@ -1,7 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 
-from constants import DATA_MISSING
+from data_models import DATA_MISSING
 from data_models import CaptionedVideo
 from llm_interaction import LLM_Manager, build_llm_manager
 from parsers import parse_llm_response

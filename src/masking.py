@@ -1,7 +1,7 @@
 import random
 from abc import ABC, abstractmethod
 from data_models import CaptionedClip
-from constants import DATA_MISSING
+from data_models import DATA_MISSING
 from data_models import CaptionedVideo
 
 

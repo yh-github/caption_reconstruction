@@ -1,7 +1,7 @@
 import json
 from abc import ABC, abstractmethod
 from data_models import CaptionedVideo
-from constants import DATA_MISSING
+from data_models import DATA_MISSING
 
 class BasePromptBuilder(ABC):
     """An abstract base class for all prompt building strategies."""

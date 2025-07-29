@@ -3,8 +3,8 @@ from unittest.mock import patch, MagicMock
 
 # Import all the classes and functions we need to test or use
 from reconstruction_strategies import BaselineRepeatStrategy, LLMStrategy, ReconstructionStrategyBuilder
-from src.data_models import CaptionedVideo, CaptionedClip, NarrativeOnlyPayload
-from constants import DATA_MISSING
+from data_models import CaptionedVideo, CaptionedClip, NarrativeOnlyPayload
+from data_models import DATA_MISSING
 from exceptions import UserFacingError
 
 # --- Tests for BaselineRepeatStrategy ---
