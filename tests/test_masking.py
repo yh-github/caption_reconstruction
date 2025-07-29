@@ -1,6 +1,6 @@
 import pytest
 from masking import PartitionMasking, get_masking_strategies
-from data_models import CaptionedClip, NarrativeOnlyPayload
+from data_models import CaptionedClip, NarrativeOnlyPayload, TimestampRange
 from data_models import DATA_MISSING
 
 # --- The Fixture (no changes needed) ---
@@ -12,7 +12,7 @@ def captions_of_length():
     """
     def _create_captions(num_clips):
         return [
-            CaptionedClip(timestamp=i+1, data=NarrativeOnlyPayload(description=f"Clip {i+1}"))
+            CaptionedClip(timestamp=TimestampRange(start=i, end=i+1), data=NarrativeOnlyPayload(caption=f"Clip {i+1}"))
             for i in range(num_clips)
         ]
     return _create_captions
