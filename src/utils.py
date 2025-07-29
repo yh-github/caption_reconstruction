@@ -101,7 +101,7 @@ def setup_mlflow(
     """
     logging.info("Setting up MLflow and logging parameters...")
     mlflow.set_tracking_uri(tracking_uri)
-    mlflow.set_experiment(experiment_name)
+    mlflow.set_experiment(experiment_name=experiment_name)
 
 def object_to_dict(obj: object) -> dict:
     """

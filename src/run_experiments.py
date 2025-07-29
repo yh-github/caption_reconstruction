@@ -9,7 +9,8 @@ from filelock import FileLock
 # Local imports
 from masking import get_masking_strategies
 from evaluation import ReconstructionEvaluator
-from utils import check_git_repository_is_clean, object_to_dict, setup_logging, get_notification_logger, flush_loggers
+from utils import check_git_repository_is_clean, object_to_dict, setup_logging, get_notification_logger, flush_loggers, \
+    setup_mlflow
 from config_loader import load_config
 from reconstruction_strategies import ReconstructionStrategyBuilder
 from data_loaders import get_data_loader
@@ -27,7 +28,7 @@ def init():
     return load_config(sys.argv[1])
 
 def main(config):
-    # mlflow_uri = config['paths']['mlflow_tracking_uri']
+    mlflow_uri = config['paths']['mlflow_tracking_uri']
     # experiment_name=config['base_params']['experiment_name']
 
     notifier = get_notification_logger()
@@ -38,7 +39,8 @@ def main(config):
     # --- 2. The Experiment Loops ---
     with FileLock(".lock"):
         parent_run_name = config.get("batch_name", "ExperimentBatch")
-        mlflow.set_experiment(experiment_name="dev")
+        # mlflow.set_experiment(experiment_name="dev")
+        setup_mlflow(experiment_name='dev', tracking_uri=mlflow_uri)
         with mlflow.start_run(run_name=parent_run_name) as parent_run:
             log_path = setup_logging(log_dir=config['paths']['log_dir'], run_id=parent_run.info.run_id)
             print(f'{log_path = }')
