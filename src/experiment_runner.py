@@ -55,11 +55,11 @@ class ExperimentRunner:
 
             if reconstructed.debug_data and reconstructed.debug_data.get('failed',0):
                 logging.warning(f'Masked data found in reconstructed_video {video.video_id}, skipping')
-                all_recon_videos.append(reconstructed.skip('failed>0').model_dump_json())
+                all_recon_videos.append(reconstructed.skip('failed>0').json_str())
                 continue
             elif reconstructed.reconstructed_clips.keys() != masked_indices:
                 logging.warning(f'Bad indices found in reconstructed_video {video.video_id}, {reconstructed.indices=}, {masked_indices=}, skipping')
-                all_recon_videos.append(reconstructed.skip(f"{masked_indices=}").model_dump_json())
+                all_recon_videos.append(reconstructed.skip(f"{masked_indices=}").json_str())
                 continue
             elif reconstructed.debug_data:
                 logging.warning(f'Problems found in reconstructed_video {video.video_id}, proceeding anyway')
@@ -69,7 +69,7 @@ class ExperimentRunner:
             all_metrics.append(video_metrics)
 
             metrics = round_metrics(video_metrics)
-            all_recon_videos.append(reconstructed.with_metrics(metrics).model_dump_json())
+            all_recon_videos.append(reconstructed.with_metrics(metrics).json_str())
 
             metrics.update({
                 "num_captions": len(video.clips),
@@ -83,8 +83,7 @@ class ExperimentRunner:
             logging.debug(f"Successfully processed video: {video.video_id}")
 
         if not all_metrics:
-            logging.warning("No metrics were generated to log.")
-            return {}
+            raise Exception("No metrics were generated to log.")
 
         # TODO: keep only the sums (NA as 0)
         mean_f1 = statistics.mean([m['bs_f1'].min().item() for m in all_metrics])

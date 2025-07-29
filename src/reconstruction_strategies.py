@@ -36,6 +36,9 @@ class Reconstructed(BaseModel):
         self.metrics = metrics
         return self
 
+    def json_str(self):
+        return self.model_dump_json(exclude_none=True)
+
 
 class ReconstructionStrategy(ABC):
     """An abstract base class for all reconstruction methods."""
