@@ -1,12 +1,10 @@
-# src/experiment_runner.py
-
 import statistics
 import logging
 from data_loaders import BaseDataLoader
 from masking import MaskingStrategy
 from reconstruction_strategies import ReconstructionStrategy
 from evaluation import ReconstructionEvaluator, metrics_to_json
-
+from data_models import DATA_MISSING
 
 
 class ExperimentRunner:
@@ -46,6 +44,12 @@ class ExperimentRunner:
                 logging.error(f"Reconstruction failed for video: {video.video_id}")
                 # mlflow.log_metric("reconstruction_failed", 1)
                 continue
+
+            for c in reconstructed_video.clips:
+                if c == DATA_MISSING:
+                    logging.warning(f'Masked data found in {reconstructed_video}')
+                    continue
+
 
             video_metrics = self.evaluator.evaluate(reconstructed_video.clips, video.clips, masked_indices)
             logging.info(f"Evaluation complete for video_id={video.video_id} metrics={metrics_to_json(video_metrics)}")
