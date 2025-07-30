@@ -1,5 +1,6 @@
 import yaml
 import logging
+from pathlib import Path
 
 def load_config(
     experiment_config_path,
@@ -19,4 +20,6 @@ def load_config(
     
     # Merge the two dictionaries
     merged_config = {**system_config, **experiment_config}
+
+    merged_config["__parent_run_name__"] = Path(experiment_config_path).stem
     return merged_config

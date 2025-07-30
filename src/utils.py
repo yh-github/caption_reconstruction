@@ -148,5 +148,5 @@ def object_to_dict(obj: object) -> dict:
     return param_dict
 
 
-def get_ts_str(tz:str="Asia/Jerusalem") -> str:
-    return datetime.now(pytz.timezone(tz)).strftime("%H-%M_%d_%m_%Y")
+def get_datetime_str(tz:str|None=None) -> str:
+    return datetime.now(pytz.timezone(tz or "Asia/Jerusalem")).strftime("%H-%M_%d_%m_%Y")
