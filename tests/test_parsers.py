@@ -2,28 +2,35 @@
 import pytest
 from parsers import parse_llm_response
 from data_models import CaptionedClip
+import textwrap
 
 def test_parse_llm_response_success():
     """
     Tests successful parsing of a clean, valid JSON response from the LLM.
     """
     # Arrange: A perfect JSON string as we'd hope to get from the LLM.
-    llm_output = """
+    llm_output = textwrap.dedent("""
     [
         {
-            "timestamp": 2.0,
+            "timestamp": {
+                "start": 0.0,
+                "end": 1.0
+            },
             "data": {
-                "description": "The person approaches a table."
+                "caption": "The person approaches a table." 
             }
         },
         {
-            "timestamp": 3.0,
+            "timestamp": {
+                "start": 1.0,
+                "end": 2.0
+            },
             "data": {
-                "description": "The person picks up a book."
+                "caption": "The person picks up a book."
             }
         }
     ]
-    """
+    """)
 
     # Act
     parsed_clips = parse_llm_response(llm_output)
@@ -32,7 +39,7 @@ def test_parse_llm_response_success():
     assert parsed_clips is not None
     assert len(parsed_clips) == 2
     assert isinstance(parsed_clips[0], CaptionedClip)
-    assert parsed_clips[1].data.description == "The person picks up a book."
+    assert parsed_clips[1].data.caption == "The person picks up a book."
 
 def test_parse_llm_response_invalid_json():
     """
@@ -41,7 +48,7 @@ def test_parse_llm_response_invalid_json():
     # Arrange: A string that is not valid JSON.
     llm_output = """
     [
-        {"timestamp": 2.0, "data": {"description": "A bad response"}
+        {"timestamp": 2.0, "data": {"caption": "A bad response"}
     ]
     """ # Missing closing curly brace
 
