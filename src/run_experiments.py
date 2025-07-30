@@ -39,10 +39,14 @@ def main(config):
     # --- 2. The Experiment Loops ---
     with FileLock(".lock"):
         parent_run_name = config.get("batch_name", "ExperimentBatch")
-        # mlflow.set_experiment(experiment_name="dev")
         setup_mlflow(experiment_name='dev', tracking_uri=mlflow_uri)
         with mlflow.start_run(run_name=parent_run_name) as parent_run:
-            log_path = setup_logging(log_dir=config['paths']['log_dir'], run_id=parent_run.info.run_id)
+            parent_run.info.experiment_id
+            log_path = setup_logging(
+                log_dir=config['paths']['log_dir'],
+                run_id=parent_run.info.run_id,
+                tz_str=config.get('tz', None)
+            )
             print(f'{log_path = }')
             logging.info(f"--- Starting Experiment Batch: {parent_run_name} ---")
 

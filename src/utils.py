@@ -4,6 +4,21 @@ import mlflow
 import git
 from exceptions import UserFacingError
 import logging
+from datetime import datetime
+import pytz
+
+class TimezoneFormatter(logging.Formatter):
+    """A custom logging formatter that uses a specific timezone."""
+    def __init__(self, fmt:str, tz_str:str="Asia/Jerusalem"):
+        # ,datefmt='%Y-%m-%d %H:%M:%S',
+        super().__init__(fmt)
+        self.tz = pytz.timezone(tz_str)
+
+    def formatTime(self, record, datefmt=None):
+        # Get the original log time (which is in UTC)
+        dt = datetime.fromtimestamp(record.created, pytz.utc)
+        dt = dt.astimezone(self.tz)
+        return dt.strftime(datefmt)
 
 NOTICE_LEVEL_NUM = 25 # Between INFO (20) and WARNING (30)
 NOTICE_LEVEL_NAME = "NOTICE"
@@ -36,16 +51,18 @@ def get_notification_logger():
     if not notification_logger.handlers:
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
-        console_handler.setFormatter(logging.Formatter('ℹ️ %(asctime)s - NOTICE %(levelname)s - %(message)s'))
+        console_handler.setFormatter(TimezoneFormatter('ℹ️ %(asctime)s - NOTICE %(levelname)s - %(message)s'))
         notification_logger.addHandler(console_handler)
 
     return notification_logger
 
-def setup_logging(log_dir: str, run_id: str, console_level=logging.WARN, base_level=logging.INFO):
+def setup_logging(log_dir: str, run_id: str, console_level=logging.WARN, base_level=logging.INFO, tz_str:str|None=None):
     """
     Configures logging to write to both the console and a unique file
     for the given MLflow run ID.
     """
+    if not tz_str:
+        tz_str = "Asia/Jerusalem"
 
     # add_notice_log_level()
 
@@ -59,15 +76,21 @@ def setup_logging(log_dir: str, run_id: str, console_level=logging.WARN, base_le
     if logger.hasHandlers():
         logger.handlers.clear()
 
+    formatter = TimezoneFormatter(
+        '%(asctime)s - %(levelname)s - %(message)s',
+        # datefmt='%Y-%m-%d %H:%M:%S',
+        tz_str=tz_str
+    )
+
     # Setup console handler
     console_handler = logging.StreamHandler()
     console_handler.setLevel(console_level)
-    console_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+    console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
 
     # Setup file handler
     file_handler = logging.FileHandler(log_path, mode='w')
-    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+    file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
     return log_path
@@ -123,3 +146,7 @@ def object_to_dict(obj: object) -> dict:
             param_dict[key] = value
 
     return param_dict
+
+
+def get_ts_str(tz:str="Asia/Jerusalem") -> str:
+    return datetime.now(pytz.timezone(tz)).strftime("%H-%M_%d_%m_%Y")

@@ -1,7 +1,7 @@
-batch_name: "storytelling100c"
+#batch_name: "storytelling100c"
 
 base_params:
-  experiment_name: "MaskedCaptionsReconstruction"
+  #experiment_name: "MaskedCaptionsReconstruction"
   master_seed: 2025
 
 data_config:
@@ -10,8 +10,8 @@ data_config:
   limit: 100
 
 llm:
-    model_name: "gemini-2.0-flash-001"
-    temperature: 0.5
+  model_name: "gemini-2.0-flash-001"
+  temperature: 0.5
 
 recon_strategy:
   - name: "llm_zero_shot_v2"
@@ -24,7 +24,7 @@ recon_strategy:
     type: "baseline_repeat_last"
 
 masking_configs:
-    - scheme: "contiguous"
-      seed: [11,22]
-      width: [1,2,3,4,5,6,7]
+  - scheme: "contiguous"
+    seed: [11,22]
+    width: [1,2,3,4,5,6,7]
 
