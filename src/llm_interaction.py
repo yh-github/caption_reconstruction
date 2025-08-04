@@ -1,11 +1,11 @@
 # src/llm_interaction.py
 import os
 import logging
-import google.generativeai as genai
 from joblib import Memory
-from google.generativeai.types import GenerationConfig
 from tenacity import retry, wait_random_exponential, stop_after_attempt, retry_if_exception_type
+import google.generativeai as genai
 import google.api_core.exceptions
+from google.generativeai.types import GenerationConfig
 
 def build_llm_manager(config):
     llm_config = config['llm']
@@ -31,6 +31,7 @@ class LLM_Manager:
         generation_config = GenerationConfig(
             temperature=temperature,
             response_mime_type="application/json"
+            #,response_schema=list[] # FIXME
         )
 
         self.llm = genai.GenerativeModel(
@@ -61,5 +62,3 @@ class LLM_Manager:
 
     def call(self, prompt):
         return self.cached_call(prompt)
-
-
