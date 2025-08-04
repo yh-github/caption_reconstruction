@@ -101,3 +101,67 @@ def test_method_chaining(sample_clips):
     assert result.skip_reason == reason
     assert result.metrics == metrics
     assert result is recon
+
+
+##############
+
+import pytest
+from pydantic import ValidationError
+
+# Assuming your models are in a file named 'data_models.py'
+from data_models import CaptionedVideo, CaptionedClip, TimestampRange
+
+# --- Test Cases ---
+
+def test_captioned_video_validation_succeeds_with_correct_indices():
+    """
+    Tests that a CaptionedVideo can be created successfully when all clip
+    indices are in the correct sequential order.
+    """
+    # Arrange
+    valid_clips = [
+        CaptionedClip(index=0, timestamp=TimestampRange(start=0, duration=1), caption="Clip 0"),
+        CaptionedClip(index=1, timestamp=TimestampRange(start=1, duration=1), caption="Clip 1"),
+        CaptionedClip(index=2, timestamp=TimestampRange(start=2, duration=1), caption="Clip 2"),
+    ]
+
+    # Act & Assert
+    # No exception should be raised here
+    try:
+        CaptionedVideo(video_id="vid_valid", clips=valid_clips)
+    except ValidationError:
+        pytest.fail("Validation incorrectly failed for a valid list of clips.")
+
+
+def test_captioned_video_validation_fails_with_incorrect_indices():
+    """
+    Tests that a ValidationError is raised when the clip indices are not
+    in the correct sequential order.
+    """
+    # Arrange
+    invalid_clips = [
+        CaptionedClip(index=0, timestamp=TimestampRange(start=0, duration=1), caption="Clip 0"),
+        CaptionedClip(index=2, timestamp=TimestampRange(start=1, duration=1), caption="Clip 2"), # Incorrect index
+        CaptionedClip(index=1, timestamp=TimestampRange(start=2, duration=1), caption="Clip 1"), # Incorrect index
+    ]
+
+    # Act & Assert
+    # We expect a ValidationError that contains our specific error message.
+    with pytest.raises(ValidationError, match="Clip index mismatch at position 1"):
+        CaptionedVideo(video_id="vid_invalid", clips=invalid_clips)
+
+
+def test_captioned_video_validation_fails_with_duplicate_indices():
+    """
+    Tests that a ValidationError is raised if there are duplicate indices.
+    """
+    # Arrange
+    duplicate_index_clips = [
+        CaptionedClip(index=0, timestamp=TimestampRange(start=0, duration=1), caption="Clip 0"),
+        CaptionedClip(index=1, timestamp=TimestampRange(start=1, duration=1), caption="Clip 1"),
+        CaptionedClip(index=1, timestamp=TimestampRange(start=2, duration=1), caption="Clip 2"), # Duplicate index
+    ]
+
+    # Act & Assert
+    with pytest.raises(ValidationError, match="Clip index mismatch at position 2"):
+        CaptionedVideo(video_id="vid_duplicate", clips=duplicate_index_clips)
