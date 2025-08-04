@@ -4,8 +4,8 @@ from tenacity import retry, wait_random_exponential, stop_after_attempt, retry_i
 import google.generativeai as genai
 import google.api_core.exceptions
 from google.generativeai.types import GenerationConfig
-from data_models import ReconstructedCaption
-
+from data_models import ReconstructedCaptions
+from joblib import Memory
 
 def init_llm(api_key:str|None=None):
     if not api_key:
@@ -15,17 +15,18 @@ def init_llm(api_key:str|None=None):
     genai.configure(api_key=api_key)
 
 
-def build_llm_manager(llm_config):
+def build_llm_manager(llm_config, base_cache_dir):
     logging.info(f"Initializing Gemini model {llm_config['model_name']}...")
     return LLM_Manager(
         model_name=llm_config['model_name'],
         temperature=llm_config['temperature'],
-        system_instruction=llm_config['system_instructions']
+        system_instruction=llm_config['system_instructions'],
+        base_cache_dir=base_cache_dir
     )
 
 class LLM_Manager:
 
-    def __init__(self, model_name, temperature, system_instruction):
+    def __init__(self, model_name, temperature, system_instruction, base_cache_dir):
         self.model_name = model_name
         self.temperature = temperature
         self.system_instruction = system_instruction
@@ -33,7 +34,7 @@ class LLM_Manager:
         generation_config = GenerationConfig(
             temperature=temperature,
             response_mime_type="application/json",
-            response_schema=list[ReconstructedCaption]
+            response_schema=ReconstructedCaptions
         )
 
         self.llm = genai.GenerativeModel(
@@ -42,7 +43,11 @@ class LLM_Manager:
             system_instruction=system_instruction
         )
 
+        self.cache_path = f"{base_cache_dir}/{model_name}/t{temperature}"
+        self.disk_cache = Memory(self.cache_path, compress=3, verbose=0)
+
         self.last_raw_response = None
+        self.cached_call = self.disk_cache.cache(self._call_retry, ignore=['self'])
 
     @retry(
         wait=wait_random_exponential(multiplier=2, min=60, max=60*5),
@@ -56,7 +61,7 @@ class LLM_Manager:
         try:
             return self.llm.generate_content(prompt)
         except Exception as e:
-            logging.warning(f"INVOKE_LLM_EXCEPTION {e}", exc_info=e)
+            logging.warning(f"INVOKE_LLM_EXCEPTION {e=} for {prompt=}", exc_info=e)
             raise
 
     def _call_retry(self, prompt):
@@ -65,4 +70,4 @@ class LLM_Manager:
         return self.last_raw_response.text
 
     def call(self, prompt):
-        return self._call_retry(prompt)
+        return self.cached_call(prompt)

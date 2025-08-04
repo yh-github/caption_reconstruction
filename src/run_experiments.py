@@ -95,7 +95,7 @@ def build_experiments(config):
     )
     evaluator.calc_idf(sents=data_loader.load_all_sentences())
 
-    rs_builder = ReconstructionStrategyBuilder()
+    rs_builder = ReconstructionStrategyBuilder(config['paths']['joblib_cache'])
     for strategy_params in config.get("recon_strategy", []):
         
         # Build the strategy object once for this block
