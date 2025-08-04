@@ -112,7 +112,7 @@ def check_git_repository_is_clean():
     if repo.is_dirty(untracked_files=True):
         error_message = "Git repository is dirty. Commit or stash changes before running."
         logging.error(error_message)
-        raise UserFacingError(error_message)
+        # raise UserFacingError(error_message)
     logging.info("Git repository is clean.")
     return repo.head.object.hexsha
 

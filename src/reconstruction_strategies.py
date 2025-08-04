@@ -82,8 +82,12 @@ class BaselineRepeatStrategy(ReconstructionStrategy):
                 last_known_caption = clip.caption
             else:
                 reconstructed_captions[clip.index]=last_known_caption
-
-        return Reconstructed(video_id=masked_video.video_id, reconstructed_captions=reconstructed_captions)
+        try:
+            return Reconstructed(video_id=masked_video.video_id, reconstructed_captions=reconstructed_captions)
+        except Exception:
+            print(masked_video)
+            print('---')
+            print(reconstructed_captions)
 
 
 class LLMStrategy(ReconstructionStrategy):

@@ -3,7 +3,7 @@ import logging
 
 from data_loaders import BaseDataLoader
 from masking import MaskingStrategy
-from reconstruction_strategies import ReconstructionStrategy
+from reconstruction_strategies import ReconstructionStrategy, Reconstructed
 from evaluation import ReconstructionEvaluator, metrics_to_json, round_metrics
 from data_models import CaptionedVideo
 
@@ -42,14 +42,14 @@ class ExperimentRunner:
                 all_recon_videos.append(f"SKIP {video.video_id=} NOT_MASKING")
                 continue
 
-            reconstructed = self.reconstruction_strategy.reconstruct(masked_video)
-            if not reconstructed or not reconstructed.reconstructed_clips:
+            reconstructed:Reconstructed|None = self.reconstruction_strategy.reconstruct(masked_video)
+            if not reconstructed or not reconstructed.reconstructed_captions:
                 logging.error(f"Reconstruction failed for video: {video.video_id}")
                 all_recon_videos.append(f"SKIP {video.video_id=} FAIL")
                 continue
 
-            if reconstructed.reconstructed_clips.keys() != masked_indices and not reconstructed.debug_data:
-                crit_msg = f"Reconstruction failed for video: {video.video_id}, {reconstructed.reconstructed_clips.keys()=} != {masked_indices=}"
+            if reconstructed.reconstructed_captions.keys() != masked_indices and not reconstructed.debug_data:
+                crit_msg = f"Reconstruction failed for video: {video.video_id}, {reconstructed.reconstructed_captions.keys()=} != {masked_indices=}"
                 logging.critical(crit_msg)
                 raise Exception(crit_msg)
 
@@ -57,7 +57,7 @@ class ExperimentRunner:
                 logging.warning(f'Masked data found in reconstructed_video {video.video_id}, skipping')
                 all_recon_videos.append(reconstructed.skip('failed>0').json_str())
                 continue
-            elif reconstructed.reconstructed_clips.keys() != masked_indices:
+            elif reconstructed.reconstructed_captions.keys() != masked_indices:
                 logging.warning(f'Bad indices found in reconstructed_video {video.video_id}, {reconstructed.indices=}, {masked_indices=}, skipping')
                 all_recon_videos.append(reconstructed.skip(f"{masked_indices=}").json_str())
                 continue

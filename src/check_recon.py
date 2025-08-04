@@ -21,7 +21,7 @@ def ls_recon(path):
         i = 1
         for line in f:
             r = Reconstructed.model_validate_json(line)
-            print(f"{i}. {r.video_id} {r.metrics or 'FAIL'} {list(r.reconstructed_clips.keys())}")
+            print(f"{i}. {r.video_id} {r.metrics or 'FAIL'} {list(r.reconstructed_captions.keys())}")
             i += 1
 
 def load_recon(path, index=None, video_id=None):
@@ -58,14 +58,14 @@ def pretty_compare(original_video, reconstructed_data, tab=True):
         ts = f"[{str_ts(original_clip.timestamp.start)} - {str_ts(original_clip.timestamp.end)}]"
 
         # Check if this clip was reconstructed
-        if not i in reconstructed_data.reconstructed_clips:
+        if not i in reconstructed_data.reconstructed_captions:
             if not tab:
                 print(f'{i+1}. {original_desc}   {ts}')
             else:
                 print(f'{i+1}.\t{original_desc}\t{ts}')
             continue
 
-        recon_clip = reconstructed_data.reconstructed_clips[i]
+        recon_clip = reconstructed_data.reconstructed_captions[i]
         recon_desc = recon_clip.data.caption
 
         # Format the metrics for this specific clip
@@ -86,7 +86,7 @@ def pretty_compare(original_video, reconstructed_data, tab=True):
 
 
 def do_eval(evals:dict[str, ReconstructionEvaluator], original_video: CaptionedVideo, reconstructed_data: Reconstructed):
-    print(f'{original_video.video_id=} size={len(original_video.clips)} masked={len(reconstructed_data.reconstructed_clips)}')
+    print(f'{original_video.video_id=} size={len(original_video.clips)} masked={len(reconstructed_data.reconstructed_captions)}')
     for k,v in evals.items():
         candidates, references = reconstructed_data.align(original_video.clips)
         metrics = round_metrics(v.evaluate(reconstructed_data, original_video), 3)
