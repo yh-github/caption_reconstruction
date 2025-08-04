@@ -47,7 +47,7 @@ def main(config):
                 tz_str=config.get('tz', None)
             )
             print(f'{log_path = }')
-            start_msg = "--- Starting Experiment Batch: {parent_run_name=} experiment_id={parent_run.info.experiment_id} ---"
+            start_msg = f"--- Starting Experiment Batch: {parent_run_name=} experiment_id={parent_run.info.experiment_id} ---"
             logging.info(start_msg)
             notifier.info(start_msg)
 
