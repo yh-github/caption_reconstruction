@@ -1,5 +1,5 @@
 import pytest
-from data_models import CaptionedClip, TimestampRange
+from data_models import CaptionedClip, ReconstructedCaptions
 from reconstruction_strategies import Reconstructed
 
 # --- Test Data Fixture ---
@@ -165,3 +165,17 @@ def test_captioned_video_validation_fails_with_duplicate_indices():
     # Act & Assert
     with pytest.raises(ValidationError, match="Clip index mismatch at position 2"):
         CaptionedVideo(video_id="vid_duplicate", clips=duplicate_index_clips)
+
+
+def test_reconstructed():
+    list_of_dicts = [
+        {'index': 3, 'caption': 'c3'},
+        {'index': 4, 'caption': 'c4'}
+    ]
+
+    reconstructed_captions_object = ReconstructedCaptions.model_validate(list_of_dicts)
+    d = reconstructed_captions_object.to_dict()
+    assert d[3] == 'c3'
+    assert d[4] == 'c4'
+    assert d.keys() == {3, 4}
+

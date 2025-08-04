@@ -4,7 +4,7 @@ from tenacity import retry, wait_random_exponential, stop_after_attempt, retry_i
 import google.generativeai as genai
 import google.api_core.exceptions
 from google.generativeai.types import GenerationConfig
-from data_models import ReconstructedCaptions
+from data_models import ReconstructedCaption
 from joblib import Memory
 
 def init_llm(api_key:str|None=None):
@@ -34,7 +34,7 @@ class LLM_Manager:
         generation_config = GenerationConfig(
             temperature=temperature,
             response_mime_type="application/json",
-            response_schema=ReconstructedCaptions
+            response_schema=list[ReconstructedCaption]
         )
 
         self.llm = genai.GenerativeModel(

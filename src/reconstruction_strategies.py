@@ -159,9 +159,9 @@ class ReconstructionStrategyBuilder:
     """
     A builder class responsible for creating reconstruction strategy objects.
     """
-    def __init__(self, base_cache_dir="cache"):
+    def __init__(self, base_cache_dir:str|None=None):
         self.init_llm_api = False
-        self.base_cache_dir = base_cache_dir
+        self.base_cache_dir = base_cache_dir or "cache"
 
     def get_strategy(self, strategy_config: dict) -> ReconstructionStrategy:
         """

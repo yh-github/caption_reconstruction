@@ -2,6 +2,7 @@ import json
 import logging
 from pydantic import ValidationError
 from data_models import ReconstructedCaptions
+import json
 
 
 def parse_llm_response(response_text: str) -> ReconstructedCaptions | None:
@@ -20,7 +21,8 @@ def parse_llm_response(response_text: str) -> ReconstructedCaptions | None:
     """
     logging.debug("Parsing LLM response...")
     try:
-        validated_response = ReconstructedCaptions.model_validate_json(response_text)
+        j = json.loads(response_text)
+        validated_response = ReconstructedCaptions.model_validate(j)
         logging.debug("LLM response parsed and validated successfully.")
         return validated_response
     except json.JSONDecodeError:
