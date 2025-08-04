@@ -30,6 +30,16 @@ class CaptionedVideo(BaseModel):
     video_id: str = Field(..., description="A unique identifier for the video.")
     clips: list[CaptionedClip] = Field(..., description="An ordered list of captioned clips.")
 
+    @field_validator('clips')
+    def check_indices_are_sequential(cls, clips: list[CaptionedClip]) -> list[CaptionedClip]:
+        """
+        Validates that the clip indices are set correctly and sequentially.
+        """
+        for i, clip in enumerate(clips):
+            if clip.index != i:
+                raise ValueError(f"Clip index mismatch at position {i}. Expected index {i}, but got {clip.index}.")
+        return clips
+
 class ReconstructedOutput(BaseModel):
     """
     Represents the sparse reconstruction output from the LLM for a single video.

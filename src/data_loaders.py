@@ -46,10 +46,10 @@ class ToyDataLoader(BaseDataLoader):
         for i,video_data in enumerate(data):
             clips = [
                 CaptionedClip(
-                    index=i,
+                    index=clip_ind,
                     timestamp=TimestampRange(start=clip_data["timestamp"]-1, duration=1),
                     caption=clip_data["description"]
-                ) for clip_data in video_data["clips"]
+                ) for clip_ind, clip_data in enumerate(video_data["clips"])
             ]
             all_videos.append(
                 CaptionedVideo(video_id=video_data["video_id"], clips=clips)

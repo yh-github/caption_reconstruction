@@ -88,6 +88,7 @@ class BaselineRepeatStrategy(ReconstructionStrategy):
             print(masked_video)
             print('---')
             print(reconstructed_captions)
+            raise
 
 
 class LLMStrategy(ReconstructionStrategy):
