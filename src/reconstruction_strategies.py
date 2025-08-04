@@ -1,16 +1,16 @@
 import logging
 from abc import ABC, abstractmethod
-from data_models import DATA_MISSING, CaptionedClip
+from data_models import CaptionedClip
 from data_models import CaptionedVideo
-from llm_interaction import LLM_Manager, build_llm_manager
+from llm_interaction import build_llm_manager, init_llm
 from parsers import parse_llm_response
-from prompting import BasePromptBuilder, JSONPromptBuilder
+from prompting import PromptBuilder, PromptBuilderIndexedData
 from exceptions import UserFacingError
 from pydantic import BaseModel
 
 class Reconstructed(BaseModel):
     video_id: str
-    reconstructed_clips: dict[int, CaptionedClip]
+    reconstructed_captions: dict[int, str]
     debug_data: dict|None = None
     skip_reason: str|None = None
     metrics: dict|None = None
@@ -22,9 +22,10 @@ class Reconstructed(BaseModel):
         references = []
         candidates = []
 
-        for i, c in self.reconstructed_clips.items():
-            candidates.append(c.data.caption)
-            references.append(orig_clips[i].data.caption)
+        for i, c in self.reconstructed_captions.items():
+            assert i == orig_clips[i].index
+            candidates.append(c)
+            references.append(orig_clips[i].caption)
 
         return candidates, references
 
@@ -66,63 +67,62 @@ class BaselineRepeatStrategy(ReconstructionStrategy):
         masked_clips = masked_video.clips
 
         # First Pass: Find the first available data payload
-        first_valid_data = None
+        first_valid_caption = None
         for clip in masked_clips:
-            if clip.data != DATA_MISSING:
-                first_valid_data = clip.data
+            if clip.caption is not None:
+                first_valid_caption = clip.caption
                 break
 
-        # Second Pass: Reconstruct the transcript
-        reconstructed_clips = {}
-        last_known_data = first_valid_data
+        # Second Pass: Reconstruct the captions
+        reconstructed_captions = {}
+        last_known_caption = first_valid_caption
 
-        for i, clip in enumerate(masked_clips):
-            # new_clip = clip.model_copy()
-            if clip.data != DATA_MISSING:
-                last_known_data = clip.data
-                # new_clip.data = clip.data
+        for clip in masked_clips:
+            if clip.caption is not None:
+                last_known_caption = clip.caption
             else:
-                # Fill the masked clip with the last known data
-                new_clip = clip.model_copy(update={'data': last_known_data})
-                # new_clip.data = last_known_data
-                reconstructed_clips[i]=new_clip
+                reconstructed_captions[clip.index]=last_known_caption
 
-        # return masked_video.model_copy(update={'clips': reconstructed_clips})
-        return Reconstructed(video_id=masked_video.video_id, reconstructed_clips=reconstructed_clips)
+        return Reconstructed(video_id=masked_video.video_id, reconstructed_captions=reconstructed_captions)
 
 
 class LLMStrategy(ReconstructionStrategy):
     """The strategy for using an LLM for reconstruction."""
-    def __init__(self, name: str, llm_model, prompt_builder: BasePromptBuilder):
+    def __init__(self, name: str, llm_model, prompt_builder: PromptBuilder):
         super().__init__(name)
         self.llm_model = llm_model
-        self.prompt_builder = prompt_builder
+        self.prompt_builder: PromptBuilder = prompt_builder
 
-    def reconstruct(self, masked_video: CaptionedVideo) -> Reconstructed | None:
+    def reconstruct(self, masked_video: CaptionedVideo) -> Reconstructed:
+        debug_data = None
         try:
             prompt = self.prompt_builder.build_prompt(masked_video)
             llm_response_text = self.llm_model.call(prompt)
-            reconstructed_clips = parse_llm_response(llm_response_text)
-            assert reconstructed_clips and len(reconstructed_clips)==len(masked_video.clips)
+            if not llm_response_text:
+                return Reconstructed(video_id=masked_video.video_id, reconstructed_captions={}, debug_data={
+                    "error": "LLM error - llm_response_text empty",
+                    "raw_response": self.llm_model.last_raw_response
+                })
+            reconstructed_video = parse_llm_response(llm_response_text)
+            if not reconstructed_video or not (recon_caps := reconstructed_video.reconstructed_captions):
+                return Reconstructed(video_id=masked_video.video_id, reconstructed_captions={}, debug_data={
+                    "error": "LLM error - failed parsing",
+                    "raw_response": self.llm_model.last_raw_response
+                })
+
             ok = []
             failed = []
             changed_unmasked = []
-            reconstructed_dict = {}
-            for i, c in enumerate(masked_video.clips):
-                if c.data == DATA_MISSING:
-                    if hasattr(reconstructed_clips[i], 'data') and \
-                        hasattr(reconstructed_clips[i].data, 'caption') \
-                            and reconstructed_clips[i].data.caption\
-                            and reconstructed_clips[i].data.caption != DATA_MISSING:
-                        ok.append(i)
-                        reconstructed_dict[i] = reconstructed_clips[i]
+
+            for c in masked_video.clips:
+                if c.caption is None:
+                    if recon_caps.get(c.index):
+                        ok.append(c.index)
                     else:
-                        failed.append(i)
-                else:
-                    if c != reconstructed_clips[i]:
-                        changed_unmasked.append(i)
-            # reconstructed_video = masked_video.model_copy(update={'clips': reconstructed_clips})
-            debug_data=None
+                        failed.append(c.index)
+                elif c.index in recon_caps:  # original not masked but index is reconstructed
+                    changed_unmasked.append(c.index)
+
             if failed or changed_unmasked:
                 debug_data = {
                     "ok": ok,
@@ -132,21 +132,30 @@ class LLMStrategy(ReconstructionStrategy):
                 }
             return Reconstructed(
                 video_id=masked_video.video_id,
-                reconstructed_clips=reconstructed_dict,
+                reconstructed_captions=recon_caps,
                 debug_data=debug_data
             )
         except Exception as e:
             logging.error(f"{e} for {masked_video.video_id=}")
-            return None
+            if not debug_data:
+                debug_data = {}
+            debug_data.update({
+                "error": str(e),
+                "raw_response": self.llm_model.last_raw_response
+            })
+            return Reconstructed(
+                video_id=masked_video.video_id,
+                reconstructed_captions={},
+                debug_data=debug_data
+            )
+
 
 class ReconstructionStrategyBuilder:
     """
     A builder class responsible for creating reconstruction strategy objects.
-    It initializes and holds the LLM client, ensuring it's created only once.
     """
-    def __init__(self, config: dict):
-        self.llm_model: LLM_Manager|None = None
-        self.config = config
+    def __init__(self):
+        self.init_llm_api = False
 
     def get_strategy(self, strategy_config: dict) -> ReconstructionStrategy:
         """
@@ -157,13 +166,13 @@ class ReconstructionStrategyBuilder:
             raise UserFacingError("'type' must be specified in the strategy configuration.")
 
         if strategy_type == "llm":
-            if self.llm_model is None:
-                self.llm_model = build_llm_manager(self.config)
-            prompt_builder = JSONPromptBuilder.from_config(strategy_config)
+            if not self.init_llm_api:
+                init_llm()
+                self.init_llm_api = True
             return LLMStrategy(
-                name=strategy_config.get("name"),
-                llm_model=self.llm_model,
-                prompt_builder=prompt_builder
+                name=strategy_config["name"],
+                llm_model=build_llm_manager(strategy_config['llm']),
+                prompt_builder=PromptBuilderIndexedData()
             )
 
         elif strategy_type == "baseline_repeat_last":

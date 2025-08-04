@@ -91,11 +91,12 @@ def build_experiments(config):
     )
     evaluator.calc_idf(sents=data_loader.load_all_sentences())
 
-    rs_builder = ReconstructionStrategyBuilder(config)
+    rs_builder = ReconstructionStrategyBuilder()
     for strategy_params in config.get("recon_strategy", []):
         
         # Build the strategy object once for this block
         recon_strategy = rs_builder.get_strategy(strategy_params)
+
         masking_strategies = get_masking_strategies(
             masking_configs=config["masking_configs"],
             master_seed=config["base_params"]["master_seed"]

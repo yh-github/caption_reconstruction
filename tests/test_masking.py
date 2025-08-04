@@ -1,7 +1,6 @@
 import pytest
 from masking import PartitionMasking, get_masking_strategies
-from data_models import CaptionedClip, NarrativeOnlyPayload, TimestampRange
-from data_models import DATA_MISSING
+from data_models import CaptionedClip,  TimestampRange
 
 # --- The Fixture (no changes needed) ---
 @pytest.fixture
@@ -12,7 +11,7 @@ def captions_of_length():
     """
     def _create_captions(num_clips):
         return [
-            CaptionedClip(timestamp=TimestampRange(start=i, end=i+1), data=NarrativeOnlyPayload(caption=f"Clip {i+1}"))
+            CaptionedClip(index=i, timestamp=TimestampRange(start=i, duration=1), caption=f"Clip {i+1}")
             for i in range(num_clips)
         ]
     return _create_captions
@@ -49,11 +48,11 @@ def test_partition_masking_scenarios(captions_of_length, num_clips, num_partitio
     assert returned_indices == expected_indices
 
     # Optional: A sanity check that the correct clips were indeed masked
-    for i, clip in enumerate(masked_clips):
-        if i in expected_indices:
-            assert clip.data == DATA_MISSING
+    for clip in masked_clips:
+        if clip.index in expected_indices:
+            assert clip.caption is None
         else:
-            assert clip.data != DATA_MISSING
+            assert clip.caption
 
 
 def test_partition_masking_on_5_clips(captions_of_length):
@@ -94,8 +93,6 @@ def test_factory_generates_correct_number_of_strategies_1_2_3_4():
     assert len(strategies) == 14
     assert all(isinstance(s, PartitionMasking) for s in strategies)
 
-import pytest
-import random
 from masking import ContiguousMasking
 
 def test_contiguous_masking_correctly_masks_indices():
@@ -113,4 +110,3 @@ def test_contiguous_masking_correctly_masks_indices():
     # Assert
     # The masked indices should be a contiguous block of 3, starting at 1
     assert masked_indices == {1, 2, 3}
-

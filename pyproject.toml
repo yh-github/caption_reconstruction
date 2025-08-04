@@ -1,6 +1,6 @@
 [project]
 name = "caption_reconstruction"
-version = "0.1.1"
+version = "0.1.2"
 authors = [
 	{ name="Yoav Haimovitch", email="yoav.haimovitch@post.runi.ac.il" },
 ]

@@ -1,48 +1,48 @@
-# src/llm_interaction.py
 import os
 import logging
-from joblib import Memory
 from tenacity import retry, wait_random_exponential, stop_after_attempt, retry_if_exception_type
 import google.generativeai as genai
 import google.api_core.exceptions
 from google.generativeai.types import GenerationConfig
+from data_models import ReconstructedOutput
 
-def build_llm_manager(config):
-    llm_config = config['llm']
-    api_key = os.getenv("GEMINI_API_KEY")
+
+def init_llm(api_key:str|None=None):
+    if not api_key:
+        api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise ValueError("GEMINI_API_KEY environment variable not set.")
     genai.configure(api_key=api_key)
+
+
+def build_llm_manager(llm_config):
     logging.info(f"Initializing Gemini model {llm_config['model_name']}...")
     return LLM_Manager(
-        base_cache_dir=config['paths']['joblib_cache'].removesuffix('/'),
         model_name=llm_config['model_name'],
         temperature=llm_config['temperature'],
-        system_prompt=None # TODO system_prompt
+        system_instruction=llm_config['system_instructions']
     )
 
 class LLM_Manager:
 
-    def __init__(self, base_cache_dir, model_name, temperature, system_prompt=None):
+    def __init__(self, model_name, temperature, system_instruction):
         self.model_name = model_name
         self.temperature = temperature
-        self.system_prompt = system_prompt
+        self.system_instruction = system_instruction
 
         generation_config = GenerationConfig(
             temperature=temperature,
-            response_mime_type="application/json"
-            #,response_schema=list[] # FIXME
+            response_mime_type="application/json",
+            response_schema=ReconstructedOutput
         )
 
         self.llm = genai.GenerativeModel(
             model_name=model_name,
             generation_config=generation_config,
-            system_instruction=system_prompt
+            system_instruction=system_instruction
         )
-        self.cache_path = f"{base_cache_dir}/{model_name}/t{temperature}"
-        self.disk_cache = Memory(self.cache_path, compress=3, verbose=0)
+
         self.last_raw_response = None
-        self.cached_call = self.disk_cache.cache(self._call_retry, ignore=['self'])
 
     @retry(
         wait=wait_random_exponential(multiplier=2, min=60, max=60*5),
@@ -61,4 +61,4 @@ class LLM_Manager:
         return self.last_raw_response.text
 
     def call(self, prompt):
-        return self.cached_call(prompt)
+        return self._call_retry(prompt)

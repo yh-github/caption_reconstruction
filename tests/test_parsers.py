@@ -1,7 +1,5 @@
-# tests/test_parsers.py
-import pytest
+from data_models import ReconstructedOutput
 from parsers import parse_llm_response
-from data_models import CaptionedClip
 import textwrap
 
 def test_parse_llm_response_success():
@@ -9,37 +7,17 @@ def test_parse_llm_response_success():
     Tests successful parsing of a clean, valid JSON response from the LLM.
     """
     # Arrange: A perfect JSON string as we'd hope to get from the LLM.
-    llm_output = textwrap.dedent("""
-    [
-        {
-            "timestamp": {
-                "start": 0.0,
-                "end": 1.0
-            },
-            "data": {
-                "caption": "The person approaches a table." 
-            }
-        },
-        {
-            "timestamp": {
-                "start": 1.0,
-                "end": 2.0
-            },
-            "data": {
-                "caption": "The person picks up a book."
-            }
-        }
-    ]
-    """)
+    recon_obj = ReconstructedOutput(reconstructed_captions={
+        0: "The person approaches a table.",
+        1: "The person picks up a book."
+    })
+
+    llm_output = recon_obj.model_dump_json(indent=4)
 
     # Act
-    parsed_clips = parse_llm_response(llm_output)
-
-    # Assert
-    assert parsed_clips is not None
-    assert len(parsed_clips) == 2
-    assert isinstance(parsed_clips[0], CaptionedClip)
-    assert parsed_clips[1].data.caption == "The person picks up a book."
+    parsed:ReconstructedOutput|None = parse_llm_response(llm_output)
+    assert parsed is not None
+    assert parsed == recon_obj
 
 def test_parse_llm_response_invalid_json():
     """
@@ -64,12 +42,10 @@ def test_parse_llm_response_validation_error():
     """
     # Arrange: Valid JSON, but it doesn't match our Pydantic model.
     llm_output = """
-    [
-        {
-            "time": 2.0, 
-            "payload": {"desc": "Wrong key names"}
-        }
-    ]
+    {
+        "time": 2.0, 
+        "payload": {"desc": "Wrong key names"}
+    }
     """
 
     # Act

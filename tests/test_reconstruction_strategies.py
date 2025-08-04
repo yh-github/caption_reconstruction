@@ -2,8 +2,8 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 from reconstruction_strategies import BaselineRepeatStrategy, LLMStrategy, ReconstructionStrategyBuilder
-from data_models import CaptionedVideo, CaptionedClip, NarrativeOnlyPayload, TimestampRange, DATA_MISSING
-from exceptions import UserFacingError
+from data_models import CaptionedVideo, CaptionedClip,  TimestampRange
+
 
 # --- Tests for BaselineRepeatStrategy ---
 
@@ -16,11 +16,11 @@ def test_baseline_strategy_reconstruction():
     masked_video = CaptionedVideo(
         video_id="test_video",
         clips=[
-            CaptionedClip(timestamp=TimestampRange(start=0.0, end=1.0), data=NarrativeOnlyPayload(caption="first")),
-            CaptionedClip(timestamp=TimestampRange(start=0.0, end=1.0), data=DATA_MISSING),
-            CaptionedClip(timestamp=TimestampRange(start=0.0, end=1.0), data=DATA_MISSING),
-            CaptionedClip(timestamp=TimestampRange(start=0.0, end=1.0), data=NarrativeOnlyPayload(caption="fourth")),
-            CaptionedClip(timestamp=TimestampRange(start=0.0, end=1.0), data=DATA_MISSING),
+            CaptionedClip(index=0, timestamp=TimestampRange(start=0.0, duration=1.0), caption="first"),
+            CaptionedClip(index=1, timestamp=TimestampRange(start=1.0, duration=1.0), caption=None),
+            CaptionedClip(index=2, timestamp=TimestampRange(start=2.0, duration=1.0), caption=None),
+            CaptionedClip(index=3, timestamp=TimestampRange(start=3.0, duration=1.0), caption="fourth"),
+            CaptionedClip(index=4, timestamp=TimestampRange(start=4.0, duration=1.0), caption=None),
         ]
     )
     baseline_strategy = BaselineRepeatStrategy()
@@ -29,9 +29,9 @@ def test_baseline_strategy_reconstruction():
     r = baseline_strategy.reconstruct(masked_video)
 
     # Assert
-    assert r.reconstructed_clips[1].data.caption == "first"
-    assert r.reconstructed_clips[2].data.caption == "first"
-    assert r.reconstructed_clips[4].data.caption == "fourth"
+    assert r.reconstructed_captions[1] == "first"
+    assert r.reconstructed_captions[2] == "first"
+    assert r.reconstructed_captions[4] == "fourth"
 
 def test_baseline_strategy_handles_initial_mask():
     """
@@ -42,8 +42,8 @@ def test_baseline_strategy_handles_initial_mask():
     masked_video = CaptionedVideo(
         video_id="test_video_initial_mask",
         clips=[
-            CaptionedClip(timestamp=TimestampRange(start=0.0, end=1.0), data=DATA_MISSING),
-            CaptionedClip(timestamp=TimestampRange(start=0.0, end=1.0), data=NarrativeOnlyPayload(caption="second")),
+            CaptionedClip(index=0, timestamp=TimestampRange(start=0.0, duration=1.0), caption=None),
+            CaptionedClip(index=1, timestamp=TimestampRange(start=1.0, duration=1.0), caption="second")
         ]
     )
     baseline_strategy = BaselineRepeatStrategy()
@@ -52,7 +52,7 @@ def test_baseline_strategy_handles_initial_mask():
     r = baseline_strategy.reconstruct(masked_video)
 
     # Assert
-    assert r.reconstructed_clips[0].data.caption == "second"
+    assert r.reconstructed_captions[0] == "second"
 
 
 # --- Test for LLMStrategy ---
@@ -91,14 +91,13 @@ def test_llm_strategy_reconstruction_flow(mock_parse):
 # --- Tests for ReconstructionStrategyBuilder ---
 
 @patch('reconstruction_strategies.build_llm_manager')
-@patch('reconstruction_strategies.JSONPromptBuilder')
-def test_builder_creates_llm_strategy(mock_prompt_builder, mock_build_llm):
+def test_builder_creates_llm_strategy(mock_build_llm):
     """
     Tests that the builder correctly creates an LLMStrategy.
     """
     # Arrange
-    builder = ReconstructionStrategyBuilder(config={})
-    strategy_config = {"type": "llm", "name": "test_llm"}
+    builder = ReconstructionStrategyBuilder()
+    strategy_config = {"type": "llm", "name": "test_llm", "llm": {}}
 
     # Act
     strategy = builder.get_strategy(strategy_config)
@@ -113,7 +112,7 @@ def test_builder_creates_baseline_strategy():
     Tests that the builder correctly creates a BaselineRepeatStrategy.
     """
     # Arrange
-    builder = ReconstructionStrategyBuilder(config={})
+    builder = ReconstructionStrategyBuilder()
     strategy_config = {"type": "baseline_repeat_last"}
 
     # Act
@@ -127,7 +126,7 @@ def test_builder_raises_error_for_unknown_type():
     Tests that the builder raises an error for an unknown strategy type.
     """
     # Arrange
-    builder = ReconstructionStrategyBuilder(config={})
+    builder = ReconstructionStrategyBuilder()
     strategy_config = {"type": "unknown_strategy"}
 
     # Act & Assert

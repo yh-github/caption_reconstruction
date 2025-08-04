@@ -1,6 +1,6 @@
 import pytest
 import torch
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 # Import the class and functions we are testing
 from evaluation import ReconstructionEvaluator, round_metrics, metrics_to_json
@@ -8,8 +8,7 @@ from evaluation import ReconstructionEvaluator, round_metrics, metrics_to_json
 from data_models import (
     CaptionedVideo,
     CaptionedClip,
-    TimestampRange,
-    NarrativeOnlyPayload
+    TimestampRange
 )
 from reconstruction_strategies import Reconstructed
 
@@ -34,9 +33,9 @@ def sample_data():
     original_video = CaptionedVideo(
         video_id="test_vid",
         clips=[
-            CaptionedClip(timestamp=TimestampRange(start=0.0, end=1.0), data=NarrativeOnlyPayload(caption="clip one original")),
-            CaptionedClip(timestamp=TimestampRange(start=1.0, end=2.0), data=NarrativeOnlyPayload(caption="clip two original")),
-            CaptionedClip(timestamp=TimestampRange(start=2.0, end=3.0), data=NarrativeOnlyPayload(caption="clip three original")),
+            CaptionedClip(index=0, timestamp=TimestampRange(start=0.0, duration=1.0),caption="clip one original"),
+            CaptionedClip(index=1, timestamp=TimestampRange(start=1.0, duration=1.0), caption="clip two original"),
+            CaptionedClip(index=2, timestamp=TimestampRange(start=2.0, duration=1.0), caption="clip three original")
         ]
     )
     

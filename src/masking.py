@@ -1,7 +1,6 @@
 import random
 from abc import ABC, abstractmethod
 from data_models import CaptionedClip
-from data_models import DATA_MISSING
 from data_models import CaptionedVideo
 
 
@@ -14,12 +13,11 @@ class MaskingStrategy(ABC):
     def _get_indices_to_mask(self, num_clips: int) -> set:
         pass
 
-    def mask_list(self, captions:list[CaptionedClip], indices_to_mask:set):
+    def mask_list(self, clips:list[CaptionedClip], indices_to_mask:set):
         masked_captions = []
-        for i, clip in enumerate(captions):
-            if i in indices_to_mask:
-                masked_clip = clip.model_copy()
-                masked_clip.data = DATA_MISSING
+        for clip in clips:
+            if clip.index in indices_to_mask:
+                masked_clip = clip.model_copy(update={"caption": None})
                 masked_captions.append(masked_clip)
             else:
                 masked_captions.append(clip)
@@ -71,13 +69,6 @@ class ContiguousMasking(MaskingStrategy):
     """
 
     def __init__(self, seed: int, width: int):
-        """
-        Initializes the contiguous masking strategy.
-
-        Args:
-            prn_generator: A random number generator instance for reproducibility.
-            width: The number of contiguous captions to mask.
-        """
         super().__init__(scheme="contiguous")
         if not width > 0:
             raise ValueError("Masking width must be greater than 0.")

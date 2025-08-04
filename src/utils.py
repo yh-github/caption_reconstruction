@@ -82,7 +82,7 @@ def setup_logging(log_dir: str, run_id: str, console_level=logging.WARN, base_le
     if logger.hasHandlers():
         logger.handlers.clear()
 
-    formatter = set_tz_converter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+    formatter = set_tz_converter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'), tz_str=tz_str)
 
     # Setup console handler
     console_handler = logging.StreamHandler()

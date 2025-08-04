@@ -1,6 +1,4 @@
 import pandas as pd
-import numpy as np
-from config_loader import load_config
 from data_loaders import get_data_loader
 
 # --- 1. Configuration ---

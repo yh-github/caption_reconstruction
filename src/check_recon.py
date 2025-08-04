@@ -144,8 +144,7 @@ def do_eval_to_dataframe(
 
     # --- 2. Build and process the DataFrame ---
     if not all_results:
-        print("No evaluation results to display.")
-        return
+        raise Exception("No evaluation results to display.")
 
     df = pd.DataFrame(all_results)
 

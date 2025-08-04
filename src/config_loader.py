@@ -19,7 +19,8 @@ def load_config(
         experiment_config = yaml.safe_load(f)
     
     # Merge the two dictionaries
-    merged_config = {**system_config, **experiment_config}
-
-    merged_config["__parent_run_name__"] = Path(experiment_config_path).stem
-    return merged_config
+    return {
+        "__parent_run_name__": Path(experiment_config_path).stem,
+        **system_config,
+        **experiment_config
+    }
