@@ -109,7 +109,7 @@ class LLMStrategy(ReconstructionStrategy):
                     "raw_response": self.llm_model.last_raw_response
                 })
             reconstructed_video = parse_llm_response(llm_response_text)
-            if not reconstructed_video or not (recon_caps := reconstructed_video.reconstructed_captions):
+            if not reconstructed_video or not (recon_caps := reconstructed_video.to_dict()):
                 return Reconstructed(video_id=masked_video.video_id, reconstructed_captions={}, debug_data={
                     "error": "LLM error - failed parsing",
                     "raw_response": self.llm_model.last_raw_response

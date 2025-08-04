@@ -1,11 +1,10 @@
-# src/parsers.py
 import json
 import logging
 from pydantic import ValidationError
-from data_models import ReconstructedOutput
+from data_models import ReconstructedCaptions
 
 
-def parse_llm_response(response_text: str) -> ReconstructedOutput | None:
+def parse_llm_response(response_text: str) -> ReconstructedCaptions | None:
     """
     Parses the raw text response from the LLM.
 
@@ -21,12 +20,12 @@ def parse_llm_response(response_text: str) -> ReconstructedOutput | None:
     """
     logging.debug("Parsing LLM response...")
     try:
-        validated_response = ReconstructedOutput.model_validate_json(response_text)
+        validated_response = ReconstructedCaptions.model_validate_json(response_text)
         logging.debug("LLM response parsed and validated successfully.")
         return validated_response
     except json.JSONDecodeError:
         logging.error("Failed to parse LLM response: Invalid JSON format.")
         return None
     except ValidationError as e:
-        logging.error(f"Failed to validate LLM response: {e}")
+        logging.error(f"Failed to validate LLM response: {response_text=} {e=}")
         return None

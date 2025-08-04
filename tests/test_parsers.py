@@ -1,4 +1,4 @@
-from data_models import ReconstructedOutput
+from data_models import ReconstructedCaptions, ReconstructedCaption
 from parsers import parse_llm_response
 import textwrap
 
@@ -7,15 +7,15 @@ def test_parse_llm_response_success():
     Tests successful parsing of a clean, valid JSON response from the LLM.
     """
     # Arrange: A perfect JSON string as we'd hope to get from the LLM.
-    recon_obj = ReconstructedOutput(reconstructed_captions={
-        0: "The person approaches a table.",
-        1: "The person picks up a book."
-    })
+    recon_obj = ReconstructedCaptions([
+        ReconstructedCaption(index=0, caption="The person approaches a table."),
+        ReconstructedCaption(index=1, caption="The person picks up a book.")
+    ])
 
     llm_output = recon_obj.model_dump_json(indent=4)
 
     # Act
-    parsed:ReconstructedOutput|None = parse_llm_response(llm_output)
+    parsed:ReconstructedCaptions|None = parse_llm_response(llm_output)
     assert parsed is not None
     assert parsed == recon_obj
 

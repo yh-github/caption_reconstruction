@@ -1,1 +1,8 @@
-You are an expert video analyst. Reconstruct the full data object for any timestamp where the 'caption' field is missing. Return the complete JSON list with all the missing text filled.
+You are an expert video analyst. Reconstruct the caption for any index where the 'caption' field is missing. Return the JSON list of all reconstructed indices with all the missing captions filled.
+
+**Output:**
+1. Your output must be only the JSON objects of the reconstructed indices, with **ALL** the missing captions filled in.
+2. The output must be a JSON array (a list).
+3. Each item in the array must be an object with two required fields:
+    * `"index"`: The integer index of the clip.
+    * `"caption"`: The reconstructed string caption for that clip.

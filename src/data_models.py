@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import BaseModel, Field, field_validator, ConfigDict, RootModel
 
 
 class TimestampRange(BaseModel):
@@ -40,13 +40,26 @@ class CaptionedVideo(BaseModel):
                 raise ValueError(f"Clip index mismatch at position {i}. Expected index {i}, but got {clip.index}.")
         return clips
 
-class ReconstructedOutput(BaseModel):
-    """
-    Represents the sparse reconstruction output from the LLM for a single video.
-    """
-    model_config = ConfigDict(frozen=True)
+# class ReconstructedOutput(BaseModel):
+#     """
+#     Represents the sparse reconstruction output from the LLM for a single video.
+#     """
+#     model_config = ConfigDict(frozen=True)
+#
+#     reconstructed_captions: dict[int, str] = Field(
+#         ...,
+#         description="A dictionary mapping the integer index of a masked clip to its reconstructed text caption."
+#     )
 
-    reconstructed_captions: dict[int, str] = Field(
-        ...,
-        description="A dictionary mapping the integer index of a masked clip to its reconstructed text caption."
-    )
+class ReconstructedCaption(BaseModel):
+    """Represents a single reconstructed caption with its original index."""
+    index: int = Field(..., description="The original index of the clip that was reconstructed.")
+    caption: str = Field(..., description="The newly generated caption for the clip.")
+
+class ReconstructedCaptions(RootModel[list[ReconstructedCaption]]):
+    def to_dict(self) -> dict[int, str]:
+        """
+        Converts the list of reconstructed captions into a dictionary
+        mapping the clip index to its caption.
+        """
+        return {item.index: item.caption for item in self.root}

@@ -66,16 +66,20 @@ def main(config):
                     mlflow.log_params(run_params)
                     metrics, all_recon_videos = runner.run()
 
-                    mlflow.log_metrics(metrics)
-                    mlflow.log_text(text="\n".join(all_recon_videos), artifact_file='all_recon_videos.jsonl')
+                    if all_recon_videos:
+                        mlflow.log_text(text="\n".join(all_recon_videos), artifact_file='all_recon_videos.jsonl')
 
-                    log_message = (f"{run_name} Logged aggregated metrics on"
-                                   f" {metrics['num_of_instances']} instances."
-                                   f" Mean F1: {metrics['mean_f1_score']:.4f}"
-                                   f" Mean P: {metrics['mean_precision']:.4f}"
-                                   f" Mean R: {metrics['mean_recall']:.4f}")
-                    logging.info(log_message)
-                    notifier.info(log_message)
+                    if metrics:
+                        mlflow.log_metrics(metrics)
+                        log_message = (f"{run_name} Logged aggregated metrics on"
+                                       f" {metrics['num_of_instances']} instances."
+                                       f" Mean F1: {metrics['mean_f1_score']:.4f}"
+                                       f" Mean P: {metrics['mean_precision']:.4f}"
+                                       f" Mean R: {metrics['mean_recall']:.4f}")
+                        logging.info(log_message)
+                        notifier.info(log_message)
+                    else:
+                        logging.error("No metrics were generated")
                     flush_loggers()
     return log_path
             

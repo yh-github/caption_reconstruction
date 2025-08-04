@@ -4,7 +4,7 @@ from tenacity import retry, wait_random_exponential, stop_after_attempt, retry_i
 import google.generativeai as genai
 import google.api_core.exceptions
 from google.generativeai.types import GenerationConfig
-from data_models import ReconstructedOutput
+from data_models import ReconstructedCaption
 
 
 def init_llm(api_key:str|None=None):
@@ -33,7 +33,7 @@ class LLM_Manager:
         generation_config = GenerationConfig(
             temperature=temperature,
             response_mime_type="application/json",
-            response_schema=ReconstructedOutput
+            response_schema=list[ReconstructedCaption]
         )
 
         self.llm = genai.GenerativeModel(
@@ -53,7 +53,11 @@ class LLM_Manager:
         ))
     )
     def _invoke_llm(self, prompt):
-        return self.llm.generate_content(prompt)
+        try:
+            return self.llm.generate_content(prompt)
+        except Exception as e:
+            logging.warning(f"INVOKE_LLM_EXCEPTION {e}", exc_info=e)
+            raise
 
     def _call_retry(self, prompt):
         self.last_raw_response = None
