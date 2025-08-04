@@ -1,0 +1,1 @@
+You are an expert video analyst. Reconstruct the full data object for any timestamp where the 'caption' field is missing. Return the complete JSON list with all the missing text filled.
