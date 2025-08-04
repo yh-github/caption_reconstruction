@@ -75,3 +75,4 @@ class ReconstructionEvaluator:
         self.idf = True
         self.bert_scorer.compute_idf(sents=sents)
         logger.info(f'finished calc_idf for {len(sents)} sentences, idf_dict size = {len(self.bert_scorer._idf_dict.keys())}')
+        return self
