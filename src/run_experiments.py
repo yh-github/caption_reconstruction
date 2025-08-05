@@ -98,9 +98,9 @@ def build_experiments(config):
     evaluator.calc_idf(sents=data_loader.load_all_sentences())
 
     cache = diskcache.Cache(
-        directory=config['paths']['disk_cache'],
-        disk_min_file_size=1024,  # Compress anything over 1KB
-        disk_compress_level=1  # Use the fastest compression level
+        directory=config['paths']['disk_cache']
+        # ,disk_min_file_size=1024,  # Compress anything over 1KB
+        # disk_compress_level=1  # Use the fastest compression level
     ) # FIXME create manager and close()
     rs_builder = ReconstructionStrategyBuilder(cache)
     for strategy_params in config.get("recon_strategy", []):

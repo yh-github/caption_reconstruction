@@ -22,5 +22,6 @@ try_code/
 .lock
 .idea/
 cache/
+disk_cache/
 notebooks/.ipynb_checkpoints/
 remote/
