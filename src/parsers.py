@@ -21,9 +21,9 @@ def parse_llm_response(response_text: str) -> ReconstructedCaptions | None:
     """
     logging.debug("Parsing LLM response...")
     try:
-        j = json.loads(response_text)
-        validated_response = ReconstructedCaptions.model_validate(j)
-        logging.debug("LLM response parsed and validated successfully.")
+        validated_response = ReconstructedCaptions.model_validate_json(response_text)
+        if validated_response:
+            logging.debug(f"LLM response parsed and validated successfully.")
         return validated_response
     except json.JSONDecodeError:
         logging.error("Failed to parse LLM response: Invalid JSON format.")

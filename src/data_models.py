@@ -57,9 +57,16 @@ class ReconstructedCaption(BaseModel):
     caption: str = Field(..., description="The newly generated caption for the clip.")
 
 class ReconstructedCaptions(RootModel[list[ReconstructedCaption]]):
-    def to_dict(self) -> dict[int, str]:
+    def to_dict(self) -> tuple[dict[int, str], dict[int, int]]:
         """
         Converts the list of reconstructed captions into a dictionary
         mapping the clip index to its caption.
         """
-        return {item.index: item.caption for item in self.root}
+        d:dict[int, str] = {}
+        dups:dict[int, int] = {}
+        for rc in self.root:
+            if rc.index in d:
+                dups[rc.index] = dups.get(rc.index, 1) + 1
+            else:
+                d[rc.index] = rc.caption
+        return d, dups

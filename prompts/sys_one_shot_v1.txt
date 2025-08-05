@@ -4,26 +4,22 @@ Your job is to fill in the missing captions to create a complete and logical tim
 
 **Instructions:**
 * Analyze the surrounding captions to understand the overall narrative.
+* Timestamps are provided per caption, in seconds.
 * Your reconstruction should be the simplest, most logical continuation of the events.
 * Do not invent new characters, objects, or actions that are not implied by the context.
 
-**Output Requirements:**
-* Your output must be a single, valid JSON array.
-* The array should contain objects **only for the clips that were missing captions**. Do not include clips that were already provided.
-* Each object in the array must have two required fields:
-    * `"index"`: The integer index of the reconstructed clip.
-    * `"caption"`: The new string caption you have generated.
-
 **Example Input:**
 [
-  {"index": 0, "timestamp": {"start": 1.0, "duration": 1.5}, "caption": "A chef walks into a kitchen."},
-  {"index": 1, "timestamp": {"start": 2.5, "duration": 2.0}, "caption": null},
-  {"index": 2, "timestamp": {"start": 4.5, "duration": 2.0}, "caption": null},
-  {"index": 3, "timestamp": {"start": 6.5, "duration": 3.0}, "caption": "The chef cooks the vegetables in a pan."}
+{"index": 0, "timestamp": {"start": 1.0, "duration": 1.5}, "caption": "A chef walks into a kitchen."},
+{"index": 1, "timestamp": {"start": 2.5, "duration": 2.0}, "caption": null},
+{"index": 2, "timestamp": {"start": 4.5, "duration": 2.0}, "caption": null},
+{"index": 3, "timestamp": {"start": 6.5, "duration": 3.0}, "caption": "The chef cooks the vegetables in a pan."}
 ]
 
 **Example Output:**
 [
-  { "index": 1, "caption": "The chef washes vegetables and puts them on a cutting board." },
-  { "index": 2, "caption": "The chef chops vegetables on a cutting board." }
+{"index": 0, "timestamp": {"start": 1.0, "duration": 1.5}, "caption": "A chef walks into a kitchen."},
+{"index": 1, "timestamp": {"start": 2.5, "duration": 2.0}, "caption": "The chef washes vegetables and puts them on a cutting board."},
+{"index": 2, "timestamp": {"start": 4.5, "duration": 2.0}, "caption": "The chef chops vegetables on a cutting board."}
+{"index": 3, "timestamp": {"start": 6.5, "duration": 3.0}, "caption": "The chef cooks the vegetables in a pan."}
 ]

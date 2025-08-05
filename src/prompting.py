@@ -12,5 +12,5 @@ class PromptBuilder(ABC):
 class PromptBuilderIndexedData(PromptBuilder):
 
     def build_prompt(self, masked_video: CaptionedVideo) -> str:
-        json_lines = [clip.model_dump_json()+"\n" for i, clip in enumerate(masked_video.clips)]
-        return "".join(json_lines)
+        return "[\n" + ",\n".join([c.model_dump_json() for c in masked_video.clips]) + "\n]"
+

@@ -33,8 +33,8 @@ class LLM_Manager:
 
         generation_config = GenerationConfig(
             temperature=temperature,
-            response_mime_type="application/json",
-            response_schema=list[ReconstructedCaption]
+            response_mime_type="application/json"
+            #,response_schema=list[ReconstructedCaption] # doesn't work
         )
 
         self.llm = genai.GenerativeModel(

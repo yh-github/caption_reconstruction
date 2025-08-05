@@ -85,9 +85,7 @@ class BaselineRepeatStrategy(ReconstructionStrategy):
         try:
             return Reconstructed(video_id=masked_video.video_id, reconstructed_captions=reconstructed_captions)
         except Exception:
-            print(masked_video)
-            print('---')
-            print(reconstructed_captions)
+            logging.error(f"{masked_video=} {reconstructed_captions=}")
             raise
 
 
@@ -102,6 +100,7 @@ class LLMStrategy(ReconstructionStrategy):
         debug_data = None
         try:
             prompt = self.prompt_builder.build_prompt(masked_video)
+            logging.debug(f"video_id={masked_video.video_id} {prompt=}")
             llm_response_text = self.llm_model.call(prompt)
             if not llm_response_text:
                 return Reconstructed(video_id=masked_video.video_id, reconstructed_captions={}, debug_data={
@@ -109,23 +108,44 @@ class LLMStrategy(ReconstructionStrategy):
                     "raw_response": self.llm_model.last_raw_response
                 })
             reconstructed_video = parse_llm_response(llm_response_text)
-            if not reconstructed_video or not (recon_caps := reconstructed_video.to_dict()):
+            if not reconstructed_video:
                 return Reconstructed(video_id=masked_video.video_id, reconstructed_captions={}, debug_data={
                     "error": "LLM error - failed parsing",
                     "raw_response": self.llm_model.last_raw_response
                 })
 
+            recon_caps, dups = reconstructed_video.to_dict()
+
+            if not recon_caps:
+                return Reconstructed(video_id=masked_video.video_id, reconstructed_captions={}, debug_data={
+                    "error": "LLM error - failed parsing to_dict",
+                    "raw_response": self.llm_model.last_raw_response
+                })
+
+            if dups:
+                return Reconstructed(video_id=masked_video.video_id, reconstructed_captions={}, debug_data={
+                    "error": "LLM error - duplicate indices found",
+                    "llm_response_text": llm_response_text,
+                    "dups": dups
+                })
+
+
+
             ok = []
             failed = []
             changed_unmasked = []
-
+            reconstructed_dict:dict[int, str] = {}
             for c in masked_video.clips:
                 if c.caption is None:
-                    if recon_caps.get(c.index):
+                    if new_cap := recon_caps.get(c.index):
                         ok.append(c.index)
+                        reconstructed_dict[c.index] = new_cap
                     else:
                         failed.append(c.index)
-                elif c.index in recon_caps:  # original not masked but index is reconstructed
+                        reconstructed_dict[c.index] = "" #TODO check if needed, check BertScore is 0
+
+                # original not masked but index is reconstructed
+                elif c.index in recon_caps and c.caption != recon_caps.get(c.index):
                     changed_unmasked.append(c.index)
 
             if failed or changed_unmasked:
@@ -137,7 +157,7 @@ class LLMStrategy(ReconstructionStrategy):
                 }
             return Reconstructed(
                 video_id=masked_video.video_id,
-                reconstructed_captions=recon_caps,
+                reconstructed_captions=reconstructed_dict,
                 debug_data=debug_data
             )
         except Exception as e:

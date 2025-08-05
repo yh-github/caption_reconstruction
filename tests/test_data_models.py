@@ -174,8 +174,23 @@ def test_reconstructed():
     ]
 
     reconstructed_captions_object = ReconstructedCaptions.model_validate(list_of_dicts)
-    d = reconstructed_captions_object.to_dict()
+    d, dups = reconstructed_captions_object.to_dict()
     assert d[3] == 'c3'
     assert d[4] == 'c4'
     assert d.keys() == {3, 4}
+
+def test_reconstructed_dups():
+    list_of_dicts = [
+        {'index': 3, 'caption': 'c3'},
+        {'index': 4, 'caption': 'c4'},
+        {'index': 4, 'caption': 'c4_B'}
+    ]
+
+    reconstructed_captions_object = ReconstructedCaptions.model_validate(list_of_dicts)
+    d, dups = reconstructed_captions_object.to_dict()
+    assert d[3] == 'c3'
+    assert d[4] == 'c4'
+    assert d.keys() == {3, 4}
+    assert dups[4] == 2
+    assert dups.keys() == {4}
 
