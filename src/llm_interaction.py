@@ -5,7 +5,8 @@ import google.generativeai as genai
 import google.api_core.exceptions
 from google.generativeai.types import GenerationConfig
 from data_models import ReconstructedCaption
-from joblib import Memory
+import diskcache
+import hashlib
 
 def init_llm(api_key:str|None=None):
     if not api_key:
@@ -43,11 +44,16 @@ class LLM_Manager:
             system_instruction=system_instruction
         )
 
-        self.cache_path = f"{base_cache_dir}/{model_name}/t{temperature}"
-        self.disk_cache = Memory(self.cache_path, compress=3, verbose=0)
+        # self.cache_path = f"{base_cache_dir}/{model_name}/t{temperature}"
+        # self.disk_cache = diskcache.Cache(
+        #     'llm_cache',
+        #     disk_min_file_size=1024,  # Compress anything over 1KB
+        #     disk_compress_level=1  # Use the fastest compression level
+        # )
+        # self.base_cache_key = hashlib.sha256()
 
         self.last_raw_response = None
-        self.cached_call = self.disk_cache.cache(self._call_retry, ignore=['self'])
+        # self.cached_call = self.disk_cache.cache(self._call_retry, ignore=['self'])
 
     @retry(
         wait=wait_random_exponential(multiplier=2, min=60, max=60*5),
@@ -57,17 +63,18 @@ class LLM_Manager:
             google.api_core.exceptions.ServerError  # For all 5xx server issues
         ))
     )
-    def _invoke_llm(self, prompt):
+    def _invoke_llm(self, prompt:str):
         try:
             return self.llm.generate_content(prompt)
         except Exception as e:
             logging.warning(f"INVOKE_LLM_EXCEPTION {e=} for {prompt=}", exc_info=e)
             raise
 
-    def _call_retry(self, prompt):
+    def _call_retry(self, prompt:str):
         self.last_raw_response = None
         self.last_raw_response = self._invoke_llm(prompt)
         return self.last_raw_response.text
 
-    def call(self, prompt):
-        return self.cached_call(prompt)
+    def call(self, prompt:str):
+        return self._call_retry(prompt)
+        # return self.cached_call(prompt)
