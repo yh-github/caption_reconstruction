@@ -54,7 +54,9 @@ class CaptionedVideo(BaseModel):
 class ReconstructedCaption(BaseModel):
     """Represents a single reconstructed caption with its original index."""
     index: int = Field(..., description="The original index of the clip that was reconstructed.")
-    caption: str = Field(..., description="The newly generated caption for the clip.")
+    caption: str|None = Field(..., description="The newly generated caption for the clip.")
+
+# Allow caption to be None to do our custom validation. Change if needs to be used as an output schema
 
 class ReconstructedCaptions(RootModel[list[ReconstructedCaption]]):
     def to_dict(self) -> tuple[dict[int, str], dict[int, int]]:
