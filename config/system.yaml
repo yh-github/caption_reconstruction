@@ -10,6 +10,7 @@ paths:
 
   # The directory for our embedding and function call cache.
   joblib_cache: "cache/"
+  disk_cache: "disk_cache/"
 
   # The location of the input data source.
   datasets_root: "datasets/"

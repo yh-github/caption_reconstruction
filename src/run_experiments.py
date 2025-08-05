@@ -3,6 +3,8 @@ from importlib.metadata import version
 import logging
 import os
 import sys
+
+import diskcache
 import mlflow
 from filelock import FileLock
 
@@ -95,7 +97,12 @@ def build_experiments(config):
     )
     evaluator.calc_idf(sents=data_loader.load_all_sentences())
 
-    rs_builder = ReconstructionStrategyBuilder(config['paths']['joblib_cache'])
+    cache = diskcache.Cache(
+        directory=config['paths']['disk_cache'],
+        disk_min_file_size=1024,  # Compress anything over 1KB
+        disk_compress_level=1  # Use the fastest compression level
+    ) # FIXME create manager and close()
+    rs_builder = ReconstructionStrategyBuilder(cache)
     for strategy_params in config.get("recon_strategy", []):
         
         # Build the strategy object once for this block
