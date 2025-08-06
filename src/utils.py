@@ -1,4 +1,3 @@
-# src/utils.py
 import os
 import mlflow
 import git
@@ -12,19 +11,6 @@ def set_tz_converter(formatter, tz_str=None):
     tz = pytz.timezone(tz_str or "Asia/Jerusalem")
     formatter.converter = lambda *args: datetime.now(tz).timetuple()
     return formatter
-
-# class TimezoneFormatter(logging.Formatter):
-#     """A custom logging formatter that uses a specific timezone."""
-#     def __init__(self, fmt:str, tz_str:str="Asia/Jerusalem"):
-#         # ,datefmt='%Y-%m-%d %H:%M:%S',
-#         super().__init__(fmt)
-#         self.tz = pytz.timezone(tz_str)
-#
-#     def formatTime(self, record, datefmt=None):
-#         # Get the original log time (which is in UTC)
-#         dt = datetime.fromtimestamp(record.created, pytz.utc)
-#         dt = dt.astimezone(self.tz)
-#         return dt.strftime(datefmt or self.default_time_format)
 
 NOTICE_LEVEL_NUM = 25 # Between INFO (20) and WARNING (30)
 NOTICE_LEVEL_NAME = "NOTICE"
