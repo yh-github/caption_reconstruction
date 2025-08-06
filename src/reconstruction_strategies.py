@@ -4,7 +4,7 @@ from data_models import CaptionedClip
 from data_models import CaptionedVideo
 from llm_interaction import build_llm_manager, init_llm
 from parsers import parse_llm_response
-from prompting import PromptBuilder, PromptBuilderIndexedData
+from prompting import PromptBuilder, PromptBuilderIndexedData, JSONPromptBuilder
 from exceptions import UserFacingError
 from pydantic import BaseModel
 
@@ -198,7 +198,8 @@ class ReconstructionStrategyBuilder:
             return LLMStrategy(
                 name=strategy_config["name"],
                 llm_model=build_llm_manager(strategy_config['llm'], self.llm_cache),
-                prompt_builder=PromptBuilderIndexedData()
+                prompt_builder=JSONPromptBuilder.from_config(strategy_config['llm'])
+                #PromptBuilderIndexedData()
             )
 
         elif strategy_type == "baseline_repeat_last":

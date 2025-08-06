@@ -23,7 +23,7 @@ def build_llm_manager(llm_config, llm_cache):
     return LLM_Manager(
         model_name=llm_config['model_name'],
         temperature=llm_config['temperature'],
-        system_instruction=llm_config['system_instructions'],
+        system_instruction=llm_config.get('system_instructions'),
         llm_cache=llm_cache
     )
 
