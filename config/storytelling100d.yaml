@@ -7,19 +7,19 @@ data_config:
   limit: 100
 
 recon_strategy:
-  - name: "llm_zero_shot_v1"
+  - name: "d_llm_zero_shot_v1"
     type: "llm"
     llm:
       model_name: "gemini-2.0-flash-001"
       temperature: 0.5
       prompt_template: "prompts/dense_zero_shot_v1.txt"
-  - name: "llm_one_shot_v1"
+  - name: "d_llm_one_shot_v1"
     type: "llm"
     llm:
       model_name: "gemini-2.0-flash-001"
       temperature: 0.5
       prompt_template: "prompts/dense_one_shot_v1.txt"
-  - name: "llm_zero_shot_v2"
+  - name: "d_llm_zero_shot_v2"
     type: "llm"
     llm:
       model_name: "gemini-2.0-flash-001"
