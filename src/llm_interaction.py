@@ -76,7 +76,7 @@ class LLM_Manager:
         try:
             self.last_raw_response = self._invoke_llm(prompt)
         except Exception as e:
-            logger.warning(f"INVOKE_LLM_EXCEPTION {e=} for {prompt=}", exc_info=e)
+            logger.warning(f"INVOKE_LLM_EXCEPTION {e.__class__.__qualname__} {e=}")
             raise
         return self.last_raw_response.text
 
