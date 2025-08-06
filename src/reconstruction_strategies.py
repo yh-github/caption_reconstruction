@@ -4,7 +4,7 @@ from data_models import CaptionedClip
 from data_models import CaptionedVideo
 from llm_interaction import build_llm_manager, init_llm
 from parsers import parse_llm_response
-from prompting import PromptBuilder, PromptBuilderIndexedData, JSONPromptBuilder
+from prompting import PromptBuilder, JSONPromptBuilder
 from exceptions import UserFacingError
 from pydantic import BaseModel
 
