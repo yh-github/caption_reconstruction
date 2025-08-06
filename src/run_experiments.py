@@ -22,7 +22,6 @@ from exceptions import UserFacingError
 cache:diskcache.Cache|None=None
 
 def init():
-    # --- 1. Pre-flight Checks and Setup ---
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
     if len(sys.argv) < 2:
@@ -35,21 +34,17 @@ def init():
 
     return config
 
-def main(config):
+def main(config:dict) -> str:
     experiment_name = get_datetime_str(config.get('tz'))
     parent_run_name = config["__parent_run_name__"]+f" ({experiment_name})"
     mlflow_uri = config['paths']['mlflow_tracking_uri']
 
-    notifier = get_notification_logger()
-
     git_commit_hash = check_git_repository_is_clean()
 
-    # setup_mlflow(experiment_name=experiment_name, tracking_uri=mlflow_uri)
-    # --- 2. The Experiment Loops ---
     with FileLock(".lock"):
         setup_mlflow(experiment_name=experiment_name, tracking_uri=mlflow_uri)
         with mlflow.start_run(run_name=parent_run_name) as parent_run, cache:
-            log_path = setup_logging(
+            log_path, notifier = setup_logging(
                 log_dir=config['paths']['log_dir'],
                 run_id=parent_run.info.run_id,
                 tz_str=config.get('tz', None)
@@ -58,9 +53,6 @@ def main(config):
             start_msg = f"--- Starting Experiment Batch: {parent_run_name=} experiment_id={parent_run.info.experiment_id} ---"
             logging.info(start_msg)
             notifier.info(start_msg)
-
-            os.environ["TRANSFORMERS_VERBOSITY"] = "error"
-            logging.getLogger("transformers").setLevel(logging.ERROR)
 
             # Log reproducibility parameters
             mlflow.log_param("git_commit_hash", git_commit_hash)
@@ -138,29 +130,3 @@ def done(log_path):
     print("\nRun `mlflow ui` in your terminal to view the full results.")
     print("\nView log in", log_path)
     print()
-
-
-if __name__ == "__main__":
-    try:
-        config = init()
-        if len(sys.argv) > 2 and sys.argv[2]=='--dry-run':
-            xs = list(build_experiments(config))
-            print(f"prepared {len(xs)} experiments")
-            if len(sys.argv) > 3 and sys.argv[3] == '--verbose':
-                print()
-                for r, conf in xs:
-                    print(r.run_name,'\t',conf)
-                print()
-        else:
-            log_path = main(config)
-            done(log_path)
-    except UserFacingError as e:
-        print(f"\n❌ Error: {e}", file=sys.stderr)
-        sys.exit(1)
-    except KeyboardInterrupt:
-        print("\n\n🛑 Experiment batch cancelled by user. Shutting down gracefully.")
-        sys.exit(130) # 130 is the standard exit code for Ctrl+C
-    except Exception as e:
-        logging.error(f"Experiment failed with a critical error: {e}", exc_info=True)
-        raise
-

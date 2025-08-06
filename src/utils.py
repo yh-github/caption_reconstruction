@@ -28,10 +28,11 @@ def add_notice_log_level():
 
     logging.Logger.notice = notice
 
-def get_notification_logger():
+def get_notification_logger(formatter):
     """
     Creates a simple logger that only prints INFO messages to the console.
     """
+
     # Create a new logger with a unique name
     notification_logger = logging.getLogger('NotificationLogger')
     notification_logger.setLevel(logging.INFO)
@@ -43,7 +44,7 @@ def get_notification_logger():
     if not notification_logger.handlers:
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
-        console_handler.setFormatter(set_tz_converter(logging.Formatter('ℹ️ %(asctime)s - NOTICE %(levelname)s - %(message)s')))
+        console_handler.setFormatter(formatter)
         notification_logger.addHandler(console_handler)
 
     return notification_logger
@@ -81,7 +82,12 @@ def setup_logging(log_dir: str, run_id: str, console_level=logging.WARN, base_le
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
-    return log_path
+    notification_logger = get_notification_logger(formatter)
+
+    os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+    logging.getLogger("transformers").setLevel(logging.ERROR)
+
+    return log_path, notification_logger
 
 def flush_loggers():
     """
