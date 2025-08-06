@@ -193,7 +193,7 @@ class ReconstructionStrategyBuilder:
 
         if strategy_type == "llm":
             llm_conf = strategy_config['llm'].copy()
-            llm_conf['seed'] = llm_conf.get('seed')+self.master_seed
+            llm_conf['seed'] = llm_conf.get('seed',0)+self.master_seed
             return LLMStrategy(
                 name=strategy_config["name"],
                 llm_model=build_llm_manager(llm_conf, self.llm_cache),

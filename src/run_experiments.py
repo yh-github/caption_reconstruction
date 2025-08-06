@@ -19,6 +19,7 @@ from data_loaders import get_data_loader
 from experiment_runner import ExperimentRunner
 from exceptions import UserFacingError
 
+cache:diskcache.Cache|None=None
 
 def init():
     # --- 1. Pre-flight Checks and Setup ---
@@ -27,7 +28,12 @@ def init():
     if len(sys.argv) < 2:
         raise UserFacingError("Please provide the path to the experiment config file.")
 
-    return load_config(sys.argv[1])
+    config = load_config(sys.argv[1])
+
+    global cache
+    cache = diskcache.Cache(directory=config['paths']['disk_cache'])
+
+    return config
 
 def main(config):
     experiment_name = get_datetime_str(config.get('tz'))
@@ -42,7 +48,7 @@ def main(config):
     # --- 2. The Experiment Loops ---
     with FileLock(".lock"):
         setup_mlflow(experiment_name=experiment_name, tracking_uri=mlflow_uri)
-        with mlflow.start_run(run_name=parent_run_name) as parent_run:
+        with mlflow.start_run(run_name=parent_run_name) as parent_run, cache:
             log_path = setup_logging(
                 log_dir=config['paths']['log_dir'],
                 run_id=parent_run.info.run_id,
@@ -97,12 +103,7 @@ def build_experiments(config):
     )
     evaluator.calc_idf(sents=data_loader.load_all_sentences())
 
-    cache = diskcache.Cache(
-        directory=config['paths']['disk_cache']
-        # ,disk_min_file_size=1024,  # Compress anything over 1KB
-        # disk_compress_level=1  # Use the fastest compression level
-    ) # FIXME create manager and close()
-    rs_builder = ReconstructionStrategyBuilder(cache)
+    rs_builder = ReconstructionStrategyBuilder(llm_cache=cache, master_seed=config["base_params"]["master_seed"])
     for strategy_params in config.get("recon_strategy", []):
         
         # Build the strategy object once for this block
