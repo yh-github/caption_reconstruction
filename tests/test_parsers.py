@@ -1,12 +1,12 @@
 from data_models import ReconstructedCaptions, ReconstructedCaption
 from parsers import parse_llm_response
-import textwrap
 
 def test_parse_llm_response_success():
     """
     Tests successful parsing of a clean, valid JSON response from the LLM.
     """
     # Arrange: A perfect JSON string as we'd hope to get from the LLM.
+    # noinspection PyArgumentList
     recon_obj = ReconstructedCaptions([
         ReconstructedCaption(index=0, caption="The person approaches a table."),
         ReconstructedCaption(index=1, caption="The person picks up a book.")

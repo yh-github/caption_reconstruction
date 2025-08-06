@@ -30,6 +30,7 @@ class CaptionedVideo(BaseModel):
     video_id: str = Field(..., description="A unique identifier for the video.")
     clips: list[CaptionedClip] = Field(..., description="An ordered list of captioned clips.")
 
+    # noinspection PyMethodParameters
     @field_validator('clips')
     def check_indices_are_sequential(cls, clips: list[CaptionedClip]) -> list[CaptionedClip]:
         """

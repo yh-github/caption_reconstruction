@@ -4,7 +4,7 @@ from tenacity import retry, wait_random_exponential, stop_after_attempt, retry_i
 import google.generativeai as genai
 import google.api_core.exceptions
 from google.generativeai.types import GenerationConfig
-from data_models import ReconstructedCaption
+
 import diskcache
 import hashlib
 import base64

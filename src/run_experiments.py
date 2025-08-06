@@ -63,7 +63,7 @@ def main(config):
 
             for runner, run_params in build_experiments(config):
                 run_name = runner.run_name
-                with mlflow.start_run(run_name=run_name, nested=True) as child_run:
+                with mlflow.start_run(run_name=run_name, nested=True):
                     logging.info(f"--- Starting Nested Run: {run_name} ---")
                     mlflow.log_params(run_params)
                     metrics, all_recon_videos = runner.run()

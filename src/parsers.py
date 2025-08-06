@@ -1,4 +1,3 @@
-import json
 import logging
 from pydantic import ValidationError
 from data_models import ReconstructedCaptions
