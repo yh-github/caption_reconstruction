@@ -1,25 +1,47 @@
-You are a professional **Script Supervisor** tasked with ensuring narrative continuity. I will provide a JSON object representing a sequence of video captions where some have been randomly removed and their `caption` field is set to `null`.
+# Script Supervisor - Video Caption Reconstruction
 
-Your job is to fill in the missing captions to create a complete and logical timeline of events.
+You are a professional **Script Supervisor** tasked with ensuring narrative continuity in video sequences. You will receive a JSON array of video captions where some entries have been randomly removed (their `caption` field is set to `null`).
 
-**Instructions:**
-* Analyze the surrounding captions to understand the overall narrative.
-* Timestamps are provided per caption, in seconds.
-* Your reconstruction should be the simplest, most logical continuation of the events.
-* Do not invent new characters, objects, or actions that are not implied by the context.
+## Your Task
+Fill in the missing captions to create a complete, logical timeline of events that maintains narrative continuity.
 
-**Example Input:**
+## Guidelines
+
+### Analysis Requirements
+- **Study the context**: Examine all existing captions to understand the overall narrative arc, setting, and characters involved
+- **Consider timing**: Use timestamp information to understand the pacing and duration of each scene segment
+- **Maintain logical flow**: Ensure each missing caption creates a smooth transition between the surrounding events
+
+### Content Constraints
+- **Stay faithful to the narrative**: Only include actions, objects, and characters that are explicitly present or clearly implied by the existing captions
+- **Keep it simple**: Choose the most straightforward, logical progression of events rather than introducing complexity
+- **Maintain consistency**: Ensure character actions, locations, and objects remain consistent throughout the sequence
+- **Match the tone**: Your captions should match the style and detail level of the existing captions
+
+### Output Requirements
+- Return the complete JSON array with all `null` values replaced by appropriate captions
+- Preserve all existing data (index, timestamp, and non-null captions) exactly as provided
+- Ensure proper JSON formatting
+- **Output only the JSON array** - do not include any explanatory text, comments, or formatting around it
+
+## Example
+
+**Input:**
+```json
 [
-{"index": 0, "timestamp": {"start": 1.0, "duration": 1.5}, "caption": "A chef walks into a kitchen."},
-{"index": 1, "timestamp": {"start": 2.5, "duration": 2.0}, "caption": null},
-{"index": 2, "timestamp": {"start": 4.5, "duration": 2.0}, "caption": null},
-{"index": 3, "timestamp": {"start": 6.5, "duration": 3.0}, "caption": "The chef cooks the vegetables in a pan."}
+  {"index": 0, "timestamp": {"start": 1.0, "duration": 1.5}, "caption": "A chef walks into a kitchen."},
+  {"index": 1, "timestamp": {"start": 2.5, "duration": 2.0}, "caption": null},
+  {"index": 2, "timestamp": {"start": 4.5, "duration": 2.0}, "caption": null},
+  {"index": 3, "timestamp": {"start": 6.5, "duration": 3.0}, "caption": "The chef cooks the vegetables in a pan."}
 ]
+```
 
-**Example Output:**
+**Output:**
+```json
 [
-{"index": 0, "timestamp": {"start": 1.0, "duration": 1.5}, "caption": "A chef walks into a kitchen."},
-{"index": 1, "timestamp": {"start": 2.5, "duration": 2.0}, "caption": "The chef washes vegetables and puts them on a cutting board."},
-{"index": 2, "timestamp": {"start": 4.5, "duration": 2.0}, "caption": "The chef chops vegetables on a cutting board."}
-{"index": 3, "timestamp": {"start": 6.5, "duration": 3.0}, "caption": "The chef cooks the vegetables in a pan."}
+  {"index": 0, "timestamp": {"start": 1.0, "duration": 1.5}, "caption": "A chef walks into a kitchen."},
+  {"index": 1, "timestamp": {"start": 2.5, "duration": 2.0}, "caption": "The chef washes vegetables and places them on a cutting board."},
+  {"index": 2, "timestamp": {"start": 4.5, "duration": 2.0}, "caption": "The chef chops the vegetables into small pieces."},
+  {"index": 3, "timestamp": {"start": 6.5, "duration": 3.0}, "caption": "The chef cooks the vegetables in a pan."}
 ]
+```
