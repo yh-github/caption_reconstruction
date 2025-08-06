@@ -2,7 +2,7 @@ import logging
 from abc import ABC, abstractmethod
 from data_models import CaptionedClip
 from data_models import CaptionedVideo
-from llm_interaction import build_llm_manager, init_llm
+from llm_interaction import build_llm_manager
 from parsers import parse_llm_response
 from prompting import PromptBuilder, JSONPromptBuilder
 from exceptions import UserFacingError
@@ -179,9 +179,9 @@ class ReconstructionStrategyBuilder:
     """
     A builder class responsible for creating reconstruction strategy objects.
     """
-    def __init__(self, llm_cache):
-        self.init_llm_api = False
+    def __init__(self, llm_cache, master_seed):
         self.llm_cache = llm_cache
+        self.master_seed = master_seed
 
     def get_strategy(self, strategy_config: dict) -> ReconstructionStrategy:
         """
@@ -192,13 +192,12 @@ class ReconstructionStrategyBuilder:
             raise UserFacingError("'type' must be specified in the strategy configuration.")
 
         if strategy_type == "llm":
-            if not self.init_llm_api:
-                init_llm()
-                self.init_llm_api = True
+            llm_conf = strategy_config['llm'].copy()
+            llm_conf['seed'] = llm_conf.get('seed')+self.master_seed
             return LLMStrategy(
                 name=strategy_config["name"],
-                llm_model=build_llm_manager(strategy_config['llm'], self.llm_cache),
-                prompt_builder=JSONPromptBuilder.from_config(strategy_config['llm'])
+                llm_model=build_llm_manager(llm_conf, self.llm_cache),
+                prompt_builder=JSONPromptBuilder.from_config(llm_conf)
                 #PromptBuilderIndexedData()
             )
 
