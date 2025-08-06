@@ -9,7 +9,6 @@ paths:
   mlflow_tracking_uri: "file:./mlruns"
 
   # The directory for our embedding and function call cache.
-  joblib_cache: "cache/"
   disk_cache: "disk_cache/"
 
   # The location of the input data source.

@@ -9,7 +9,7 @@ class PromptBuilder(ABC):
         pass
 
 
-class PromptBuilderIndexedData(PromptBuilder):
+class PromptBuilderDataOnly(PromptBuilder):
 
     def build_prompt(self, masked_video: CaptionedVideo) -> str:
         return ("[\n" +
@@ -19,19 +19,21 @@ class PromptBuilderIndexedData(PromptBuilder):
                 ])
                 + "\n]")
 
-import json
+
 class JSONPromptBuilder(PromptBuilder):
     """Builds a prompt that instructs the LLM to work with JSON."""
 
     def __init__(self, instruction_template: str):
         self.instruction_template = instruction_template
+        self.data_prompter = PromptBuilderDataOnly()
 
     def build_prompt(self, masked_video: CaptionedVideo) -> str:
         """Builds the final JSON prompt to be sent to the LLM."""
         instruction = self.instruction_template #.format(DATA_MISSING=DATA_MISSING)
 
-        captions_for_json = [clip.model_dump() for clip in masked_video.clips]
-        json_prompt_data = json.dumps(captions_for_json, indent=2)
+        # captions_for_json = [clip.model_dump() for clip in masked_video.clips]
+        # json_prompt_data = json.dumps(captions_for_json, indent=2)
+        json_prompt_data = self.data_prompter.build_prompt(masked_video)
 
         return f"{instruction}\n\n{json_prompt_data}"
 

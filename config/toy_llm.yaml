@@ -17,19 +17,19 @@ recon_strategy:
     llm:
       model_name: "gemini-2.0-flash-exp"
       temperature: 0.6
-      system_instructions: "prompts/sys_zero_shot_v1.txt"
+      prompt_template: "prompts/sys_zero_shot_v1.txt"
   - name: "llm_zero_shot_v2"
     type: "llm"
     llm:
       model_name: "gemini-2.0-flash-exp"
       temperature: 0.6
-      system_instructions: "prompts/sys_zero_shot_v2.txt"
+      prompt_template: "prompts/sys_zero_shot_v2.txt"
   - name: "llm_one_shot_v1"
     type: "llm"
     llm:
       model_name: "gemini-2.0-flash-001"
       temperature: 0.4
-      system_instructions: "prompts/sys_one_shot_v1.txt"
+      prompt_template: "prompts/sys_one_shot_v1.txt"
 
 # --- A list of masking rules to generate strategies from ---
 masking_configs:
