@@ -128,27 +128,5 @@ def setup_mlflow(
     mlflow.set_tracking_uri(tracking_uri)
     mlflow.set_experiment(experiment_name=experiment_name)
 
-def object_to_dict(obj: object) -> dict:
-    """
-    Recursively converts an object and its attributes into a dictionary
-    that is safe for logging as MLflow parameters.
-    """
-    if not hasattr(obj, '__dict__'):
-        return {"type": obj.__class__.__name__}
-
-    # Start with the object's class name
-    param_dict = {"type": obj.__class__.__name__}
-
-    for key, value in vars(obj).items():
-        # If the attribute is another custom object, recurse
-        if hasattr(value, '__dict__'):
-            param_dict[key] = object_to_dict(value)
-        # Only include simple, loggable types
-        elif isinstance(value, (str, int, float, bool)):
-            param_dict[key] = value
-
-    return param_dict
-
-
 def get_datetime_str(tz:str|None=None) -> str:
     return datetime.now(pytz.timezone(tz or "Asia/Jerusalem")).strftime("%H-%M_%d_%m_%Y")

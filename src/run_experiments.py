@@ -11,7 +11,7 @@ from filelock import FileLock
 # Local imports
 from masking import get_masking_strategies
 from evaluation import ReconstructionEvaluator
-from utils import check_git_repository_is_clean, object_to_dict, setup_logging, get_notification_logger, flush_loggers, \
+from utils import check_git_repository_is_clean, setup_logging, get_notification_logger, flush_loggers, \
     setup_mlflow, get_datetime_str
 from config_loader import load_config
 from reconstruction_strategies import ReconstructionStrategyBuilder
@@ -119,8 +119,8 @@ def build_experiments(config):
             run_conf = {
                 **config.get('base_params'),
                 'data_config': config["data_config"],
-                'masking': object_to_dict(masker),
-                'recon_strategy': object_to_dict(recon_strategy)
+                'masking': str(masker),
+                'recon_strategy': strategy_params
             }
             runner = ExperimentRunner(
                 run_name=f"{recon_strategy}__{masker}",
@@ -143,12 +143,12 @@ if __name__ == "__main__":
     try:
         config = init()
         if len(sys.argv) > 2 and sys.argv[2]=='--dry-run':
-            xs = [x for x, _ in build_experiments(config)]
+            xs = list(build_experiments(config))
             print(f"prepared {len(xs)} experiments")
             if len(sys.argv) > 3 and sys.argv[3] == '--verbose':
                 print()
-                for x in xs:
-                    print(x.run_name)
+                for r, conf in xs:
+                    print(r.run_name,'\t',conf)
                 print()
         else:
             log_path = main(config)
