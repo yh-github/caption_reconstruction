@@ -21,18 +21,24 @@ pytz~=2025.2
 # --- Stability & Error Handling ---
 tenacity==8.5.0			# For robust retry logic (e.g., exponential backoff)
 
-# --- Evaluation & Caching ---
+# --- BertScore ---
 bert-score==0.3.13		# For semantic similarity evaluation
-torch==2.6.0			# A required backend for bert-score
-diskcache==5.6.3		# For caching expensive function calls (e.g., embeddings)
+torch~=2.6.0			# A required backend for bert-score
 tiktoken==0.9.0
 sentencepiece==0.2.0
+
+# --- Cache ---
+diskcache==5.6.3		# For caching expensive function calls (e.g., embeddings)
+
+# --- Analysis ---
+numpy~=2.0.2
+pandas~=2.3.1
+sklearn-compat==0.1.3
+sklearn-pandas==2.2.0
 
 
 # --- Testing ---
 pytest==8.4.1
 pytest-mock==3.12.0
-
 mlflow-skinny~=3.1.1
-pandas~=2.3.1
 protobuf~=5.29.5

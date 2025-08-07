@@ -1,10 +1,13 @@
 import os
 import mlflow
 import git
+from transformers.utils import flatten_dict
+
 from exceptions import UserFacingError
 import logging
 from datetime import datetime
 import pytz
+from typing import Any
 
 
 def set_tz_converter(formatter, tz_str=None):
@@ -122,3 +125,51 @@ def setup_mlflow(
 
 def get_datetime_str(tz:str|None=None) -> str:
     return datetime.now(pytz.timezone(tz or "Asia/Jerusalem")).strftime("%H-%M_%d_%m_%Y")
+
+
+def flatten_dict(d: dict[str, Any], parent_key: str = '', sep: str = '.') -> list[tuple[str, Any]]:
+    """
+    Flattens a nested dictionary.
+    Assumes all keys are strings.
+
+    Args:
+        d: The dictionary to flatten.
+        parent_key: The base key to use for a nested key.
+        sep: The separator to use between nested keys.
+
+    Returns:
+        A flattened dictionary.
+    """
+    items = []
+    for k, v in d.items():
+        new_key = parent_key + sep + k if parent_key else k
+        if isinstance(v, dict):
+            items.extend(flatten_dict(v, new_key, sep=sep))
+        else:
+            items.append((new_key, v))
+    return items
+
+def build_safe_dict(*lists_of_items: list[tuple[str, Any]]) -> dict[str, Any]:
+    """
+    Safely builds a single dictionary from multiple lists of (key, value) tuples.
+
+    Args:
+        *lists_of_items: A variable number of lists, where each list
+                         contains (key, value) tuples.
+
+    Returns:
+        A  dictionary, where keys are unique across all lists.
+
+    Raises:
+        ValueError: If a key is found in multiple lists with a different value.
+    """
+    d = {}
+    for items in lists_of_items:
+        for k,v in items:
+            if k in d and d[k] != v:
+                raise ValueError(f"Duplicate key: {k} v1={d[k]} v2={v}")
+            d[k]=v
+    return d
+
+def flat_dict(d:dict[str, dict[str, Any]]) -> dict[str, Any]:
+    return build_safe_dict(flatten_dict(d))
