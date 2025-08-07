@@ -11,7 +11,7 @@ from filelock import FileLock
 # Local imports
 from masking import get_masking_strategies
 from evaluation import ReconstructionEvaluator
-from utils import check_git_repository_is_clean, setup_logging, get_notification_logger, flush_loggers, \
+from utils import check_git_repository_is_clean, setup_logging, flush_loggers, \
     setup_mlflow, get_datetime_str
 from config_loader import load_config
 from reconstruction_strategies import ReconstructionStrategyBuilder
