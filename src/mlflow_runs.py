@@ -2,6 +2,9 @@ import os
 import argparse
 from collections import defaultdict
 
+def parent_name_to_config(parent_name:str) -> str:
+    return f"config/{parent_name}.yaml"
+
 def display_run_hierarchy(root_path: str):
     """
     Parses an MLflow experiment directory to identify and print the
@@ -73,19 +76,22 @@ def display_run_hierarchy(root_path: str):
     child_ids = {child for children in parent_to_children.values() for child in children}
     
     # Runs that are parents should be printed with their children.
+    d = {}
     if parent_ids:
         print("--- Run Hierarchy ---")
         # Sort parent runs by their name.
         sorted_parent_ids = sorted(list(parent_ids), key=lambda pid: id_to_name.get(pid, "Parent Run (Not in this directory)"))
         for parent_id in sorted_parent_ids:
+            d[len(d)] = parent_id
             parent_name = id_to_name.get(parent_id, "Parent Run (Not in this directory)")
-            print(f"{parent_id}\t{parent_name}")
+            print(f"{len(d)-1}. {parent_id}\t{parent_name}")
 
             # Sort child runs by their name.
             sorted_child_ids = sorted(parent_to_children[parent_id], key=lambda cid: id_to_name.get(cid, "Unnamed Child Run"))
             for child_id in sorted_child_ids:
+                d[len(d)] = child_id
                 child_name = id_to_name.get(child_id, "Unnamed Child Run")
-                print(f"\t{child_id}\t{child_name}")
+                print(f"\t{len(d)-1}. {child_id}\t{child_name}")
             print()  # Add a blank line for readability between groups.
 
     # Identify and print "orphan" runs (runs that are not parents and not children).

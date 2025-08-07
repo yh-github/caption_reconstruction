@@ -21,7 +21,9 @@ def ls_recon(path):
         i = 1
         for line in f:
             r = Reconstructed.model_validate_json(line)
-            print(f"{i}. {r.video_id} {r.metrics or 'FAIL'} {list(r.reconstructed_captions.keys())}")
+            has_debug = " [D]" if r.debug_data else ""
+
+            print(f"{i}.{has_debug} {r.video_id} {r.metrics or 'FAIL'} {list(r.reconstructed_captions.keys())}")
             i += 1
 
 def load_recon(path, index=None, video_id=None):
@@ -45,9 +47,9 @@ def build_evaluators(sentences:list[str]):
     ]
     d = {}
     for m in eval_models:
-        p = {'model_type':m, 'idf':False, 'rescale_with_baseline': False}
+        p = {'model_type':m, 'idf':False}
         d[str(p)] = ReconstructionEvaluator(**p)
-        p = {'model_type':m, 'idf':True, 'rescale_with_baseline': False}
+        p = {'model_type':m, 'idf':True}
         d[str(p)] = ReconstructionEvaluator(**p).calc_idf(sentences)
     return d
 
