@@ -12,7 +12,7 @@ from filelock import FileLock
 from masking import get_masking_strategies
 from evaluation import ReconstructionEvaluator
 from utils import check_git_repository_is_clean, setup_logging, flush_loggers, \
-    setup_mlflow, get_datetime_str
+    setup_mlflow, get_datetime_str, flat_dict
 from config_loader import load_config
 from reconstruction_strategies import ReconstructionStrategyBuilder
 from data_loaders import get_data_loader
@@ -109,12 +109,12 @@ def build_experiments(config):
         # --- Loop 2: Iterate over the generated masking strategies ---
         for masker in masking_strategies:
             # Build the final runner object with all components
-            run_conf = {
-                **config.get('base_params'),
+            run_conf = flat_dict({
+                '':config.get('base_params'),
                 'data_config': config["data_config"],
-                'masking': str(masker),
+                'masking': masker.get_params_for_repr(),
                 'recon_strategy': strategy_params
-            }
+            })
             runner = ExperimentRunner(
                 run_name=f"{recon_strategy}__{masker}",
                 data_loader=data_loader,

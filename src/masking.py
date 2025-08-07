@@ -30,12 +30,12 @@ class MaskingStrategy(ABC):
 
     def __repr__(self) -> str:
         """Generates a descriptive string for the strategy and its parameters."""
-        params = self._get_params_for_repr()
+        params = self.get_params_for_repr()
         param_str = ", ".join(f"{k}={v}" for k, v in params.items())
         return f"{self.scheme}({param_str})"
 
     @abstractmethod
-    def _get_params_for_repr(self) -> dict:
+    def get_params_for_repr(self) -> dict:
         """Returns a dictionary of parameters for the string representation."""
         pass
 
@@ -59,7 +59,7 @@ class RandomMasking(MaskingStrategy):
         num_to_mask = int(num_clips * self.ratio)
         return set(self.prn.sample(range(num_clips), k=num_to_mask))
 
-    def _get_params_for_repr(self) -> dict:
+    def get_params_for_repr(self) -> dict:
         return {"ratio": self.ratio}
 
 
@@ -77,7 +77,7 @@ class ContiguousMasking(MaskingStrategy):
         self.prn_generator = random.Random(seed)
         self.width = width
 
-    def _get_params_for_repr(self) -> dict:
+    def get_params_for_repr(self) -> dict:
         return {"seed": self.seed, "width": self.width}
 
     def _get_indices_to_mask(self, num_clips: int) -> set[int]|None:
@@ -125,7 +125,7 @@ class PartitionMasking(MaskingStrategy):
                 indices_to_mask.update(partitions[i])
         return indices_to_mask
 
-    def _get_params_for_repr(self) -> dict:
+    def get_params_for_repr(self) -> dict:
         return {"num_partitions": self.num_partitions, "start_partition": self.start_partition, "num_parts_to_mask": self.num_parts_to_mask}
 
 def get_masking_strategies(masking_configs: list, master_seed: int) -> list[MaskingStrategy]:
