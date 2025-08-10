@@ -9,6 +9,7 @@ import diskcache
 import hashlib
 import base64
 import json
+from pydantic import BaseModel
 
 
 logger = logging.getLogger(__name__)
@@ -24,10 +25,6 @@ def build_llm_manager(llm_config, llm_cache):
         llm_cache=llm_cache
     )
 
-from pydantic import BaseModel
-from typing import Self
-
-
 class LLM_Response(BaseModel):
     text:str|None
     thoughts:str|None = None
@@ -41,7 +38,7 @@ class LLM_Response(BaseModel):
         thoughts = None
 
         if len(raw_response.candidates) > 1:
-            logging.warning(f"Expected 1 candidate, got {len(raw_response.candidates)}")
+            logger.warning(f"Expected 1 candidate, got {len(raw_response.candidates)}")
 
         for part in raw_response.candidates[0].content.parts:
             if part.thought:
@@ -54,13 +51,18 @@ class LLM_Response(BaseModel):
                 text = part.text
 
         if text != raw_response.text:
-            logging.warning(f"Text mismatch: {text=} {raw_response.text=}")
+            logger.warning(f"Text mismatch: {text=} {raw_response.text=}")
 
         return LLM_Response(text=text, thoughts=thoughts)
 
     @staticmethod
     def from_str(s:str):
-        return LLM_Response.model_validate_json(s)
+        if s is None:
+            return LLM_Response(text=None)
+        if s.startswith("{"):
+            return LLM_Response.model_validate_json(s)
+        else:
+            return LLM_Response(text=s)
 
 
 class LLM_Manager:
@@ -136,5 +138,9 @@ class LLM_Manager:
         res = self._call_retry(prompt)
         if res.text:
             self.disk_cache[k] = res.model_dump_json(exclude_none=True)
+
+        if self.llm_config.thinking_config and not res.thoughts:
+            logger.warning(f"No thoughts in LLM response: {res.text=}")
+
         return res
 

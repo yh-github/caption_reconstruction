@@ -14,9 +14,9 @@ recon_strategy:
     type: "llm"
     llm:
       model_name: "gemini-2.5-pro"
+      thought_budget: -1
       temperature: 0.5
       prompt_template: "prompts/dense_one_shot_v1.txt"
-      thought_budget: -1
 
 # --- A list of masking rules to generate strategies from ---
 masking_configs:
