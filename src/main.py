@@ -12,8 +12,8 @@ if __name__ == "__main__":
                     print(r.run_name,'\t',conf)
                 print()
         else:
-            log_path = main(config)
-            done(log_path)
+            paths = main(config)
+            done(*paths)
     except UserFacingError as e:
         print(f"\n❌ Error: {e}", file=sys.stderr)
         sys.exit(1)

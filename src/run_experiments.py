@@ -34,7 +34,7 @@ def init():
 
     return config
 
-def main(config:dict) -> str:
+def main(config:dict) -> tuple[str, str]:
     experiment_name = get_datetime_str(config.get('tz'))
     parent_run_name = config["__parent_run_name__"]+f" ({experiment_name})"
     mlflow_uri = config['paths']['mlflow_tracking_uri']
@@ -51,6 +51,7 @@ def main(config:dict) -> str:
             )
             print(f'{log_path = }')
             start_msg = f"--- Starting Experiment Batch: {parent_run_name=} experiment_id={parent_run.info.experiment_id} ---"
+            mlflow_path = str(os.path.join(mlflow_uri,parent_run.info.experiment_id))
             logging.info(start_msg)
             notifier.info(start_msg)
 
@@ -81,7 +82,7 @@ def main(config:dict) -> str:
                     else:
                         logging.error("No metrics were generated")
                     flush_loggers()
-    return log_path
+    return log_path, mlflow_path
             
 def build_experiments(config):
     data_loader = get_data_loader(config["data_config"])
@@ -124,9 +125,10 @@ def build_experiments(config):
             )
             yield runner, run_conf
 
-def done(log_path):
+def done(log_path, mlflow_run_path):
     logging.info(f'PID {os.getpid()} DONE.')
     print("\n✅ Finished successfully.")
     print("\nRun `mlflow ui` in your terminal to view the full results.")
+    print(f"\n Run `python scripts/mlflow_runs.py {mlflow_run_path}` for command-line access.")
     print("\nView log in", log_path)
     print()
