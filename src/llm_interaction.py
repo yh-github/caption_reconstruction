@@ -60,7 +60,7 @@ class LLM_Response(BaseModel):
 
     @staticmethod
     def from_str(s:str):
-        return LLM_Response.model_validate(s)
+        return LLM_Response.model_validate_json(s)
 
 
 class LLM_Manager:
