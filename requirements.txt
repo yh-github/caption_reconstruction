@@ -6,9 +6,8 @@
 # =================================================================
 
 # --- Core Libraries ---
-#google-generativeai==0.8.5
-google-genai==1.27.0        # For interacting with the Gemini API
-google==2.0.3
+google-genai==1.29.0        # For interacting with the Gemini API
+google==3.0.0
 pydantic==2.11.7		    # For robust data modeling and validation
 PyYAML==6.0.2			    # For parsing our .yaml configuration files
 
