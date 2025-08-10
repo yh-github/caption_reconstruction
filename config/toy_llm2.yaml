@@ -1,0 +1,25 @@
+batch_name: "Toy Dataset with LLM"
+
+# --- Parameters that are constant for all runs in this batch ---
+base_params:
+  experiment_name: "MaskedCaptionsReconstruction"
+  master_seed: 42
+
+data_config:
+  name: "toy_data"
+  path: "datasets/toy_dataset/data.json"
+
+recon_strategy:
+  - name: "llm_one_shot_v1"
+    type: "llm"
+    llm:
+      model_name: "gemini-2.5-flash-001"
+      temperature: 0.4
+      prompt_template: "prompts/dense_one_shot_v1.txt"
+      thought_budget: -1
+
+# --- A list of masking rules to generate strategies from ---
+masking_configs:
+  - scheme: "contiguous"
+    width: [2]
+    seed: [1]

@@ -3,7 +3,7 @@ from tenacity import retry, wait_random_exponential, stop_after_attempt, retry_i
 
 import google.api_core.exceptions
 from google import genai
-from google.genai.types import GenerateContentConfig
+from google.genai.types import GenerateContentConfig, ThinkingConfig, GenerateContentResponse
 
 import diskcache
 import hashlib
@@ -20,25 +20,72 @@ def build_llm_manager(llm_config, llm_cache):
         seed=llm_config['seed'],
         temperature=llm_config['temperature'],
         system_instruction=llm_config.get('system_instructions'),
+        thought_budget=llm_config.get('thought_budget', 0),
         llm_cache=llm_cache
     )
 
+from pydantic import BaseModel
+from typing import Self
+
+
+class LLM_Response(BaseModel):
+    text:str|None
+    thoughts:str|None = None
+
+    @staticmethod
+    def from_raw(raw_response: GenerateContentResponse):
+        if raw_response is None:
+            return LLM_Response(text=None)
+
+        text = None
+        thoughts = None
+
+        if len(raw_response.candidates) > 1:
+            logging.warning(f"Expected 1 candidate, got {len(raw_response.candidates)}")
+
+        for part in raw_response.candidates[0].content.parts:
+            if part.thought:
+                if thoughts is not None:
+                    raise Exception("Thought already exists")
+                thoughts = part.text
+            elif part.text:
+                if text is not None:
+                    raise Exception("Text already exists")
+                text = part.text
+
+        if text != raw_response.text:
+            logging.warning(f"Text mismatch: {text=} {raw_response.text=}")
+
+        return LLM_Response(text=text, thoughts=thoughts)
+
+    @staticmethod
+    def from_str(s:str):
+        return LLM_Response.model_validate(s)
+
+
 class LLM_Manager:
 
-    def __init__(self, model_name, seed, temperature, system_instruction, llm_cache):
+    def __init__(self, model_name, seed, temperature, system_instruction, thought_budget:int, llm_cache):
         self.model_name = model_name
         self.temperature = temperature
         self.system_instruction = system_instruction
         self.seed = seed
 
         self.llm = genai.Client()
+
+        thinking_config = None if thought_budget==0 else ThinkingConfig(
+            thinking_budget=thought_budget,
+            include_thoughts=True
+        )
+
         self.llm_config = GenerateContentConfig(
             system_instruction=self.system_instruction,
             temperature=self.temperature,
             # max_output_tokens=400, # top_k=2,# top_p=0.5,
             response_mime_type='application/json',
             # response_schema=
-            seed=self.seed
+            seed=self.seed,
+            thinking_config=thinking_config
         )
 
         self.disk_cache:diskcache.Cache = llm_cache
@@ -64,33 +111,30 @@ class LLM_Manager:
             google.api_core.exceptions.ServerError  # For all 5xx server issues
         ))
     )
-    def _invoke_llm(self, prompt:str):
+    def _invoke_llm(self, prompt:str) -> GenerateContentResponse:
         return self.llm.models.generate_content(
             model=self.model_name,
             contents=prompt,
             config=self.llm_config
         )
 
-    def _call_retry(self, prompt:str) -> str|None:
+    def _call_retry(self, prompt:str) -> LLM_Response:
         self.last_raw_response = None
         try:
             self.last_raw_response = self._invoke_llm(prompt)
         except Exception as e:
             logger.warning(f"INVOKE_LLM_EXCEPTION {e.__class__.__qualname__} {e=}")
             raise
-        return self.last_raw_response.text
+        return LLM_Response.from_raw(self.last_raw_response)
 
-    def _cached_call(self, prompt:str) -> str|None:
+    def call(self, prompt:str) -> LLM_Response:
         k = self.cache_key(prompt)
         if k in self.disk_cache:
             logger.debug(f'Cache hit: {k=}')
-            return self.disk_cache[k]
+            return LLM_Response.from_str(self.disk_cache[k])
 
         res = self._call_retry(prompt)
-        if res:
-            self.disk_cache[k] = res
+        if res.text:
+            self.disk_cache[k] = res.model_dump_json(exclude_none=True)
         return res
 
-    def call(self, prompt:str) -> str|None:
-        # return self._call_retry(prompt)
-        return self._cached_call(prompt)

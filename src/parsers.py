@@ -20,6 +20,11 @@ def parse_llm_response(response_text: str) -> ReconstructedCaptions | None:
     """
     logging.debug("Parsing LLM response...")
     try:
+        if not response_text:
+            logging.warning("Empty LLM response received.")
+            return None
+        if response_text.startswith("```json") and response_text.endswith("```"):
+            response_text = response_text[7:-3]
         validated_response = ReconstructedCaptions.model_validate_json(response_text)
         if validated_response:
             logging.debug(f"LLM response parsed and validated successfully.")

@@ -101,7 +101,7 @@ class LLMStrategy(ReconstructionStrategy):
         try:
             prompt = self.prompt_builder.build_prompt(masked_video)
             logging.debug(f"video_id={masked_video.video_id} {prompt=}")
-            llm_response_text = self.llm_model.call(prompt)
+            llm_response_text = self.llm_model.call(prompt).text
             if not llm_response_text:
                 return Reconstructed(video_id=masked_video.video_id, reconstructed_captions={}, debug_data={
                     "error": "LLM error - llm_response_text empty",
