@@ -51,7 +51,7 @@ def main(config:dict) -> tuple[str, str]:
             )
             print(f'{log_path = }')
             start_msg = f"--- Starting Experiment Batch: {parent_run_name=} experiment_id={parent_run.info.experiment_id} ---"
-            mlflow_path = str(os.path.join(mlflow_uri,parent_run.info.experiment_id))
+            mlflow_path = str(os.path.join(mlflow_uri.removeprefix("file:"),parent_run.info.experiment_id))
             logging.info(start_msg)
             notifier.info(start_msg)
 
@@ -127,8 +127,8 @@ def build_experiments(config):
 
 def done(log_path, mlflow_run_path):
     logging.info(f'PID {os.getpid()} DONE.')
-    print("\n✅ Finished successfully.")
-    print("\nRun `mlflow ui` in your terminal to view the full results.")
-    print(f"\n Run `python scripts/mlflow_runs.py {mlflow_run_path}` for command-line access.")
-    print("\nView log in", log_path)
+    print(f"\n✅ Finished successfully.")
+    print(f"\nRun `mlflow ui` in your terminal to view the full results.")
+    print(f"\nRun `python scripts/mlflow_runs.py {mlflow_run_path}` for command-line access.")
+    print(f"\nView log in {log_path}")
     print()
