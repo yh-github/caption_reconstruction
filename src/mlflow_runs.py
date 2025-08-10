@@ -1,11 +1,75 @@
-import os
 import argparse
+import os
 from collections import defaultdict
+from pathlib import Path
+from typing import Any
+
+import yaml
+from pydantic import BaseModel
+
+class ExperimentInfo(BaseModel):
+    name:str
+    path: Path
+    subdir_count: int
+
+def find_experiment_hierarchy(root_dir: str = ".") -> list[ExperimentInfo]:
+    """
+    Finds all directories containing meta.yaml files and displays them in a hierarchy.
+
+    Args:
+        root_dir: The root directory to start searching from (default: current directory)
+    """
+    experiments:list[ExperimentInfo] = []
+
+    def find_experiment_dirs(current_path: Path) -> None:
+        """Recursively find directories with meta.yaml files."""
+        try:
+            # Check if current directory has meta.yaml
+            meta_file = current_path / "meta.yaml"
+            if meta_file.exists():
+                # Try to read the meta.yaml file
+                try:
+                    with open(meta_file, 'r', encoding='utf-8') as f:
+                        meta_data = yaml.safe_load(f)
+
+                    # Check if it has a 'name' key
+                    if isinstance(meta_data, dict) and 'name' in meta_data:
+                        # Count subdirectories
+                        subdirs = [item for item in current_path.iterdir()
+                                   if item.is_dir()]
+
+                        experiments.append(ExperimentInfo(
+                            name=meta_data['name'],
+                            path=Path(current_path),
+                            subdir_count=len(subdirs)
+                        ))
+                        # Don't recurse deeper when we find a meta.yaml
+                        return
+
+                except (yaml.YAMLError, IOError) as e:
+                    raise Exception(f"Warning: Could not read {meta_file}: {e}")
+
+            # If no meta.yaml found, continue recursively
+            for item in current_path.iterdir():
+                if item.is_dir():
+                    find_experiment_dirs(item)
+
+        except PermissionError:
+            pass
+
+    # Start the search
+    root_path = Path(root_dir).resolve()
+    find_experiment_dirs(root_path)
+
+    # Sort experiments by name
+    experiments.sort(key=lambda x: x.name)
+    return experiments
+
 
 def parent_name_to_config(parent_name:str) -> str:
     return f"config/{parent_name}.yaml"
 
-def display_run_hierarchy(root_path: str):
+def get_run_hierarchy(root_path: str) -> tuple[dict[str, str], defaultdict[str, list], set[str]] | None:
     """
     Parses an MLflow experiment directory to identify and print the
     hierarchical relationship between parent and child runs.
@@ -28,7 +92,7 @@ def display_run_hierarchy(root_path: str):
     # Keep track of all run IDs found in the directory.
     all_run_ids = set()
 
-    print(f"Scanning directory: {root_path}\n")
+    # print(f"Scanning directory: {root_path}\n")
 
     # --- 3. Data Collection ---
     # Iterate through each entry in the root_path. We assume each subdirectory
@@ -69,6 +133,11 @@ def display_run_hierarchy(root_path: str):
             id_to_name[run_id] = run_name
             if parent_id:
                 parent_to_children[parent_id].append(run_id)
+
+    return id_to_name, parent_to_children, all_run_ids
+
+
+def display_run_hierarchy(id_to_name, parent_to_children, all_run_ids):
 
     # --- 4. Output Generation ---
     # Identify which runs are parents and which are children.
@@ -116,7 +185,38 @@ def main():
         help="The path to the MLflow experiment directory (e.g., './mlruns/0')."
     )
     args = parser.parse_args()
-    display_run_hierarchy(args.path)
+    exps = find_experiment_hierarchy(args.path)
+
+    if len(exps) == 0:
+        print("No experiments found in the specified directory.")
+        return
+
+    elif len(exps) == 1:
+        exp = exps[0]
+        _, parent_to_children, _ = get_run_hierarchy(str(exp.path))
+        print(f"Single Experiment: {exp.name} {exp.path.name} ({len(parent_to_children)})")
+        print()
+        display_run_hierarchy(*get_run_hierarchy(exp.path)) # <<<<
+        return
+    else:
+        print(f"Experiments found in {args.path}:")
+        for i, exp in enumerate(exps):
+            _, parent_to_children, _ = get_run_hierarchy(str(exp.path))
+            print(f"{i+1}. {exp.name} {exp.path.name} ({len(parent_to_children)})")
+        exp_idx = -1
+        while exp_idx < 0 or exp_idx >= len(exps):
+            print()
+            exp_idx = int(input("Enter the number of the experiment to display the hierarchy for: ")) - 1
+            if exp_idx < 0 or exp_idx >= len(exps):
+                print("Invalid experiment number.")
+
+        print()
+        display_run_hierarchy(*get_run_hierarchy(str(exps[exp_idx].path)))
 
 if __name__ == "__main__":
-    main()
+    print()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n^C\n")
+    print()
