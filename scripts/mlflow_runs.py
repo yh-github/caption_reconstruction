@@ -11,6 +11,7 @@ class ExperimentInfo(BaseModel):
     name:str
     path: Path
     subdir_count: int
+    start_time: int
 
 def find_experiment_hierarchy(root_dir: str = ".") -> list[ExperimentInfo]:
     """
@@ -41,7 +42,8 @@ def find_experiment_hierarchy(root_dir: str = ".") -> list[ExperimentInfo]:
                         experiments.append(ExperimentInfo(
                             name=meta_data['name'],
                             path=Path(current_path),
-                            subdir_count=len(subdirs)
+                            subdir_count=len(subdirs),
+                            start_time=meta_data.get('start_time',0) or meta_data.get('creation_time')
                         ))
                         # Don't recurse deeper when we find a meta.yaml
                         return
@@ -62,7 +64,7 @@ def find_experiment_hierarchy(root_dir: str = ".") -> list[ExperimentInfo]:
     find_experiment_dirs(root_path)
 
     # Sort experiments by name
-    experiments.sort(key=lambda x: x.name)
+    experiments.sort(key=lambda x: x.start_time)
     return experiments
 
 
