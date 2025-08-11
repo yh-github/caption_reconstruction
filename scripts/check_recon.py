@@ -1,4 +1,7 @@
 import sys
+
+from pydantic import ValidationError, BaseModel, Field, ConfigDict
+
 from config_loader import load_config
 from data_loaders import get_data_loader
 from exceptions import UserFacingError
@@ -16,11 +19,79 @@ def str_ts(ts:float) -> str:
         return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
     return f"{minutes:02d}:{seconds:02d}"
 
+class LegacyTimestampRange(BaseModel):
+    """Represents a time range with a start and end point."""
+    start: float = Field(..., ge=0, description="Start time of the clip in seconds.")
+    end: float = Field(..., ge=0, description="End time of the clip in seconds.")
+
+
+
+class LegacyCaption(BaseModel):
+    caption: str|None = Field(..., description="The caption text.")
+
+class LegacyCaptionedClip(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    timestamp: LegacyTimestampRange
+    data: LegacyCaption|str
+
+class LegacyReconstructed(BaseModel):
+    video_id: str
+    reconstructed_clips: dict[int, LegacyCaptionedClip]
+    debug_data: dict|None = None
+    skip_reason: str|None = None
+    metrics: dict|None = None
+
+    def modernize(self) -> Reconstructed:
+        def parse_v(v):
+            return v.data.caption
+        return Reconstructed(
+            video_id=self.video_id,
+            reconstructed_captions={k:parse_v(v) for k,v in self.reconstructed_clips.items()},
+            debug_data=self.debug_data,
+            skip_reason=self.skip_reason,
+            metrics=self.metrics
+        )
+
+    def align(self, orig_clips: list[LegacyCaptionedClip]) -> tuple[list[str], list[str]]:
+        """
+        Helper method to extract reference and candidate sentences.
+        """
+        references = []
+        candidates = []
+
+        for i, c in self.reconstructed_clips.items():
+            candidates.append(c.data.caption)
+            references.append(orig_clips[i].data.caption)
+
+        return candidates, references
+
+    def skip(self, reason: str):
+        self.skip_reason = reason
+        return self
+
+    def with_metrics(self, metrics: dict):
+        self.metrics = metrics
+        return self
+
+    def json_str(self):
+        return self.model_dump_json(exclude_none=True)
+
+
+def parse_line(line):
+    if line.startswith('{'):
+        try:
+            r=Reconstructed.model_validate_json(line)
+        except ValidationError as e:
+            r = LegacyReconstructed.model_validate_json(line).modernize()
+    else:
+        r=Reconstructed(reconstructed_captions={}, video_id=line.strip(), debug_data={'parsing_error': True})
+    return r
+
 def ls_recon(path):
     with open(path, 'r') as f:
         i = 1
         for line in f:
-            r = Reconstructed.model_validate_json(line)
+            r = parse_line(line)
             has_debug = " [D]" if r.debug_data else ""
 
             print(f"{i}.{has_debug} {r.video_id} {r.metrics or 'FAIL'} {list(r.reconstructed_captions.keys())}")
@@ -32,7 +103,7 @@ def load_recon(path, index=None, video_id=None):
     with open(path, 'r') as f:
         i = 1
         for line in f:
-            r = Reconstructed.model_validate_json(line)
+            r = parse_line(line)
             if i==index or r.video_id==video_id:
                 return r, i
             i += 1
@@ -56,8 +127,8 @@ def build_evaluators(sentences:list[str]):
 def pretty_compare(original_video, reconstructed_data, tab=True):
     j = 0
     for i, original_clip in enumerate(original_video.clips):
-        original_desc = original_clip.data.caption
-        ts = f"[{str_ts(original_clip.timestamp.start)} - {str_ts(original_clip.timestamp.end)}]"
+        original_desc = original_clip.caption
+        ts = f"[{str_ts(original_clip.timestamp.start)} - {str_ts(original_clip.timestamp.start+original_clip.timestamp.duration)}]"
 
         # Check if this clip was reconstructed
         if not i in reconstructed_data.reconstructed_captions:
@@ -67,8 +138,8 @@ def pretty_compare(original_video, reconstructed_data, tab=True):
                 print(f'{i+1}.\t{original_desc}\t{ts}')
             continue
 
-        recon_clip = reconstructed_data.reconstructed_captions[i]
-        recon_desc = recon_clip.data.caption
+        recon_desc = reconstructed_data.reconstructed_captions[i]
+        # recon_desc = recon_clip.caption
 
         # Format the metrics for this specific clip
         f1 = reconstructed_data.metrics.get('bs_f1')[j]
