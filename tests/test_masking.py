@@ -49,10 +49,8 @@ def test_partition_masking_scenarios(captions_of_length, num_clips, num_partitio
 
     # Optional: A sanity check that the correct clips were indeed masked
     for clip in masked_clips:
-        if clip.index in expected_indices:
-            assert clip.caption is None
-        else:
-            assert clip.caption
+        assert clip.index in expected_indices and clip.is_masked() or \
+            clip.index not in expected_indices and not clip.is_masked()
 
 
 def test_partition_masking_on_5_clips(captions_of_length):

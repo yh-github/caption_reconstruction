@@ -17,8 +17,7 @@ class MaskingStrategy(ABC):
         masked_captions = []
         for clip in clips:
             if clip.index in indices_to_mask:
-                masked_clip = clip.model_copy(update={"caption": None})
-                masked_captions.append(masked_clip)
+                masked_captions.append(clip.masked_copy())
             else:
                 masked_captions.append(clip)
         return masked_captions

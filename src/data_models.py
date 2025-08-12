@@ -1,3 +1,5 @@
+from typing import Self
+
 from pydantic import BaseModel, Field, field_validator, ConfigDict, RootModel
 
 
@@ -20,6 +22,12 @@ class CaptionedClip(BaseModel):
     index: int
     timestamp: TimestampRange
     caption: str|None
+
+    def is_masked(self) -> bool:
+        return self.caption is None
+
+    def masked_copy(self) -> Self:
+        return CaptionedClip(index=self.index, timestamp=self.timestamp, caption=None)
 
 class CaptionedVideo(BaseModel):
     """

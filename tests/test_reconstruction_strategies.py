@@ -1,8 +1,8 @@
-import pytest
 from unittest.mock import patch, MagicMock
 
+import pytest
+from data_models import CaptionedVideo, CaptionedClip, TimestampRange
 from reconstruction_strategies import BaselineRepeatStrategy, LLMStrategy, ReconstructionStrategyBuilder
-from data_models import CaptionedVideo, CaptionedClip,  TimestampRange
 
 
 # --- Tests for BaselineRepeatStrategy ---
@@ -54,40 +54,6 @@ def test_baseline_strategy_handles_initial_mask():
     # Assert
     assert r.reconstructed_captions[0] == "second"
 
-
-# --- Test for LLMStrategy ---
-
-@patch('reconstruction_strategies.parse_llm_response')
-def test_llm_strategy_reconstruction_flow(mock_parse):
-    """
-    Tests the orchestration logic of the LLMStrategy's reconstruct method.
-    """
-    # Arrange
-    # Mock the dependencies that are passed into the constructor
-    mock_llm_manager = MagicMock()
-    mock_prompt_builder = MagicMock()
-    
-    # Configure the mocks to return specific values
-    mock_prompt_builder.build_prompt.return_value = "This is a test prompt."
-    mock_llm_manager.call.return_value = "This is a raw response from the LLM."
-    
-    strategy = LLMStrategy(
-        name="test_llm",
-        llm_model=mock_llm_manager,
-        prompt_builder=mock_prompt_builder
-    )
-    masked_video = CaptionedVideo(video_id="test", clips=[])
-
-    # Act
-    strategy.reconstruct(masked_video)
-
-    # Assert
-    # Verify that the internal methods were called in the correct order
-    mock_prompt_builder.build_prompt.assert_called_once_with(masked_video)
-    mock_llm_manager.call.assert_called_once_with("This is a test prompt.")
-    mock_parse.assert_called_once_with("This is a raw response from the LLM.")
-
-
 # --- Tests for ReconstructionStrategyBuilder ---
 
 @patch('reconstruction_strategies.build_llm_manager')
@@ -110,6 +76,51 @@ def test_builder_creates_llm_strategy(mock_prompt_builder, mock_build_llm):
     mock_build_llm.assert_called_once() # Verify the LLM manager was created
 
 
+def test_get_llm_response():
+    """
+    Tests the helper method '_get_llm_response' of LLMStrategy with a dummy prompt.
+    """
+    # Arrange
+    mock_llm_model = MagicMock()
+    mock_prompt_builder = MagicMock()
+    mock_prompt_builder.build_prompt.return_value = "Test prompt"
+    mock_llm_model.call.return_value.text = "LLM response text"
+    strategy = LLMStrategy(name="test_llm", llm_model=mock_llm_model, prompt_builder=mock_prompt_builder)
+    masked_video = MagicMock()
+
+    # Act
+    llm_response = strategy._get_llm_response(masked_video)
+
+    # Assert
+    mock_prompt_builder.build_prompt.assert_called_once_with(masked_video)
+    mock_llm_model.call.assert_called_once_with("Test prompt")
+    assert llm_response == "LLM response text"
+
+
+def test_parse_and_validate_response():
+    """
+    Tests the '_parse_and_validate_response' helper method with a valid LLM response.
+    """
+    # Arrange
+    mock_llm_response = '{"0": "first caption", "1": "second caption"}'
+    strategy = LLMStrategy(name="test_llm", llm_model=None, prompt_builder=None)
+
+    # Mock the parser
+    with patch('reconstruction_strategies.parse_llm_response') as mock_parse:
+        mock_parse.return_value.to_dict.return_value = (
+            {0: "first caption", 1: "second caption"},
+            {}
+        )
+
+        # Act
+        parsed_response, dups = strategy._parse_and_validate_response(mock_llm_response)
+
+        # Assert
+        mock_parse.assert_called_once_with(mock_llm_response)
+        assert parsed_response == {0: "first caption", 1: "second caption"}
+        assert dups == {}
+
+
 def test_builder_creates_baseline_strategy():
     """
     Tests that the builder correctly creates a BaselineRepeatStrategy.
@@ -123,6 +134,7 @@ def test_builder_creates_baseline_strategy():
 
     # Assert
     assert isinstance(strategy, BaselineRepeatStrategy)
+
 
 def test_builder_raises_error_for_unknown_type():
     """
