@@ -33,6 +33,11 @@ class LLM_Response(BaseModel):
     @staticmethod
     def from_raw(raw_response: GenerateContentResponse):
         if raw_response is None:
+            logger.error("LLM response is None")
+            return LLM_Response(text=None)
+
+        if not raw_response.candidates:
+            logger.error("LLM response has no candidates")
             return LLM_Response(text=None)
 
         text = None
