@@ -81,3 +81,13 @@ class ReconstructedCaptions(RootModel[list[ReconstructedCaption]]):
             else:
                 d[rc.index] = rc.caption
         return d, dups
+
+
+class VideoLinkData(BaseModel):
+    uri:str
+    start_offset:float
+    end_offset:float
+
+    @field_validator('start_offset', 'end_offset')
+    def round_timestamp(cls, value):
+        return round(value, 3)

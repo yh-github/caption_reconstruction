@@ -1,9 +1,10 @@
 import logging
+
 from tenacity import retry, wait_random_exponential, stop_after_attempt, retry_if_exception_type
 
 import google.api_core.exceptions
 from google import genai
-from google.genai.types import GenerateContentConfig, ThinkingConfig, GenerateContentResponse
+from google.genai.types import GenerateContentConfig, ThinkingConfig, GenerateContentResponse, Content, ContentListUnion
 
 import diskcache
 import hashlib
@@ -67,7 +68,7 @@ class LLM_Response(BaseModel):
 
 class LLM_Manager:
 
-    def __init__(self, model_name, seed, temperature, system_instruction, thought_budget:int, llm_cache):
+    def __init__(self, model_name, seed, temperature, system_instruction, thought_budget:int, llm_cache, response_schema=None):
         self.model_name = model_name
         self.temperature = temperature
         self.system_instruction = system_instruction
@@ -85,7 +86,7 @@ class LLM_Manager:
             temperature=self.temperature,
             # max_output_tokens=400, # top_k=2,# top_p=0.5,
             response_mime_type='application/json',
-            # response_schema=
+            response_schema=response_schema,
             seed=self.seed,
             thinking_config=thinking_config
         )
@@ -113,14 +114,14 @@ class LLM_Manager:
             google.api_core.exceptions.ServerError  # For all 5xx server issues
         ))
     )
-    def _invoke_llm(self, prompt:str) -> GenerateContentResponse:
+    def _invoke_llm(self, prompt:ContentListUnion) -> GenerateContentResponse:
         return self.llm.models.generate_content(
             model=self.model_name,
             contents=prompt,
             config=self.llm_config
         )
 
-    def _call_retry(self, prompt:str) -> LLM_Response:
+    def _call_retry(self, prompt:ContentListUnion) -> LLM_Response:
         self.last_raw_response = None
         try:
             self.last_raw_response = self._invoke_llm(prompt)
@@ -129,12 +130,15 @@ class LLM_Manager:
             raise
         return LLM_Response.from_raw(self.last_raw_response)
 
-    def call(self, prompt:str) -> LLM_Response:
-        k = self.cache_key(prompt)
+    def call(self, prompt:str|Content) -> LLM_Response:
+        if isinstance(prompt, str):
+            k = self.cache_key(prompt)
+        elif isinstance(prompt, Content):
+            k = self.cache_key(prompt.model_dump_json(exclude_none=True, fallback=str))
+        assert k
         if k in self.disk_cache:
             logger.debug(f'Cache hit: {k=}')
             return LLM_Response.from_str(self.disk_cache[k])
-
         res = self._call_retry(prompt)
         if res.text:
             self.disk_cache[k] = res.model_dump_json(exclude_none=True)
@@ -143,4 +147,5 @@ class LLM_Manager:
             logger.warning(f"No thoughts in LLM response: {res.text=}")
 
         return res
+
 
