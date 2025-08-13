@@ -1,7 +1,7 @@
 from pathlib import Path
 import json
 from pydantic import BaseModel, RootModel
-from data_models import VideoLinkData
+from data_models.captions_only import VideoLinkData
 
 
 class TimeInFrames(BaseModel):

@@ -1,6 +1,6 @@
 import pytest
 from data_loaders import ToyDataLoader, VatexLoader, VideoStorytellingLoader, get_data_loader
-from data_models import CaptionedVideo
+from data_models.captions_only import CaptionedVideo
 
 def test_toy_data_loader_from_file():
     """

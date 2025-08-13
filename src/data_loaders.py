@@ -2,7 +2,7 @@ import os
 import json
 import logging
 from abc import ABC, abstractmethod
-from data_models import CaptionedClip, CaptionedVideo, TimestampRange
+from data_models.captions_only import CaptionedClip, CaptionedVideo, TimestampRange
 
 
 def _parse_storytelling_timestamp(ts_str: str) -> float:

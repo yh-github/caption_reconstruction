@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 # Import the class and functions we are testing
 from evaluation import ReconstructionEvaluator, round_metrics, metrics_to_json
 
-from data_models import (
+from data_models.captions_only import (
     CaptionedVideo,
     CaptionedClip,
     TimestampRange

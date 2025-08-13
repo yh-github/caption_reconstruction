@@ -1,5 +1,5 @@
 import pytest
-from data_models import CaptionedClip, ReconstructedCaptions
+from data_models.captions_only import CaptionedClip, ReconstructedCaptions
 from reconstruction_strategies import Reconstructed
 
 # --- Test Data Fixture ---
@@ -109,7 +109,7 @@ import pytest
 from pydantic import ValidationError
 
 # Assuming your models are in a file named 'data_models.py'
-from data_models import CaptionedVideo, CaptionedClip, TimestampRange
+from data_models.captions_only import CaptionedVideo, CaptionedClip, TimestampRange
 
 # --- Test Cases ---
 

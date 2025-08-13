@@ -7,7 +7,7 @@ import logging
 
 from config_loader import load_config
 from data_loaders import get_data_loader
-from data_models import CaptionedVideo
+from data_models.captions_only import CaptionedVideo
 
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity

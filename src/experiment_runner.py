@@ -5,7 +5,7 @@ from data_loaders import BaseDataLoader
 from masking import MaskingStrategy
 from reconstruction_strategies import ReconstructionStrategy, Reconstructed
 from evaluation import ReconstructionEvaluator, metrics_to_json, round_metrics
-from data_models import CaptionedVideo
+from data_models.captions_only import CaptionedVideo
 
 
 class ExperimentRunner:

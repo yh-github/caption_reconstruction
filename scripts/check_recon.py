@@ -7,7 +7,7 @@ from data_loaders import get_data_loader
 from exceptions import UserFacingError
 from reconstruction_strategies import Reconstructed
 from evaluation import ReconstructionEvaluator
-from data_models import CaptionedVideo
+from data_models.data_models import CaptionedVideo
 from evaluation import round_metrics
 
 

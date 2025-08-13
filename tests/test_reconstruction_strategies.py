@@ -1,7 +1,7 @@
 from unittest.mock import patch, MagicMock
 
 import pytest
-from data_models import CaptionedVideo, CaptionedClip, TimestampRange
+from data_models.captions_only import CaptionedVideo, CaptionedClip, TimestampRange
 from reconstruction_strategies import BaselineRepeatStrategy, LLMStrategy, ReconstructionStrategyBuilder
 
 

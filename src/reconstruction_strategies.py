@@ -3,8 +3,8 @@ from abc import ABC, abstractmethod
 
 from pydantic import BaseModel
 
-from data_models import CaptionedClip
-from data_models import CaptionedVideo
+from data_models.captions_only import CaptionedClip
+from data_models.captions_only import CaptionedVideo
 from exceptions import UserFacingError
 from llm_interaction import build_llm_manager
 from parsers import parse_llm_response

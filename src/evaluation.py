@@ -1,6 +1,6 @@
 import logging
 from bert_score import BERTScorer
-from data_models import CaptionedVideo
+from data_models.captions_only import CaptionedVideo
 import json
 from reconstruction_strategies import Reconstructed
 

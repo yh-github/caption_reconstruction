@@ -1,7 +1,7 @@
 import random
 from abc import ABC, abstractmethod
-from data_models import CaptionedClip
-from data_models import CaptionedVideo
+from data_models.captions_only import CaptionedClip
+from data_models.captions_only import CaptionedVideo
 
 
 class MaskingStrategy(ABC):

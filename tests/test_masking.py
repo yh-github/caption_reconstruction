@@ -1,6 +1,6 @@
 import pytest
 from masking import PartitionMasking, get_masking_strategies
-from data_models import CaptionedClip,  TimestampRange
+from data_models.captions_only import CaptionedClip,  TimestampRange
 
 # --- The Fixture (no changes needed) ---
 @pytest.fixture

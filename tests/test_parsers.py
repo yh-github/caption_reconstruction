@@ -1,4 +1,4 @@
-from data_models import ReconstructedCaptions, ReconstructedCaption
+from data_models.captions_only import ReconstructedCaptions, ReconstructedCaption
 from parsers import parse_llm_response
 
 def test_parse_llm_response_success():

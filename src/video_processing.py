@@ -5,7 +5,7 @@ from pathlib import Path
 import diskcache
 from google.genai import types
 
-from data_models import VideoLinkData
+from data_models.captions_only import VideoLinkData
 from llm_interaction import LLM_Manager
 from video_link_loader import load_wild_dataset
 
