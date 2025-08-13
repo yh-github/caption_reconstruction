@@ -1,5 +1,4 @@
-from pydantic import BaseModel, Field, validator
-import re
+from pydantic import BaseModel, Field
 
 
 class KeyMoment(BaseModel):
@@ -36,44 +35,3 @@ class VideoAnalysis(BaseModel):
         milliseconds = int(seconds_parts[1])
 
         return hours * 3600 + minutes * 60 + seconds + milliseconds / 1000
-
-
-# Example usage and testing
-if __name__ == "__main__":
-    # Example valid data
-    sample_data = {
-        "segments": [
-            {
-                "start": "00:15:58.000",
-                "end": "00:16:05.000",
-                "entities": ["person", "dog"],
-                "objects": ["ball", "fence", "trees"],
-                "stuff": ["grass", "dirt"],
-                "primary_activity": "person playing fetch with dog",
-                "segment_summary": "person and dog playing fetch in a park setting",
-                "key_moments": [
-                    {
-                        "start": "00:15:58.000",
-                        "end": "00:15:59.500",
-                        "caption": "person winds up and throws red ball across field"
-                    },
-                    {
-                        "start": "00:16:02.000",
-                        "end": "00:16:03.500",
-                        "caption": "dog leaps and catches ball mid-air"
-                    }
-                ]
-            }
-        ]
-    }
-
-    try:
-        analysis = VideoAnalysis(**sample_data)
-        print("✓ Validation successful!")
-        print(f"Analysis contains {len(analysis.segments)} segment(s)")
-        for i, segment in enumerate(analysis.segments):
-            print(f"  Segment {i + 1}: {segment.start} - {segment.end}")
-            print(f"    Activity: {segment.primary_activity}")
-            print(f"    Key moments: {len(segment.key_moments)}")
-    except Exception as e:
-        print(f"✗ Validation failed: {e}")
