@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, RootModel
 
 
 class KeyMoment(BaseModel):
@@ -8,7 +8,7 @@ class KeyMoment(BaseModel):
     caption: str = Field(..., description="Concise description of the key moment")
 
 
-class Segment(BaseModel):
+class VideoSegment(BaseModel):
     """Represents a distinct video segment with detailed analysis."""
     start: str = Field(..., description="Segment start timestamp in HH:MM:SS.mmm format")
     end: str = Field(..., description="Segment end timestamp in HH:MM:SS.mmm format")
@@ -21,8 +21,8 @@ class Segment(BaseModel):
 
 
 class VideoAnalysis(BaseModel):
-    """Complete video analysis with segment breakdown."""
-    segments: list[Segment] = Field(..., description="List of video segments with detailed analysis")
+    video_id: str = Field(..., description="Unique identifier for the video")
+    segments: list[VideoSegment]
 
     @staticmethod
     def _timestamp_to_seconds(timestamp: str) -> float:

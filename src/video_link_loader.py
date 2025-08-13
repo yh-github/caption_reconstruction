@@ -1,8 +1,75 @@
 from pathlib import Path
 import json
-from pydantic import BaseModel, RootModel
+from typing import Literal, Self
+
+from pydantic import BaseModel, RootModel, Field, model_validator
+
 from data_models.captions_only import VideoLinkData
 
+
+def time_str_to_seconds(t: str) -> float:
+    """
+    Convert time string to seconds.
+
+    Supports formats like:
+    - "00:15:31.297" (HH:MM:SS.mmm)
+    - "15:31.297" (MM:SS.mmm)
+    - "3:42" (MM:SS)
+    - "42" (SS)
+    - "42.5" (SS.mmm)
+
+    Args:
+        t: Time string in various formats
+
+    Returns:
+        float: Time in seconds
+
+    Raises:
+        ValueError: If the time string format is not recognized
+    """
+    if not t or not isinstance(t, str):
+        raise ValueError(f"Invalid time string: {t}")
+
+    # Remove any whitespace
+    t = t.strip()
+
+    # Handle empty string
+    if not t:
+        raise ValueError("Empty time string")
+
+    # Split by colon to determine format
+    parts = t.split(':')
+
+    try:
+        if len(parts) == 1:
+            # Format: "42" or "42.5" (seconds only)
+            return float(parts[0])
+
+        elif len(parts) == 2:
+            # Format: "3:42" or "3:42.5" (MM:SS or MM:SS.mmm)
+            minutes = int(parts[0])
+            seconds = float(parts[1])
+            return minutes * 60 + seconds
+
+        elif len(parts) == 3:
+            # Format: "00:15:31.297" (HH:MM:SS.mmm)
+            hours = int(parts[0])
+            minutes = int(parts[1])
+            seconds = float(parts[2])
+            return hours * 3600 + minutes * 60 + seconds
+
+        else:
+            raise ValueError(f"Too many colon-separated parts: {len(parts)}")
+
+    except ValueError as e:
+        if "could not convert" in str(e).lower() or "invalid literal" in str(e).lower():
+            raise ValueError(f"Invalid time format: '{t}' - contains non-numeric parts")
+        raise ValueError(f"Invalid time format: '{t}' - {str(e)}")
+
+
+class TimeInFloats(BaseModel):
+    start: float
+    end: float
 
 class TimeInFrames(BaseModel):
     """Example:
@@ -14,6 +81,11 @@ class TimeInFrames(BaseModel):
     start: str
     end: str
 
+    def to_floats(self) -> TimeInFloats:
+        return TimeInFloats(
+            start=time_str_to_seconds(self.start),
+            end=time_str_to_seconds(self.end)
+        )
 
 
 class TimeInSeconds(BaseModel):
@@ -26,10 +98,43 @@ class TimeInSeconds(BaseModel):
     start: str
     end: str
 
+    def to_floats(self) -> TimeInFloats:
+        return TimeInFloats(
+            start=float(self.start),
+            end=float(self.end)
+        )
+
 
 class TimeInOriginalVideo(BaseModel):
-    frames: TimeInFrames
-    seconds: TimeInSeconds
+    split_method: str = Field(alias="split-method")
+    frames: TimeInFrames | None = None
+    seconds: TimeInSeconds | None = None
+
+    @model_validator(mode='after')
+    def validate_and_transform(self) -> Self:
+        if self.seconds is not None:
+            if ':' in self.seconds.start or ':' in self.seconds.end:
+                print('__post_init__ BEFORE >>>>', self.model_dump())
+                assert ':' in self.seconds.start and ':' in self.seconds.end
+                assert self.frames is None
+                assert self.split_method == 'manual'
+                self.frames = TimeInFrames(
+                    start=self.seconds.start,
+                    end=self.seconds.end
+                )
+                self.seconds = None
+                print('__post_init__ AFTER >>>>', self.model_dump())
+        return self
+
+
+    def to_floats(self) -> TimeInFloats:
+        if self.seconds is not None:
+            return self.seconds.to_floats()
+        else:
+            return self.frames.to_floats()
+
+    
+
 
 
 class Evidence(RootModel[dict[str, list[float]]]):
@@ -58,15 +163,22 @@ class WildVideoMetadata(BaseModel):
     url_for_original_video: str
 
     def to_link(self) -> VideoLinkData:
-        def uri(u):
-            return u.replace('//watch', '/watch')
+        try:
+            def uri(u):
+                return u.replace('//watch', '/watch')
 
-        t = self.time_in_original_video.seconds
-        return VideoLinkData(
-            uri=uri(self.url_for_original_video),
-            start_offset=float(t.start),
-            end_offset=float(t.end)
-        )
+            if not self.time_in_original_video:
+                raise Exception(f"Missing time_in_original_video in {self.video_id}")
+            t = self.time_in_original_video.to_floats()
+            return VideoLinkData(
+                video_id=self.video_id,
+                uri=uri(self.url_for_original_video),
+                start_offset=t.start,
+                end_offset=t.end
+            )
+        except Exception as e:
+            print(f"Error with video {self.video_id=}", e)
+            raise
 
 
 
@@ -75,4 +187,7 @@ def load_wild_dataset(path:Path, limit:int=None):
         j=json.load(f)
     limit=limit or len(j)
     for v in j[:limit]:
-        yield WildVideoMetadata.model_validate(v)
+        try:
+            yield WildVideoMetadata.model_validate(v)
+        except Exception as e:
+            raise Exception('Error with video', v['video_id'], e) from e

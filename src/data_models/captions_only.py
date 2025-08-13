@@ -84,6 +84,8 @@ class ReconstructedCaptions(RootModel[list[ReconstructedCaption]]):
 
 
 class VideoLinkData(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    video_id:str
     uri:str
     start_offset:float
     end_offset:float

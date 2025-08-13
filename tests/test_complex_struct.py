@@ -4,6 +4,7 @@ from data_models.complex_struct import VideoAnalysis
 def test_video_analysis():
     # Example valid data
     sample_data = {
+        "video_id": "test_video",
         "segments": [
             {
                 "start": "00:15:58.000",
@@ -29,7 +30,7 @@ def test_video_analysis():
         ]
     }
 
-    analysis = VideoAnalysis(**sample_data)
+    analysis = VideoAnalysis.model_validate(sample_data)
     assert analysis is not None
     assert len(analysis.segments) == 1
 
