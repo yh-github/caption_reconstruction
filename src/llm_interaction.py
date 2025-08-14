@@ -4,7 +4,8 @@ from tenacity import retry, wait_random_exponential, stop_after_attempt, retry_i
 
 import google.api_core.exceptions
 from google import genai
-from google.genai.types import GenerateContentConfig, ThinkingConfig, GenerateContentResponse, Content, ContentListUnion
+from google.genai.types import GenerateContentConfig, ThinkingConfig, GenerateContentResponse, Content, \
+    ContentListUnion, SafetySetting, HarmCategory, HarmBlockThreshold
 
 import diskcache
 import hashlib
@@ -103,8 +104,35 @@ class LLM_Manager:
             "llm_config": self.llm_config.model_dump_json(exclude_none=True, fallback=str)
         }, sort_keys=True).encode())
 
+        self.add_transient_config()
+
         self.last_raw_response = None
         # self.cached_call = self.disk_cache.cache(self._call_retry, ignore=['self'])
+
+    def add_transient_config(self):
+        """
+        These are the settings that do not affect the cache key.
+        Refrain from using this to change parameters that might affect the content of the result.
+        Use only for parameters that are all or nothing, like (not) blocking content.
+        """
+        self.llm_config.safety_settings = [
+            SafetySetting(
+                category=HarmCategory.HARM_CATEGORY_HARASSMENT,
+                threshold=HarmBlockThreshold.BLOCK_NONE,
+            ),
+            SafetySetting(
+                category=HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                threshold=HarmBlockThreshold.BLOCK_NONE,
+            ),
+            SafetySetting(
+                category=HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                threshold=HarmBlockThreshold.BLOCK_NONE,
+            ),
+            SafetySetting(
+                category=HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                threshold=HarmBlockThreshold.BLOCK_NONE,
+            )
+        ]
 
     def cache_key(self, prompt:str):
         sha = self.base_cache_key.copy()
@@ -152,5 +180,3 @@ class LLM_Manager:
             logger.warning(f"No thoughts in LLM response: {res.text=}")
 
         return res
-
-
