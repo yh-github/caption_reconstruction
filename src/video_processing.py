@@ -1,3 +1,5 @@
+import datetime
+import logging
 import json
 import os
 import sys
@@ -5,10 +7,12 @@ from pathlib import Path
 
 import diskcache
 from google.genai import types
+from google.genai.types import GenerateContentResponse
 
 from data_models.captions_only import VideoLinkData
 from data_models.complex_struct import VideoSegment, VideoAnalysis
-from llm_interaction import LLM_Manager
+from llm_interaction import LLM_Manager, LLM_Response
+from utils import setup_logging, get_datetime_str
 from video_link_loader import load_wild_dataset
 
 llm_config = {
@@ -197,25 +201,43 @@ def gen_content_prompt(vl:VideoLinkData, prompt:str) -> types.Content:
         ]
     )
 
-def link_dict():
-    d = {}
-    for v in vs:
-        k = v.video_id
-        if k not in d:
-            d[k] = []
-        d[k].append(v.to_link())
-    print(f'{len(vs) = }   {len(d) = }')
-    for k,xs in d.items():
-        print(f'{k}:')
-        for x in xs:
-            print(f'    {x}')
+def load_wild_links(path:str|Path) -> list[VideoLinkData]:
+    try:
+        path = Path(path)
+        vs = list(load_wild_dataset(path))
+        _links = {v.to_link() for v in vs}
+        _v_ids = {v.video_id for v in vs}
+        assert len(_v_ids) == len(_links)
+        return list(links)
+    except Exception as e:
+        print(f'Usage: {sys.argv[0]} <data.json>')
+        print('Error:', e)
+        sys.exit(-1)
+
+
+def save_to_file(path, video_id, text):
+    segments = json.loads(text)
+    va = VideoAnalysis(video_id=video_id, segments=segments)
+    with open(path, 'w') as f:
+        f.write(va.model_dump_json())
+
+
+def save_error(path, video_id:str, llm_response:LLM_Response, last_raw_response:GenerateContentResponse|None, exception:Exception):
+    with open(path, 'w') as f:
+        return f.write(json.dumps(
+            {
+                "video_id": video_id,
+                "llm_response": llm_response.model_dump(),
+                "last_raw_response": None if not last_raw_response else last_raw_response.model_dump(),
+                "exception": str(exception)
+            }
+        ))
+
 
 if __name__ == "__main__":
-    path = Path("/home/yoavh/code/research/caption_reconstruction/datasets/wildQA/dev_Agriculture.json") # Path(sys.argv[1])
-    vs=list(load_wild_dataset(path))
-    links = {v.to_link() for v in vs}
-    v_ids = {v.video_id for v in vs}
-    assert len(v_ids) == len(links)
+    run_id = Path(__file__).stem +"__"+ get_datetime_str()
+    setup_logging(run_id=run_id, log_dir='logs',base_level=logging.INFO, console_level=logging.WARNING)
+    links = load_wild_links(sys.argv[1])
     print(f'{len(links) = }')
 
     with diskcache.Cache('./disk_cache/llm_video_cache') as llm_cache:
@@ -231,32 +253,26 @@ if __name__ == "__main__":
         )
 
         for x in links:
-            print(x)
             OUT_FILE = f'datasets/wildQA/captions/{x.video_id}.json'
-
             if os.path.exists(OUT_FILE) and os.path.getsize(OUT_FILE) > 0:
-                print(f"Skipping {x.video_id} - output file already exists")
+                logging.info(f"Skipping {x.video_id} - output file already exists")
+                continue
+            else:
+                logging.info(f'processing {x}, writing to {OUT_FILE}')
+
+            llm_input=gen_content_prompt(x, prompt2)
+            logging.info(f'{llm_input=}')
+            res=llm.call(llm_input)
+
+            if not res or not res.text:
+                logging.error(f"No response for {x.video_id}")
                 continue
 
-            p=gen_content_prompt(x, prompt2)
-            print()
-            print(p)
-            print()
-            res=llm.call(p)
-            print('===> response <===')
-            print(res)
-            print()
-            print('===> thoughts parsed <===')
-            print(res.thoughts.encode().decode('utf-8'))
-            print()
-            print('===> response parsed as json <===')
-            segments = json.loads(res.text)
-            for i,s in enumerate(segments):
-                print(f'{i+1}. {s}')
-            print()
-            va = VideoAnalysis(video_id=x.video_id, segments=segments)
-            with open(OUT_FILE, 'w') as f:
-                f.write(va.model_dump_json())
-
+            try:
+                save_to_file(OUT_FILE, x.video_id, res.text)
+            except Exception as e:
+                ERR_FILE = f"{OUT_FILE}.error.{get_datetime_str()}"
+                logging.error(f"Error saving {x.video_id} to file, {e=}, saving to {ERR_FILE=}")
+                save_error(ERR_FILE, x.video_id, res, llm.last_raw_response, e)
 
 
