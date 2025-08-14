@@ -31,6 +31,9 @@ class LLM_Response(BaseModel):
     text:str|None
     thoughts:str|None = None
 
+    def should_cache(self):
+        return self.text is not None
+
     @staticmethod
     def from_raw(raw_response: GenerateContentResponse):
         if raw_response is None:
@@ -71,6 +74,18 @@ class LLM_Response(BaseModel):
         else:
             return LLM_Response(text=s)
 
+class LLM_ResponseBlocked(LLM_Response):
+    text: None = None
+    raw_response: GenerateContentResponse | None
+
+    def should_cache(self):
+        return self.raw_response is not None
+
+
+def is_perm_error(last_raw_response: GenerateContentResponse | None):
+    if not last_raw_response:
+        return False
+    return last_raw_response.prompt_feedback.block_reason is not None
 
 class LLM_Manager:
 
@@ -106,7 +121,7 @@ class LLM_Manager:
 
         self.add_transient_config()
 
-        self.last_raw_response = None
+        self.last_raw_response: GenerateContentResponse | None = None
         # self.cached_call = self.disk_cache.cache(self._call_retry, ignore=['self'])
 
     def add_transient_config(self):
@@ -173,10 +188,12 @@ class LLM_Manager:
             logger.debug(f'Cache hit: {k=}')
             return LLM_Response.from_str(self.disk_cache[k])
         res = self._call_retry(prompt)
-        if res.text:
+        if not res.text and is_perm_error(self.last_raw_response):
+            res = LLM_ResponseBlocked(raw_response=self.last_raw_response)
+        if res.should_cache():
             self.disk_cache[k] = res.model_dump_json(exclude_none=True)
 
-        if self.llm_config.thinking_config and not res.thoughts:
+        if self.llm_config.thinking_config and not res.thoughts and res.text:
             logger.warning(f"No thoughts in LLM response: {res.text=}")
 
         return res
