@@ -1,12 +1,13 @@
 import logging
 from abc import ABC, abstractmethod
 
+from google import genai
 from pydantic import BaseModel
 
 from data_models.captions_only import CaptionedClip
 from data_models.captions_only import CaptionedVideo
 from exceptions import UserFacingError
-from llm_interaction import build_llm_manager
+from llm_interaction import LLM_Manager_Builder
 from parsers import parse_llm_response
 from prompting import PromptBuilder, JSONPromptBuilder
 
@@ -142,7 +143,8 @@ class LLMStrategy(ReconstructionStrategy):
         logging.debug(f"video_id={masked_video.video_id} {prompt=}")
         return self.llm_model.call(prompt).text
 
-    def _parse_and_validate_response(self, llm_response_text: str) -> tuple[dict[int, str], dict[int, int]]:
+    @staticmethod
+    def _parse_and_validate_response(llm_response_text: str) -> tuple[dict[int, str], dict[int, int]]:
         """Parse LLM response and convert to dictionary format."""
         reconstructed_video = parse_llm_response(llm_response_text)
         if not reconstructed_video:
@@ -169,7 +171,8 @@ class LLMStrategy(ReconstructionStrategy):
             debug_data=debug_data
         )
 
-    def _categorize_clips(self, masked_video: CaptionedVideo, recon_caps: dict[int, str]) -> tuple[
+    @staticmethod
+    def _categorize_clips(masked_video: CaptionedVideo, recon_caps: dict[int, str]) -> tuple[
         list[int], list[int], list[int], dict[int, str]]:
         """Categorize clips into successful, failed, and changed categories."""
         ok = []
@@ -210,8 +213,8 @@ class ReconstructionStrategyBuilder:
     A builder class responsible for creating reconstruction strategy objects.
     """
     def __init__(self, llm_cache, master_seed):
-        self.llm_cache = llm_cache
         self.master_seed = master_seed
+        self.llm_manager_builder = LLM_Manager_Builder(genai.Client(), llm_cache)
 
     def get_strategy(self, strategy_config: dict) -> ReconstructionStrategy:
         """
@@ -226,9 +229,8 @@ class ReconstructionStrategyBuilder:
             llm_conf['seed'] = llm_conf.get('seed',0)+self.master_seed
             return LLMStrategy(
                 name=strategy_config["name"],
-                llm_model=build_llm_manager(llm_conf, self.llm_cache),
+                llm_model=self.llm_manager_builder.from_config(llm_conf),
                 prompt_builder=JSONPromptBuilder.from_config(llm_conf)
-                #PromptBuilderIndexedData()
             )
 
         elif strategy_type == "baseline_repeat_last":

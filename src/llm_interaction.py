@@ -6,11 +6,11 @@ from google import genai
 from google.genai.types import GenerateContentConfig, ThinkingConfig, GenerateContentResponse, Content, \
     ContentListUnion, SafetySetting, HarmCategory, HarmBlockThreshold
 import diskcache
-import hashlib
 import base64
 import json
 from pydantic import BaseModel
-from data_models.schema import type_from_str
+import hashlib
+from data_models.schema import type_from_str, HashType
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +81,7 @@ class LLM_Manager:
         model_name:str,
         llm_config:GenerateContentConfig,
         llm_cache:diskcache.Cache|dict[str,str],
-        base_cache_key:hashlib._Hash
+        base_cache_key:HashType
     ):
         self.llm_client = llm_client
         self.model_name = model_name
@@ -141,10 +141,11 @@ class LLM_Manager:
 
 class LLM_Manager_Builder:
 
-    def __init__(self, llm_client:genai.Client):
+    def __init__(self, llm_client:genai.Client, llm_cache:diskcache.Cache|dict[str,str]):
         self.llm_client = llm_client
+        self.llm_cache = llm_cache
 
-    def from_config(self, llm_config:dict[str, Any], llm_cache:diskcache.Cache|dict[str,str]) -> LLM_Manager:
+    def from_config(self, llm_config:dict[str, Any]) -> LLM_Manager:
         logger.info(f"Initializing Gemini model {llm_config['model_name']}...")
 
         model_name:str = llm_config['model_name']
@@ -158,14 +159,14 @@ class LLM_Manager_Builder:
             thinking_config=self.build_thinking_config(llm_config.get('thought_budget', 0))
         )
 
-        base_cache_key:hashlib._Hash = hashlib.sha256(json.dumps(obj={
+        base_cache_key:HashType = hashlib.sha256(json.dumps(obj={
             "model_name": model_name,
             "llm_config": llm_config.model_dump_json(exclude_none=True, fallback=str)
         }, sort_keys=True).encode())
 
         self.add_transient_config(llm_config)
 
-        return LLM_Manager(self.llm_client, model_name, llm_config, llm_cache, base_cache_key)
+        return LLM_Manager(self.llm_client, model_name, llm_config, self.llm_cache, base_cache_key)
 
     @staticmethod
     def add_transient_config(llm_config: GenerateContentConfig):

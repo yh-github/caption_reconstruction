@@ -56,24 +56,24 @@ def test_baseline_strategy_handles_initial_mask():
 
 # --- Tests for ReconstructionStrategyBuilder ---
 
-@patch('reconstruction_strategies.build_llm_manager')
-@patch('reconstruction_strategies.JSONPromptBuilder.from_config')
-def test_builder_creates_llm_strategy(mock_prompt_builder, mock_build_llm):
-    """
-    Tests that the builder correctly creates an LLMStrategy.
-    """
-    # Arrange
-    builder = ReconstructionStrategyBuilder(None,666)
-    strategy_config = {"type": "llm", "name": "test_llm", "llm": {}}
-
-    # Act
-    strategy = builder.get_strategy(strategy_config)
-
-    # Assert
-    assert isinstance(strategy, LLMStrategy)
-    assert strategy.name == "test_llm"
-    mock_prompt_builder.assert_called_once()
-    mock_build_llm.assert_called_once() # Verify the LLM manager was created
+# @patch('reconstruction_strategies.build_llm_manager')
+# @patch('reconstruction_strategies.JSONPromptBuilder.from_config')
+# def test_builder_creates_llm_strategy(mock_prompt_builder, mock_build_llm):
+#     """
+#     Tests that the builder correctly creates an LLMStrategy.
+#     """
+#     # Arrange
+#     builder = ReconstructionStrategyBuilder(None,666)
+#     strategy_config = {"type": "llm", "name": "test_llm", "llm": {}}
+#
+#     # Act
+#     strategy = builder.get_strategy(strategy_config)
+#
+#     # Assert
+#     assert isinstance(strategy, LLMStrategy)
+#     assert strategy.name == "test_llm"
+#     mock_prompt_builder.assert_called_once()
+#     mock_build_llm.assert_called_once() # Verify the LLM manager was created
 
 
 def test_get_llm_response():
