@@ -1,0 +1,7 @@
+5. **Objectivity**: Avoid inferring emotions, thoughts, or off-screen events
+
+### Technical Requirements
+1. **Timing**: Segments should typically be 3-30 seconds long
+2. **JSON validity**: Ensure proper formatting and quote escaping
+3. **Completeness**: Cover the entire video duration without gaps
+4. **Key moments**: Include the most visually significant events within each segment

@@ -1,11 +1,14 @@
+import logging
+
 from pathlib import Path
 import json
-from typing import Literal, Self
+from typing import Self
 
 from pydantic import BaseModel, RootModel, Field, model_validator
 
 from data_models.captions_only import VideoLinkData
 
+logger = logging.getLogger(__name__)
 
 def time_str_to_seconds(t: str) -> float:
     """
@@ -114,7 +117,7 @@ class TimeInOriginalVideo(BaseModel):
     def validate_and_transform(self) -> Self:
         if self.seconds is not None:
             if ':' in self.seconds.start or ':' in self.seconds.end:
-                print('__post_init__ BEFORE >>>>', self.model_dump())
+                logger.debug('__post_init__ BEFORE >>>>', self.model_dump())
                 assert ':' in self.seconds.start and ':' in self.seconds.end
                 assert self.frames is None
                 assert self.split_method == 'manual'
@@ -123,7 +126,7 @@ class TimeInOriginalVideo(BaseModel):
                     end=self.seconds.end
                 )
                 self.seconds = None
-                print('__post_init__ AFTER >>>>', self.model_dump())
+                logger.debug('__post_init__ AFTER >>>>', self.model_dump())
         return self
 
 
@@ -177,7 +180,7 @@ class WildVideoMetadata(BaseModel):
                 end_offset=t.end
             )
         except Exception as e:
-            print(f"Error with video {self.video_id=}", e)
+            logger.error(f"Error with video {self.video_id=}", e)
             raise
 
 

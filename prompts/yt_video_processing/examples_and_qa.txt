@@ -1,0 +1,72 @@
+## Additional Examples
+
+### Example 1: Cooking Scene
+```json
+{
+  "start": "00:02:15.000",
+  "end": "00:02:28.000",
+  "entities": ["chef"],
+  "objects": ["knife", "cutting board", "carrots", "bowl"],
+  "stuff": ["water"],
+  "primary_activity": "chef chopping vegetables",
+  "segment_summary": "chef prepares ingredients by dicing carrots on wooden cutting board",
+  "key_moments": [
+    {
+      "start": "00:02:15.000",
+      "end": "00:02:17.000",
+      "caption": "chef positions knife above orange carrots"
+    },
+    {
+      "start": "00:02:18.000",
+      "end": "00:02:25.000",
+      "caption": "chef rapidly dices carrots into small cubes"
+    },
+    {
+      "start": "00:02:26.000",
+      "end": "00:02:28.000",
+      "caption": "chef sweeps diced carrots into white ceramic bowl"
+    }
+  ]
+}
+```
+
+### Example 2: Street Scene
+```json
+{
+  "start": "00:07:42.000",
+  "end": "00:07:55.000",
+  "entities": ["pedestrians", "cyclist"],
+  "objects": ["bicycle", "cars", "traffic light", "crosswalk"],
+  "stuff": ["asphalt", "concrete"],
+  "primary_activity": "urban street activity with mixed traffic",
+  "segment_summary": "busy intersection with pedestrians crossing and cyclist navigating traffic",
+  "key_moments": [
+    {
+      "start": "00:07:42.000",
+      "end": "00:07:44.000",
+      "caption": "traffic light changes from red to green"
+    },
+    {
+      "start": "00:07:45.000",
+      "end": "00:07:49.000",
+      "caption": "group of pedestrians crosses intersection in crosswalk"
+    },
+    {
+      "start": "00:07:50.000",
+      "end": "00:07:55.000",
+      "caption": "cyclist weaves between stopped cars approaching intersection"
+    }
+  ]
+}
+```
+
+## Quality Checklist
+
+Before submitting, verify:
+- [ ] All timestamps follow HH:MM:SS.mmm format
+- [ ] Segments cover entire video without gaps or overlaps
+- [ ] Each field contains appropriate content type
+- [ ] Key moments highlight the most significant visual events
+- [ ] JSON is properly formatted and valid
+- [ ] Descriptions are concise yet descriptive
+- [ ] Only observable visual elements are included

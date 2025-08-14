@@ -1,0 +1,65 @@
+
+# Video Analysis Prompt: Segment-Based Dense Captioning
+
+Analyze this video and provide a high-level breakdown into distinct segments with detailed captioning in JSON format.
+
+## Output Format
+
+```json
+{
+  "segments": [
+    {
+      "start": "00:15:58.000",
+      "end": "00:16:05.000",
+      "entities": ["person", "dog"],
+      "objects": ["ball", "fence", "trees"],
+      "stuff": ["grass", "dirt"],
+      "primary_activity": "playing fetch",
+      "segment_summary": "person and dog playing fetch in a park setting",
+      "key_moments": [
+        {
+          "start": "00:15:58.000",
+          "end": "00:15:59.500",
+          "caption": "person winds up and throws red ball across field"
+        },
+        {
+          "start": "00:16:02.000",
+          "end": "00:16:03.500",
+          "caption": "dog leaps and catches ball mid-air"
+        },
+        {
+          "start": "00:16:04.000",
+          "end": "00:16:05.000",
+          "caption": "dog trots back toward person with ball in mouth"
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Field Definitions
+
+- **start/end**: Timestamps in HH:MM:SS.mmm format marking segment boundaries
+- **entities**: People, animals, or robots (e.g., man, woman, child, dog, cat, robot)
+- **objects**: Solid items like furniture, vehicles, tools, buildings, sports equipment
+- **stuff**: Materials, substances, or textures like water, sand, smoke, fabric, grass
+- **primary_activity**: Main action or activity occurring throughout the segment
+- **segment_summary**: Concise description of the overall segment content
+- **key_moments**: 2-5 notable visual events within the segment, each with precise timing
+
+## Instructions
+
+### Segmentation Rules
+Create new segments when there are significant changes in:
+- Scene or location
+- Main subjects entering or leaving the frame
+- Primary activity or focus of action
+- Major camera perspective or angle shifts
+- Lighting or environmental conditions
+
+### Content Guidelines
+1. **Independence**: Analyze each segment based solely on its visual content
+2. **Capitalization**: Use lowercase except for proper nouns (brand names, specific locations) or acronyms
+3. **Precision**: Be accurate and concise in descriptions
+4. **Visual focus**: Describe only what is directly observable in the video
