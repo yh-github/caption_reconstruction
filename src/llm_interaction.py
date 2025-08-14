@@ -1,31 +1,18 @@
 import logging
-
+from typing import Any
 from tenacity import retry, wait_random_exponential, stop_after_attempt, retry_if_exception_type
-
 import google.api_core.exceptions
 from google import genai
 from google.genai.types import GenerateContentConfig, ThinkingConfig, GenerateContentResponse, Content, \
     ContentListUnion, SafetySetting, HarmCategory, HarmBlockThreshold
-
 import diskcache
 import hashlib
 import base64
 import json
 from pydantic import BaseModel
-
+from data_models.schema import type_from_str
 
 logger = logging.getLogger(__name__)
-
-def build_llm_manager(llm_config, llm_cache):
-    logger.info(f"Initializing Gemini model {llm_config['model_name']}...")
-    return LLM_Manager(
-        model_name=llm_config['model_name'],
-        seed=llm_config['seed'],
-        temperature=llm_config['temperature'],
-        system_instruction=llm_config.get('system_instructions'),
-        thought_budget=llm_config.get('thought_budget', 0),
-        llm_cache=llm_cache
-    )
 
 class LLM_Response(BaseModel):
     text:str|None
@@ -89,65 +76,19 @@ def is_perm_error(last_raw_response: GenerateContentResponse | None):
 
 class LLM_Manager:
 
-    def __init__(self, model_name, seed, temperature, system_instruction, thought_budget:int, llm_cache, response_schema=None):
+    def __init__(self,
+        llm_client:genai.Client,
+        model_name:str,
+        llm_config:GenerateContentConfig,
+        llm_cache:diskcache.Cache|dict[str,str],
+        base_cache_key:hashlib._Hash
+    ):
+        self.llm_client = llm_client
         self.model_name = model_name
-        self.temperature = temperature
-        self.system_instruction = system_instruction
-        self.seed = seed
-
-        self.llm = genai.Client()
-
-        thinking_config = None if thought_budget==0 else ThinkingConfig(
-            thinking_budget=thought_budget,
-            include_thoughts=True
-        )
-
-        self.llm_config = GenerateContentConfig(
-            system_instruction=self.system_instruction,
-            temperature=self.temperature,
-            # max_output_tokens=400, # top_k=2,# top_p=0.5,
-            response_mime_type='application/json',
-            response_schema=response_schema,
-            seed=self.seed,
-            thinking_config=thinking_config
-        )
-
-        self.disk_cache:diskcache.Cache = llm_cache
-        # noinspection PyTypeChecker
-        self.base_cache_key = hashlib.sha256(json.dumps(obj={
-            "model_name": model_name,
-            "llm_config": self.llm_config.model_dump_json(exclude_none=True, fallback=str)
-        }, sort_keys=True).encode())
-
-        self.add_transient_config()
-
+        self.llm_config = llm_config
+        self.disk_cache = llm_cache
+        self.base_cache_key = base_cache_key
         self.last_raw_response: GenerateContentResponse | None = None
-        # self.cached_call = self.disk_cache.cache(self._call_retry, ignore=['self'])
-
-    def add_transient_config(self):
-        """
-        These are the settings that do not affect the cache key.
-        Refrain from using this to change parameters that might affect the content of the result.
-        Use only for parameters that are all or nothing, like (not) blocking content.
-        """
-        self.llm_config.safety_settings = [
-            SafetySetting(
-                category=HarmCategory.HARM_CATEGORY_HARASSMENT,
-                threshold=HarmBlockThreshold.BLOCK_NONE,
-            ),
-            SafetySetting(
-                category=HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-                threshold=HarmBlockThreshold.BLOCK_NONE,
-            ),
-            SafetySetting(
-                category=HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-                threshold=HarmBlockThreshold.BLOCK_NONE,
-            ),
-            SafetySetting(
-                category=HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-                threshold=HarmBlockThreshold.BLOCK_NONE,
-            )
-        ]
 
     def cache_key(self, prompt:str):
         sha = self.base_cache_key.copy()
@@ -163,7 +104,7 @@ class LLM_Manager:
         ))
     )
     def _invoke_llm(self, prompt:ContentListUnion) -> GenerateContentResponse:
-        return self.llm.models.generate_content(
+        return self.llm_client.models.generate_content(
             model=self.model_name,
             contents=prompt,
             config=self.llm_config
@@ -197,3 +138,73 @@ class LLM_Manager:
             logger.warning(f"No thoughts in LLM response: {res.text=}")
 
         return res
+
+class LLM_Manager_Builder:
+
+    def __init__(self, llm_client:genai.Client):
+        self.llm_client = llm_client
+
+    def from_config(self, llm_config:dict[str, Any], llm_cache:diskcache.Cache|dict[str,str]) -> LLM_Manager:
+        logger.info(f"Initializing Gemini model {llm_config['model_name']}...")
+
+        model_name:str = llm_config['model_name']
+        llm_config:GenerateContentConfig = GenerateContentConfig(
+            system_instruction=llm_config.get('system_instructions'),
+            temperature=llm_config['temperature'],
+            # max_output_tokens=400, # top_k=2,# top_p=0.5,
+            response_mime_type='application/json',
+            response_schema=self.config_response_schema(llm_config.get('response_schema')),
+            seed=llm_config['seed'],
+            thinking_config=self.build_thinking_config(llm_config.get('thought_budget', 0))
+        )
+
+        base_cache_key:hashlib._Hash = hashlib.sha256(json.dumps(obj={
+            "model_name": model_name,
+            "llm_config": llm_config.model_dump_json(exclude_none=True, fallback=str)
+        }, sort_keys=True).encode())
+
+        self.add_transient_config(llm_config)
+
+        return LLM_Manager(self.llm_client, model_name, llm_config, llm_cache, base_cache_key)
+
+    @staticmethod
+    def add_transient_config(llm_config: GenerateContentConfig):
+        """
+        These are the settings that do not affect the cache key.
+        Refrain from using this to change parameters that might affect the content of the result.
+        Use only for parameters that are all or nothing, like (not) blocking content.
+        """
+        llm_config.safety_settings = [
+            SafetySetting(
+                category=HarmCategory.HARM_CATEGORY_HARASSMENT,
+                threshold=HarmBlockThreshold.BLOCK_NONE,
+            ),
+            SafetySetting(
+                category=HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                threshold=HarmBlockThreshold.BLOCK_NONE,
+            ),
+            SafetySetting(
+                category=HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                threshold=HarmBlockThreshold.BLOCK_NONE,
+            ),
+            SafetySetting(
+                category=HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                threshold=HarmBlockThreshold.BLOCK_NONE,
+            )
+        ]
+
+    @staticmethod
+    def config_response_schema(schema: str | None):
+        if not schema:
+            return None
+        if schema not in type_from_str:
+            logger.warning(f"Unknown response schema: {schema}")
+            return None
+        return type_from_str[schema]
+
+    @staticmethod
+    def build_thinking_config(thinking_budget:int):
+        return None if thinking_budget==0 else ThinkingConfig(
+            thinking_budget=thinking_budget,
+            include_thoughts=True
+        )

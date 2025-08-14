@@ -12,6 +12,6 @@ llm:
   system_instructions: null
   temperature: 1.0
   thought_budget: -1
-  response_schema: "list"
+  response_schema: "list[VideoSegment]"
   prompt_template: "prompts/yt_video_processing/long.txt"
   fps: 1

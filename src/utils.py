@@ -1,8 +1,6 @@
 import os
 import mlflow
 import git
-from transformers.utils import flatten_dict
-
 from exceptions import UserFacingError
 import logging
 from datetime import datetime
