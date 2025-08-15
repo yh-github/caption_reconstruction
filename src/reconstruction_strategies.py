@@ -1,5 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
+from typing import Any
 
 from google import genai
 from pydantic import BaseModel
@@ -15,7 +16,7 @@ from utils import UserFacingError
 class Reconstructed(BaseModel):
     video_id: str
     reconstructed_captions: dict[int, str]
-    debug_data: dict|None = None
+    debug_data: dict[str, Any]|None = None
     skip_reason: str|None = None
     metrics: dict|None = None
 

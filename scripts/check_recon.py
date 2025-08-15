@@ -84,6 +84,7 @@ def parse_line(line):
         except ValidationError:
             r = LegacyReconstructed.model_validate_json(line).modernize()
     else:
+        # noinspection PyTypeChecker
         r=Reconstructed(reconstructed_captions={}, video_id=line.strip(), debug_data={'parsing_error': True})
     return r
 
