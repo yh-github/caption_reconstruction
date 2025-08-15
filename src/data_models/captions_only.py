@@ -90,6 +90,7 @@ class VideoLinkData(BaseModel):
     start_offset:float
     end_offset:float
 
+    # noinspection PyMethodParameters
     @field_validator('start_offset', 'end_offset')
     def round_timestamp(cls, value):
         return round(value, 3)

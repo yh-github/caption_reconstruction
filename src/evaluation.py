@@ -1,7 +1,9 @@
-import logging
-from bert_score import BERTScorer
-from data_models.captions_only import CaptionedVideo
 import json
+import logging
+
+from bert_score import BERTScorer
+
+from data_models.captions_only import CaptionedVideo
 from reconstruction_strategies import Reconstructed
 
 logger = logging.getLogger(__name__)
@@ -74,5 +76,6 @@ class ReconstructionEvaluator:
     def calc_idf(self, sents: list[str]):
         self.idf = True
         self.bert_scorer.compute_idf(sents=sents)
+        # noinspection PyProtectedMember
         logger.info(f'finished calc_idf for {len(sents)} sentences, idf_dict size = {len(self.bert_scorer._idf_dict.keys())}')
         return self

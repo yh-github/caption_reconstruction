@@ -7,7 +7,7 @@ from data_loaders import get_data_loader
 from utils import UserFacingError
 from reconstruction_strategies import Reconstructed
 from evaluation import ReconstructionEvaluator
-from data_models.data_models import CaptionedVideo
+from data_models.captions_only import CaptionedVideo
 from evaluation import round_metrics
 
 
@@ -81,7 +81,7 @@ def parse_line(line):
     if line.startswith('{'):
         try:
             r=Reconstructed.model_validate_json(line)
-        except ValidationError as e:
+        except ValidationError:
             r = LegacyReconstructed.model_validate_json(line).modernize()
     else:
         r=Reconstructed(reconstructed_captions={}, video_id=line.strip(), debug_data={'parsing_error': True})

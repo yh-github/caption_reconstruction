@@ -1,23 +1,23 @@
-import platform
-from importlib.metadata import version
 import logging
 import os
+import platform
 import sys
+from importlib.metadata import version
 
 import diskcache
 import mlflow
 from filelock import FileLock
 
+from config_loader import load_config
+from data_loaders import get_data_loader
+from evaluation import ReconstructionEvaluator
+from experiment_runner import ExperimentRunner
 # Local imports
 from masking import get_masking_strategies
-from evaluation import ReconstructionEvaluator
+from reconstruction_strategies import ReconstructionStrategyBuilder
+from utils import UserFacingError
 from utils import check_git_repository_is_clean, setup_logging, flush_loggers, \
     setup_mlflow, get_datetime_str, flat_dict
-from config_loader import load_config
-from reconstruction_strategies import ReconstructionStrategyBuilder
-from data_loaders import get_data_loader
-from experiment_runner import ExperimentRunner
-from utils import UserFacingError
 
 cache:diskcache.Cache|None=None
 

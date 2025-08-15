@@ -1,6 +1,8 @@
-import yaml
 import logging
 from pathlib import Path
+
+import yaml
+
 
 def load_config(
     experiment_config_path,

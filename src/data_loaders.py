@@ -1,7 +1,8 @@
-import os
 import json
 import logging
+import os
 from abc import ABC, abstractmethod
+
 from data_models.captions_only import CaptionedClip, CaptionedVideo, TimestampRange
 
 

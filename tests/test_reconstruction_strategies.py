@@ -103,6 +103,7 @@ def test_parse_and_validate_response():
     """
     # Arrange
     mock_llm_response = '{"0": "first caption", "1": "second caption"}'
+    # noinspection PyTypeChecker
     strategy = LLMStrategy(name="test_llm", llm_model=None, prompt_builder=None)
 
     # Mock the parser

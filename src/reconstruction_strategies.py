@@ -6,10 +6,10 @@ from pydantic import BaseModel
 
 from data_models.captions_only import CaptionedClip
 from data_models.captions_only import CaptionedVideo
-from utils import UserFacingError
 from llm_interaction import LLM_Manager_Builder
 from parsers import parse_llm_response
 from prompting import PromptBuilder, JSONPromptBuilder
+from utils import UserFacingError
 
 
 class Reconstructed(BaseModel):

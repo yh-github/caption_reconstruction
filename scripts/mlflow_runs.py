@@ -2,8 +2,6 @@ import argparse
 import os
 from collections import defaultdict
 from pathlib import Path
-from typing import Any
-
 import yaml
 from pydantic import BaseModel
 
@@ -83,7 +81,7 @@ def get_run_hierarchy(root_path: str) -> tuple[dict[str, str], defaultdict[str, 
     # --- 1. Argument Validation ---
     if not os.path.isdir(root_path):
         print(f"Error: The provided path '{root_path}' does not exist or is not a directory.")
-        return
+        return None
 
     # --- 2. Data Structure Initialization ---
     # Maps a run's ID to its given name.
@@ -198,7 +196,7 @@ def main():
         _, parent_to_children, _ = get_run_hierarchy(str(exp.path))
         print(f"Single Experiment: {exp.name} {exp.path.name} ({len(parent_to_children)})")
         print()
-        display_run_hierarchy(*get_run_hierarchy(exp.path)) # <<<<
+        display_run_hierarchy(*get_run_hierarchy(str(exp.path))) # <<<<
         return
     else:
         print(f"Experiments found in {args.path}:")

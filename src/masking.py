@@ -1,5 +1,6 @@
 import random
 from abc import ABC, abstractmethod
+
 from data_models.captions_only import CaptionedClip
 from data_models.captions_only import CaptionedVideo
 
@@ -13,7 +14,8 @@ class MaskingStrategy(ABC):
     def _get_indices_to_mask(self, num_clips: int) -> set:
         pass
 
-    def mask_list(self, clips:list[CaptionedClip], indices_to_mask:set):
+    @staticmethod
+    def mask_list(clips:list[CaptionedClip], indices_to_mask:set):
         masked_captions = []
         for clip in clips:
             if clip.index in indices_to_mask:

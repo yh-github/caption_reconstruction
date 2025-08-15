@@ -1,22 +1,23 @@
-import logging
 import json
-import yaml
+import logging
 import os
 import sys
 import time
 from pathlib import Path
 
 import diskcache
+import yaml
 from google import genai
 from google.genai import types
 from google.genai.types import GenerateContentResponse
 
 from config_loader import load_config
 from data_models.captions_only import VideoLinkData
-from data_models.complex_struct import VideoSegment, VideoAnalysis
-from llm_interaction import LLM_Manager, LLM_Response, LLM_Manager_Builder
+from data_models.complex_struct import VideoAnalysis
+from llm_interaction import LLM_Response, LLM_Manager_Builder
 from utils import setup_logging, get_datetime_str
 from video_link_loader import load_wild_dataset
+
 
 def gen_content_prompt(vl:VideoLinkData, prompt:str, fps:int) -> types.Content:
     return types.Content(
@@ -69,8 +70,7 @@ def read_prompt(path:str|Path) -> str:
         return f.read()
 
 
-if __name__ == "__main__":
-    config = load_config(sys.argv[1])
+def main(config):
     llm_config = config['llm']
     llm_config['seed'] = config['base_params']['master_seed'] + llm_config.get('seed',0)
     prompt_text = read_prompt(llm_config['prompt_template'])
@@ -116,3 +116,5 @@ if __name__ == "__main__":
                 save_error(ERR_FILE, x.video_id, res, llm.last_raw_response, e)
                 time.sleep(1)
 
+if __name__ == "__main__":
+    main(load_config(sys.argv[1]))

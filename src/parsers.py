@@ -1,7 +1,9 @@
-import logging
-from pydantic import ValidationError
-from data_models.captions_only import ReconstructedCaptions
 import json
+import logging
+
+from pydantic import ValidationError
+
+from data_models.captions_only import ReconstructedCaptions
 
 
 def parse_llm_response(response_text: str) -> ReconstructedCaptions | None:

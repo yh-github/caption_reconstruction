@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 import hashlib
+
 # noinspection PyUnresolvedReferences, PyProtectedMember
 HashType = hashlib._hashlib.HASH
 

@@ -1,17 +1,15 @@
+import logging
 import sys
 
+import diskcache
+import numpy as np
 from google import genai
 from google.genai import types
-import diskcache
-import logging
+from sklearn.metrics.pairwise import cosine_similarity
 
 from config_loader import load_config
 from data_loaders import get_data_loader
 from data_models.captions_only import CaptionedVideo
-
-import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
-
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -104,18 +102,10 @@ class Embedder:
         similarity_matrix = cosine_similarity(embeddings_matrix)
 
 
-
-if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        "Please provide the path to the experiment config file."
-
-    config = load_config(sys.argv[1])
-    cmd = sys.argv[2]
+def main(config, cmd):
     data_loader = get_data_loader(config["data_config"])
-
     embedder = Embedder(model="gemini-embedding-001", output_dimensionality=512, task_type="SEMANTIC_SIMILARITY")
     data = data_loader.load()
-
     if cmd == "emb" or cmd == "embed":
         for _video in data:
             ok, fail, hits = embedder.embed_save(_video)
@@ -124,3 +114,16 @@ if __name__ == "__main__":
     elif cmd == "cos" or cmd == "cosine":
         for _video in data:
             embedder.sim(_video)
+
+def parse_args(argv):
+    if len(argv) < 3:
+        print("Please provide the path to the experiment config file.")
+        sys.exit(1)
+
+    config = load_config(argv[1])
+    cmd = argv[2]
+
+    return config, cmd
+
+if __name__ == "__main__":
+    main(*parse_args(sys.argv))
