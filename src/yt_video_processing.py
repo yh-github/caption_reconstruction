@@ -7,13 +7,14 @@ import time
 from pathlib import Path
 
 import diskcache
+from google import genai
 from google.genai import types
 from google.genai.types import GenerateContentResponse
 
 from config_loader import load_config
 from data_models.captions_only import VideoLinkData
 from data_models.complex_struct import VideoSegment, VideoAnalysis
-from llm_interaction import LLM_Manager, LLM_Response
+from llm_interaction import LLM_Manager, LLM_Response, LLM_Manager_Builder
 from utils import setup_logging, get_datetime_str
 from video_link_loader import load_wild_dataset
 
@@ -68,18 +69,6 @@ def read_prompt(path:str|Path) -> str:
         return f.read()
 
 
-def build_llm(llm_config:dict, llm_cache) -> LLM_Manager:
-    return LLM_Manager(
-        model_name=llm_config['model_name'],
-        seed=llm_config['seed'],
-        temperature=llm_config['temperature'],
-        system_instruction=llm_config.get('system_instructions'),
-        thought_budget=llm_config.get('thought_budget', 0),
-        llm_cache=llm_cache,
-        response_schema=list[VideoSegment] if llm_config.get('response_schema') == 'list' else None
-    )
-
-
 if __name__ == "__main__":
     config = load_config(sys.argv[1])
     llm_config = config['llm']
@@ -102,8 +91,9 @@ if __name__ == "__main__":
     out_path.mkdir(parents=True, exist_ok=True)
 
     with diskcache.Cache(cache_dir) as llm_cache:
+        llm_builder = LLM_Manager_Builder(genai.Client(), llm_cache)
 
-        llm = build_llm(llm_config, llm_cache)
+        llm = llm_builder.from_config(llm_config)
 
         for x in links:
             OUT_FILE = out_path/f'{x.video_id}.json'

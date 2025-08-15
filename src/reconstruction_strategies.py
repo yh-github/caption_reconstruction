@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from data_models.captions_only import CaptionedClip
 from data_models.captions_only import CaptionedVideo
-from exceptions import UserFacingError
+from utils import UserFacingError
 from llm_interaction import LLM_Manager_Builder
 from parsers import parse_llm_response
 from prompting import PromptBuilder, JSONPromptBuilder
@@ -113,7 +113,7 @@ class LLMStrategy(ReconstructionStrategy):
             if not llm_response_text:
                 return self._create_error_result(masked_video.video_id, self.EMPTY_RESPONSE_ERROR)
 
-            recon_caps, dups = self._parse_and_validate_response(llm_response_text, masked_video.video_id)
+            recon_caps, dups = self._parse_and_validate_response(llm_response_text)
             if not recon_caps:
                 return self._create_error_result(masked_video.video_id, self.PARSING_ERROR)
 

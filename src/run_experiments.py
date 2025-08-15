@@ -17,7 +17,7 @@ from config_loader import load_config
 from reconstruction_strategies import ReconstructionStrategyBuilder
 from data_loaders import get_data_loader
 from experiment_runner import ExperimentRunner
-from exceptions import UserFacingError
+from utils import UserFacingError
 
 cache:diskcache.Cache|None=None
 

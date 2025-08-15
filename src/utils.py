@@ -1,11 +1,17 @@
 import os
 import mlflow
 import git
-from exceptions import UserFacingError
 import logging
 from datetime import datetime
 import pytz
 from typing import Any
+
+class UserFacingError(Exception):
+    """
+    A base class for all exceptions that are considered user-correctable
+    and should not produce a full stack trace.
+    """
+    pass
 
 
 def set_tz_converter(formatter, tz_str=None):
