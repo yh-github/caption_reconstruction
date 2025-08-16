@@ -10,7 +10,7 @@ from google import genai
 from config_loader import load_config
 from data_loaders import get_data_loader
 from data_models.exec_args import ExecArgs
-from evaluation import ReconstructionEvaluator
+from evaluation import ReconstructionEvaluator_BertScore, ReconstructionEvaluator_NOP
 from experiment_runner import ExperimentRunner
 # Local imports
 from masking import get_masking_strategies
@@ -31,11 +31,21 @@ class ExperimentPipeline:
         self.config = load_config(self.exec_args.config_path)
         self.cache = diskcache.Cache(directory=self.config['paths']['disk_cache'])
 
+        self.data_loader = get_data_loader(self.config["data_config"])
+
         if self.exec_args.dry_run or self.exec_args.validate_cache:
-            logging.info("Running in dry-run mode. Mocking LLM client.")
+            logging.info("Running in dry-run mode. Blocking LLM client and Evaluator set to NOP.")
             llm_client = self._create_mock_llm_client()
+            self.evaluator = ReconstructionEvaluator_NOP()
         else:
             llm_client = genai.Client()
+
+            eval_conf = self.config.get('evaluation', {})
+            self.evaluator = ReconstructionEvaluator_BertScore(
+                model_type=eval_conf.get('model', 'microsoft/deberta-large-mnli'),
+                verbose=self.exec_args.verbose,
+                idf=eval_conf.get('idf', True)
+            ).calc_idf(sents=self.data_loader.load_all_sentences())
 
         self.rs_builder = ReconstructionStrategyBuilder(
             llm_cache=self.cache,
@@ -49,20 +59,21 @@ class ExperimentPipeline:
     @staticmethod
     def _create_mock_llm_client():
         """
-        Creates a mock for `llm_client`, raising exceptions with method name
-        and parameters when methods are called.
+        Creates a mock for `llm_client` that raises exceptions for any accessed attribute
+        or method.
         """
-        llm_mock = Mock()
 
-        # Dynamically simulate an exception when any attribute or method is accessed
-        def mock_getattr(name):
-            def raise_exception(*args, **kwargs):
+        # Dynamically handle all attribute/method access
+        def raise_exception(name):
+            def _raise(*args, **kwargs):
                 raise RuntimeError(
                     f"llm_client: Attempted to call method '{name}' with args: {args}, kwargs: {kwargs}"
                 )
-            return raise_exception
 
-        llm_mock.__getattr__.side_effect = mock_getattr
+            return _raise
+
+        llm_mock = Mock()
+        llm_mock.side_effect = lambda name: raise_exception(name)
 
         return llm_mock
 
@@ -120,17 +131,8 @@ class ExperimentPipeline:
             
     def build_experiments(self):
         config = self.config
-        data_loader = get_data_loader(config["data_config"])
+
         # --- Loop 1: Reconstruction Strategy ---
-        eval_conf = config.get('evaluation', {})
-
-        evaluator = ReconstructionEvaluator(
-            model_type=eval_conf.get('model', 'microsoft/deberta-large-mnli'),
-            verbose=self.exec_args.verbose,
-            idf=eval_conf.get('idf', True)
-        )
-        evaluator.calc_idf(sents=data_loader.load_all_sentences())
-
         for strategy_params in config.get("recon_strategy", []):
 
             # Build the strategy object once for this block
@@ -152,10 +154,10 @@ class ExperimentPipeline:
                 })
                 runner = ExperimentRunner(
                     run_name=f"{recon_strategy}__{masker}",
-                    data_loader=data_loader,
+                    data_loader=self.data_loader,
                     masking_strategy=masker,
                     reconstruction_strategy=recon_strategy,
-                    evaluator=evaluator
+                    evaluator=self.evaluator
                 )
                 yield runner, run_conf
 

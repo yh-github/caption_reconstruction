@@ -131,7 +131,8 @@ class LLMStrategy(ReconstructionStrategy):
             return self._process_reconstruction_results(masked_video, recon_caps, llm_response_text)
 
         except Exception as e:
-            logging.error(f"{e} for {masked_video.video_id=}")
+            logging.error(f"{e} for {masked_video.video_id=}", exc_info=True)
+
             return self._create_error_result(
                 masked_video.video_id,
                 str(e),

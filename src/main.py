@@ -6,6 +6,7 @@ import argparse
 
 import logging
 import sys
+from pathlib import Path
 
 from data_models.exec_args import ExecArgs
 from run_experiments import ExperimentPipeline
@@ -14,25 +15,28 @@ from utils import UserFacingError
 
 def args_parser():
     parser = argparse.ArgumentParser(description="Command-line argument parser for experiment runner.")
-    # Add argument with file completion
+
     parser.add_argument(
         "config_path",
-        type=str,
+        type=Path,
         help="Path to the experiment configuration file.",
     ).completer = FilesCompleter(allowednames=[".yaml", ".yml"])
 
-    subparsers = parser.add_subparsers(dest="command", required=True)
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Display detailed information about experiments."
+    )
 
-    # Subparser for '--dry-run'
-    dry_run_parser = subparsers.add_parser('dry-run', help="Dry run: Prepare experiments without executing them.")
-    dry_run_parser.add_argument('--verbose', action='store_true',
-                                help="Display detailed information about experiments.")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true"
+    )
 
-    # Subparser for '--validate-cache'
-    validate_cache_parser = subparsers.add_parser('validate-cache', help="Validate cached experiment configurations.")
-
-    # Default behavior when no subcommand is mentioned
-    run_parser = subparsers.add_parser('run', help="Run experiments and process results.")
+    parser.add_argument(
+        "--validate-cache",
+        action="store_true"
+    )
 
     # Add argcomplete support
     argcomplete.autocomplete(parser)
@@ -42,8 +46,8 @@ def args_parser():
 
     return ExecArgs.model_validate(vars(args))
 
-def dry_run(xs, verbose=False):
-    print(f"prepared {len(xs)} experiments")
+def dry_run(xs, count:int, verbose=False):
+    print(f"prepared {len(xs)} experiments, with {count} videos. Total runs = {len(xs)*count}")
     if verbose:
         print()
         for r, conf in xs:
@@ -51,6 +55,7 @@ def dry_run(xs, verbose=False):
         print()
 
 def validate_cache(xs):
+    logging.getLogger().setLevel(logging.WARNING)
     for r, conf in xs:
         r.run()
 
@@ -60,15 +65,13 @@ if __name__ == "__main__":
     ep = ExperimentPipeline(exec_args)
 
     try:
-        if exec_args.command == 'dry-run':
-            dry_run(list(ep.build_experiments()), verbose=exec_args.verbose)
-        elif exec_args.command == 'validate-cache':
+        if exec_args.dry_run:
+            dry_run(list(ep.build_experiments()), ep.data_loader.count(), verbose=exec_args.verbose)
+        elif exec_args.validate_cache:
             validate_cache(ep.build_experiments())
-        elif exec_args.command == 'run':
+        else: # Run experiments
             ep.main()
             ep.done()
-        else:
-            raise ValueError(f"Unknown command: {exec_args.command}")
     except UserFacingError as e:
         print(f"\n❌ Error: {e}", file=sys.stderr)
         sys.exit(1)

@@ -127,7 +127,7 @@ def test_builder_creates_baseline_strategy():
     Tests that the builder correctly creates a BaselineRepeatStrategy.
     """
     # Arrange
-    builder = ReconstructionStrategyBuilder(None, 666)
+    builder = ReconstructionStrategyBuilder(None, 666, None)
     strategy_config = {"type": "baseline_repeat_last"}
 
     # Act
@@ -142,7 +142,7 @@ def test_builder_raises_error_for_unknown_type():
     Tests that the builder raises an error for an unknown strategy type.
     """
     # Arrange
-    builder = ReconstructionStrategyBuilder(None, 666)
+    builder = ReconstructionStrategyBuilder(None, 666, None)
     strategy_config = {"type": "unknown_strategy"}
 
     # Act & Assert

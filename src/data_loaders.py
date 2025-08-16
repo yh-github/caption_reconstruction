@@ -17,6 +17,7 @@ def _parse_storytelling_timestamp(ts_str: str) -> float:
 
 class BaseDataLoader(ABC):
     """Abstract base class for all data loaders."""
+
     @abstractmethod
     def load(self, limit:int|None=None) -> list[CaptionedVideo]:
         """Loads data and returns a list of CaptionedVideo objects."""
@@ -28,6 +29,10 @@ class BaseDataLoader(ABC):
     def find(self, video_id):
         return next((v for v in self.load() if v.video_id == video_id), None) # TODO load_iter
 
+    def count(self) -> int:
+        return len(self.load())
+
+
 
 class ToyDataLoader(BaseDataLoader):
     """
@@ -35,6 +40,7 @@ class ToyDataLoader(BaseDataLoader):
     the experimental pipeline.
     """
     def __init__(self, data_path: str):
+        super().__init__()
         self.data_path = data_path
 
     def load(self, limit:int|None=None) -> list[CaptionedVideo]:

@@ -3,7 +3,7 @@ import torch
 from unittest.mock import MagicMock
 
 # Import the class and functions we are testing
-from evaluation import ReconstructionEvaluator, round_metrics, metrics_to_json
+from evaluation import ReconstructionEvaluator_BertScore, round_metrics, metrics_to_json
 
 from data_models.captions_only import (
     CaptionedVideo,
@@ -57,7 +57,7 @@ def test_reconstruction_evaluator_evaluate_method(mock_bert_scorer, sample_data)
     """
     # Arrange
     original_video, reconstructed_data = sample_data
-    evaluator = ReconstructionEvaluator(model_type="mock-model")
+    evaluator = ReconstructionEvaluator_BertScore(model_type="mock-model")
 
     # Act
     metrics = evaluator.evaluate(reconstructed_data, original_video)

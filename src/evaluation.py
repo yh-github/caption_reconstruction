@@ -23,13 +23,15 @@ def metrics_to_json(metrics):
 
 class ReconstructionEvaluator_NOP:
 
-    def evaluate(self, reconstructed: Reconstructed, orig: CaptionedVideo) -> dict:
+    @staticmethod
+    def evaluate(reconstructed: Reconstructed, orig: CaptionedVideo) -> dict:
         return {}
 
-    def agg_metrics(self, all_metrics):
+    @staticmethod
+    def agg_metrics(all_metrics):
         return {}
 
-class ReconstructionEvaluator:
+class ReconstructionEvaluator_BertScore:
     """
     Encapsulates the logic for evaluating caption reconstruction using BERTScore.
     """
@@ -87,7 +89,8 @@ class ReconstructionEvaluator:
         logger.info(f'finished calc_idf for {len(sents)} sentences, idf_dict size = {len(self.bert_scorer._idf_dict.keys())}')
         return self
 
-    def agg_metrics(self, all_metrics):
+    @staticmethod
+    def agg_metrics(all_metrics):
         mean_f1 = statistics.mean([m['bs_f1'].min().item() for m in all_metrics])
         mean_precision = statistics.mean([m['bs_p'].min().item() for m in all_metrics])
         mean_recall = statistics.mean([m['bs_r'].min().item() for m in all_metrics])

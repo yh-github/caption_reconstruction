@@ -3,7 +3,7 @@ import statistics
 
 from data_loaders import BaseDataLoader
 from data_models.captions_only import CaptionedVideo
-from evaluation import ReconstructionEvaluator, metrics_to_json, round_metrics
+from evaluation import ReconstructionEvaluator_BertScore, metrics_to_json, round_metrics
 from masking import MaskingStrategy
 from reconstruction_strategies import ReconstructionStrategy, Reconstructed
 
@@ -19,7 +19,7 @@ class ExperimentRunner:
         data_loader: BaseDataLoader,
         masking_strategy: MaskingStrategy,
         reconstruction_strategy: ReconstructionStrategy,
-        evaluator: ReconstructionEvaluator
+        evaluator: ReconstructionEvaluator_BertScore
     ):
         self.run_name = run_name
         self.data_loader = data_loader

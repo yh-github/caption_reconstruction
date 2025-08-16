@@ -6,7 +6,7 @@ from config_loader import load_config
 from data_loaders import get_data_loader
 from utils import UserFacingError
 from reconstruction_strategies import Reconstructed
-from evaluation import ReconstructionEvaluator
+from evaluation import ReconstructionEvaluator_BertScore
 from data_models.captions_only import CaptionedVideo
 from evaluation import round_metrics
 
@@ -120,9 +120,9 @@ def build_evaluators(sentences:list[str]):
     d = {}
     for m in eval_models:
         p = {'model_type':m, 'idf':False}
-        d[str(p)] = ReconstructionEvaluator(**p)
+        d[str(p)] = ReconstructionEvaluator_BertScore(**p)
         p = {'model_type':m, 'idf':True}
-        d[str(p)] = ReconstructionEvaluator(**p).calc_idf(sentences)
+        d[str(p)] = ReconstructionEvaluator_BertScore(**p).calc_idf(sentences)
     return d
 
 def pretty_compare(original_video, reconstructed_data, tab=True):
@@ -159,7 +159,7 @@ def pretty_compare(original_video, reconstructed_data, tab=True):
             print(f'   \t{metrics_str}\t  ')
 
 
-def do_eval(evals:dict[str, ReconstructionEvaluator], original_video: CaptionedVideo, reconstructed_data: Reconstructed):
+def do_eval(evals:dict[str, ReconstructionEvaluator_BertScore], original_video: CaptionedVideo, reconstructed_data: Reconstructed):
     print(f'{original_video.video_id=} size={len(original_video.clips)} masked={len(reconstructed_data.reconstructed_captions)}')
     for k,v in evals.items():
         candidates, references = reconstructed_data.align(original_video.clips)
@@ -183,7 +183,7 @@ from rich.table import Table
 
 
 def do_eval_to_dataframe(
-        evals: dict[str, ReconstructionEvaluator],
+        evals: dict[str, ReconstructionEvaluator_BertScore],
         original_video: CaptionedVideo,
         reconstructed_data: Reconstructed
 ):
