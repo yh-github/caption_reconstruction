@@ -86,15 +86,5 @@ class ExperimentRunner:
             return {}, all_recon_videos
 
         # TODO: keep only the sums (NA as 0)
-        mean_f1 = statistics.mean([m['bs_f1'].min().item() for m in all_metrics])
-        mean_precision = statistics.mean([m['bs_p'].min().item() for m in all_metrics])
-        mean_recall = statistics.mean([m['bs_r'].min().item() for m in all_metrics])
 
-        agg_metrics = {
-            "num_of_instances": len(all_metrics),
-            "mean_f1_score": mean_f1,
-            "mean_precision": mean_precision,
-            "mean_recall": mean_recall
-        }
-
-        return agg_metrics, all_recon_videos
+        return self.evaluator.agg_metrics(all_metrics), all_recon_videos

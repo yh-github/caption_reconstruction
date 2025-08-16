@@ -1,5 +1,6 @@
 import json
 import logging
+import statistics
 
 from bert_score import BERTScorer
 
@@ -19,6 +20,14 @@ def round_metrics(metrics, ndigits=6) -> dict:
 
 def metrics_to_json(metrics):
     return json.dumps(metrics)
+
+class ReconstructionEvaluator_NOP:
+
+    def evaluate(self, reconstructed: Reconstructed, orig: CaptionedVideo) -> dict:
+        return {}
+
+    def agg_metrics(self, all_metrics):
+        return {}
 
 class ReconstructionEvaluator:
     """
@@ -65,13 +74,11 @@ class ReconstructionEvaluator:
             batch_size=4
         )
 
-        metrics = {
+        return {
             "bs_p": bs_p,
             "bs_r": bs_r,
             "bs_f1": bs_f1
         }
-
-        return metrics
 
     def calc_idf(self, sents: list[str]):
         self.idf = True
@@ -79,3 +86,16 @@ class ReconstructionEvaluator:
         # noinspection PyProtectedMember
         logger.info(f'finished calc_idf for {len(sents)} sentences, idf_dict size = {len(self.bert_scorer._idf_dict.keys())}')
         return self
+
+    def agg_metrics(self, all_metrics):
+        mean_f1 = statistics.mean([m['bs_f1'].min().item() for m in all_metrics])
+        mean_precision = statistics.mean([m['bs_p'].min().item() for m in all_metrics])
+        mean_recall = statistics.mean([m['bs_r'].min().item() for m in all_metrics])
+
+        return {
+            "num_of_instances": len(all_metrics),
+            "mean_f1_score": mean_f1,
+            "mean_precision": mean_precision,
+            "mean_recall": mean_recall
+        }
+

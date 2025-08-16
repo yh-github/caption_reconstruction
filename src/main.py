@@ -1,11 +1,16 @@
 #!/usr/bin/env python
 # PYTHON_ARGCOMPLETE_OK
 import argcomplete
-import argparse
 from argcomplete.completers import FilesCompleter
+import argparse
 
-from typing import Iterable, Any
-from run_experiments import *
+import logging
+import sys
+
+from data_models.exec_args import ExecArgs
+from run_experiments import ExperimentPipeline
+from utils import UserFacingError
+
 
 def args_parser():
     parser = argparse.ArgumentParser(description="Command-line argument parser for experiment runner.")
@@ -37,33 +42,33 @@ def args_parser():
 
     return ExecArgs.model_validate(vars(args))
 
-def dry_run(xs):
+def dry_run(xs, verbose=False):
     print(f"prepared {len(xs)} experiments")
-    if len(sys.argv) > 3 and sys.argv[3] == '--verbose':
+    if verbose:
         print()
         for r, conf in xs:
             print(r.run_name, '\t', conf)
         print()
 
-
-def validate_cache(xs:Iterable[tuple[ExperimentRunner, dict[str, Any]]]):
+def validate_cache(xs):
     for r, conf in xs:
         r.run()
 
 
 if __name__ == "__main__":
+    exec_args = args_parser()
+    ep = ExperimentPipeline(exec_args)
+
     try:
-        exec_args = args_parser()
-        config = init(exec_args)
-        if len(sys.argv) > 2:
-            flag=sys.argv[2]
-            if flag=='--dry-run':
-                dry_run(list(build_experiments(config)))
-            elif flag=='--validate-cache':
-                validate_cache(build_experiments(config))
+        if exec_args.command == 'dry-run':
+            dry_run(list(ep.build_experiments()), verbose=exec_args.verbose)
+        elif exec_args.command == 'validate-cache':
+            validate_cache(ep.build_experiments())
+        elif exec_args.command == 'run':
+            ep.main()
+            ep.done()
         else:
-            paths = main(config)
-            done(*paths)
+            raise ValueError(f"Unknown command: {exec_args.command}")
     except UserFacingError as e:
         print(f"\n❌ Error: {e}", file=sys.stderr)
         sys.exit(1)
@@ -73,4 +78,3 @@ if __name__ == "__main__":
     except Exception as e:
         logging.error(f"Experiment failed with a critical error: {e}", exc_info=True)
         raise
-
