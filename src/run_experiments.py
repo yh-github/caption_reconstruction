@@ -3,13 +3,14 @@ import os
 import platform
 import sys
 from importlib.metadata import version
-
 import diskcache
 import mlflow
 from filelock import FileLock
+from google import genai
 
 from config_loader import load_config
 from data_loaders import get_data_loader
+from data_models.exec_args import ExecArgs
 from evaluation import ReconstructionEvaluator
 from experiment_runner import ExperimentRunner
 # Local imports
@@ -19,9 +20,33 @@ from utils import UserFacingError
 from utils import check_git_repository_is_clean, setup_logging, flush_loggers, \
     setup_mlflow, get_datetime_str, flat_dict
 
-cache:diskcache.Cache|None=None
+from unittest.mock import Mock
 
-def init():
+cache:diskcache.Cache|None=None
+rs_builder:ReconstructionStrategyBuilder|None=None
+
+from unittest.mock import Mock
+
+def create_mock_llm_client():
+    """
+    Creates a mock for `llm_client`, raising exceptions with method name
+    and parameters when methods are called.
+    """
+    llm_mock = Mock()
+
+    # Dynamically simulate an exception when any attribute or method is accessed
+    def mock_getattr(name):
+        def raise_exception(*args, **kwargs):
+            raise RuntimeError(
+                f"llm_client: Attempted to call method '{name}' with args: {args}, kwargs: {kwargs}"
+            )
+        return raise_exception
+
+    llm_mock.__getattr__.side_effect = mock_getattr
+
+    return llm_mock
+
+def init(exec_args: ExecArgs):
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
     if len(sys.argv) < 2:
@@ -31,6 +56,18 @@ def init():
 
     global cache
     cache = diskcache.Cache(directory=config['paths']['disk_cache'])
+
+    global rs_builder
+    if exec_args.dry_run or exec_args.validate_cache:
+        logging.info("Running in dry-run mode. Mocking LLM client.")
+        llm_client = create_mock_llm_client()
+    else:
+        llm_client = genai.Client()
+    rs_builder = ReconstructionStrategyBuilder(
+        llm_cache=cache,
+        master_seed=config["base_params"]["master_seed"],
+        llm_client=llm_client
+    )
 
     return config
 
@@ -96,7 +133,6 @@ def build_experiments(config):
     )
     evaluator.calc_idf(sents=data_loader.load_all_sentences())
 
-    rs_builder = ReconstructionStrategyBuilder(llm_cache=cache, master_seed=config["base_params"]["master_seed"])
     for strategy_params in config.get("recon_strategy", []):
         
         # Build the strategy object once for this block

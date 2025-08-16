@@ -213,9 +213,9 @@ class ReconstructionStrategyBuilder:
     """
     A builder class responsible for creating reconstruction strategy objects.
     """
-    def __init__(self, llm_cache, master_seed):
+    def __init__(self, llm_cache, master_seed:int, llm_client:genai.Client):
         self.master_seed = master_seed
-        self.llm_manager_builder = LLM_Manager_Builder(genai.Client(), llm_cache)
+        self.llm_manager_builder = LLM_Manager_Builder(llm_client, llm_cache)
 
     def get_strategy(self, strategy_config: dict) -> ReconstructionStrategy:
         """
