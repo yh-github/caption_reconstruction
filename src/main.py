@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # PYTHON_ARGCOMPLETE_OK
-
 from data_models.exec_args import ExecArgs, args_parser
-if __name__ == "__main__":
-    exec_args:ExecArgs = args_parser()
-
+exec_args:ExecArgs = args_parser() if __name__ == "__main__" else None
 
 import logging
 import sys
