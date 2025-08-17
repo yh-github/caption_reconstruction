@@ -23,7 +23,7 @@ def metrics_to_json(metrics):
 
 
 # noinspection PyUnusedLocal
-class ReconstructionEvaluator_NOP:
+class EvaluatorNOP:
 
     @staticmethod
     def evaluate(reconstructed: Reconstructed, orig: CaptionedVideo) -> dict:

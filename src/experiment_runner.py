@@ -1,4 +1,6 @@
 import logging
+from typing import Any
+
 from data_loaders import BaseDataLoader
 from data_models.captions_only import CaptionedVideo
 from evaluation import ReconstructionEvaluator_BertScore, metrics_to_json, round_metrics
@@ -17,13 +19,15 @@ class ExperimentRunner:
         data_loader: BaseDataLoader,
         masking_strategy: MaskingStrategy,
         reconstruction_strategy: ReconstructionStrategy,
-        evaluator: ReconstructionEvaluator_BertScore
+        evaluator: ReconstructionEvaluator_BertScore,
+        conf_for_log:dict[str, Any]
     ):
         self.run_name = run_name
         self.data_loader = data_loader
         self.masking_strategy = masking_strategy
         self.reconstruction_strategy = reconstruction_strategy
         self.evaluator = evaluator
+        self.conf_for_log = conf_for_log
 
     def run(self) -> tuple[dict, list[str]]:
         """Runs the full experiment from data loading to evaluation."""

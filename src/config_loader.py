@@ -1,13 +1,13 @@
 import logging
 from pathlib import Path
-
+from typing import Any
 import yaml
 
 
 def load_config(
     experiment_config_path,
     system_config_path="config/system.yaml"
-):
+) -> dict[str, Any]:
     """
     Loads both system and experiment configurations and merges them.
     Experiment-specific configs will override system-level configs.
