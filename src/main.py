@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # PYTHON_ARGCOMPLETE_OK
 from data_models.exec_args import ExecArgs, args_parser
+from experiment_runner import ExperimentRunner
+
 exec_args:ExecArgs = args_parser() if __name__ == "__main__" else None
 
 import logging
@@ -9,24 +11,23 @@ from run_experiments import ExperimentPipeline
 from utils import UserFacingError
 
 
-def dry_run(xs, count:int, verbose=False):
+def dry_run(xs:list[ExperimentRunner], count:int, verbose=False):
     print(f"prepared {len(xs)} experiments, with {count} videos. Total runs = {len(xs)*count}")
     if verbose:
         print()
-        for r, conf in xs:
-            print(r.run_name, '\t', conf)
+        for r in xs:
+            print(r.run_name, '\t', r.conf_for_log)
         print()
 
 def validate_cache(xs):
     logging.getLogger().setLevel(logging.WARNING)
-    for r, conf in xs:
+    for r in xs:
         r.run()
 
 
 if __name__ == "__main__":
-    ep = ExperimentPipeline(exec_args)
-
     try:
+        ep = ExperimentPipeline.build(exec_args)
         if exec_args.dry_run:
             dry_run(list(ep.build_experiments()), ep.data_loader.count(), verbose=exec_args.verbose)
         elif exec_args.validate_cache:
