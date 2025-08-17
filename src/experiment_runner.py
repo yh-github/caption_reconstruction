@@ -1,6 +1,4 @@
 import logging
-import statistics
-
 from data_loaders import BaseDataLoader
 from data_models.captions_only import CaptionedVideo
 from evaluation import ReconstructionEvaluator_BertScore, metrics_to_json, round_metrics

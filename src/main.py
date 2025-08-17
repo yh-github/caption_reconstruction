@@ -1,50 +1,16 @@
 #!/usr/bin/env python
 # PYTHON_ARGCOMPLETE_OK
-import argcomplete
-from argcomplete.completers import FilesCompleter
-import argparse
+
+from data_models.exec_args import ExecArgs, args_parser
+if __name__ == "__main__":
+    exec_args:ExecArgs = args_parser()
+
 
 import logging
 import sys
-from pathlib import Path
-
-from data_models.exec_args import ExecArgs
 from run_experiments import ExperimentPipeline
 from utils import UserFacingError
 
-
-def args_parser():
-    parser = argparse.ArgumentParser(description="Command-line argument parser for experiment runner.")
-
-    parser.add_argument(
-        "config_path",
-        type=Path,
-        help="Path to the experiment configuration file.",
-    ).completer = FilesCompleter(allowednames=[".yaml", ".yml"])
-
-    parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Display detailed information about experiments."
-    )
-
-    parser.add_argument(
-        "--dry-run",
-        action="store_true"
-    )
-
-    parser.add_argument(
-        "--validate-cache",
-        action="store_true"
-    )
-
-    # Add argcomplete support
-    argcomplete.autocomplete(parser)
-
-    # Parse arguments
-    args = parser.parse_args()
-
-    return ExecArgs.model_validate(vars(args))
 
 def dry_run(xs, count:int, verbose=False):
     print(f"prepared {len(xs)} experiments, with {count} videos. Total runs = {len(xs)*count}")
@@ -61,7 +27,6 @@ def validate_cache(xs):
 
 
 if __name__ == "__main__":
-    exec_args = args_parser()
     ep = ExperimentPipeline(exec_args)
 
     try:

@@ -21,6 +21,8 @@ def round_metrics(metrics, ndigits=6) -> dict:
 def metrics_to_json(metrics):
     return json.dumps(metrics)
 
+
+# noinspection PyUnusedLocal
 class ReconstructionEvaluator_NOP:
 
     @staticmethod
