@@ -1,13 +1,16 @@
+import json
 import logging
-from collections import defaultdict
+import statistics
 from pathlib import Path
 from typing import Iterator
-from pydantic import BaseModel, Field
-from data_models.complex_struct import VideoAnalysis, VideoSegment
-from prompting import JSONPromptBuilder
-from utils import get_model_schema_lines, dump_model_compact_json, numbered_list
-from video_link_loader import load_wild_dataset, WildVideoMetadata
 
+from bert_score import BERTScorer
+from pydantic import BaseModel, Field, RootModel
+
+from data_models.complex_struct import VideoAnalysis
+from video_link_loader import WildVideoMetadata
+
+logger = logging.getLogger(__name__)
 
 class QAData(BaseModel):
     question:str
@@ -62,27 +65,91 @@ class AnswerResponse(BaseModel):
     answer: str = Field(...,
         description="Your answer to the question")
 
-prompt_builder = JSONPromptBuilder.from_path('/home/yoavh/code/research/caption_reconstruction/prompts/qa/text1.txt')
-prompt_builder.set_consts({'INSTRUCT_INPUT_SCHEMA': "\n".join(get_model_schema_lines(VideoSegment, level=1))})
+class AnswerResponses(RootModel[list[AnswerResponse]]):
+    pass
 
-def gen_prompt(va:VideoAnalysis, qa_info:list[QAData]):
-    return prompt_builder.with_vars({
-        'INPUT_VIDEO': dump_model_compact_json(va.segments, width=200),
-        'INPUT_QUESTIONS': numbered_list((qa.question for qa in qa_info))
-    })
+class QAEvaluator_BertScore:
+    """
+    Encapsulates the logic for evaluating caption reconstruction using BERTScore.
+    """
 
-vs = load_wild_dataset(Path('/home/yoavh/code/research/caption_reconstruction/datasets/wildQA/dev_Agriculture.json'))
-qa_by_id = defaultdict(list)
-for i,v in enumerate(vs):
-    qa_by_id[v.video_id].append(QAData.model_validate(v.model_dump()))
-    # print_qa_info(v)
+    def __init__(self, model_type:str|None=None, text_for_idf:list[str]|None=None, verbose=False):
+        """
+        Initializes the evaluator with configuration for BERTScore.
 
-for va in load_wild_captions(Path('/home/yoavh/code/research/caption_reconstruction/datasets/wildQA/captions__wild1')):
-    if not va.video_id in qa_by_id:
-        logging.warning(f"no QA for video_id={va.video_id}")
-        continue
-    print(va.video_id)
-    print(gen_prompt(va, qa_by_id[va.video_id]))
-    print('---')
-    # print()
-    # print('\n'.join(get_model_schema_lines(AnswerResponse, level=0)))
+        Args:
+            model_type: The Hugging Face model to use for BERTScore.
+            idf: A boolean indicating whether to use inverse-document-frequency weighting.
+        """
+        self.model_type = model_type
+        self.verbose = verbose
+        self.bert_scorer = BERTScorer(
+            model_type=self.model_type,
+            idf=bool(text_for_idf),
+            idf_sents=text_for_idf,
+            use_fast_tokenizer=False,
+            lang="en"
+        )
+        idf_msg="without IDF"
+        if text_for_idf:
+            # noinspection PyProtectedMember
+            idf_msg = f'calc_idf for {len(text_for_idf)} sentences, idf_dict size = {len(self.bert_scorer._idf_dict.keys())}'
+        logger.info(f"Evaluator initialized with model: {self.model_type}, {idf_msg}")
+
+
+    @staticmethod
+    def candidate_reference_pairs(answer_res: AnswerResponse, ground_truth: QAData) -> tuple[list[str], list[str]]:
+        """
+        Helper method to extract reference and candidate sentences.
+        """
+        references = [ground_truth.answer]+ground_truth.alter_answers
+        candidates = [answer_res.answer]*len(references)
+        return candidates, references
+
+    def evaluate(self, answer_res: AnswerResponse, ground_truth: QAData) -> float:
+        logger.debug("Aligning answers for BERTScore evaluation...")
+
+        candidates, references = self.candidate_reference_pairs(answer_res, ground_truth)
+
+        if not candidates:
+            raise Exception(f"Nothing found to evaluate {answer_res=} {ground_truth=}")
+
+        logger.debug(f"Calculating BERTScore for {len(candidates)} pairs.")
+
+        bs_p, bs_r, bs_f1 = self.bert_scorer.score(
+            cands=candidates,
+            refs=references,
+            batch_size=4
+        )
+
+        return bs_f1.max().item()
+
+    @staticmethod
+    def agg_metrics(all_metrics):
+        mean_f1 = statistics.mean([m['bs_f1'].min().item() for m in all_metrics])
+        mean_precision = statistics.mean([m['bs_p'].min().item() for m in all_metrics])
+        mean_recall = statistics.mean([m['bs_r'].min().item() for m in all_metrics])
+
+        return {
+            "num_of_instances": len(all_metrics),
+            "mean_f1_score": mean_f1,
+            "mean_precision": mean_precision,
+            "mean_recall": mean_recall
+        }
+
+def build_evaluator(qa_by_id:dict[str, list[QAData]], wild_captions:list[VideoAnalysis]):
+    sents = []
+    for vs in qa_by_id.values():
+        for v in vs:
+            sents.append(v.question)
+            sents.append(v.answer)
+            sents.extend(v.alter_answers)
+    for c in wild_captions:
+        if c.video_id not in qa_by_id:
+            continue
+        for s in c.segments:
+            sents.extend(s.segment_summary)
+            for k in s.key_moments:
+                sents.append(k.caption)
+    return QAEvaluator_BertScore(model_type='microsoft/deberta-large-mnli', text_for_idf=sents)
+

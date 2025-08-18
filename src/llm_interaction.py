@@ -85,15 +85,15 @@ class LLM_Manager:
         llm_cache:diskcache.Cache|dict[str,str],
         base_cache_key:HashType
     ):
-        self.llm_client = llm_client
-        self.model_name = model_name
-        self.llm_config = llm_config
-        self.disk_cache = llm_cache
-        self.base_cache_key = base_cache_key
+        self._llm_client = llm_client
+        self._model_name = model_name
+        self._llm_config = llm_config
+        self._disk_cache = llm_cache
+        self._base_cache_key = base_cache_key
         self.last_raw_response: GenerateContentResponse | None = None
 
-    def cache_key(self, prompt:str):
-        sha = self.base_cache_key.copy()
+    def _cache_key(self, prompt:str):
+        sha = self._base_cache_key.copy()
         sha.update(prompt.encode())
         return base64.urlsafe_b64encode(sha.digest()).decode('utf-8')
 
@@ -106,10 +106,10 @@ class LLM_Manager:
         ))
     )
     def _invoke_llm(self, prompt:ContentListUnion) -> GenerateContentResponse:
-        return self.llm_client.models.generate_content(
-            model=self.model_name,
+        return self._llm_client.models.generate_content(
+            model=self._model_name,
             contents=prompt,
-            config=self.llm_config
+            config=self._llm_config
         )
 
     def _call_retry(self, prompt:ContentListUnion) -> LLM_Response:
@@ -123,20 +123,20 @@ class LLM_Manager:
 
     def call(self, prompt:str|Content) -> LLM_Response:
         if isinstance(prompt, str):
-            k = self.cache_key(prompt)
+            k = self._cache_key(prompt)
         elif isinstance(prompt, Content):
-            k = self.cache_key(prompt.model_dump_json(exclude_none=True, fallback=str))
+            k = self._cache_key(prompt.model_dump_json(exclude_none=True, fallback=str))
         assert k
-        if k in self.disk_cache:
+        if k in self._disk_cache:
             logger.debug(f'Cache hit: {k=}')
-            return LLM_Response.from_str(self.disk_cache[k])
+            return LLM_Response.from_str(self._disk_cache[k])
         res = self._call_retry(prompt)
         if not res.text and is_perm_error(self.last_raw_response):
             res = LLM_ResponseBlocked(raw_response=self.last_raw_response)
         if res.should_cache():
-            self.disk_cache[k] = res.model_dump_json(exclude_none=True)
+            self._disk_cache[k] = res.model_dump_json(exclude_none=True)
 
-        if self.llm_config.thinking_config and not res.thoughts and res.text:
+        if self._llm_config.thinking_config and not res.thoughts and res.text:
             logger.warning(f"No thoughts in LLM response: {res.text=}")
 
         return res

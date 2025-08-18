@@ -1,0 +1,16 @@
+base_params:
+  master_seed: 0x5EED
+
+data_config:
+  name: "wildQA"
+  path: "datasets/wildQA/dev_Agriculture.json"
+  limit: null
+  path_captions: "datasets/wildQA/captions__wild1/"
+
+llm:
+  model_name: "gemini-2.5-pro"
+  system_instructions: null
+  temperature: 1.0
+  thought_budget: -1
+  response_schema: "list[AnswerResponse]"
+  prompt_template: "prompts/qa/text1.txt"
