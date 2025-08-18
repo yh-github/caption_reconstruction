@@ -9,7 +9,7 @@ import yaml
 from google import genai
 from google.genai.types import GenerateContentResponse
 
-from config_loader import load_config
+from config_loader import load_config, get_llm_config
 from data_models.complex_struct import VideoAnalysis, VideoSegment
 from dev_qa import QAData, load_wild_captions, build_evaluator, AnswerResponse, AnswerResponses
 from llm_interaction import LLM_Manager_Builder, LLM_Response
@@ -49,8 +49,7 @@ def save_error(path, video_id:str, llm_response:LLM_Response, last_raw_response:
 
 config = load_config('/home/yoavh/code/research/caption_reconstruction/config/qa/wild_text1.yaml')
 
-llm_config = config['llm']
-llm_config['seed'] = config['base_params']['master_seed'] + llm_config.get('seed', 0)
+llm_config = get_llm_config(config)
 
 run_id = Path(__file__).stem + "__" + get_datetime_str()
 log_path, notification_logger = setup_logging(

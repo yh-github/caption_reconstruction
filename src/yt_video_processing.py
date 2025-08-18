@@ -11,7 +11,7 @@ from google import genai
 from google.genai import types
 from google.genai.types import GenerateContentResponse
 
-from config_loader import load_config
+from config_loader import load_config, get_llm_config
 from data_models.captions_only import VideoLinkData
 from data_models.complex_struct import VideoAnalysis
 from llm_interaction import LLM_Response, LLM_Manager_Builder
@@ -71,8 +71,7 @@ def read_prompt(path:str|Path) -> str:
 
 
 def main(config):
-    llm_config = config['llm']
-    llm_config['seed'] = config['base_params']['master_seed'] + llm_config.get('seed',0)
+    llm_config = get_llm_config(config)
     prompt_text = read_prompt(llm_config['prompt_template'])
     run_id = Path(__file__).stem +"__"+ get_datetime_str()
     setup_logging(

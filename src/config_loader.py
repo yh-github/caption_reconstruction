@@ -28,3 +28,8 @@ def load_config(
         **system_config,
         **experiment_config
     }
+
+def get_llm_config(config:dict[str, Any]) -> dict[str, Any]:
+    llm_config = config['llm'].copy()
+    llm_config['seed'] = config['base_params']['master_seed'] + llm_config.get('seed',0)
+    return llm_config
