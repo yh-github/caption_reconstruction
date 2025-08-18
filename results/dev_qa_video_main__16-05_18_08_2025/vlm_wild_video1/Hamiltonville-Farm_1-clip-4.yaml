@@ -1,0 +1,77 @@
+answers:
+- answer: The poles being cut in the video are telephone poles.
+  confidence: 1.0
+  evidence:
+  - end: '06:15.532'
+    explanation: The man explicitly states, "So I'm gonna cut another telephone pole."
+    start: '06:14.372'
+  is_guess: false
+  question_index: 1
+- answer: The posts will be set approximately 12.5 to 13 feet apart on center to accommodate
+    a gate.
+  confidence: 1.0
+  evidence:
+  - end: '06:06.912'
+    explanation: The man states that the posts will be set "probably 13 foot on center,
+      maybe 12 and a half on center."
+    start: '06:02.102'
+  - end: '06:13.062'
+    explanation: He reiterates that he will set the posts at "probably 12 and a half
+      on center."
+    start: '06:11.752'
+  is_guess: false
+  question_index: 2
+- answer: The telephone pole is being cut to create a 14-foot crossbar for a gate
+    entrance.
+  confidence: 1.0
+  evidence:
+  - end: '05:59.882'
+    explanation: The man states he is cutting the pole for the "top bar that goes
+      across, the crossbar, top plate, whatever you wanna call it."
+    start: '05:56.292'
+  - end: '06:09.022'
+    explanation: He mentions that he has a "10-foot gate" which this structure will
+      support.
+    start: '06:08.302'
+  - end: '06:21.432'
+    explanation: He says he will cut the crossbar to be about 14 feet long.
+    start: '06:19.642'
+  is_guess: false
+  question_index: 3
+scores:
+- 0.779
+- 0.783
+- 0.601
+thoughts: '**Analysis of the Video: Gate Construction with Telephone Poles**
+
+
+  Okay, here''s what I''ve got after watching that video. The user wants me to break
+  down this footage and answer a few specific questions.  Let''s see:
+
+
+  **Question 1: What are the poles being cut?**  Pretty straightforward.  At around
+  6:14, the guy says, "...gonna cut another telephone pole." So, those are *telephone
+  poles* he''s working with.  Clear as day.
+
+
+  **Question 2: Where will the posts be set?**  Alright, this one''s about spacing.
+  He''s talking about the posts, and around the 6:02 mark he says, "the posts are
+  gonna be set uhm probably 13 foot on center, maybe 12 and a half on center." He
+  reinforces that again at 6:12. So, based on what he''s saying, the posts will be
+  set roughly *12.5 to 13 feet on center*.  That''s my answer.
+
+
+  **Question 3: What''s the purpose of cutting the pole?** This is where it gets interesting.  He''s
+  building a gate. At 5:56, he mentions "the top bar that goes across..." He''s building
+  a crossbar. Then, around 6:08, he mentions a 10-foot gate.  At 6:19 he says he''s
+  going to cut it, the section he''s cutting, to 14 feet to give it an overhang on
+  the sides.  So, he''s cutting the telephone pole to create a *14-foot crossbar*
+  to span a gate opening for a 10-foot gate.
+
+
+  I''ve reviewed the timestamps and audio to justify my answers.  The evidence is
+  solid; all answers are drawn directly from the video content.  I can certainly structure
+  this into a JSON format now.
+
+  '
+video_id: Hamiltonville-Farm_1-clip-4

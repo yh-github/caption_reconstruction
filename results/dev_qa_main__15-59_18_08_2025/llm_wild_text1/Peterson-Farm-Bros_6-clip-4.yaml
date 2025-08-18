@@ -1,0 +1,77 @@
+answers:
+- answer: The video shows a wheat harvest, with combine harvesters cutting the crop
+    in the field and unloading the harvested grain into a truck.
+  confidence: 1.0
+  evidence:
+  - end: '05:05.186'
+    explanation: The primary activity in this segment is explicitly listed as "harvesting
+      wheat", and the summary describes "an introduction to a wheat harvest".
+    start: '04:36.196'
+  - end: '04:54.614'
+    explanation: A key moment shows a combine harvester unloading harvested grain
+      into a truck, which is a core part of the harvesting process.
+    start: '04:50.309'
+  - end: '06:58.553'
+    explanation: This segment's summary describes "combine harvesters as they actively
+      cut through a golden wheat field," and the primary activity is again listed
+      as "harvesting wheat."
+    start: '06:01.373'
+  is_guess: false
+  question_index: 1
+- answer: The primary crop being harvested is wheat. The video also shows a corn field,
+    indicating multiple crops are grown on the farm.
+  confidence: 1.0
+  evidence:
+  - end: '05:05.186'
+    explanation: This segment's `stuff` list includes "wheat field" and its primary
+      activity is "harvesting wheat."
+    start: '04:36.196'
+  - end: '05:23.704'
+    explanation: A key moment shows a landscape with both "golden wheat fields and
+      green crop fields."
+    start: '05:14.394'
+  - end: '06:01.373'
+    explanation: This segment's `stuff` list mentions both "wheat field" and "corn
+      field," indicating multiple crops are grown on the farm.
+    start: '05:05.186'
+  is_guess: false
+  question_index: 2
+scores:
+- 0.706
+- 0.542
+thoughts: '**My Analysis of the Video Data**
+
+
+  Okay, here''s how I''m thinking about this. The system wants me to analyze some
+  video information and answer two questions. Let''s break it down:
+
+
+  **First, what''s happening in the video?**
+
+
+  Looking at the provided information, it''s pretty straightforward. Across three
+  segments, the `primary_activity` is either harvesting wheat or implied by that activity.
+  The summaries consistently point to a wheat harvest. Key moments repeatedly show
+  combine harvesters cutting wheat, unloading grain into trucks, and generally working
+  in the fields. The evidence is solid: "harvesting wheat" is explicitly stated as
+  the primary activity in segments 1 and 3. The segment summaries and key moments
+  also support that it is "a wheat harvest". Thus, I''m confident (confidence: 1.0,
+  is_guess: False) that the video depicts a wheat harvest. It''s a clear-cut case.
+
+
+  **Second, what kind of crop is being grown?**
+
+
+  This is also quite obvious. The repeated mentions of "wheat" throughout the video
+  data are the key. The `stuff` list includes "wheat field" in all three segments,
+  and the primary activity is explicitly "harvesting wheat" in segments 1 and 3. The
+  summaries and key moments consistently reference "golden wheat fields" and combines
+  cutting "wheat". There''s a passing mention of a "corn field" in segment 2, but
+  the emphasis is undeniably on wheat. Therefore, I conclude (confidence: 1.0, is_guess:
+  False) that the primary crop is wheat.
+
+
+  I will formulate my answers based on the above information in the correct JSON format.
+
+  '
+video_id: Peterson-Farm-Bros_6-clip-4

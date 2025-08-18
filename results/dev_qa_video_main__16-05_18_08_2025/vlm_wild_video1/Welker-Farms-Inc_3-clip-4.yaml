@@ -1,0 +1,47 @@
+answers:
+- answer: The men in the video are demonstrating ice fishing.
+  confidence: 1.0
+  evidence:
+  - end: 04:23:362
+    explanation: A man is shown holding a large fish he has just caught. In the background
+      is an ice fishing shelter on a frozen, snow-covered body of water.
+    start: 04:21:095
+  - end: 04:36:288
+    explanation: An underwater camera shows a fish being pulled up through a hole
+      drilled in the ice, which is the method used in ice fishing.
+    start: 04:33:421
+  is_guess: false
+  question_index: 1
+scores:
+- 0.919
+thoughts: '**Identifying the Recreational Sport**
+
+
+  Okay, let''s break this down. My initial task is to identify the sport shown in
+  the video. The visuals are key here.
+
+
+  First, I need to *carefully analyze* the video. I''m seeing men on a frozen surface,
+  what looks like a lake or reservoir, completely covered in snow.  I''m noting the
+  specialized equipment: an ice auger at around 04:21, fishing rods, and an ice fishing
+  shelter at 04:22. Crucially, at 04:33-04:36 and again at 05:08-05:12, they''re pulling
+  fish *through holes* drilled in the ice.
+
+
+  Given this context, the sport is quite clear: it''s *ice fishing*.  The setting,
+  the equipment, and the core action all scream ice fishing.
+
+
+  The evidence is overwhelming. Look at the specific timestamps: 04:21-04:23, we''ve
+  got the auger, shelter, and a guy holding a fish right next to an ice fishing tent.  Then,
+  04:23-04:28, a pile of caught fish on the snow.  04:33-04:36, an underwater view
+  of a fish being pulled up through a hole. And finally, 05:08-05:12, a hand reaching
+  into the ice to grab a fish.  It''s all definitive.
+
+
+  So, the answer is straightforward: The recreational sport being demonstrated is
+  ice fishing. The confidence level is 1.0; the evidence is direct and unambiguous.
+  This isn''t a guess; it''s a solid deduction based on clear visual cues.
+
+  '
+video_id: Welker-Farms-Inc_3-clip-4

@@ -1,0 +1,35 @@
+answers:
+- answer: They have enough soybeans to plant two farms.
+  confidence: 1.0
+  evidence:
+  - end: '02:10.599'
+    explanation: The person in the video states, "This should be enough to do two
+      of the farms."
+    start: '02:08.729'
+  is_guess: false
+  question_index: 1
+scores:
+- 0.842
+thoughts: '**Calculating Farm Coverage from Soybean Supply**
+
+
+  Okay, so I''m looking at this video, and the goal is to figure out how many farms
+  we can cover with the prepared soybeans. Naturally, my first instinct is to zero
+  in on the key terms: "farms," "soybeans," and "plant." I''m quickly scanning the
+  video, and I see the speaker in the tractor cab, which is exactly the kind of setting
+  where this information would be relevant.
+
+
+  At 02:08.729, my ears perk up. The speaker says, "This should be enough to do two
+  of the farms." Bingo! That''s precisely the answer I was looking for. Now, I have
+  to ensure the context is solid. The speaker also mentioned the soybean tender and
+  the two seed boxes, which confirms he''s directly referring to our current soybean
+  supply.
+
+
+  So, the bottom line is clear: we have enough soybeans to plant two farms. That''s
+  a high-confidence direct statement, and it''s backed up by the dialogue occurring
+  between 02:08.729 and 02:10.599. Simple enough.
+
+  '
+video_id: How-Farms-Work_10-clip-1

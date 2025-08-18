@@ -1,0 +1,30 @@
+answers:
+- answer: The farmer needs to plant a total of 140 acres in the field shown in the
+    video.
+  confidence: 1.0
+  evidence:
+  - end: '14:37.744'
+    explanation: The farmer explicitly states that the field he is working on is a
+      140-acre field.
+    start: '14:35.834'
+  is_guess: false
+  question_index: 1
+scores:
+- 0.756
+thoughts: '**Understanding the Field Acreage**
+
+
+  Okay, here''s what I''ve figured out. The user wants the total acreage of the field
+  being planted. No problem, that''s straightforward. My process began with dissecting
+  the query. It''s simply asking for the field''s size. Then, it''s keyword time -
+  scanning for anything related to "acres," "field size," and, of course, "planting."
+
+
+  The video had the goods! At 14:31, he mentions 90 acres done. But then, *bingo*
+  at 14:35, he says, "But, it''s a 140-acre field." That settles it. The answer is
+  140 acres. It''s direct, it''s clear, and it''s backed by his explicit statement.
+  The evidence is solid and my confidence is at 100%. This wasn''t a guess, it was
+  a direct answer.
+
+  '
+video_id: Millennial-Farmer_7-clip-13

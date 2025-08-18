@@ -1,0 +1,39 @@
+answers:
+- answer: The stencil shown in the video is made out of cardboard.
+  confidence: 1.0
+  evidence:
+  - end: '03:37.336'
+    explanation: The speaker mentions that the paint can curl the cardboard of the
+      stencil.
+    start: '03:36.196'
+  - end: '03:48.066'
+    explanation: The speaker explicitly states that the stencil is on cardboard.
+    start: '03:47.016'
+  is_guess: false
+  question_index: 1
+scores:
+- 0.912
+thoughts: '**Unpacking the Stencil Material**
+
+
+  Okay, so I need to figure out what this stencil is made of. The user wants a definitive
+  answer, and based on the context, it''s likely a simple material. Let''s see...
+
+
+  First, I watched the video and I noted the man''s emphasis on the stencil material.
+  I''m focusing on his phrasing and what he''s physically demonstrating. I zeroed
+  in on the direct statements he makes about the material.
+
+
+  At the 3:36 mark, he says something about keeping the stencil *intact*, which implies
+  it''s susceptible to damage. Then, at 3:47, he refers to it being made of cardboard.
+  It clicks! He''s using a *hand stapler* on it because it''s *cardboard*.
+
+
+  I''m feeling very confident about this. The video clearly states "cardboard" as
+  the material at specific timestamps (03:36-03:37 and 03:47-03:48). So I''m providing
+  a confidence score of 1.0, and I''m not guessing here. The evidence is solid. The
+  user will be satisfied.
+
+  '
+video_id: John-Suscovich_3-manual
