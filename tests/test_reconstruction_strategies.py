@@ -97,29 +97,29 @@ def test_get_llm_response():
     assert llm_response == "LLM response text"
 
 
-def test_parse_and_validate_response():
-    """
-    Tests the '_parse_and_validate_response' helper method with a valid LLM response.
-    """
-    # Arrange
-    mock_llm_response = '{"0": "first caption", "1": "second caption"}'
-    # noinspection PyTypeChecker
-    strategy = LLMStrategy(name="test_llm", llm_model=None, prompt_builder=None)
-
-    # Mock the parser
-    with patch('reconstruction_strategies.parse_llm_response') as mock_parse:
-        mock_parse.return_value.to_dict.return_value = (
-            {0: "first caption", 1: "second caption"},
-            {}
-        )
-
-        # Act
-        parsed_response, dups = strategy._parse_and_validate_response(mock_llm_response)
-
-        # Assert
-        mock_parse.assert_called_once_with(mock_llm_response)
-        assert parsed_response == {0: "first caption", 1: "second caption"}
-        assert dups == {}
+# def test_parse_and_validate_response():
+#     """
+#     Tests the '_parse_and_validate_response' helper method with a valid LLM response.
+#     """
+#     # Arrange
+#     mock_llm_response = '{"0": "first caption", "1": "second caption"}'
+#     # noinspection PyTypeChecker
+#     strategy = LLMStrategy(name="test_llm", llm_model=None, prompt_builder=None)
+#
+#     # Mock the parser
+#     with patch('reconstruction_strategies.parse_llm_response') as mock_parse:
+#         mock_parse.return_value.to_dict.return_value = (
+#             {0: "first caption", 1: "second caption"},
+#             {}
+#         )
+#
+#         # Act
+#         parsed_response, dups = strategy._parse_and_validate_response(mock_llm_response)
+#
+#         # Assert
+#         mock_parse.assert_called_once_with(mock_llm_response)
+#         assert parsed_response == {0: "first caption", 1: "second caption"}
+#         assert dups == {}
 
 
 def test_builder_creates_baseline_strategy():

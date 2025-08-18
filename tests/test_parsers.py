@@ -15,7 +15,7 @@ def test_parse_llm_response_success():
     llm_output = recon_obj.model_dump_json(indent=4)
 
     # Act
-    parsed:ReconstructedCaptions|None = parse_llm_response(llm_output)
+    parsed:ReconstructedCaptions|None = parse_llm_response(model=ReconstructedCaptions, response_text=llm_output)
     assert parsed is not None
     assert parsed == recon_obj
 
@@ -31,7 +31,7 @@ def test_parse_llm_response_invalid_json():
     """ # Missing closing curly brace
 
     # Act
-    parsed_clips = parse_llm_response(llm_output)
+    parsed_clips = parse_llm_response(model=ReconstructedCaptions, response_text=llm_output)
 
     # Assert
     assert parsed_clips is None
@@ -49,7 +49,7 @@ def test_parse_llm_response_validation_error():
     """
 
     # Act
-    parsed_clips = parse_llm_response(llm_output)
+    parsed_clips = parse_llm_response(model=ReconstructedCaptions, response_text=llm_output)
 
     # Assert
     assert parsed_clips is None

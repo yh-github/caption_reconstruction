@@ -148,7 +148,7 @@ class LLMStrategy(ReconstructionStrategy):
     @staticmethod
     def _parse_and_validate_response(llm_response_text: str) -> tuple[dict[int, str], dict[int, int]]:
         """Parse LLM response and convert to dictionary format."""
-        reconstructed_video = parse_llm_response(llm_response_text)
+        reconstructed_video = parse_llm_response(model=Reconstructed, response_text=llm_response_text)
         if not reconstructed_video:
             return {}, {}
         return reconstructed_video.to_dict()

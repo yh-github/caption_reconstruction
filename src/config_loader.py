@@ -19,6 +19,8 @@ def load_config(
     logging.info(f"Loading experiment config from: {experiment_config_path}")
     with open(experiment_config_path, 'r') as f:
         experiment_config = yaml.safe_load(f)
+
+    # TODO: add master_seed here to all llm configs and all configs with seed
     
     # Merge the two dictionaries
     return {
