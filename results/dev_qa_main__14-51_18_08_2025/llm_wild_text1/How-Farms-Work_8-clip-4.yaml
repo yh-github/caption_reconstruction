@@ -1,0 +1,33 @@
+answers:
+- answer: The crop being harvested throughout the video is corn.
+  confidence: 1.0
+  evidence:
+  - end: '00:05:25.045'
+    explanation: The segment summary describes the primary activity as "harvesting
+      corn" and mentions a combine harvester processing rows of corn.
+    start: '00:04:34.091'
+  - end: '00:05:34.045'
+    explanation: A key moment caption notes that the driver reports finishing the
+      cornfield.
+    start: '00:05:27.245'
+  - end: '00:05:38.411'
+    explanation: The driver inside the harvester states the average moisture content
+      of the corn was 18.3 percent.
+    start: '00:05:35.711'
+  is_guess: false
+  question_index: 1
+scores:
+- 0.825
+thoughts: '**Identifying the Harvested Crop**
+
+
+  Okay, so I''m analyzing this video to pinpoint the crop being harvested. My strategy
+  is straightforward: I''ll meticulously scan each video segment, essentially data-mining
+  for explicit references. I''m looking for keywords, you know, common crops like
+  corn, wheat, soybeans, things like that.  My assumption is that the speaker, or
+  a caption, will directly state the crop type. Looks like I hit paydirt pretty quickly!
+  Several segment summaries and even key moments directly declare "corn" is the crop.  Boom,
+  direct answer!
+
+  '
+video_id: How-Farms-Work_8-clip-4

@@ -1,0 +1,34 @@
+answers:
+- answer: The farmer is dealing with the effects of a drought in Kansas, which has
+    resulted in dry, patchy lawns, sparse pastures, and significantly receded water
+    levels in ponds for his cattle.
+  confidence: 1.0
+  evidence:
+  - end: '02:18.132'
+    explanation: A man begins to speak to the camera about the effects of drought
+      in Kansas.
+    start: '02:15.066'
+  - end: '02:31.765'
+    explanation: The man states they have been facing challenges for the last 12 months.
+    start: '02:26.565'
+  - end: '03:12.799'
+    explanation: This segment shows a dry, brown, and patchy lawn, illustrating the
+      impact of the drought.
+    start: '02:32.066'
+  - end: '03:32.165'
+    explanation: This segment shows a pasture pond with a very low water level and
+      dried, cracked mud, further illustrating the drought's effects.
+    start: '03:12.799'
+  is_guess: false
+  question_index: 1
+scores:
+- 0.569
+thoughts: "**The Farmer's Problem: A Quick Assessment**\n\nAlright, so the user wants\
+  \ to know the farmer's main problem.  Seems straightforward enough. My approach\
+  \ is simple: scan the video segments for the usual suspects \u2013 the problem indicators.\
+  \ \"Issue,\" \"challenge,\" any negative conditions... those are the keywords I'm\
+  \ listening for. And bingo! The text pretty much hands me the answer.  \"Drought\"\
+  \ and \"challenges\" are right there in black and white. Add to that the visual\
+  \ cues \u2013 dry land, a receding pond \u2013 and it's crystal clear. Drought is\
+  \ the farmer's primary hurdle.  Easy peasy.\n"
+video_id: Peterson-Farm-Bros_5-clip-2

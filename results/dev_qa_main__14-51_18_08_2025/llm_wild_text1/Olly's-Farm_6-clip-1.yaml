@@ -1,0 +1,76 @@
+answers:
+- answer: The potato harvester shown in the video is red.
+  confidence: 1.0
+  evidence:
+  - end: '01:17.658'
+    explanation: This segment's summary states, "Aerial footage shows a red potato
+      harvester..."
+    start: '01:00:00.000'
+  - end: '01:40.068'
+    explanation: This segment's summary notes, "A man in a safety vest stands in the
+      field next to the red potato harvester..."
+    start: '01:17.658'
+  is_guess: false
+  question_index: 1
+- answer: Yes, the video mentions that the 'Venezia' salad potato is grown because
+    it is high-yielding and has good flavor.
+  confidence: 1.0
+  evidence:
+  - end: '01:39.118'
+    explanation: A man identifies the crop as a 'Venezia' salad potato and describes
+      its advantages as being "high-yielding with good flavor."
+    start: '01:32.418'
+  is_guess: false
+  question_index: 2
+- answer: Based on the footage, potatoes are not hand-dug on a commercial level. The
+    video explicitly shows a large, specialized machine called a potato harvester
+    being used to dig them from the soil.
+  confidence: 0.7
+  evidence:
+  - end: '01:17.658'
+    explanation: The video shows a large potato harvester digging up potatoes and
+      moving them with a conveyor belt, indicating a mechanized process.
+    start: '01:00:00.000'
+  - end: '02:00.778'
+    explanation: A man explains the functionality of the Grimme Varitron 220 potato
+      harvester, which performs the digging and lifting of the potatoes.
+    start: '01:40.068'
+  is_guess: false
+  question_index: 3
+scores:
+- 0.822
+- 0.664
+- 0.572
+thoughts: '**My Analysis of the Video Data**
+
+
+  First, I identified the task: answering three questions based on the video information.
+  My process involved thoroughly analyzing the provided transcript segments, searching
+  for relevant keywords and phrases to pinpoint the answers.
+
+
+  For the first question about the machine''s color, I scanned for "color" and machine
+  names. The transcript clearly states the potato harvester is "red", and the tractor
+  is "blue."  The primary focus is on the harvester.  Therefore, I concluded the potato
+  harvester is red, with a confidence level of 1.0, based on direct textual evidence.
+
+
+  Next, regarding advantages of a specific potato type, I looked for terms like "advantages,"
+  "benefits," "yield," and specific potato types. The transcript mentions "Venezia"
+  salad potatoes. The speaker explicitly describes them as "high-yielding with good
+  flavor," which undeniably constitute advantages.  Thus, I determined that the "Venezia"
+  potato variety indeed offers advantages, with a confidence of 1.0, derived directly
+  from the video''s content.
+
+
+  Finally, the question of hand digging on a commercial level.  I searched for terms
+  related to "hand dug" and harvesting methods. The video prominently features a large
+  potato harvester machine.  The transcript meticulously describes the harvester''s
+  mechanized operation.  While the question is general, the video strongly suggests
+  mechanized harvesting in this commercial setting.  Therefore, I inferred that, based
+  on this example, potatoes are not hand-dug on a commercial level, at least in the
+  manner shown in the video. My confidence is 0.7, as this is an inference based on
+  the provided data.
+
+  '
+video_id: Olly's-Farm_6-clip-1
