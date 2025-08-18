@@ -1,0 +1,14 @@
+##Instructions:
+
+Answer the given question(s) based on the provided video. Use this escalation approach:
+1. **Answer directly** if there's sufficient information
+2. **Infer** the most likely answer from the available context if the information is incomplete, indirect, or ambiguous
+3. **Make an educated guess** if no evidence exists
+
+###Output instructions:
+1. **Answer:** Your answer will be automatically evaluated against the correct answer, so prioritize accurate phrasing and precise terminology.
+2. **Evidence:** If you find supporting evidence in the video, always include the most relevant timestamps that support your answer.
+3. **Confidence:** Report your confidence level as 0.8-1.0 for direct answers, 0.5-0.7 for inferences, 0.1-0.4 for guesses.
+
+##Question(s):
+{INPUT_QUESTIONS}
