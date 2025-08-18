@@ -62,17 +62,6 @@ class AnswerResponse(BaseModel):
     answer: str = Field(...,
         description="Your answer to the question")
 
-import json
-
-def compact_model_dump_json(model) -> str:
-    """
-    Custom compact model_dump_json implementation.
-    Converts the Pydantic object to JSON with small indentation for compactness and readability.
-    """
-    # Use `model_dump` to get the Python data structure, then serialize with `json.dumps`
-    return json.dumps(model.model_dump(), indent=2, separators=(",", ": "))
-
-
 prompt_builder = JSONPromptBuilder.from_path('/home/yoavh/code/research/caption_reconstruction/prompts/qa/text1.txt')
 prompt_builder.set_consts({'INSTRUCT_INPUT_SCHEMA': "\n".join(get_model_schema_lines(VideoSegment, level=1))})
 

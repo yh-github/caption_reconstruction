@@ -98,9 +98,8 @@ class ExperimentPipeline(ABC):
                 mlflow.log_param("mlflow_version", version('mlflow'))
 
                 for runner in self.build_experiments():
-                    run_name = runner.run_name
-                    with mlflow.start_run(run_name=run_name, nested=True):
-                        logging.info(f"--- Starting Nested Run: {run_name} ---")
+                    with mlflow.start_run(run_name=runner.run_name, nested=True):
+                        logging.info(f"--- Starting Nested Run: {runner.run_name} ---")
                         mlflow.log_params(runner.conf_for_log)
                         self.run_and_eval(runner)
                         flush_loggers()
@@ -144,7 +143,6 @@ class ExperimentPipeline(ABC):
         return llm_mock
 
 
-
 class ExperimentPipeline_QA(ExperimentPipeline):
 
     def __init__(self, exec_args: ExecArgs, config: dict[str, Any]):
@@ -160,36 +158,13 @@ class ExperimentPipeline_QA(ExperimentPipeline):
 
     def build_experiments(self):
         config = self.config
-
-        # --- Loop 1: Reconstruction Strategy ---
-        for strategy_params in config.get("recon_strategy", []):
-
-            # Build the strategy object once for this block
-            recon_strategy = self.rs_builder.get_strategy(strategy_params)
-
-            masking_strategies = get_masking_strategies(
-                masking_configs=config["masking_configs"],
-                master_seed=config["base_params"]["master_seed"]
-            )
-
-            # --- Loop 2: Iterate over the generated masking strategies ---
-            for masker in masking_strategies:
-                # Build the final runner object with all components
-                conf_for_log = flat_dict({
-                    '': config.get('base_params'),
-                    'data_config': config["data_config"],
-                    'masking': masker.get_params_for_repr(),
-                    'recon_strategy': strategy_params
-                })
-                runner = ExperimentRunner(
-                    run_name=f"{recon_strategy}__{masker}",
-                    data_loader=self.data_loader,
-                    masking_strategy=masker,
-                    reconstruction_strategy=recon_strategy,
-                    evaluator=self.evaluator,
-                    conf_for_log=conf_for_log
-                )
-                yield runner
+        runner = ExperimentRunner(
+            run_name=f"{recon_strategy}__{masker}",
+            data_loader=self.data_loader,
+            evaluator=self.evaluator,
+            conf_for_log=conf_for_log
+        )
+        yield runner
 
 
 class ExperimentPipeline_Reconstruction(ExperimentPipeline):
