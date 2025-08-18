@@ -1,4 +1,4 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 
 import pytest
 from data_models.captions_only import CaptionedVideo, CaptionedClip, TimestampRange
