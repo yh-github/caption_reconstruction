@@ -53,7 +53,7 @@ llm_config = config['llm']
 llm_config['seed'] = config['base_params']['master_seed'] + llm_config.get('seed', 0)
 
 run_id = Path(__file__).stem + "__" + get_datetime_str()
-setup_logging(
+log_path, notification_logger = setup_logging(
     run_id=run_id,
     log_dir=config["paths"]["log_dir"],
     base_level=logging.INFO,
@@ -87,10 +87,13 @@ def do_eval(video_id:str, answer_res:list[AnswerResponse], ground_truth:list[QAD
         score =  evaluator.evaluate(ar, gt)
         scores.append(round(score, 3))
         qi += 1
-        logger.info(f"{run_name=} {video_id}__{gt.qi} bs_f1={score}")
+        m = f"{run_name=} {video_id}__{qi} bs_f1={score}"
+        logger.info(m)
+        notification_logger.info(m)
     return scores
 
 out_path = Path('results') / run_id / run_name
+out_path.mkdir(parents=True, exist_ok=True)
 
 with diskcache.Cache(directory=config['paths']['disk_cache']) as llm_cache:
     llm_builder = LLM_Manager_Builder(genai.Client(), llm_cache)
