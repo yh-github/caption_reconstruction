@@ -1,7 +1,7 @@
 import logging
 import os
 from datetime import datetime
-from typing import Any
+from typing import Any, Iterator
 
 import git
 import mlflow
@@ -305,3 +305,6 @@ def dump_model_compact_json(model_or_list: BaseModel|list[BaseModel], width: int
         data_to_dump = model_or_list.model_dump()
 
     return json.dumps(data_to_dump, cls=CompactJSONEncoder, indent=2, compact_width=width)
+
+def numbered_list(xs:Iterator[str]) -> str:
+    return "".join(f"{i}. {x}\n" for i, x in enumerate(xs, start=1))

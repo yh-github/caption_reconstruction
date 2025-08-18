@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-
 from data_models.captions_only import CaptionedVideo
 
 
@@ -21,11 +20,20 @@ class PromptBuilderDataOnly(PromptBuilder):
                 + "\n]")
 
 
+class FormatDict(dict):
+
+    @staticmethod
+    def from_dict(d):
+        return FormatDict(d if d else {})
+
+    def __missing__(self, key):
+        return '{' + str(key) + '}'
+
 class JSONPromptBuilder(PromptBuilder):
     """Builds a prompt that instructs the LLM to work with JSON."""
 
-    def __init__(self, instruction_template: str):
-        self.instruction_template = instruction_template
+    def __init__(self, instruction_template: str, consts:dict[str,str]=None):
+        self.instruction_template = instruction_template.format_map(FormatDict.from_dict(consts))
         self.data_prompter = PromptBuilderDataOnly()
 
     def build_prompt(self, masked_video: CaptionedVideo) -> str:
@@ -37,6 +45,13 @@ class JSONPromptBuilder(PromptBuilder):
         json_prompt_data = self.data_prompter.build_prompt(masked_video)
 
         return f"{instruction}\n\n{json_prompt_data}"
+
+    def set_consts(self, consts:dict[str,str]):
+        self.instruction_template = self.instruction_template.format_map(FormatDict.from_dict(consts))
+        return self
+
+    def with_vars(self, values:dict[str,str]) -> str:
+        return self.instruction_template.format(**values)
 
     @staticmethod
     def from_config(config: dict):
