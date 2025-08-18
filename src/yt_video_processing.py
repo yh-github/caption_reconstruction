@@ -16,7 +16,7 @@ from data_models.captions_only import VideoLinkData
 from data_models.complex_struct import VideoAnalysis
 from llm_interaction import LLM_Response, LLM_Manager_Builder
 from utils import setup_logging, get_datetime_str
-from video_link_loader import load_wild_dataset
+from video_link_loader import load_wild_dataset, WildVideoMetadata
 
 
 def gen_content_prompt(vl:VideoLinkData, prompt:str, fps:int) -> types.Content:
@@ -34,14 +34,17 @@ def gen_content_prompt(vl:VideoLinkData, prompt:str, fps:int) -> types.Content:
         ]
     )
 
+def to_yt_links(vs:list[WildVideoMetadata]) -> list[VideoLinkData]:
+    _links = {v.to_link() for v in vs}
+    _v_ids = {v.video_id for v in vs}
+    assert len(_v_ids) == len(_links)
+    return list(_links)
+
 def load_wild_links(path:str|Path) -> list[VideoLinkData]:
     try:
         path = Path(path)
         vs = list(load_wild_dataset(path))
-        _links = {v.to_link() for v in vs}
-        _v_ids = {v.video_id for v in vs}
-        assert len(_v_ids) == len(_links)
-        return list(_links)
+        return to_yt_links(vs)
     except Exception as e:
         print(f'Usage: {sys.argv[0]} <config>')
         print('Error:', e)
