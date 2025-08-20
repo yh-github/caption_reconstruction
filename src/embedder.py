@@ -53,7 +53,7 @@ class Embedder:
             raw_res = self.client.models.embed_content(
                 model=self.model,
                 config=self.embed_config,
-                contents=texts,
+                contents=texts
             )
         except Exception as e:
             logger.error(f"Embeddings failed for {video_id}, ** {e.__class__.__qualname__} ** {e}")
