@@ -5,19 +5,16 @@ from collections import defaultdict
 from pathlib import Path
 
 import diskcache
-import yaml
 from google import genai
-from google.genai.types import GenerateContentResponse
 
 from config_loader import load_config, get_llm_config
 from data_models.captions_only import VideoLinkData
-from data_models.complex_struct import VideoAnalysis, VideoSegment
 from dev_qa import QAData, load_wild_captions, build_evaluator, AnswerResponse, AnswerResponses
 from dev_qa_main import save_to_file, save_error
-from llm_interaction import LLM_Manager_Builder, LLM_Response
+from llm_interaction import LLM_Manager_Builder
 from parsers import parse_llm_response
 from prompting import JSONPromptBuilder
-from utils import get_model_schema_lines, dump_model_compact_json, numbered_list, get_datetime_str, setup_logging
+from utils import numbered_list, get_datetime_str, setup_logging
 from video_link_loader import load_wild_dataset
 from yt_video_processing import gen_content_prompt
 
