@@ -8,7 +8,7 @@ import diskcache
 from google import genai
 
 from config_loader import load_config, get_llm_config
-from data_models.captions_only import VideoLinkData
+from data_models.video_link import VideoLinkData
 from dev_qa import QAData, load_wild_captions, build_evaluator, AnswerResponse, AnswerResponses
 from dev_qa_main import save_to_file, save_error
 from llm_interaction import LLM_Manager_Builder

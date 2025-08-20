@@ -1,5 +1,4 @@
 from typing import Self
-
 from pydantic import BaseModel, Field, field_validator, ConfigDict, RootModel
 
 
@@ -82,15 +81,3 @@ class ReconstructedCaptions(RootModel[list[ReconstructedCaption]]):
                 d[rc.index] = rc.caption
         return d, dups
 
-
-class VideoLinkData(BaseModel):
-    model_config = ConfigDict(frozen=True)
-    video_id:str
-    uri:str
-    start_offset:float
-    end_offset:float
-
-    # noinspection PyMethodParameters
-    @field_validator('start_offset', 'end_offset')
-    def round_timestamp(cls, value):
-        return round(value, 3)

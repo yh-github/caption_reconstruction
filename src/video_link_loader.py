@@ -5,7 +5,7 @@ from typing import Self
 
 from pydantic import BaseModel, RootModel, Field, model_validator
 
-from data_models.captions_only import VideoLinkData
+from data_models.video_link import VideoLinkData
 
 logger = logging.getLogger(__name__)
 
