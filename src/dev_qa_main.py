@@ -21,25 +21,29 @@ from video_link_loader import load_wild_dataset
 logger = logging.getLogger(__name__)
 
 
-def save_to_file(path, video_id:str, thoughts:str, _answers:AnswerResponses, _scores:list[float]):
+def save_to_file(path, video_id:str, thoughts:str, _answers:AnswerResponses, _scores:list[float], mask_start:float|None=None, mask_end:float|None=None):
     with open(path, 'w') as f:
         f.write(yaml.dump({
             "video_id": video_id,
+            "mask_start": mask_start,
+            "mask_end": mask_end,
             "thoughts": thoughts,
             "answers": _answers.model_dump(),
             "scores": _scores
-        }))
+        }, sort_keys=False))
 
 
-def save_error(path, video_id:str, llm_response:LLM_Response, last_raw_response:GenerateContentResponse|None, exception:Exception):
+def save_error(path, video_id:str, llm_response:LLM_Response, last_raw_response:GenerateContentResponse|None, exception:Exception, mask_start:float|None=None, mask_end:float|None=None):
     with open(path, 'w') as f:
         return f.write(yaml.dump(
             {
                 "video_id": video_id,
+                "mask_start": mask_start,
+                "mask_end": mask_end,
                 "llm_response": None if not llm_response else llm_response.model_dump_json(),
                 "last_raw_response": None if not last_raw_response else last_raw_response.model_dump_json(),
                 "exception": str(exception)
-            }
+            }, sort_keys=False
         ))
 
 

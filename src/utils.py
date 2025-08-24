@@ -1,7 +1,7 @@
 import logging
 import os
 from datetime import datetime
-from typing import Any, Iterator
+from typing import Any, Iterator, TypeVar
 
 import git
 import mlflow
@@ -156,6 +156,10 @@ def flatten_dict(d: dict[str, Any], parent_key: str = '', sep: str = '.') -> lis
     return items
 
 def build_safe_dict(*lists_of_items: list[tuple[str, Any]]) -> dict[str, Any]:
+    return build_safe_dict_gen(*lists_of_items)
+
+K = TypeVar('K')
+def build_safe_dict_gen(*lists_of_items: list[tuple[K, Any]]) -> dict[K, Any]:
     """
     Safely builds a single dictionary from multiple lists of (key, value) tuples.
 

@@ -19,6 +19,19 @@ from utils import setup_logging, get_datetime_str
 from video_link_loader import load_wild_dataset, WildVideoMetadata
 
 
+def gen_content_prompt_multi(vls:list[VideoLinkData], prompt:str, fps:int) -> types.Content:
+    video_parts=[
+        types.Part(
+            file_data=types.FileData(file_uri=vl.uri),
+            video_metadata=types.VideoMetadata(
+                start_offset=f'{vl.start_offset}s',
+                end_offset=f'{vl.end_offset}s',
+                fps=fps
+            )
+        ) for vl in vls
+    ]
+    return types.Content(parts=video_parts+[types.Part(text=prompt)])
+
 def gen_content_prompt(vl:VideoLinkData, prompt:str, fps:int) -> types.Content:
     return types.Content(
         parts=[

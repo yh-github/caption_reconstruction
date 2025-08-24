@@ -1,7 +1,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Self
+from typing import Self, Iterator
 
 from pydantic import BaseModel, RootModel, Field, model_validator
 
@@ -184,7 +184,7 @@ class WildVideoMetadata(BaseModel):
 
 
 
-def load_wild_dataset(path:Path, limit:int=None):
+def load_wild_dataset(path:Path, limit:int=None) -> Iterator[WildVideoMetadata]:
     with open(path) as f:
         j=json.load(f)
     limit=limit or len(j)

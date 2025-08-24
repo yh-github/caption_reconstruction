@@ -17,6 +17,12 @@ class VideoLinkData(BaseModel):
     def duration(self) -> float:
         return self.end_offset - self.start_offset
 
+    def optional_mask(self, start_percentage: float|None, end_percentage: float|None) -> list[Self]:
+        """Returns a new VideoLinkData if the mask is valid, otherwise returns list with only self"""
+        if start_percentage is None and end_percentage is None:
+            return [self]
+        return self.mask(start_percentage or 0.0, end_percentage or 1.0)
+
     def mask(self, start_percentage: float, end_percentage: float) -> list[Self]:
         """Splits into two new VideoLinkData:
         1. from start_offset to start_offset+duration*start_percentage

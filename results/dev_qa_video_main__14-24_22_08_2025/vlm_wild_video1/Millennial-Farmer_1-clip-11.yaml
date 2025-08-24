@@ -1,0 +1,30 @@
+answers:
+- answer: The red container on the tractor is a seed spreader, also known as a broadcast
+    spreader.
+  confidence: 1.0
+  evidence:
+  - end: '00:12:32.421'
+    explanation: The man refers to the red container as having a "spreading chart"
+      on it, which is used to determine the rate at which to spread the seeds.
+    start: '00:12:28.411'
+  is_guess: false
+  question_index: 1
+scores:
+- 0.742
+thoughts: "**My Analysis of the Red Container**\n\nOkay, so the user wants to know\
+  \ the name of that red container. Let's break this down. First, the video. We have\
+  \ a guy prepping for some planting, presumably based on the \"Agassiz Seed & Supply\"\
+  \ bags. He's got a tractor and attaches this red, cone-shaped thing to the back.\
+  \ He's dumping seeds into it \u2013 already a strong clue. He even mentions a \"\
+  spreading chart,\" which is pretty definitive.\n\nFrom my expertise, anything that\
+  \ attaches to a tractor and spreads something, like seeds or fertilizer, is *generally*\
+  \ a spreader. Given the seeds and the chart, it's very likely a seed spreader or\
+  \ broadcast spreader.\n\nSo, the red container... it's a spreader, specifically\
+  \ a broadcast spreader or a seed spreader. The video confirms this.\n\nI've got\
+  \ a timestamp to back this up. At 12:28, he's next to the container and says, \"\
+  This thing's got a spreading chart on it.\" Bingo. The visual context from 12:28\
+  \ to 12:52 shows the machine in detail, confirming its design and function. And,\
+  \ of course, the seeds going in seal the deal.\n\nWe've got our answer: The red\
+  \ container is a seed spreader, also known as a broadcast spreader, and the evidence\
+  \ is solid. Confident.\n"
+video_id: Millennial-Farmer_1-clip-11

@@ -2,7 +2,7 @@ base_params:
   master_seed: 0x5EED
 
 data_config:
-  name: "wildQA"
+  input_type: "video links"
   path: "datasets/wildQA/dev_Agriculture.json"
   limit: null
   path_captions: "datasets/wildQA/captions__wild1/"

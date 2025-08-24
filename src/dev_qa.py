@@ -153,3 +153,10 @@ def build_evaluator(qa_by_id:dict[str, list[QAData]], wild_captions:list[VideoAn
                 sents.append(k.caption)
     return QAEvaluator_BertScore(model_type='microsoft/deberta-large-mnli', text_for_idf=sents)
 
+
+MASKED_VIDEO_INSTRUCTIONS="""
+###Input instructions:
+The video has a *masked* section, so the input consists of 2 parts.
+The masked part, between the end of the first part and the start of the second part, is hidden from you.
+It was chosen randomly and may or may not contain important information.
+"""
