@@ -25,3 +25,4 @@ cache/
 disk_cache/
 notebooks/.ipynb_checkpoints/
 remote/
+local/

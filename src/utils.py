@@ -155,11 +155,9 @@ def flatten_dict(d: dict[str, Any], parent_key: str = '', sep: str = '.') -> lis
             items.append((new_key, v))
     return items
 
-def build_safe_dict(*lists_of_items: list[tuple[str, Any]]) -> dict[str, Any]:
-    return build_safe_dict_gen(*lists_of_items)
-
 K = TypeVar('K')
-def build_safe_dict_gen(*lists_of_items: list[tuple[K, Any]]) -> dict[K, Any]:
+V = TypeVar('V')
+def build_safe_dict(*lists_of_items: list[tuple[K, V]]) -> dict[K, V]:
     """
     Safely builds a single dictionary from multiple lists of (key, value) tuples.
 
@@ -184,9 +182,8 @@ def build_safe_dict_gen(*lists_of_items: list[tuple[K, Any]]) -> dict[K, Any]:
 def flat_dict(d:dict[str, dict[str, Any]]) -> dict[str, Any]:
     return build_safe_dict(flatten_dict(d))
 
-
 ####
-from typing import List, Any, Union
+from typing import Any, Union
 from pydantic import BaseModel
 from typing import get_origin, get_args
 
@@ -207,7 +204,7 @@ def get_clean_type_name(type_hint: Any) -> str:
     return f"{origin.__name__}[{', '.join(arg_names)}]"
 
 
-def get_model_schema_lines(model: type[BaseModel], level: int = 0) -> List[str]:
+def get_model_schema_lines(model: type[BaseModel], level: int = 0) -> list[str]:
     """
     Recursively generates a list of strings representing the schema of a
     Pydantic model in a YAML-like format.
@@ -217,7 +214,7 @@ def get_model_schema_lines(model: type[BaseModel], level: int = 0) -> List[str]:
         level (int): The current indentation level for recursive calls.
 
     Returns:
-        List[str]: A list of formatted strings describing the model schema.
+        list[str]: A list of formatted strings describing the model schema.
     """
     indent = "  " * level
     fields = model.model_fields

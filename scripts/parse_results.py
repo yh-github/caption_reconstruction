@@ -3,7 +3,6 @@ from collections import defaultdict
 from pathlib import Path
 
 from config_loader import load_config
-from data_models.video_link import VideoLinkData
 from dev_qa import QAData
 from video_link_loader import load_wild_dataset
 
@@ -189,7 +188,6 @@ baseline_delta = group_stats['std'].mean()
 print(f"\nBaseline delta (mean of std): {baseline_delta:.4f}")
 
 # Optionally, calculate 95% confidence intervals
-from scipy.stats import norm
 
 group_stats['ci95_min'] = group_stats['mean'] - 1.96 * group_stats['std'] / np.sqrt(group_stats['std'])
 group_stats['ci95_max'] = group_stats['mean'] + 1.96 * group_stats['std'] / np.sqrt(group_stats['std'])
