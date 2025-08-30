@@ -96,7 +96,11 @@ def main(config):
         base_level=logging.INFO,
         console_level=logging.WARNING
     )
+<<<<<<< HEAD
     links = load_wild_links(config["data_config"]["path"])
+=======
+    links = load_wild_links(config["data_config"]["path"], config["data_config"].get("duration_limit"))
+>>>>>>> 53496f6 (chore: warn if too few captions)
     print(f'{len(links) = }')
 
     cache_dir = config["paths"]["disk_cache"]
@@ -125,6 +129,8 @@ def main(config):
             try:
                 res = llm.call(llm_input)
                 assert res and res.text, f"No response for {x.video_id}"
+                if duration := config["data_config"].get("duration_limit") and len(res.text.splitlines())!=duration:
+                    logging.warning(f'video_id={x.video_id} llm_output_len={len(res.text.splitlines())} but should be {duration}')
                 save_to_file(OUT_FILE, x.video_id, res.text)
             except Exception as e:
                 logging.error(f"Error saving {x.video_id} to file, {e=}, saving to {ERR_FILE=}")
