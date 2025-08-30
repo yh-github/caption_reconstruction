@@ -1,0 +1,18 @@
+base_params:
+  master_seed: 0x5EED
+
+data_config:
+  name: "wildQA"
+  path: "datasets/wildQA/dev.json"
+  limit: 3
+  duration_limit: 60
+  out_path: "datasets/wildQA/captions/"
+
+llm:
+  model_name: "gemini-2.5-pro"
+  system_instructions: null
+  temperature: 1.0
+  thought_budget: -1
+  #response_schema: "list[VideoSegment]"
+  prompt_template: "prompts/yt_video_processing/per_second.txt"
+  fps: 1

@@ -17,6 +17,11 @@ class VideoLinkData(BaseModel):
     def duration(self) -> float:
         return self.end_offset - self.start_offset
 
+    def limit_duration(self, limit:int|None) -> Self:
+        if limit and self.duration()<=limit:
+            return self
+        return self.model_copy(update={'end_offset':self.start_offset+limit})
+
     def optional_mask(self, start_percentage: float|None, end_percentage: float|None) -> list[Self]:
         """Returns a new VideoLinkData if the mask is valid, otherwise returns list with only self"""
         if start_percentage is None and end_percentage is None:
