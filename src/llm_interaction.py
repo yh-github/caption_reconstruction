@@ -151,12 +151,13 @@ class LLM_Manager_Builder:
         logger.info(f"Initializing Gemini model {llm_config['model_name']}...")
 
         model_name:str = llm_config['model_name']
+        response_schema = llm_config.get('response_schema')
         llm_config:GenerateContentConfig = GenerateContentConfig(
             system_instruction=llm_config.get('system_instructions'),
             temperature=llm_config['temperature'],
             # max_output_tokens=400, # top_k=2,# top_p=0.5,
-            response_mime_type='application/json',
-            response_schema=self.config_response_schema(llm_config.get('response_schema')),
+            response_mime_type=self.response_mime_type(response_schema),
+            response_schema=self.config_response_schema(response_schema),
             seed=llm_config['seed'],
             thinking_config=self.build_thinking_config(llm_config.get('thought_budget', 0))
         )
@@ -211,3 +212,9 @@ class LLM_Manager_Builder:
             thinking_budget=thinking_budget,
             include_thoughts=True
         )
+
+    @staticmethod
+    def response_mime_type(response_schema: str | None) -> str:
+        if response_schema and response_schema in ['text', 'text/plain']:
+            return 'text/plain'
+        return 'application/json'

@@ -4,7 +4,7 @@ base_params:
 data_config:
   name: "wildQA"
   path: "datasets/wildQA/dev.json"
-  limit: 3
+  limit: 1
   duration_limit: 60
   out_path: "datasets/wildQA/captions/"
 
@@ -13,6 +13,6 @@ llm:
   system_instructions: null
   temperature: 1.0
   thought_budget: -1
-  #response_schema: "list[VideoSegment]"
+  response_schema: "text/plain"
   prompt_template: "prompts/yt_video_processing/per_second.txt"
   fps: 1
