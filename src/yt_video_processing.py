@@ -99,7 +99,8 @@ def main(config):
         base_level=logging.INFO,
         console_level=logging.WARNING
     )
-    links = load_wild_links(config["data_config"]["path"], config["data_config"].get("duration_limit"))
+    duration_limit = config["data_config"].get("duration_limit")
+    links = load_wild_links(config["data_config"]["path"], duration_limit)
     print(f'{len(links) = }')
 
     cache_dir = config["paths"]["disk_cache"]
@@ -114,6 +115,9 @@ def main(config):
         llm = llm_builder.from_config(llm_config)
 
         for x in links:
+            if x.duration() < duration_limit:
+                logging.info(f"Skipping {x.video_id} - duration={x.duration()} < {duration_limit}")
+                continue
             OUT_FILE = out_path/f'{x.video_id}.json'
             ERR_FILE = out_path/f'error__{x.video_id}__{get_datetime_str()}.yaml'
             if os.path.exists(OUT_FILE) and os.path.getsize(OUT_FILE) > 0:
@@ -128,8 +132,8 @@ def main(config):
             try:
                 res = llm.call(llm_input)
                 assert res and res.text, f"No response for {x.video_id}"
-                if duration := config["data_config"].get("duration_limit") and len(res.text.splitlines())!=duration:
-                    logging.warning(f'video_id={x.video_id} llm_output_len={len(res.text.splitlines())} but should be {duration}')
+                if duration_limit and len(res.text.splitlines())!=duration_limit:
+                    logging.warning(f'video_id={x.video_id} llm_output_len={len(res.text.splitlines())} but should be {duration_limit}')
                 save_to_file(OUT_FILE, x.video_id, res.text)
             except Exception as e:
                 logging.error(f"Error saving {x.video_id} to file, {e=}, saving to {ERR_FILE=}")
