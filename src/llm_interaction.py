@@ -199,7 +199,7 @@ class LLM_Manager_Builder:
 
     @staticmethod
     def config_response_schema(schema: str | None):
-        if not schema:
+        if not schema or schema=='text/plain':
             return None
         if schema not in type_from_str:
             logger.warning(f"Unknown response schema: {schema}")
@@ -215,6 +215,6 @@ class LLM_Manager_Builder:
 
     @staticmethod
     def response_mime_type(response_schema: str | None) -> str:
-        if response_schema and response_schema in ['text', 'text/plain']:
+        if response_schema and response_schema=='text/plain':
             return 'text/plain'
         return 'application/json'
