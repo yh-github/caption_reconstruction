@@ -99,7 +99,7 @@ def main(config):
         base_level=logging.INFO,
         console_level=logging.WARNING
     )
-    duration_limit=config["data_config"].get("duration_limit")
+    duration_limit = config["data_config"].get("duration_limit")
     links = load_wild_links(config["data_config"]["path"], duration_limit)
     print(f'{len(links) = }')
 
@@ -115,7 +115,7 @@ def main(config):
         llm = llm_builder.from_config(llm_config)
 
         for x in links:
-            if x.duration()<duration_limit:
+            if x.duration() < duration_limit:
                 logging.info(f"Skipping {x.video_id} - too short, duration={x.duration()} < {duration_limit=}")
                 continue
             OUT_FILE = out_path/f'{x.video_id}.json'
