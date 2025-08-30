@@ -53,11 +53,14 @@ def to_yt_links(vs:list[WildVideoMetadata]) -> list[VideoLinkData]:
     assert len(_v_ids) == len(_links)
     return list(_links)
 
-def load_wild_links(path:str|Path) -> list[VideoLinkData]:
+def load_wild_links(path:str|Path, duration_limit:int|None) -> list[VideoLinkData]:
     try:
         path = Path(path)
         vs = list(load_wild_dataset(path))
-        return to_yt_links(vs)
+        links = to_yt_links(vs)
+        if duration_limit:
+            links = [x.limit_duration(duration_limit) for x in links]
+        return links
     except Exception as e:
         print(f'Usage: {sys.argv[0]} <config>')
         print('Error:', e)
@@ -96,11 +99,7 @@ def main(config):
         base_level=logging.INFO,
         console_level=logging.WARNING
     )
-<<<<<<< HEAD
-    links = load_wild_links(config["data_config"]["path"])
-=======
     links = load_wild_links(config["data_config"]["path"], config["data_config"].get("duration_limit"))
->>>>>>> 53496f6 (chore: warn if too few captions)
     print(f'{len(links) = }')
 
     cache_dir = config["paths"]["disk_cache"]
