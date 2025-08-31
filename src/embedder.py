@@ -1,12 +1,8 @@
 import logging
 import sys
-
 import diskcache
-import numpy as np
 from google import genai
 from google.genai import types
-from sklearn.metrics.pairwise import cosine_similarity
-
 from config_loader import load_config
 from data_loaders import get_data_loader
 from data_models.captions_only import CaptionedVideo
@@ -73,33 +69,33 @@ class Embedder:
             embeddings_dict[texts[i]] = es
         return embeddings_dict
 
-    def embed_save(self, video:CaptionedVideo):
+    def embed_save(self, video_id:str, all_texts:list[str]) -> tuple[int,int,int]:
         ok=0
         fail=0
 
-        texts = [c.caption for c in video.clips if c.caption not in self.cache]
+        texts = [c for c in all_texts if c not in self.cache]
         if not texts:
-            logger.debug(f"Embeddings cache full hit for {video.video_id}")
-            return ok, fail, len(video.clips)
+            logger.debug(f"Embeddings cache full hit for {video_id}")
+            return ok, fail, len(all_texts)
 
-        for k,v in self._embed_new(video.video_id, texts).items():
+        for k,v in self._embed_new(video_id, texts).items():
             self.cache[k] = v
             if v:
                 ok+=1
             else:
                 fail+=1
-        return ok, fail, len(video.clips)-len(texts)
+        return ok, fail, len(all_texts)-len(texts)
 
-    def get_embeddings(self, video:CaptionedVideo):
-        ok, fail, hits = self.embed_save(video)
-        if fail>0 or ok+hits!=len(video.clips):
-            raise Exception(f"Embeddings failed for {video.video_id} {ok=} {fail=} {hits=} {len(video.clips)=}")
-        return [self.cache[c.caption] for c in video.clips]
+    def get_embeddings(self, video_id:str, all_texts:list[str]) -> list[list[float]]:
+        ok, fail, hits = self.embed_save(video_id, all_texts)
+        if fail>0 or ok+hits!=len(all_texts):
+            raise Exception(f"Embeddings failed for {video_id} {ok=} {fail=} {hits=} {len(all_texts)=}")
+        return [self.cache[c] for c in all_texts]
 
 
-    def sim(self, video:CaptionedVideo):
-        embeddings_matrix = np.array(self.get_embeddings(video))
-        similarity_matrix = cosine_similarity(embeddings_matrix)
+    # def sim(self, video:CaptionedVideo):
+    #     embeddings_matrix = np.array(self.get_embeddings(video))
+    #     similarity_matrix = cosine_similarity(embeddings_matrix)
 
 
 def main(config, cmd):
@@ -108,12 +104,22 @@ def main(config, cmd):
     data = data_loader.load()
     if cmd == "emb" or cmd == "embed":
         for _video in data:
-            ok, fail, hits = embedder.embed_save(_video)
-            logger.info(f"{_video.video_id} ok={ok} fail={fail} hits={hits} all={len(_video.clips)}")
+            ok, fail, hits = embedder.embed_save(
+                video_id=_video.video_id,
+                all_texts=[c.caption for c in _video.clips]
+            )
+            embs = embedder.get_embeddings(
+                video_id=_video.video_id,
+                all_texts=[c.caption for c in _video.clips]
+            )
+            if len(embs) == len(_video.clips):
+                logger.info(f"{_video.video_id} ok={ok} fail={fail} hits={hits} all={len(_video.clips)}")
+            else:
+                logger.warning(f"{_video.video_id} ok={ok} fail={fail} hits={hits} all={len(_video.clips)} BUT {len(embs)=}"))
 
-    elif cmd == "cos" or cmd == "cosine":
-        for _video in data:
-            embedder.sim(_video)
+    # elif cmd == "cos" or cmd == "cosine":
+    #     for _video in data:
+    #         embedder.sim(_video)
 
 def parse_args(argv):
     if len(argv) < 3:
