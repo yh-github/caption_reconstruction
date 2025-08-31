@@ -5,7 +5,7 @@ data_config:
   name: "wildQA"
   path: "datasets/wildQA/dev.json"
   limit: 103
-  duration_limit: 61
+  duration_limit: 60
   out_path: "datasets/wildQA/captions/"
 
 llm:
