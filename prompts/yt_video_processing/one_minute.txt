@@ -1,10 +1,11 @@
 For the attached video, create 1 caption per 1 second of the first 60 seconds of the video. 
 
-* Each caption should describe what is visible during that 1-second interval (0-1s, 1-2s, 2-3s, etc.).  
+* Each caption should describe what is visible during that 1-second interval.
+* For example, the intervals for a video that starts 00:11:38.512 and ends at 00:11:42.202 would be 00:11:38.512-00:11:39.512, 00:11:39.512-00:11:40.512, 00:11:40.512-00:11:41.512, up to the last (60th) 00:12:37.512-00:12:38.512
 * Do not reference information from other time intervals, captions must be self-contained
 * Write concise, single-sentence descriptions focusing on the primary activity and visible entities.  
 * Include enough details so someone who hasn't seen the video could understand what's happening.  
 * Per interval, output the start and end timestamps and the caption text.
-* Timestamps are in MM:SS.mmm format  
+* Timestamps are in HH:MM:SS.mmm format  
 * If a caption cannot be generated, write "ERROR" for that line's text.  
 * **Verify** you generate exactly 60 captions, one for each of the 60 1-second intervals.
