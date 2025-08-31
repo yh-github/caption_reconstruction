@@ -1,0 +1,137 @@
+exception: '400 INVALID_ARGUMENT. {''error'': {''code'': 400, ''message'': "Invalid
+  value at ''contents[0].parts[0].video_metadata.end_offset'' (type.googleapis.com/google.protobuf.Duration),
+  Field ''endOffset'', Invalid duration format, failed to parse nano seconds", ''status'':
+  ''INVALID_ARGUMENT'', ''details'': [{''@type'': ''type.googleapis.com/google.rpc.BadRequest'',
+  ''fieldViolations'': [{''field'': ''contents[0].parts[0].video_metadata.end_offset'',
+  ''description'': "Invalid value at ''contents[0].parts[0].video_metadata.end_offset''
+  (type.googleapis.com/google.protobuf.Duration), Field ''endOffset'', Invalid duration
+  format, failed to parse nano seconds"}]}]}}'
+last_raw_response: null
+llm_response: '{"text":"[\n {\"start\": \"00:28:51.000\", \"end\": \"00:28:52.000\",
+  \"caption\": \"A Painted Lady butterfly rests on a cluster of small yellow flowers.\"},\n
+  {\"start\": \"00:28:52.000\", \"end\": \"00:28:53.000\", \"caption\": \"The butterfly
+  remains still on the yellow flowers, with its wings slightly open.\"},\n {\"start\":
+  \"00:28:53.000\", \"end\": \"00:28:54.000\", \"caption\": \"The camera holds a close-up
+  shot of the butterfly on the yellow flowers.\"},\n {\"start\": \"00:28:54.000\",
+  \"end\": \"00:28:55.000\", \"caption\": \"The scene changes to a white Sulphur-crested
+  cockatoo pecking at the green grass.\"},\n {\"start\": \"00:28:55.000\", \"end\":
+  \"00:28:56.000\", \"caption\": \"The cockatoo forages in the grass, with the head
+  of another cockatoo visible on the left.\"},\n {\"start\": \"00:28:56.000\", \"end\":
+  \"00:28:57.000\", \"caption\": \"The cockatoo lifts its head briefly while foraging
+  on the grassy ground.\"},\n {\"start\": \"00:28:57.000\", \"end\": \"00:28:58.000\",
+  \"caption\": \"The scene cuts to an aerial view of a turquoise river next to a shore
+  with dense palm trees.\"},\n {\"start\": \"00:28:58.000\", \"end\": \"00:28:59.000\",
+  \"caption\": \"The calm, clear turquoise water gently ripples, reflecting the lush
+  green palm trees.\"},\n {\"start\": \"00:28:59.000\", \"end\": \"00:29:00.000\",
+  \"caption\": \"A few small fish are visible swimming just below the surface of the
+  clear water.\"},\n {\"start\": \"00:29:00.000\", \"end\": \"00:29:01.000\", \"caption\":
+  \"The static aerial shot shows the vibrant green palm fronds hanging over the turquoise
+  water.\"},\n {\"start\": \"00:29:01.000\", \"end\": \"00:29:02.000\", \"caption\":
+  \"The camera remains stationary, capturing the tranquil scene of the tropical shoreline.\"},\n
+  {\"start\": \"00:29:02.000\", \"end\": \"00:29:03.000\", \"caption\": \"The view
+  from above shows the gentle movement of the clear water against the palm-lined bank.\"},\n
+  {\"start\": \"00:29:03.000\", \"end\": \"00:29:04.000\", \"caption\": \"The high-angle
+  shot provides a serene view of the tropical river and dense foliage.\"},\n {\"start\":
+  \"00:29:04.000\", \"end\": \"00:29:05.000\", \"caption\": \"The tranquil scene continues
+  with the water rippling gently.\"},\n {\"start\": \"00:29:05.000\", \"end\": \"00:29:06.000\",
+  \"caption\": \"A fish swims into the frame from the lower right corner of the screen.\"},\n
+  {\"start\": \"00:29:06.000\", \"end\": \"00:29:07.000\", \"caption\": \"The fish
+  is clearly visible as it swims through the clear turquoise water.\"},\n {\"start\":
+  \"00:29:07.000\", \"end\": \"00:29:08.000\", \"caption\": \"The fish continues to
+  swim near the bottom of the frame.\"},\n {\"start\": \"00:29:08.000\", \"end\":
+  \"00:29:09.000\", \"caption\": \"The fish swims out of the frame, leaving the static
+  view of the water and palms.\"},\n {\"start\": \"00:29:09.000\", \"end\": \"00:29:10.000\",
+  \"caption\": \"The aerial shot of the tropical river and palm trees remains steady
+  and calm.\"},\n {\"start\": \"00:29:10.000\", \"end\": \"00:29:11.000\", \"caption\":
+  \"The scene changes to an aerial view of a flock of birds flying low over a large,
+  calm lake.\"},\n {\"start\": \"00:29:11.000\", \"end\": \"00:29:12.000\", \"caption\":
+  \"Several birds dip down to touch the water''s surface, creating circular ripples.\"},\n
+  {\"start\": \"00:29:12.000\", \"end\": \"00:29:13.000\", \"caption\": \"The flock
+  of birds flies in a loose formation over the water, which has green algae below.\"},\n
+  {\"start\": \"00:29:13.000\", \"end\": \"00:29:14.000\", \"caption\": \"The birds
+  continue their flight across the calm surface of the lake.\"},\n {\"start\": \"00:29:14.000\",
+  \"end\": \"00:29:15.000\", \"caption\": \"The flock of birds flies away from the
+  camera, leaving expanding ripples behind them.\"},\n {\"start\": \"00:29:15.000\",
+  \"end\": \"00:29:16.000\", \"caption\": \"The birds fly further into the distance
+  over the expansive, placid lake.\"},\n {\"start\": \"00:29:16.000\", \"end\": \"00:29:17.000\",
+  \"caption\": \"The ripples from the birds'' activity spread out in a line across
+  the water.\"},\n {\"start\": \"00:29:17.000\", \"end\": \"00:29:18.000\", \"caption\":
+  \"The birds become smaller as they fly towards the distant shoreline.\"},\n {\"start\":
+  \"00:29:18.000\", \"end\": \"00:29:19.000\", \"caption\": \"The camera holds steady,
+  showing the patterns of the ripples on the water.\"},\n {\"start\": \"00:29:19.000\",
+  \"end\": \"00:29:20.000\", \"caption\": \"The view focuses on the water with fading
+  ripples as the birds fly away.\"},\n {\"start\": \"00:29:20.000\", \"end\": \"00:29:21.000\",
+  \"caption\": \"The line of expanding ripples creates an interesting pattern on the
+  water''s surface.\"},\n {\"start\": \"00:29:21.000\", \"end\": \"00:29:22.000\",
+  \"caption\": \"Most of the birds have flown out of the frame, leaving the rippling
+  water.\"},\n {\"start\": \"00:29:22.000\", \"end\": \"00:29:23.000\", \"caption\":
+  \"The scene is now just the calm lake with green algae visible below and fading
+  ripples.\"},\n {\"start\": \"00:29:23.000\", \"end\": \"00:29:24.000\", \"caption\":
+  \"The scene cuts to an aerial shot of a motorboat speeding across a vast lake surrounded
+  by mountains.\"},\n {\"start\": \"00:29:24.000\", \"end\": \"00:29:25.000\", \"caption\":
+  \"The bright sun reflects off the water''s surface, creating a long wake behind
+  the boat.\"},\n {\"start\": \"00:29:25.000\", \"end\": \"00:29:26.000\", \"caption\":
+  \"The boat moves away from the camera, leaving a trail on the mirror-like water
+  surface.\"},\n {\"start\": \"00:29:26.000\", \"end\": \"00:29:27.000\", \"caption\":
+  \"The aerial view follows the boat as it travels down the center of the serene lake.\"},\n
+  {\"start\": \"00:29:27.000\", \"end\": \"00:29:28.000\", \"caption\": \"The reflection
+  of the bright sun and white clouds is clearly visible on the calm blue water.\"},\n
+  {\"start\": \"00:29:28.000\", \"end\": \"00:29:29.000\", \"caption\": \"The boat
+  continues its journey across the expansive and peaceful mountain lake.\"},\n {\"start\":
+  \"00:29:29.000\", \"end\": \"00:29:30.000\", \"caption\": \"The mountains in the
+  background are silhouetted against the bright, hazy sky.\"},\n {\"start\": \"00:29:30.000\",
+  \"end\": \"00:29:31.000\", \"caption\": \"The high-angle shot continues to follow
+  the boat as it moves across the water.\"},\n {\"start\": \"00:29:31.000\", \"end\":
+  \"00:29:32.000\", \"caption\": \"The sun''s glare on the water is prominent, creating
+  a bright path behind the boat.\"},\n {\"start\": \"00:29:32.000\", \"end\": \"00:29:33.000\",
+  \"caption\": \"The boat appears as a small speck in the distance against the vast
+  natural landscape.\"},\n {\"start\": \"00:29:33.000\", \"end\": \"00:29:34.000\",
+  \"caption\": \"The camera continues to track the boat moving swiftly across the
+  lake.\"},\n {\"start\": \"00:29:34.000\", \"end\": \"00:29:35.000\", \"caption\":
+  \"The wake created by the boat forms long, straight lines on the otherwise smooth
+  water.\"},\n {\"start\": \"00:29:35.000\", \"end\": \"00:29:36.000\", \"caption\":
+  \"The beautiful scenery of the tranquil lake and surrounding mountains is the primary
+  focus.\"},\n {\"start\": \"00:29:36.000\", \"end\": \"00:29:37.000\", \"caption\":
+  \"The scene changes to a shot of green plants with red and white flowers by a light
+  green river.\"},\n {\"start\": \"00:29:37.000\", \"end\": \"00:29:38.000\", \"caption\":
+  \"The flowering plants are in the foreground, with the gently flowing river in the
+  background.\"},\n {\"start\": \"00:29:38.000\", \"end\": \"00:29:39.000\", \"caption\":
+  \"The static shot highlights the vibrant green leaves and unique red and white flowers.\"},\n
+  {\"start\": \"00:29:39.000\", \"end\": \"00:29:40.000\", \"caption\": \"The scene
+  cuts to a flock of sheep grazing in a dry, golden field at sunset.\"},\n {\"start\":
+  \"00:29:40.000\", \"end\": \"00:29:41.000\", \"caption\": \"The sheep are silhouetted
+  against the bright, setting sun, which casts a warm glow.\"},\n {\"start\": \"00:29:41.000\",
+  \"end\": \"00:29:42.000\", \"caption\": \"The flock of sheep is clustered together,
+  all with their heads down eating grass.\"},\n {\"start\": \"00:29:42.000\", \"end\":
+  \"00:29:43.000\", \"caption\": \"The peaceful pastoral scene shows the sheep grazing
+  as the sun sets in the background.\"},\n {\"start\": \"00:29:43.000\", \"end\":
+  \"00:29:44.000\", \"caption\": \"The camera remains still, capturing the tranquil
+  scene in the warm, golden hour light.\"},\n {\"start\": \"00:29:44.000\", \"end\":
+  \"00:29:45.000\", \"caption\": \"The scene cuts to a high aerial view of a wide
+  river flowing through a lush forest at sunset.\"},\n {\"start\": \"00:29:45.000\",
+  \"end\": \"00:29:46.000\", \"caption\": \"The sun is a bright orb on the horizon,
+  its light creating a golden path on the river''s surface.\"},\n {\"start\": \"00:29:46.000\",
+  \"end\": \"00:29:47.000\", \"caption\": \"The aerial shot moves slowly forward,
+  following the path of the shimmering river.\"},\n {\"start\": \"00:29:47.000\",
+  \"end\": \"00:29:48.000\", \"caption\": \"Dense green trees line both banks of the
+  river, which reflects the evening sun.\"},\n {\"start\": \"00:29:48.000\", \"end\":
+  \"00:29:49.000\", \"caption\": \"The serene landscape shows the river winding through
+  the forest with distant mountains.\"},\n {\"start\": \"00:29:49.000\", \"end\":
+  \"00:29:50.000\", \"caption\": \"The bright reflection of the setting sun on the
+  water is the most prominent feature.\"},\n {\"start\": \"00:29:50.000\", \"end\":
+  \"00:29:51.000\", \"caption\": \"The aerial view continues to drift over the river
+  and forest towards the bright sun on the horizon.\"}\n]","thoughts":"**Capturing
+  the Essence: A Minute of Visual Poetry**\n\nAlright, I''m ready to dive into this.
+  The task is clear: craft 60 concise captions, one for each second from 28:51 to
+  29:51 of this video clip. Each caption needs to accurately describe what''s happening,
+  staying true to the visual narrative.\n\nI''ve got the data points, so let''s get
+  to it. I''ll need to meticulously go through the specified time frame, extracting
+  the key visual elements. My expertise in analyzing video content will be in full
+  force here. I''m going to pay close attention to the details, like the butterfly
+  on the flowers, the cockatoo foraging, the serene river scenes, the flock of birds,
+  the boat on the lake, the river landscape with plants and then sheep, and finally
+  the serene river with a path from the sun. I''ll need to capture the feeling of
+  each moment, while still remaining objective. The output format is JSON, with each
+  caption neatly packaged in `start`, `end`, and `caption` fields. The clock is ticking,
+  so I better get to work.\n"}'
+video_id: Primitive-Technology_3-clip-1

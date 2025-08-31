@@ -90,7 +90,7 @@ def save_to_file(path, video_id, validated_captions:list[T_BaseModel], thoughts:
     with open(path, 'w') as f:
         f.write(va.model_dump_json())
 
-def save_error(path, video_id:str, llm_response:LLM_Response, last_raw_response:GenerateContentResponse|None, exception:Exception):
+def save_error(path, video_id:str, llm_response:LLM_Response|None, last_raw_response:GenerateContentResponse|None, exception:Exception):
     with open(path, 'w') as f:
         return f.write(yaml.dump(
             {
@@ -155,10 +155,10 @@ def main(config):
 
         llm = llm_builder.from_config(llm_config)
 
-
         for x in links:
             if x.duration() < duration_limit:
                 logging.info(f"Skipping {x.video_id} - too short, duration={x.duration()} < {duration_limit=}")
+                ok += 1
                 continue
 
             OUT_FILE = out_path/f'{x.video_id}.json'
@@ -172,6 +172,7 @@ def main(config):
             llm_input=gen_content_prompt(x, prompt_text, llm_config['fps'])
             logging.info(f'{llm_input=}')
 
+            res = None
             try:
                 res = llm.call(llm_input)
                 assert res and res.text, f"No response for {x.video_id}"

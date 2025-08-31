@@ -1,0 +1,5 @@
+exception: '400 INVALID_ARGUMENT. {''error'': {''code'': 400, ''message'': ''Unsupported
+  file uri: https://www.youtube.com/watch?v=O4pLn_NTdgw '', ''status'': ''INVALID_ARGUMENT''}}'
+last_raw_response: null
+llm_response: null
+video_id: Disaster-Compilations_10-clip-0

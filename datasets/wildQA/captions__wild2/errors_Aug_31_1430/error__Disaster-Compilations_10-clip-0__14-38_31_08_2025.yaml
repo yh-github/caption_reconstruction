@@ -1,0 +1,137 @@
+exception: '400 INVALID_ARGUMENT. {''error'': {''code'': 400, ''message'': ''Unsupported
+  file uri: https://www.youtube.com/watch?v=O4pLn_NTdgw '', ''status'': ''INVALID_ARGUMENT''}}'
+last_raw_response: null
+llm_response: '{"text":"[\n  {\n    \"start\": \"00:00:00.000\",\n    \"end\": \"00:00:01.000\",\n    \"caption\":
+  \"A person''s hands hold up a large, round loaf of freshly baked bread against a
+  dark background.\"\n  },\n  {\n    \"start\": \"00:00:01.000\",\n    \"end\": \"00:00:02.000\",\n    \"caption\":
+  \"A close-up shot focuses on the crusty texture of the golden-brown loaf of bread
+  being held.\"\n  },\n  {\n    \"start\": \"00:00:02.000\",\n    \"end\": \"00:00:03.000\",\n    \"caption\":
+  \"The hands gently turn the loaf of bread, showing its rustic, imperfectly round
+  shape.\"\n  },\n  {\n    \"start\": \"00:00:03.000\",\n    \"end\": \"00:00:04.000\",\n    \"caption\":
+  \"The person carefully places the loaf of bread down onto a dark wooden cutting
+  board.\"\n  },\n  {\n    \"start\": \"00:00:04.000\",\n    \"end\": \"00:00:05.000\",\n    \"caption\":
+  \"A hand reaches for a serrated bread knife with a wooden handle resting beside
+  the loaf.\"\n  },\n  {\n    \"start\": \"00:00:05.000\",\n    \"end\": \"00:00:06.000\",\n    \"caption\":
+  \"The hand grips the bread knife and positions the blade over the top of the crusty
+  loaf.\"\n  },\n  {\n    \"start\": \"00:00:06.000\",\n    \"end\": \"00:00:07.000\",\n    \"caption\":
+  \"The person begins to slice into the bread, applying pressure to cut through the
+  hard crust.\"\n  },\n  {\n    \"start\": \"00:00:07.000\",\n    \"end\": \"00:00:08.000\",\n    \"caption\":
+  \"The knife saws back and forth, cutting deeper into the loaf and revealing the
+  soft interior.\"\n  },\n  {\n    \"start\": \"00:00:08.000\",\n    \"end\": \"00:00:09.000\",\n    \"caption\":
+  \"The first thick slice of bread is nearly cut all the way through the bottom crust.\"\n  },\n  {\n    \"start\":
+  \"00:00:09.000\",\n    \"end\": \"00:00:10.000\",\n    \"caption\": \"The slice
+  of bread is completely cut and falls gently to the side on the cutting board.\"\n  },\n  {\n    \"start\":
+  \"00:00:10.000\",\n    \"end\": \"00:00:11.000\",\n    \"caption\": \"A close-up
+  shot shows the airy, textured crumb of the freshly cut slice of bread.\"\n  },\n  {\n    \"start\":
+  \"00:00:11.000\",\n    \"end\": \"00:00:12.000\",\n    \"caption\": \"The person
+  repositions the knife to begin cutting a second slice from the loaf.\"\n  },\n  {\n    \"start\":
+  \"00:00:12.000\",\n    \"end\": \"00:00:13.000\",\n    \"caption\": \"The bread
+  knife moves smoothly through the loaf, creating another even slice.\"\n  },\n  {\n    \"start\":
+  \"00:00:13.000\",\n    \"end\": \"00:00:14.000\",\n    \"caption\": \"The second
+  slice is cut and laid flat next to the first one on the dark board.\"\n  },\n  {\n    \"start\":
+  \"00:00:14.000\",\n    \"end\": \"00:00:15.000\",\n    \"caption\": \"The scene
+  transitions to a top-down view of two slices of bread on a wooden surface.\"\n  },\n  {\n    \"start\":
+  \"00:00:15.000\",\n    \"end\": \"00:00:16.000\",\n    \"caption\": \"A hand places
+  a small white bowl filled with a red, chunky spread next to the bread.\"\n  },\n  {\n    \"start\":
+  \"00:00:16.000\",\n    \"end\": \"00:00:17.000\",\n    \"caption\": \"Another hand
+  places a second small bowl, this one containing chopped green herbs, on the board.\"\n  },\n  {\n    \"start\":
+  \"00:00:17.000\",\n    \"end\": \"00:00:18.000\",\n    \"caption\": \"A hand uses
+  a small spoon to scoop a portion of the red spread from the bowl.\"\n  },\n  {\n    \"start\":
+  \"00:00:18.000\",\n    \"end\": \"00:00:19.000\",\n    \"caption\": \"The red spread
+  is carefully applied and smoothed across the surface of one slice of bread.\"\n  },\n  {\n    \"start\":
+  \"00:00:19.000\",\n    \"end\": \"00:00:20.000\",\n    \"caption\": \"The spread,
+  likely tomato-based, now evenly coats the entire slice of bread.\"\n  },\n  {\n    \"start\":
+  \"00:00:20.000\",\n    \"end\": \"00:00:21.000\",\n    \"caption\": \"A hand picks
+  up a thin slice of green avocado from a nearby white plate.\"\n  },\n  {\n    \"start\":
+  \"00:00:21.000\",\n    \"end\": \"00:00:22.000\",\n    \"caption\": \"The first
+  slice of avocado is laid down gently on top of the red spread.\"\n  },\n  {\n    \"start\":
+  \"00:00:22.000\",\n    \"end\": \"00:00:23.000\",\n    \"caption\": \"Several more
+  slices of avocado are arranged in an overlapping, fanned-out pattern on the bread.\"\n  },\n  {\n    \"start\":
+  \"00:00:23.000\",\n    \"end\": \"00:00:24.000\",\n    \"caption\": \"The toast
+  is now completely covered with a neat layer of fanned avocado slices.\"\n  },\n  {\n    \"start\":
+  \"00:00:24.000\",\n    \"end\": \"00:00:25.000\",\n    \"caption\": \"Fingers pinch
+  and sprinkle dark seasoning, possibly black sesame seeds, over the avocado.\"\n  },\n  {\n    \"start\":
+  \"00:00:25.000\",\n    \"end\": \"00:00:26.000\",\n    \"caption\": \"The black
+  seasoning is scattered evenly across the green avocado slices.\"\n  },\n  {\n    \"start\":
+  \"00:00:26.000\",\n    \"end\": \"00:00:27.000\",\n    \"caption\": \"The person''s
+  fingers now pick up a pinch of the chopped green herbs from the bowl.\"\n  },\n  {\n    \"start\":
+  \"00:00:27.000\",\n    \"end\": \"00:00:28.000\",\n    \"caption\": \"The green
+  herbs are sprinkled over the avocado toast as a final garnish.\"\n  },\n  {\n    \"start\":
+  \"00:00:28.000\",\n    \"end\": \"00:00:29.000\",\n    \"caption\": \"A top-down
+  shot shows the finished, colorful avocado toast ready to be eaten.\"\n  },\n  {\n    \"start\":
+  \"00:00:29.000\",\n    \"end\": \"00:00:30.000\",\n    \"caption\": \"The scene
+  changes to a person''s hands holding a large ball of raw dough on a floured surface.\"\n  },\n  {\n    \"start\":
+  \"00:00:30.000\",\n    \"end\": \"00:00:31.000\",\n    \"caption\": \"The hands
+  gently press down into the center of the soft, pliable pizza dough.\"\n  },\n  {\n    \"start\":
+  \"00:00:31.000\",\n    \"end\": \"00:00:32.000\",\n    \"caption\": \"Using their
+  palms, the person begins to flatten and stretch the dough outwards into a circle.\"\n  },\n  {\n    \"start\":
+  \"00:00:32.000\",\n    \"end\": \"00:00:33.000\",\n    \"caption\": \"The dough
+  continues to be stretched and shaped into a thin, round pizza base.\"\n  },\n  {\n    \"start\":
+  \"00:00:33.000\",\n    \"end\": \"00:00:34.000\",\n    \"caption\": \"The person
+  uses their fingertips to press and form a thicker crust around the edge of the dough.\"\n  },\n  {\n    \"start\":
+  \"00:00:34.000\",\n    \"end\": \"00:00:35.000\",\n    \"caption\": \"The prepared
+  pizza base now sits on the floured surface, ready for toppings.\"\n  },\n  {\n    \"start\":
+  \"00:00:35.000\",\n    \"end\": \"00:00:36.000\",\n    \"caption\": \"A metal ladle
+  pours a scoop of bright red tomato sauce onto the center of the dough.\"\n  },\n  {\n    \"start\":
+  \"00:00:36.000\",\n    \"end\": \"00:00:37.000\",\n    \"caption\": \"The back of
+  the ladle is used to spread the sauce in a circular motion over the dough.\"\n  },\n  {\n    \"start\":
+  \"00:00:37.000\",\n    \"end\": \"00:00:38.000\",\n    \"caption\": \"The sauce
+  is spread evenly, leaving a clean border for the crust.\"\n  },\n  {\n    \"start\":
+  \"00:00:38.000\",\n    \"end\": \"00:00:39.000\",\n    \"caption\": \"A hand generously
+  sprinkles grated white cheese over the tomato sauce.\"\n  },\n  {\n    \"start\":
+  \"00:00:39.000\",\n    \"end\": \"00:00:40.000\",\n    \"caption\": \"The entire
+  sauced area of the pizza is covered with a thick layer of shredded mozzarella cheese.\"\n  },\n  {\n    \"start\":
+  \"00:00:40.000\",\n    \"end\": \"00:00:41.000\",\n    \"caption\": \"A hand begins
+  to place round slices of red pepperoni on top of the cheese.\"\n  },\n  {\n    \"start\":
+  \"00:00:41.000\",\n    \"end\": \"00:00:42.000\",\n    \"caption\": \"More pepperoni
+  slices are arranged to evenly cover the surface of the pizza.\"\n  },\n  {\n    \"start\":
+  \"00:00:42.000\",\n    \"end\": \"00:00:43.000\",\n    \"caption\": \"A few fresh
+  green basil leaves are placed on top of the pepperoni and cheese.\"\n  },\n  {\n    \"start\":
+  \"00:00:43.000\",\n    \"end\": \"00:00:44.000\",\n    \"caption\": \"The fully
+  assembled, uncooked pepperoni pizza is shown from a top-down angle.\"\n  },\n  {\n    \"start\":
+  \"00:00:44.000\",\n    \"end\": \"00:00:45.000\",\n    \"caption\": \"A time-lapse
+  shot begins, showing the pizza inside a hot oven as it starts to bake.\"\n  },\n  {\n    \"start\":
+  \"00:00:45.000\",\n    \"end\": \"00:00:46.000\",\n    \"caption\": \"The cheese
+  on the pizza begins to bubble and melt rapidly under the intense heat.\"\n  },\n  {\n    \"start\":
+  \"00:00:46.000\",\n    \"end\": \"00:00:47.000\",\n    \"caption\": \"The crust
+  of the pizza puffs up and starts to turn a light golden-brown color.\"\n  },\n  {\n    \"start\":
+  \"00:00:47.000\",\n    \"end\": \"00:00:48.000\",\n    \"caption\": \"The melted
+  cheese continues to bubble vigorously as the pizza cooks.\"\n  },\n  {\n    \"start\":
+  \"00:00:48.000\",\n    \"end\": \"00:00:49.000\",\n    \"caption\": \"The edges
+  of the pepperoni slices curl upwards and darken as they cook and release oil.\"\n  },\n  {\n    \"start\":
+  \"00:00:49.000\",\n    \"end\": \"00:00:50.000\",\n    \"caption\": \"The time-lapse
+  ends, showing a perfectly cooked pizza with a browned crust and bubbly cheese.\"\n  },\n  {\n    \"start\":
+  \"00:00:50.000\",\n    \"end\": \"00:00:51.000\",\n    \"caption\": \"A metal pizza
+  peel slides underneath the cooked pizza inside the oven.\"\n  },\n  {\n    \"start\":
+  \"00:00:51.000\",\n    \"end\": \"00:00:52.000\",\n    \"caption\": \"The pizza
+  is smoothly lifted and removed from the hot oven on the peel.\"\n  },\n  {\n    \"start\":
+  \"00:00:52.000\",\n    \"end\": \"00:00:53.000\",\n    \"caption\": \"The hot, steaming
+  pizza is transferred from the peel onto a round wooden board.\"\n  },\n  {\n    \"start\":
+  \"00:00:53.000\",\n    \"end\": \"00:00:54.000\",\n    \"caption\": \"A person holds
+  a pizza cutter with a wooden handle, positioning it to slice the pizza.\"\n  },\n  {\n    \"start\":
+  \"00:00:54.000\",\n    \"end\": \"00:00:55.000\",\n    \"caption\": \"The pizza
+  cutter rolls firmly across the pizza, cutting it cleanly in half.\"\n  },\n  {\n    \"start\":
+  \"00:00:55.000\",\n    \"end\": \"00:00:56.000\",\n    \"caption\": \"The cutter
+  makes a second pass, slicing the pizza perpendicularly into quarters.\"\n  },\n  {\n    \"start\":
+  \"00:00:56.000\",\n    \"end\": \"00:00:57.000\",\n    \"caption\": \"A hand uses
+  a spatula to lift one hot slice of pizza away from the rest.\"\n  },\n  {\n    \"start\":
+  \"00:00:57.000\",\n    \"end\": \"00:00:58.000\",\n    \"caption\": \"A classic
+  cheese pull is shown as long strings of melted mozzarella stretch from the slice.\"\n  },\n  {\n    \"start\":
+  \"00:00:58.000\",\n    \"end\": \"00:00:59.000\",\n    \"caption\": \"The person
+  holds up the single slice of pepperoni pizza, showcasing the toppings and crust.\"\n  },\n  {\n    \"start\":
+  \"00:00:59.000\",\n    \"end\": \"00:01:00.000\",\n    \"caption\": \"A final close-up
+  shot focuses on the delicious-looking pizza slice against a dark background.\"\n  }\n]","thoughts":"**Capturing
+  the Visual Narrative: A Second-by-Second Breakdown**\n\nRight, here''s the plan.
+  I''ve received a video, and my task is crystal clear: produce 60 succinct captions,
+  each capturing the essence of a one-second interval. It''s about precision, both
+  in describing the visuals and adhering to the requested JSON format.\n\nFirst, I
+  need to thoroughly dissect the video. I''ll meticulously go through the footage,
+  second by second, from the starting point all the way to the one-minute mark. For
+  each segment, I''ll distill the visual content into a single, self-contained sentence.
+  The focus is on the main action, conveying the ''what'' without unnecessary elaboration.
+  \n\nI''ll then build a JSON array, meticulously populating each object with the
+  correct timestamps (in that `HH:MM:SS.mmm` format, of course) and the corresponding
+  caption. Accuracy is key here. Every entry is crucial, and the time increments must
+  be flawless. I need to be exact. And of course, the goal is to make sure I deliver
+  precisely what was requested.\n"}'
+video_id: Disaster-Compilations_10-clip-0

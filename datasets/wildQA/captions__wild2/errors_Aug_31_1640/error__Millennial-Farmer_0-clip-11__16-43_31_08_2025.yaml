@@ -1,0 +1,6 @@
+exception: "1 validation error for LLM_Response\ntext\n  Field required [type=missing,\
+  \ input_value={'raw_response': {'sdk_ht...n_calling_history': []}}, input_type=dict]\n\
+  \    For further information visit https://errors.pydantic.dev/2.11/v/missing"
+last_raw_response: null
+llm_response: null
+video_id: Millennial-Farmer_0-clip-11

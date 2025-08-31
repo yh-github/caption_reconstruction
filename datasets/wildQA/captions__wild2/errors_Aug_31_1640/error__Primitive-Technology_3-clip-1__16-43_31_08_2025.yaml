@@ -1,0 +1,11 @@
+exception: '400 INVALID_ARGUMENT. {''error'': {''code'': 400, ''message'': "Invalid
+  value at ''contents[0].parts[0].video_metadata.end_offset'' (type.googleapis.com/google.protobuf.Duration),
+  Field ''endOffset'', Invalid duration format, failed to parse nano seconds", ''status'':
+  ''INVALID_ARGUMENT'', ''details'': [{''@type'': ''type.googleapis.com/google.rpc.BadRequest'',
+  ''fieldViolations'': [{''field'': ''contents[0].parts[0].video_metadata.end_offset'',
+  ''description'': "Invalid value at ''contents[0].parts[0].video_metadata.end_offset''
+  (type.googleapis.com/google.protobuf.Duration), Field ''endOffset'', Invalid duration
+  format, failed to parse nano seconds"}]}]}}'
+last_raw_response: null
+llm_response: null
+video_id: Primitive-Technology_3-clip-1
