@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 import time
+from datetime import timedelta
 from pathlib import Path
 
 import diskcache
@@ -109,7 +110,7 @@ def main(config):
 
     prompt_text = read_prompt(llm_config['prompt_template'])
     run_id = Path(__file__).stem +"__"+ get_datetime_str()
-    setup_logging(
+    log_path, notification_logger = setup_logging(
         run_id=run_id,
         log_dir=config["paths"]["log_dir"],
         base_level=logging.INFO,
@@ -136,13 +137,24 @@ def main(config):
         response_schema = llm_builder.config_response_schema(llm_config.get('response_schema'))
         assert response_schema is not None
 
-        def validate_res(text: str, expected_len: int = duration_limit) -> list[T_BaseModel]:
+        ok = 0
+        def validate_res(video_link: VideoLinkData, text: str, expected_len: int = duration_limit) -> list[T_BaseModel]:
+            video_id=video_link.video_id
             captions:list[T_BaseModel] = parse_llm_response_list(response_schema, text)
+            assert len(captions)
             if expected_len and abs(len(captions) - expected_len) > 1:
-                logging.warning(f'video_id={x.video_id} {len(captions)=} but {expected_len=}')
+                logging.warning(f'{video_id=} {len(captions)=} but {expected_len=}')
+
+            start=captions[0].model_dump().get('start',"NO_START")
+            end=captions[-1].model_dump().get('end', "NO_END")
+            captions_time=f"{start}-{end}"
+            video_link_time=f"{timedelta(seconds=video_link.start_offset)}-{timedelta(seconds=video_link.end_offset)}"
+            notification_logger.info(f'{ok+1} {video_id=} {video_link_time} {captions_time}')
+
             return captions
 
         llm = llm_builder.from_config(llm_config)
+
 
         for x in links:
             if x.duration() < duration_limit:
@@ -166,13 +178,15 @@ def main(config):
                 save_to_file(
                     OUT_FILE,
                     x.video_id,
-                    validate_res(res.text, duration_limit),
+                    validate_res(x, res.text, duration_limit),
                     res.thoughts
                 )
+                ok += 1
             except Exception as e:
                 logging.error(f"Error saving {x.video_id} to file, {e=}, saving to {ERR_FILE=}")
                 save_error(ERR_FILE, x.video_id, res, llm.last_raw_response, e)
                 time.sleep(1)
+    print(f'{log_path = }')
 
 if __name__ == "__main__":
     main(load_config(sys.argv[1]))
