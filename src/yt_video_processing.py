@@ -57,7 +57,7 @@ def to_yt_links(vs:list[WildVideoMetadata]) -> list[VideoLinkData]:
 
 def load_wild_links(
     path:str|Path,
-    duration_limit:int|None,
+    duration_limit:float|None,
     max_size:int|None
 ) -> list[VideoLinkData]:
     try:
@@ -65,7 +65,8 @@ def load_wild_links(
         vs = list(load_wild_dataset(path))
         links = to_yt_links(vs)
         if duration_limit:
-            links = [x.limit_duration(duration_limit) for x in links]
+            links = [x.limit_duration(duration_limit+0.5) for x in links
+                     if x.duration()>=duration_limit]
         links.sort(key=lambda x: (x.video_id, x.start_offset, x.end_offset))
         if max_size:
             return links[:max_size]
@@ -157,7 +158,7 @@ def main(config):
 
         for x in links:
             if x.duration() < duration_limit:
-                logging.info(f"Skipping {x.video_id} - too short, duration={x.duration()} < {duration_limit=}")
+                logging.warning(f"Skipping {x.video_id} - too short, duration={x.duration()} < {duration_limit=}")
                 ok += 1
                 continue
 
