@@ -81,3 +81,7 @@ class ReconstructedCaptions(RootModel[list[ReconstructedCaption]]):
                 d[rc.index] = rc.caption
         return d, dups
 
+class CaptionedInterval(BaseModel):
+    start: str = Field(..., description="Start timestamp in HH:MM:SS.mmm format")
+    end: str = Field(..., description="End timestamp in HH:MM:SS.mmm format")
+    caption: str = Field(..., description="Concise description")

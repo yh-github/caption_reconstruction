@@ -12,9 +12,11 @@ from google.genai import types
 from google.genai.types import GenerateContentResponse
 
 from config_loader import load_config, get_llm_config
+from data_models.captions_only import CaptionedIntervals
 from data_models.video_link import VideoLinkData
 from data_models.complex_struct import VideoAnalysis
 from llm_interaction import LLM_Response, LLM_Manager_Builder
+from parsers import parse_llm_response, parse_llm_response_list
 from utils import setup_logging, get_datetime_str
 from video_link_loader import load_wild_dataset, WildVideoMetadata
 
@@ -88,9 +90,9 @@ def read_prompt(path:str|Path) -> str:
     with open(path, 'r') as f:
         return f.read()
 
-
 def main(config):
     llm_config = get_llm_config(config)
+
     prompt_text = read_prompt(llm_config['prompt_template'])
     run_id = Path(__file__).stem +"__"+ get_datetime_str()
     setup_logging(
@@ -100,6 +102,7 @@ def main(config):
         console_level=logging.WARNING
     )
     duration_limit = config["data_config"].get("duration_limit")
+
     links = load_wild_links(config["data_config"]["path"], duration_limit)
     print(f'{len(links) = }')
 
@@ -111,6 +114,14 @@ def main(config):
 
     with diskcache.Cache(cache_dir) as llm_cache:
         llm_builder = LLM_Manager_Builder(genai.Client(), llm_cache)
+
+        response_schema = llm_builder.config_response_schema(llm_config.get('response_schema'))
+        assert response_schema is not None
+
+        def check_res(text: str, expected_len: int = duration_limit) -> None:
+            captions = parse_llm_response_list(response_schema, text)
+            if expected_len and len(captions) != expected_len:
+                logging.warning(f'video_id={x.video_id} {len(captions)=} but {expected_len=}')
 
         llm = llm_builder.from_config(llm_config)
 
@@ -132,8 +143,7 @@ def main(config):
             try:
                 res = llm.call(llm_input)
                 assert res and res.text, f"No response for {x.video_id}"
-                if duration_limit and len(res.text.splitlines())!=duration_limit:
-                    logging.warning(f'video_id={x.video_id} llm_output_len={len(res.text.splitlines())} but should be {duration_limit}')
+                check_res(res.text, duration_limit)
                 save_to_file(OUT_FILE, x.video_id, res.text)
             except Exception as e:
                 logging.error(f"Error saving {x.video_id} to file, {e=}, saving to {ERR_FILE=}")

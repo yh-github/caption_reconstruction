@@ -1,11 +1,10 @@
-For the attached video, create 1 caption per second of video duration. 
+For the attached video, create 1 caption per 1 second of video duration. 
 
 * Each caption should describe what is visible during that 1-second interval (0-1s, 1-2s, 2-3s, etc.).  
 * Do not reference information from other time intervals.  
 * Write concise, single-sentence descriptions focusing on the primary activity and visible entities.  
 * Include enough details so someone who hasn't seen the video could understand what's happening.  
-* Output only the captions, one per line, in this format:  
-  start_timestamp end_timestamp caption_text  
+* Per interval, output the start and end timestamps and the caption text.
 * Timestamps are in MM:SS.mmm format  
 * If a caption cannot be generated, write "ERROR" for that line's text.  
 * Verify you generate enough captions, e.g.: for a 60 second video you should output 60 captions.

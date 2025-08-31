@@ -85,6 +85,7 @@ class LLM_Manager:
         llm_cache:diskcache.Cache|dict[str,str],
         base_cache_key:HashType
     ):
+        print(llm_config.model_dump_json(indent=4))
         self._llm_client = llm_client
         self._model_name = model_name
         self._llm_config = llm_config
@@ -198,6 +199,13 @@ class LLM_Manager_Builder:
         ]
 
     @staticmethod
+    def build_thinking_config(thinking_budget:int):
+        return None if thinking_budget==0 else ThinkingConfig(
+            thinking_budget=thinking_budget,
+            include_thoughts=True
+        )
+
+    @staticmethod
     def config_response_schema(schema: str | None):
         if not schema or schema=='text/plain':
             return None
@@ -205,13 +213,6 @@ class LLM_Manager_Builder:
             logger.warning(f"Unknown response schema: {schema}")
             return None
         return type_from_str[schema]
-
-    @staticmethod
-    def build_thinking_config(thinking_budget:int):
-        return None if thinking_budget==0 else ThinkingConfig(
-            thinking_budget=thinking_budget,
-            include_thoughts=True
-        )
 
     @staticmethod
     def response_mime_type(response_schema: str | None) -> str:

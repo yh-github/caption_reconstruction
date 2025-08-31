@@ -13,6 +13,6 @@ llm:
   system_instructions: null
   temperature: 1.0
   thought_budget: -1
-  response_schema: "text/plain"
+  response_schema: "list[CaptionedInterval]"
   prompt_template: "prompts/yt_video_processing/per_second.txt"
   fps: 1
