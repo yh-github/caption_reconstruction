@@ -55,13 +55,19 @@ def to_yt_links(vs:list[WildVideoMetadata]) -> list[VideoLinkData]:
     assert len(_v_ids) == len(_links)
     return list(_links)
 
-def load_wild_links(path:str|Path, duration_limit:int|None) -> list[VideoLinkData]:
+def load_wild_links(
+    path:str|Path,
+    duration_limit:int|None,
+    max_size:int|None
+) -> list[VideoLinkData]:
     try:
         path = Path(path)
         vs = list(load_wild_dataset(path))
         links = to_yt_links(vs)
         if duration_limit:
             links = [x.limit_duration(duration_limit) for x in links]
+        if max_size:
+            return links[:max_size]
         return links
     except Exception as e:
         print(f'Usage: {sys.argv[0]} <config>')
@@ -103,7 +109,11 @@ def main(config):
     )
     duration_limit = config["data_config"].get("duration_limit")
 
-    links = load_wild_links(config["data_config"]["path"], duration_limit)
+    links = load_wild_links(
+        path=config["data_config"]["path"],
+        duration_limit=duration_limit,
+        max_size=config["data_config"]["limit"]
+    )
     print(f'{len(links) = }')
 
     cache_dir = config["paths"]["disk_cache"]
