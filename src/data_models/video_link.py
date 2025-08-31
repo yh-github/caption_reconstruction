@@ -1,3 +1,4 @@
+import logging
 from typing import Self
 from pydantic import BaseModel, ConfigDict, field_validator
 
@@ -17,10 +18,15 @@ class VideoLinkData(BaseModel):
     def duration(self) -> float:
         return self.end_offset - self.start_offset
 
-    def limit_duration(self, limit:int|None) -> Self:
+    def limit_duration(self, limit:float|None) -> Self:
         if limit and self.duration()<=limit:
             return self
-        return self.model_copy(update={'end_offset':self.start_offset+limit})
+        new_end_offset = round(self.start_offset + limit, 3)
+        while new_end_offset-self.start_offset < limit:
+            with_epsilon = round(new_end_offset + 0.001, 3)
+            logging.warning(f'adjusting borderline limit {new_end_offset} ~~> {with_epsilon}')
+            new_end_offset = with_epsilon
+        return self.model_copy(update={'end_offset':new_end_offset})
 
     def optional_mask(self, start_percentage: float|None, end_percentage: float|None) -> list[Self]:
         """Returns a new VideoLinkData if the mask is valid, otherwise returns list with only self"""
