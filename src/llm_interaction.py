@@ -85,7 +85,6 @@ class LLM_Manager:
         llm_cache:diskcache.Cache|dict[str,str],
         base_cache_key:HashType
     ):
-        print(llm_config.model_dump_json(indent=4))
         self._llm_client = llm_client
         self._model_name = model_name
         self._llm_config = llm_config

@@ -10,13 +10,12 @@ import yaml
 from google import genai
 from google.genai import types
 from google.genai.types import GenerateContentResponse
+from pydantic import RootModel, BaseModel
 
 from config_loader import load_config, get_llm_config
-from data_models.captions_only import CaptionedIntervals
 from data_models.video_link import VideoLinkData
-from data_models.complex_struct import VideoAnalysis
 from llm_interaction import LLM_Response, LLM_Manager_Builder
-from parsers import parse_llm_response, parse_llm_response_list
+from parsers import parse_llm_response_list, T_BaseModel
 from utils import setup_logging, get_datetime_str
 from video_link_loader import load_wild_dataset, WildVideoMetadata
 
@@ -66,6 +65,7 @@ def load_wild_links(
         links = to_yt_links(vs)
         if duration_limit:
             links = [x.limit_duration(duration_limit) for x in links]
+        links.sort(key=lambda x: (x.video_id, x.start_offset, x.end_offset))
         if max_size:
             return links[:max_size]
         return links
@@ -74,12 +74,20 @@ def load_wild_links(
         print('Error:', e)
         sys.exit(-1)
 
-def save_to_file(path, video_id, text):
-    segments = json.loads(text)
-    va = VideoAnalysis(video_id=video_id, segments=segments)
+def save_to_file(path, video_id, validated_captions:list[T_BaseModel], thoughts:str|None):
+    # va = VideoAnalysis(video_id=video_id, segments=segments)
+    class VideoCaptions(BaseModel):
+        video_id: str
+        captions: list[T_BaseModel]
+        thoughts: str|None
+
+    va = VideoCaptions.model_validate({
+        'video_id': video_id,
+        'captions': validated_captions,
+        'thoughts': thoughts
+    })
     with open(path, 'w') as f:
         f.write(va.model_dump_json())
-
 
 def save_error(path, video_id:str, llm_response:LLM_Response, last_raw_response:GenerateContentResponse|None, exception:Exception):
     with open(path, 'w') as f:
@@ -128,10 +136,11 @@ def main(config):
         response_schema = llm_builder.config_response_schema(llm_config.get('response_schema'))
         assert response_schema is not None
 
-        def check_res(text: str, expected_len: int = duration_limit) -> None:
-            captions = parse_llm_response_list(response_schema, text)
-            if expected_len and len(captions) != expected_len:
+        def validate_res(text: str, expected_len: int = duration_limit) -> list[T_BaseModel]:
+            captions:list[T_BaseModel] = parse_llm_response_list(response_schema, text)
+            if expected_len and abs(len(captions) - expected_len) > 1:
                 logging.warning(f'video_id={x.video_id} {len(captions)=} but {expected_len=}')
+            return captions
 
         llm = llm_builder.from_config(llm_config)
 
@@ -139,6 +148,7 @@ def main(config):
             if x.duration() < duration_limit:
                 logging.info(f"Skipping {x.video_id} - too short, duration={x.duration()} < {duration_limit=}")
                 continue
+
             OUT_FILE = out_path/f'{x.video_id}.json'
             ERR_FILE = out_path/f'error__{x.video_id}__{get_datetime_str()}.yaml'
             if os.path.exists(OUT_FILE) and os.path.getsize(OUT_FILE) > 0:
@@ -153,8 +163,12 @@ def main(config):
             try:
                 res = llm.call(llm_input)
                 assert res and res.text, f"No response for {x.video_id}"
-                check_res(res.text, duration_limit)
-                save_to_file(OUT_FILE, x.video_id, res.text)
+                save_to_file(
+                    OUT_FILE,
+                    x.video_id,
+                    validate_res(res.text, duration_limit),
+                    res.thoughts
+                )
             except Exception as e:
                 logging.error(f"Error saving {x.video_id} to file, {e=}, saving to {ERR_FILE=}")
                 save_error(ERR_FILE, x.video_id, res, llm.last_raw_response, e)

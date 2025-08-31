@@ -4,15 +4,15 @@ from typing import Type, TypeVar
 from pydantic import BaseModel, ValidationError, TypeAdapter
 
 # Define a generic type for BaseModel
-T = TypeVar("T", bound=BaseModel)
+T_BaseModel = TypeVar("T_BaseModel", bound=BaseModel)
 
 from typing import get_origin
-def validate_json(model:Type[list[T]]|Type[T], text:str) -> list[T]:
+def validate_json(model:Type[list[T_BaseModel]]|Type[T_BaseModel], text:str) -> list[T_BaseModel]:
     if get_origin(model) == list:
         return TypeAdapter(model).validate_json(text)
     return [model.model_validate_json(text)]
 
-def parse_llm_response_list(model: Type[T]|Type[list[T]], response_text: str) -> list[T]:
+def parse_llm_response_list(model: Type[T_BaseModel]|Type[list[T_BaseModel]], response_text: str) -> list[T_BaseModel]:
     """
     Parses the raw text response from the LLM and validates it against the provided model.
 
@@ -36,7 +36,7 @@ def parse_llm_response_list(model: Type[T]|Type[list[T]], response_text: str) ->
             response_text = response_text[7:-3]
 
         # Validate against the provided model
-        validated_response:list[T] = validate_json(model, response_text)
+        validated_response:list[T_BaseModel] = validate_json(model, response_text)
         logging.debug(f"LLM response parsed and validated successfully: {validated_response}")
         return validated_response
     except json.JSONDecodeError:
@@ -47,7 +47,7 @@ def parse_llm_response_list(model: Type[T]|Type[list[T]], response_text: str) ->
         return []
 
 
-def parse_llm_response(model: Type[T]|Type[list[T]], response_text: str) -> T | None:
+def parse_llm_response(model: Type[T_BaseModel]|Type[list[T_BaseModel]], response_text: str) -> T_BaseModel | None:
     """
     Parses the raw text response from the LLM and validates it against the provided model.
 

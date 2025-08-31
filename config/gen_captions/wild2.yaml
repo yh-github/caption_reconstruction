@@ -4,15 +4,15 @@ base_params:
 data_config:
   name: "wildQA"
   path: "datasets/wildQA/dev.json"
-  limit: 1
-  duration_limit: 60
+  limit: 2
+  duration_limit: 61
   out_path: "datasets/wildQA/captions/"
 
 llm:
   model_name: "gemini-2.5-pro"
   system_instructions: null
-  temperature: 1.0
+  temperature: 0.8
   thought_budget: -1
   response_schema: "list[CaptionedInterval]"
-  prompt_template: "prompts/yt_video_processing/per_second.txt"
+  prompt_template: "prompts/yt_video_processing/one_minute.txt"
   fps: 1
