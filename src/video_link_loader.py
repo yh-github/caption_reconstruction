@@ -167,7 +167,7 @@ class WildVideoMetadata(BaseModel):
     def to_link(self) -> VideoLinkData:
         try:
             def uri(u):
-                return u.replace('//watch', '/watch')
+                return u.replace('//watch', '/watch').strip()
 
             if not self.time_in_original_video:
                 raise Exception(f"Missing time_in_original_video in {self.video_id}")
@@ -181,8 +181,6 @@ class WildVideoMetadata(BaseModel):
         except Exception as e:
             logger.error(f"Error with video {self.video_id=}", e)
             raise
-
-
 
 def load_wild_dataset(path:Path, limit:int=None) -> Iterator[WildVideoMetadata]:
     with open(path) as f:
