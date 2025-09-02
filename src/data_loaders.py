@@ -175,7 +175,7 @@ def get_data_loader(data_config: dict) -> BaseDataLoader:
     Factory function that reads the config and returns the appropriate
     data loader instance.
     """
-    dataset_name = data_config.get("name")
+    dataset_name = data_config.get("name") # TODO rename to dataset_type
     data_path = data_config.get("path")
     limit = data_config.get("limit")
 
