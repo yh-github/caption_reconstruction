@@ -2,6 +2,7 @@ import json
 import logging
 import os
 from abc import ABC, abstractmethod
+from pathlib import Path
 
 from data_models.captions_only import CaptionedClip, CaptionedVideo, TimestampRange
 
@@ -33,21 +34,22 @@ class BaseDataLoader(ABC):
         return len(self.load())
 
 
-
 class ToyDataLoader(BaseDataLoader):
     """
     This serves as our initial ground-truth data for building and debugging
     the experimental pipeline.
     """
-    def __init__(self, data_path: str):
+    def __init__(self, data_path: str, limit: int|None=None):
         super().__init__()
         self.data_path = data_path
+        self.limit = limit
 
     def load(self, limit:int|None=None) -> list[CaptionedVideo]:
         all_videos = []
         with open(self.data_path, 'r') as f:
             data = json.load(f)
 
+        limit = limit or self.limit
         if limit:
             data = data[:limit]
         for i,video_data in enumerate(data):
@@ -130,6 +132,44 @@ class VatexLoader(BaseDataLoader):
             all_videos.append(CaptionedVideo(video_id=video_id, clips=clips))
         return all_videos
 
+
+class WildLoader(BaseDataLoader):
+    """Loads data from the Wild dataset format."""
+    def __init__(self, data_path: str|Path, limit: int|None=None):
+        self.data_path = Path(data_path)
+        self.limit = limit
+        self.ext = ".json"
+
+    def find(self, video_id):
+        return self.load_file(video_id + self.ext)
+
+    def load(self, limit: int | None = None) -> list[CaptionedVideo]:
+        logging.info(f"Loading from Wild Video Captions dataset at: {self.data_path} {self.limit=}")
+
+        filenames = sorted(list(self.data_path.glob('*.json')))
+        _limit = limit or self.limit
+        if _limit:
+            filenames = filenames[:_limit]
+
+        return [self.load_file(filename) for filename in filenames]
+
+
+    @staticmethod
+    def load_file(filename: Path) -> CaptionedVideo:
+        # video_id = filename.stem
+        with open(filename, 'r') as f:
+            j = json.load(f)
+
+        clips = [
+            CaptionedClip(
+                index=i,
+                # TODO timestamp=TimestampRange.from_start_end(start=c['start'],end=c['end']),
+                timestamp=TimestampRange(start=i, duration=1),
+                caption=c['caption']
+            ) for i, c in enumerate(j['captions'])
+        ]
+        return CaptionedVideo(video_id=j['video_id'], clips=clips)
+
 def get_data_loader(data_config: dict) -> BaseDataLoader:
     """
     Factory function that reads the config and returns the appropriate
@@ -147,7 +187,8 @@ def get_data_loader(data_config: dict) -> BaseDataLoader:
     elif dataset_name == "video_storytelling":
         return VideoStorytellingLoader(data_path, limit)
     elif dataset_name == "toy_data":
-        return ToyDataLoader(data_path)
+        return ToyDataLoader(data_path, limit)
+    elif dataset_name == "wild_captions":
+        return WildLoader(data_path, limit)
     else:
         raise NotImplementedError(f"No data loader found for dataset: '{dataset_name}'")
-
