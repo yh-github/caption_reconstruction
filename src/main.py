@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 # PYTHON_ARGCOMPLETE_OK
 from data_models.exec_args import ExecArgs, args_parser
-from experiment_runner import ExperimentRunner
-
 exec_args:ExecArgs = args_parser() if __name__ == "__main__" else None
 
 import logging
 import sys
 from run_experiments import ExperimentPipeline
 from utils import UserFacingError
-
+from experiment_runner import ExperimentRunner
 
 def dry_run(xs:list[ExperimentRunner], count:int, verbose=False):
     print(f"prepared {len(xs)} experiments, with {count} videos. Total runs = {len(xs)*count}")
