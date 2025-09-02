@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from data_models.captions_only import CaptionedVideo
+from utils import UserFacingError
 
 
 class PromptBuilder(ABC):
@@ -33,6 +34,7 @@ class JSONPromptBuilder(PromptBuilder):
     """Builds a prompt that instructs the LLM to work with JSON."""
 
     def __init__(self, instruction_template: str, consts:dict[str,str]=None):
+        #FIXME handle instruction_template with JSON examples (the '{' character!)
         self.instruction_template = instruction_template.format_map(FormatDict.from_dict(consts))
         self.data_prompter = PromptBuilderDataOnly()
 
