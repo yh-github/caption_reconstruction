@@ -203,11 +203,33 @@ class LLM_Manager_Builder:
         llm_config.safety_settings = [
             SafetySetting(
                 category=category,
-                threshold=HarmBlockThreshold.BLOCK_NONE,
-                method=None
-            ) for category in HarmCategory
+                threshold=HarmBlockThreshold.BLOCK_NONE
+            ) for category in [
+                HarmCategory.HARM_CATEGORY_HARASSMENT,
+                HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                HarmCategory.HARM_CATEGORY_CIVIC_INTEGRITY
+            ]
         ]
 
+    SafetySetting(
+        category=HarmCategory.HARM_CATEGORY_HARASSMENT,
+        threshold=HarmBlockThreshold.BLOCK_NONE
+    ),
+    SafetySetting(
+        category=HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+        threshold=HarmBlockThreshold.BLOCK_NONE
+    ),
+    SafetySetting(
+        category=HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+        threshold=HarmBlockThreshold.BLOCK_NONE
+    ),
+    SafetySetting(
+        category=HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+        threshold=HarmBlockThreshold.BLOCK_NONE
+    )
+1
     @staticmethod
     def build_thinking_config(thinking_budget:int):
         return None if thinking_budget==0 else ThinkingConfig(
