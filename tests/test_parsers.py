@@ -1,5 +1,8 @@
+from pydantic import ValidationError
 from data_models.captions_only import ReconstructedCaptions, ReconstructedCaption
 from parsers import parse_llm_response
+import pytest
+
 
 def test_parse_llm_response_success():
     """
@@ -15,7 +18,7 @@ def test_parse_llm_response_success():
     llm_output = recon_obj.model_dump_json(indent=4)
 
     # Act
-    parsed:ReconstructedCaptions|None = parse_llm_response(model=ReconstructedCaptions, response_text=llm_output)
+    parsed:ReconstructedCaptions = parse_llm_response(model=ReconstructedCaptions, response_text=llm_output)
     assert parsed is not None
     assert parsed == recon_obj
 
@@ -30,11 +33,9 @@ def test_parse_llm_response_invalid_json():
     ]
     """ # Missing closing curly brace
 
-    # Act
-    parsed_clips = parse_llm_response(model=ReconstructedCaptions, response_text=llm_output)
+    with pytest.raises(ValidationError):
+        parse_llm_response(model=ReconstructedCaptions, response_text=llm_output)
 
-    # Assert
-    assert parsed_clips is None
 
 def test_parse_llm_response_validation_error():
     """
@@ -47,9 +48,6 @@ def test_parse_llm_response_validation_error():
         "payload": {"desc": "Wrong key names"}
     }
     """
+    with pytest.raises(ValidationError):
+        parse_llm_response(model=ReconstructedCaptions, response_text=llm_output)
 
-    # Act
-    parsed_clips = parse_llm_response(model=ReconstructedCaptions, response_text=llm_output)
-
-    # Assert
-    assert parsed_clips is None
