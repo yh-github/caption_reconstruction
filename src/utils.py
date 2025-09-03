@@ -194,7 +194,7 @@ def flat_dict(d:dict[str, dict[str, Any]]) -> dict[str, Any]:
 
 ####
 from typing import Any, Union
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, ValidationError
 from typing import get_origin, get_args
 
 def get_clean_type_name(type_hint: Any) -> str:
@@ -322,17 +322,23 @@ def numbered_list(xs:Iterator[str]) -> str:
 
 import traceback
 class ExceptionStr(BaseModel):
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(frozen=True, extra='allow')
 
     type: str
     message: str
     traceback: list[str]
 
     def __init__(self, e: Exception):
-        super().__init__(
-            type=type(e).__name__,
-            message=str(e),
-            traceback=traceback.format_tb(e.__traceback__)
-        )
-
-
+        if isinstance(e, ValidationError):
+            super().__init__(
+                type=type(e).__name__,
+                message=f"{e.error_count()} error(s) when parsing {e.title}",
+                traceback=traceback.format_tb(e.__traceback__),
+                errors=e.errors(include_url=False, include_input=False, include_context=False)
+            )
+        else:
+            super().__init__(
+                type=type(e).__name__,
+                message=str(e),
+                traceback=traceback.format_tb(e.__traceback__)
+            )
