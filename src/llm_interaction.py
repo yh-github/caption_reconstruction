@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from tenacity import retry, wait_random_exponential, stop_after_attempt, retry_if_exception_type
 
 from data_models.schema import type_from_str, HashType
-from utils import ExceptionStr
+from utils import ExceptionStr, raise_if
 
 logger = logging.getLogger(__name__)
 
@@ -30,28 +30,21 @@ class LLM_Response(BaseModel):
 
     @staticmethod
     def from_raw(raw_response: GenerateContentResponse):
-        if raw_response is None:
-            logger.error("LLM response is None")
-            return LLM_Response(text=None)
+        raise_if(raw_response is None, "LLM response is None")
+        raise_if(not raw_response.candidates, "LLM response has no candidates")
 
-        if not raw_response.candidates:
-            logger.error("LLM response has no candidates")
-            return LLM_Response(text=None)
-
-        text = None
-        thoughts = None
+        text:str|None = None
+        thoughts:str|None = None
 
         if len(raw_response.candidates) > 1:
             logger.warning(f"Expected 1 candidate, got {len(raw_response.candidates)}")
 
         for part in raw_response.candidates[0].content.parts:
             if part.thought:
-                if thoughts is not None:
-                    raise Exception("Thought already exists")
+                raise_if(thoughts, "Thought already exists")
                 thoughts = part.text
             elif part.text:
-                if text is not None:
-                    raise Exception("Text already exists")
+                raise_if(text, "Text already exists")
                 text = part.text
 
         if text != raw_response.text:
@@ -71,7 +64,7 @@ class LLM_Response(BaseModel):
 class LLM_ResponseError(LLM_Response):
     text: None = None
     raw_response: GenerateContentResponse | None
-    exception: ExceptionStr
+    exception: ExceptionStr|None
 
     def dump(self):
         return self.model_dump_json(exclude_none=True)
@@ -85,12 +78,10 @@ class LLM_ResponseBlocked(LLM_ResponseError):
     def should_cache(self):
         return self.raw_response is not None
 
-
 def is_perm_error(last_raw_response: GenerateContentResponse | None):
-    if not last_raw_response:
+    if not last_raw_response or not last_raw_response.prompt_feedback:
         return False
     return last_raw_response.prompt_feedback.block_reason is not None
-
 
 class LLM_Exception(Exception):
     def __init__(self, raw_response: GenerateContentResponse | None, message:str):
@@ -139,20 +130,20 @@ class LLM_Manager:
         )
 
     def _call_retry(self, prompt:ContentListUnion) -> LLM_Response:
-        last_raw_response = None
+        raw_response = None
         try:
-            last_raw_response = self._invoke_llm(prompt)
-            if is_perm_error(last_raw_response):
+            raw_response = self._invoke_llm(prompt)
+            if is_perm_error(raw_response):
                 logger.info(f"LLM PERM ERROR without Exception")
-                return LLM_ResponseBlocked(raw_response=last_raw_response)
-            return LLM_Response.from_raw(last_raw_response)
+                return LLM_ResponseBlocked(raw_response=raw_response)
+            return LLM_Response.from_raw(raw_response)
         except Exception as e:
             logger.warning(f"INVOKE_LLM_EXCEPTION {e.__class__.__qualname__} {e=}")
-            if is_perm_error(last_raw_response):
+            if is_perm_error(raw_response):
                 logger.info(f"LLM PERM ERROR with Exception")
-                return LLM_ResponseBlocked(raw_response=last_raw_response, exception=ExceptionStr(e))
-            return LLM_ResponseError(raw_response=last_raw_response, exception=ExceptionStr(e))
-            # raise LLM_Exception(last_raw_response=last_raw_response, message=f"{type(e)}: {e}") from e
+                return LLM_ResponseBlocked(raw_response=raw_response, exception=ExceptionStr(e))
+            return LLM_ResponseError(raw_response=raw_response, exception=ExceptionStr(e))
+            # raise LLM_Exception(raw_response=raw_response, message=f"{type(e)}: {e}") from e
 
     def call(self, prompt:str|Content) -> LLM_Response:
         if isinstance(prompt, str):
@@ -211,21 +202,10 @@ class LLM_Manager_Builder:
         """
         llm_config.safety_settings = [
             SafetySetting(
-                category=HarmCategory.HARM_CATEGORY_HARASSMENT,
-                threshold=HarmBlockThreshold.BLOCK_NONE
-            ),
-            SafetySetting(
-                category=HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-                threshold=HarmBlockThreshold.BLOCK_NONE
-            ),
-            SafetySetting(
-                category=HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-                threshold=HarmBlockThreshold.BLOCK_NONE
-            ),
-            SafetySetting(
-                category=HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-                threshold=HarmBlockThreshold.BLOCK_NONE
-            )
+                category=category,
+                threshold=HarmBlockThreshold.BLOCK_NONE,
+                method=None
+            ) for category in HarmCategory
         ]
 
     @staticmethod

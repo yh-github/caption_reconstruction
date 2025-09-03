@@ -6,6 +6,7 @@ from typing import Any, Iterator, TypeVar
 import git
 import mlflow
 import pytz
+from typing import Callable
 
 
 class UserFacingError(Exception):
@@ -15,6 +16,15 @@ class UserFacingError(Exception):
     """
     pass
 
+
+def raise_if(condition, message:str|None=None, exception_builder:Callable[[], Exception]|None=None) -> None:
+    if not condition:
+        return
+
+    if exception_builder is not None:
+        raise exception_builder()
+
+    raise AssertionError(message or "Assertion failed")
 
 def set_tz_converter(formatter, tz_str=None):
     tz = pytz.timezone(tz_str or "Asia/Jerusalem")
@@ -324,6 +334,5 @@ class ExceptionStr(BaseModel):
             message=str(e),
             traceback=traceback.format_tb(e.__traceback__)
         )
-
 
 
