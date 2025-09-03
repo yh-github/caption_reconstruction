@@ -21,7 +21,7 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 def get_cache_dir(model, output_dimensionality, task_type):
-    return f"disk_cache/{model}__{output_dimensionality}__{task_type}"
+    return f"disk_cache/{model}__{output_dimensionality}__{task_type}" #TODO config
 
 class Embedder:
     def __init__(self, model="gemini-embedding-001", output_dimensionality=512, task_type="SEMANTIC_SIMILARITY"):

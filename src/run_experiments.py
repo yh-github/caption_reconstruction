@@ -14,7 +14,9 @@ from google import genai
 from config_loader import load_config
 from data_loaders import get_data_loader
 from data_models.exec_args import ExecArgs
-from evaluation import ReconstructionEvaluator_BertScore, EvaluatorNOP, ReconstructionEvaluator, metrics_to_json
+from embedder import Embedder
+from evaluation import ReconstructionEvaluator_BertScore, EvaluatorNOP, ReconstructionEvaluator, metrics_to_json, \
+    ReconstructionEvaluator_EmbSimilarity
 from experiment_runner import ExperimentRunner
 # Local imports
 from masking import get_masking_strategies
@@ -56,11 +58,17 @@ class ExperimentPipeline(ABC):
 
             eval_conf = self.config.get('evaluation', {})
             if self.experiment_type == 'RECON':
-                self.evaluator:ReconstructionEvaluator = ReconstructionEvaluator_BertScore(
-                    model_type=eval_conf.get('model', 'microsoft/deberta-large-mnli'),
-                    verbose=self.exec_args.verbose or eval_conf.get('verbose', False),
-                    idf=eval_conf.get('idf', True)
-                ).calc_idf(sents=self.data_loader.load_all_sentences())
+                eval_type = eval_conf.get('type', 'bert_score')
+                if eval_type == 'bert_score':
+                    self.evaluator:ReconstructionEvaluator = ReconstructionEvaluator_BertScore(
+                        model_type=eval_conf.get('model', 'microsoft/deberta-large-mnli'),
+                        verbose=self.exec_args.verbose or eval_conf.get('verbose', False),
+                        idf=eval_conf.get('idf', True)
+                    ).calc_idf(sents=self.data_loader.load_all_sentences())
+                elif eval_type == 'emb_sim':
+                    self.evaluator = ReconstructionEvaluator_EmbSimilarity(Embedder())
+                else:
+                    raise UserFacingError(f"Unknown evaluation type '{eval_type}'")
             else:
                 logging.warning("No evaluation config found. Setting evaluator to NOP.")
                 self.evaluator:ReconstructionEvaluator = EvaluatorNOP()
