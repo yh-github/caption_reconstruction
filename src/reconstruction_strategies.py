@@ -5,12 +5,12 @@ from typing import Any
 from google import genai
 from pydantic import BaseModel
 
-from data_models.captions_only import CaptionedClip
+from data_models.captions_only import CaptionedClip, ReconstructedCaptions
 from data_models.captions_only import CaptionedVideo
-from llm_interaction import LLM_Manager_Builder
+from llm_interaction import LLM_Manager_Builder, LLM_Response, LLM_ResponseError
 from parsers import parse_llm_response
 from prompting import PromptBuilder, JSONPromptBuilder
-from utils import UserFacingError
+from utils import UserFacingError, ExceptionStr
 
 
 class Reconstructed(BaseModel):
@@ -55,16 +55,34 @@ class ReconstructionStrategy(ABC):
         return self.name
 
     @abstractmethod
-    def reconstruct(self, masked_video: CaptionedVideo) -> Reconstructed | None:
+    def reconstruct(self, masked_video: CaptionedVideo) -> Reconstructed:
         """Takes a masked CaptionedVideo and returns a reconstructed one."""
         pass
+
+    @staticmethod
+    def create_error_result(video_id: str, error_message: str, extra_debug_data: dict = None) -> Reconstructed:
+        """Create a Reconstructed result for error cases."""
+        debug_data = {
+            "error": error_message
+        }
+
+        if extra_debug_data:
+            debug_data.update(extra_debug_data)
+
+        return Reconstructed(
+            video_id=video_id,
+            reconstructed_captions={},
+            debug_data=debug_data,
+            skip_reason="error"
+        )
+
 
 class BaselineRepeatStrategy(ReconstructionStrategy):
     """The strategy for using the 'repeat last known' baseline."""
     def __init__(self):
         super().__init__('BaselineRepeatStrategy')
 
-    def reconstruct(self, masked_video: CaptionedVideo) -> Reconstructed | None:
+    def reconstruct(self, masked_video: CaptionedVideo) -> Reconstructed:
         """
         Fills masked clips by repeating the data from the last known clip.
         If initial clips are masked, it back-fills them with the first valid data.
@@ -100,7 +118,6 @@ class LLMStrategy(ReconstructionStrategy):
     # Error message constants
     EMPTY_RESPONSE_ERROR = "LLM error - llm_response_text empty"
     PARSING_ERROR = "LLM error - failed parsing"
-    TO_DICT_ERROR = "LLM error - failed parsing to_dict"
     DUPLICATE_INDICES_ERROR = "LLM error - duplicate indices found"
 
     def __init__(self, name: str, llm_model, prompt_builder: PromptBuilder):
@@ -109,46 +126,59 @@ class LLMStrategy(ReconstructionStrategy):
         self.prompt_builder: PromptBuilder = prompt_builder
 
     def reconstruct(self, masked_video: CaptionedVideo) -> Reconstructed:
+        def err(message: str, extra:dict=None):
+            return self.create_error_result(
+                video_id=masked_video.video_id,
+                error_message=message,
+                extra_debug_data=extra
+            )
+
+        llm_res = None
         try:
-            llm_response_text = self._get_llm_response(masked_video)
-            if not llm_response_text:
-                return self._create_error_result(masked_video.video_id, self.EMPTY_RESPONSE_ERROR)
+            llm_res = self._get_llm_response(masked_video)
+            if not llm_res.text:
+                if isinstance(llm_res, LLM_ResponseError):
+                    return err(
+                        llm_res.__class__.__qualname__,
+                        {
+                            "exception": llm_res.exception,
+                            "raw_response": llm_res.raw_response
+                        })
+                return err(self.EMPTY_RESPONSE_ERROR)
 
-            recon_caps, dups = self._parse_and_validate_response(llm_response_text)
+            recon_caps, dups = self._parse_and_validate_response(llm_res.text)
             if not recon_caps:
-                return self._create_error_result(masked_video.video_id, self.PARSING_ERROR)
-
-            if not recon_caps:
-                return self._create_error_result(masked_video.video_id, self.TO_DICT_ERROR)
+                return err(self.PARSING_ERROR)
 
             if dups:
-                return self._create_error_result(
-                    masked_video.video_id,
+                return err(
                     self.DUPLICATE_INDICES_ERROR,
-                    {"llm_response_text": llm_response_text, "dups": dups}
+                    {"llm_response_text": llm_res.text, "dups": dups}
                 )
 
-            return self._process_reconstruction_results(masked_video, recon_caps, llm_response_text)
+            return self._process_reconstruction_results(masked_video, recon_caps, llm_res.text)
 
         except Exception as e:
             logging.error(f"{e} for {masked_video.video_id=}", exc_info=True)
-
-            return self._create_error_result(
-                masked_video.video_id,
-                str(e),
-                {"raw_response": self.llm_model.last_raw_response}
+            return err(
+                "exception",
+                {
+                    "raw_response": llm_res.raw_response if llm_res else None,
+                    "llm_response_text": llm_res.text if llm_res else None,
+                    "exception": ExceptionStr(e)
+                }
             )
 
-    def _get_llm_response(self, masked_video: CaptionedVideo) -> str:
+    def _get_llm_response(self, masked_video: CaptionedVideo) -> LLM_Response:
         """Generate prompt and get response from LLM."""
         prompt = self.prompt_builder.build_prompt(masked_video)
         logging.debug(f"video_id={masked_video.video_id} {prompt=}")
-        return self.llm_model.call(prompt).text
+        return self.llm_model.call(prompt)
 
     @staticmethod
     def _parse_and_validate_response(llm_response_text: str) -> tuple[dict[int, str], dict[int, int]]:
         """Parse LLM response and convert to dictionary format."""
-        reconstructed_video = parse_llm_response(model=Reconstructed, response_text=llm_response_text)
+        reconstructed_video = parse_llm_response(model=ReconstructedCaptions, response_text=llm_response_text)
         if not reconstructed_video:
             return {}, {}
         return reconstructed_video.to_dict()
@@ -194,21 +224,6 @@ class LLMStrategy(ReconstructionStrategy):
                 changed_unmasked.append(c.index)
 
         return ok, failed, changed_unmasked, reconstructed_dict
-
-    def _create_error_result(self, video_id: str, error_message: str, extra_debug_data: dict = None) -> Reconstructed:
-        """Create a Reconstructed result for error cases."""
-        debug_data = {
-            "error": error_message,
-            "raw_response": self.llm_model.last_raw_response
-        }
-        if extra_debug_data:
-            debug_data.update(extra_debug_data)
-
-        return Reconstructed(
-            video_id=video_id,
-            reconstructed_captions={},
-            debug_data=debug_data
-        )
 
 class ReconstructionStrategyBuilder:
     """

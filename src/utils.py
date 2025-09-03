@@ -184,7 +184,7 @@ def flat_dict(d:dict[str, dict[str, Any]]) -> dict[str, Any]:
 
 ####
 from typing import Any, Union
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import get_origin, get_args
 
 def get_clean_type_name(type_hint: Any) -> str:
@@ -309,3 +309,21 @@ def dump_model_compact_json(model_or_list: BaseModel|list[BaseModel], width: int
 
 def numbered_list(xs:Iterator[str]) -> str:
     return "".join(f"{i}. {x}\n" for i, x in enumerate(xs, start=1))
+
+import traceback
+class ExceptionStr(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    type: str
+    message: str
+    traceback: list[str]
+
+    def __init__(self, e: Exception):
+        super().__init__(
+            type=type(e).__name__,
+            message=str(e),
+            traceback=traceback.format_tb(e.__traceback__)
+        )
+
+
+

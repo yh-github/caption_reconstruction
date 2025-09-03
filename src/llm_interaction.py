@@ -13,12 +13,17 @@ from pydantic import BaseModel
 from tenacity import retry, wait_random_exponential, stop_after_attempt, retry_if_exception_type
 
 from data_models.schema import type_from_str, HashType
+from utils import ExceptionStr
 
 logger = logging.getLogger(__name__)
 
 class LLM_Response(BaseModel):
     text:str|None
     thoughts:str|None = None
+    raw_response: GenerateContentResponse | None = None
+
+    def dump(self):
+        return self.model_dump_json(exclude_none=True, exclude={"raw_response"})
 
     def should_cache(self):
         return self.text is not None
@@ -52,7 +57,7 @@ class LLM_Response(BaseModel):
         if text != raw_response.text:
             logger.warning(f"Text mismatch: {text=} {raw_response.text=}")
 
-        return LLM_Response(text=text, thoughts=thoughts)
+        return LLM_Response(text=text, thoughts=thoughts, raw_response=raw_response)
 
     @staticmethod
     def from_str(s:str):
@@ -63,9 +68,19 @@ class LLM_Response(BaseModel):
         else:
             return LLM_Response(text=s)
 
-class LLM_ResponseBlocked(LLM_Response):
+class LLM_ResponseError(LLM_Response):
     text: None = None
     raw_response: GenerateContentResponse | None
+    exception: ExceptionStr
+
+    def dump(self):
+        return self.model_dump_json(exclude_none=True)
+
+    def should_cache(self):
+        return False
+
+class LLM_ResponseBlocked(LLM_ResponseError):
+    exception: ExceptionStr|None = None
 
     def should_cache(self):
         return self.raw_response is not None
@@ -75,6 +90,17 @@ def is_perm_error(last_raw_response: GenerateContentResponse | None):
     if not last_raw_response:
         return False
     return last_raw_response.prompt_feedback.block_reason is not None
+
+
+class LLM_Exception(Exception):
+    def __init__(self, raw_response: GenerateContentResponse | None, message:str):
+        self.raw_response = raw_response
+        self.message = message
+        super().__init__(self.message)
+
+    def __str__(self):
+        return f"{self.message=} {self.raw_response=}"
+
 
 class LLM_Manager:
 
@@ -90,7 +116,7 @@ class LLM_Manager:
         self._llm_config = llm_config
         self._disk_cache = llm_cache
         self._base_cache_key = base_cache_key
-        self.last_raw_response: GenerateContentResponse | None = None
+        # self.last_raw_response: GenerateContentResponse | None = None
 
     def _cache_key(self, prompt:str):
         sha = self._base_cache_key.copy()
@@ -113,13 +139,20 @@ class LLM_Manager:
         )
 
     def _call_retry(self, prompt:ContentListUnion) -> LLM_Response:
-        self.last_raw_response = None
+        last_raw_response = None
         try:
-            self.last_raw_response = self._invoke_llm(prompt)
+            last_raw_response = self._invoke_llm(prompt)
+            if is_perm_error(last_raw_response):
+                logger.info(f"LLM PERM ERROR without Exception")
+                return LLM_ResponseBlocked(raw_response=last_raw_response)
+            return LLM_Response.from_raw(last_raw_response)
         except Exception as e:
             logger.warning(f"INVOKE_LLM_EXCEPTION {e.__class__.__qualname__} {e=}")
-            raise
-        return LLM_Response.from_raw(self.last_raw_response)
+            if is_perm_error(last_raw_response):
+                logger.info(f"LLM PERM ERROR with Exception")
+                return LLM_ResponseBlocked(raw_response=last_raw_response, exception=ExceptionStr(e))
+            return LLM_ResponseError(raw_response=last_raw_response, exception=ExceptionStr(e))
+            # raise LLM_Exception(last_raw_response=last_raw_response, message=f"{type(e)}: {e}") from e
 
     def call(self, prompt:str|Content) -> LLM_Response:
         if isinstance(prompt, str):
@@ -131,12 +164,10 @@ class LLM_Manager:
             logger.debug(f'Cache hit: {k=}')
             return LLM_Response.from_str(self._disk_cache[k])
         res = self._call_retry(prompt)
-        if not res.text and is_perm_error(self.last_raw_response):
-            res = LLM_ResponseBlocked(raw_response=self.last_raw_response)
         if res.should_cache():
-            self._disk_cache[k] = res.model_dump_json(exclude_none=True)
+            self._disk_cache[k] = res.dump()
 
-        if self._llm_config.thinking_config and not res.thoughts and res.text:
+        if self._llm_config.thinking_config and res.text and not res.thoughts:
             logger.warning(f"No thoughts in LLM response: {res.text=}")
 
         return res
@@ -181,19 +212,19 @@ class LLM_Manager_Builder:
         llm_config.safety_settings = [
             SafetySetting(
                 category=HarmCategory.HARM_CATEGORY_HARASSMENT,
-                threshold=HarmBlockThreshold.BLOCK_NONE,
+                threshold=HarmBlockThreshold.BLOCK_NONE
             ),
             SafetySetting(
                 category=HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-                threshold=HarmBlockThreshold.BLOCK_NONE,
+                threshold=HarmBlockThreshold.BLOCK_NONE
             ),
             SafetySetting(
                 category=HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-                threshold=HarmBlockThreshold.BLOCK_NONE,
+                threshold=HarmBlockThreshold.BLOCK_NONE
             ),
             SafetySetting(
                 category=HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-                threshold=HarmBlockThreshold.BLOCK_NONE,
+                threshold=HarmBlockThreshold.BLOCK_NONE
             )
         ]
 

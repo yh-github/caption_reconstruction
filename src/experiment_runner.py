@@ -29,39 +29,46 @@ class ExperimentRunner:
         self.evaluator = evaluator
         self.conf_for_log = conf_for_log
 
-    def run(self) -> tuple[dict, list[str]]:
+    def run(self) -> tuple[dict, list[Reconstructed]]:
         """Runs the full experiment from data loading to evaluation."""
         all_videos:list[CaptionedVideo] = self.data_loader.load()
         all_metrics:list[dict] = []
-        all_recon_videos:list[str] = []
+        all_recon_videos:list[Reconstructed] = []
 
         for video in all_videos:
             logging.debug(f"--- Processing Video: {video.video_id} ---")
 
+            def err(message:str, extra:dict|None=None):
+                return ReconstructionStrategy.create_error_result(
+                    video_id=video.video_id,
+                    error_message=message,
+                    extra_debug_data=extra
+                )
+
             masked_video, masked_indices = self.masking_strategy.mask_video(video)
             if not masked_video:
                 logging.warning(f"Not masking video {video.video_id} size={len(video.clips)} with {self.masking_strategy}")
-                all_recon_videos.append(f"SKIP {video.video_id=} NOT_MASKING")
+                all_recon_videos.append(err("NOT_MASKING"))
                 continue
 
-            reconstructed:Reconstructed|None = self.reconstruction_strategy.reconstruct(masked_video)
-            if not reconstructed or not reconstructed.reconstructed_captions:
-                logging.error(f"Reconstruction failed for video: {video.video_id}")
-                all_recon_videos.append(f"SKIP {video.video_id=} FAIL")
-                continue
+            reconstructed:Reconstructed = self.reconstruction_strategy.reconstruct(masked_video)
+            # if not reconstructed or not reconstructed.reconstructed_captions:
+            #     logging.error(f"Reconstruction failed for video: {video.video_id}")
+            #     all_recon_videos.append(err("RECONSTRUCTION_FAILED"))
+            #     continue
 
-            if reconstructed.reconstructed_captions.keys() != masked_indices and not reconstructed.debug_data:
+            if not reconstructed.debug_data and reconstructed.reconstructed_captions.keys() != masked_indices:
                 crit_msg = f"Reconstruction failed for video: {video.video_id}, {reconstructed.reconstructed_captions.keys()=} != {masked_indices=}"
                 logging.critical(crit_msg)
                 raise Exception(crit_msg)
 
             if reconstructed.debug_data and reconstructed.debug_data.get('failed',0):
                 logging.warning(f'Masked data found in reconstructed_video {video.video_id}, skipping')
-                all_recon_videos.append(reconstructed.skip('failed>0').json_str())
+                all_recon_videos.append(reconstructed.skip('failed>0'))
                 continue
             elif reconstructed.reconstructed_captions.keys() != masked_indices:
                 logging.warning(f'Bad indices found in reconstructed_video {video.video_id}, {reconstructed.reconstructed_captions.keys()=}, {masked_indices=}, skipping')
-                all_recon_videos.append(reconstructed.skip(f"{masked_indices=}").json_str())
+                all_recon_videos.append(reconstructed.skip(f"{masked_indices=}"))
                 continue
             elif reconstructed.debug_data:
                 logging.warning(f'Problems found in reconstructed_video {video.video_id}, proceeding anyway')
@@ -71,7 +78,7 @@ class ExperimentRunner:
             all_metrics.append(video_metrics)
 
             metrics = round_metrics(video_metrics)
-            all_recon_videos.append(reconstructed.with_metrics(metrics).json_str())
+            all_recon_videos.append(reconstructed.with_metrics(metrics))
 
             metrics.update({
                 "num_captions": len(video.clips),

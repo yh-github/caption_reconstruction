@@ -1,6 +1,7 @@
 import json
 import logging
 import statistics
+from abc import abstractmethod, ABC
 
 from bert_score import BERTScorer
 
@@ -22,18 +23,29 @@ def metrics_to_json(metrics):
     return json.dumps(metrics)
 
 
-# noinspection PyUnusedLocal
-class EvaluatorNOP:
+class ReconstructionEvaluator(ABC):
+    @abstractmethod
+    def evaluate(self, reconstructed: Reconstructed, orig: CaptionedVideo) -> dict:
+        return {}
+
 
     @staticmethod
-    def evaluate(reconstructed: Reconstructed, orig: CaptionedVideo) -> dict:
+    @abstractmethod
+    def agg_metrics(all_metrics):
+        return {}
+
+
+# noinspection PyUnusedLocal
+class EvaluatorNOP(ReconstructionEvaluator):
+
+    def evaluate(self, reconstructed: Reconstructed, orig: CaptionedVideo) -> dict:
         return {}
 
     @staticmethod
     def agg_metrics(all_metrics):
         return {}
 
-class ReconstructionEvaluator_BertScore:
+class ReconstructionEvaluator_BertScore(ReconstructionEvaluator):
     """
     Encapsulates the logic for evaluating caption reconstruction using BERTScore.
     """

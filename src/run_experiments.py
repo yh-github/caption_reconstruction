@@ -3,6 +3,7 @@ import os
 import platform
 from abc import abstractmethod, ABC
 from importlib.metadata import version
+from pathlib import Path
 from typing import Any
 
 import diskcache
@@ -13,7 +14,7 @@ from google import genai
 from config_loader import load_config
 from data_loaders import get_data_loader
 from data_models.exec_args import ExecArgs
-from evaluation import ReconstructionEvaluator_BertScore, EvaluatorNOP
+from evaluation import ReconstructionEvaluator_BertScore, EvaluatorNOP, ReconstructionEvaluator
 from experiment_runner import ExperimentRunner
 # Local imports
 from masking import get_masking_strategies
@@ -32,8 +33,8 @@ class ExperimentPipeline(ABC):
         experiment_type = config['base_params'].get('experiment_type', 'recon').upper()
         if experiment_type == 'RECON':
             return ExperimentPipeline_Reconstruction(exec_args, config)
-        elif experiment_type == 'QA':
-            return ExperimentPipeline_QA(exec_args, config)
+        # elif experiment_type == 'QA':
+        #     return ExperimentPipeline_QA(exec_args, config)
         else:
             raise UserFacingError(f"Unknown {experiment_type=}")
 
@@ -55,14 +56,14 @@ class ExperimentPipeline(ABC):
 
             eval_conf = self.config.get('evaluation', {})
             if self.experiment_type == 'RECON':
-                self.evaluator = ReconstructionEvaluator_BertScore(
+                self.evaluator:ReconstructionEvaluator = ReconstructionEvaluator_BertScore(
                     model_type=eval_conf.get('model', 'microsoft/deberta-large-mnli'),
                     verbose=self.exec_args.verbose or eval_conf.get('verbose', False),
                     idf=eval_conf.get('idf', True)
                 ).calc_idf(sents=self.data_loader.load_all_sentences())
             else:
                 logging.warning("No evaluation config found. Setting evaluator to NOP.")
-                self.evaluator = EvaluatorNOP()
+                self.evaluator:ReconstructionEvaluator = EvaluatorNOP()
 
         self.log_path: str | None = None
         self.mlflow_run_path: str | None = None
@@ -101,12 +102,32 @@ class ExperimentPipeline(ABC):
                     with mlflow.start_run(run_name=runner.run_name, nested=True):
                         logging.info(f"--- Starting Nested Run: {runner.run_name} ---")
                         mlflow.log_params(runner.conf_for_log)
-                        self.run_and_eval(runner)
-                        flush_loggers()
 
-    @abstractmethod
-    def run_and_eval(self, runner: ExperimentRunner):
-        pass
+                        ###
+                        metrics, all_recon_videos = runner.run()
+
+                        if all_recon_videos:
+                            # mlflow.log_text(text="\n".join(all_recon_videos), artifact_file='all_recon_videos.jsonl')
+                            out_path = Path("results/recon/"+self.config["__parent_run_name__"]+"/"+runner.run_name)
+                            out_path.mkdir(parents=True, exist_ok=True)
+                            with open(out_path/"all_recon_videos.jsonl", "w") as f:
+                                f.write("\n".join([v.json_str() for v in all_recon_videos]))
+
+                        if metrics:
+                            mlflow.log_metrics(metrics)
+                            log_message = (f"{runner.run_name} Logged aggregated metrics on"
+                                           f" {metrics['num_of_instances']} instances."
+                                           f" Mean F1: {metrics['mean_f1_score']:.4f}"
+                                           f" Mean P: {metrics['mean_precision']:.4f}"
+                                           f" Mean R: {metrics['mean_recall']:.4f}")
+                            logging.info(log_message)
+                            notifier.info(log_message)
+                        else:
+                            logging.error("No metrics were generated")
+
+                        ###
+
+                        flush_loggers()
 
     def done(self):
         logging.info(f'PID {os.getpid()} DONE.')
@@ -143,28 +164,28 @@ class ExperimentPipeline(ABC):
         return llm_mock
 
 
-class ExperimentPipeline_QA(ExperimentPipeline):
-
-    def __init__(self, exec_args: ExecArgs, config: dict[str, Any]):
-        super().__init__(exec_args, config)
-        self.rs_builder = ReconstructionStrategyBuilder(
-            llm_cache=self.cache,
-            master_seed=self.config["base_params"]["master_seed"],
-            llm_client=self._llm_client
-        )
-
-    def run_and_eval(self, runner: ExperimentRunner):
-        pass
-
-    def build_experiments(self):
-        config = self.config
-        runner = ExperimentRunner(
-            run_name=f"{recon_strategy}__{masker}",
-            data_loader=self.data_loader,
-            evaluator=self.evaluator,
-            conf_for_log=conf_for_log
-        )
-        yield runner
+# class ExperimentPipeline_QA(ExperimentPipeline):
+#
+#     def __init__(self, exec_args: ExecArgs, config: dict[str, Any]):
+#         super().__init__(exec_args, config)
+#         self.rs_builder = ReconstructionStrategyBuilder(
+#             llm_cache=self.cache,
+#             master_seed=self.config["base_params"]["master_seed"],
+#             llm_client=self._llm_client
+#         )
+#
+#     def run_and_eval(self, runner: ExperimentRunner):
+#         pass
+#
+#     def build_experiments(self):
+#         config = self.config
+#         runner = ExperimentRunner(
+#             run_name=f"{recon_strategy}__{masker}",
+#             data_loader=self.data_loader,
+#             evaluator=self.evaluator,
+#             conf_for_log=conf_for_log
+#         )
+#         yield runner
 
 
 class ExperimentPipeline_Reconstruction(ExperimentPipeline):
@@ -176,9 +197,6 @@ class ExperimentPipeline_Reconstruction(ExperimentPipeline):
             master_seed=self.config["base_params"]["master_seed"],
             llm_client=self._llm_client
         )
-
-    def run_and_eval(self, runner: ExperimentRunner):
-        pass
 
     def build_experiments(self):
         config = self.config
