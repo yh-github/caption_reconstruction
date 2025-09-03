@@ -96,17 +96,17 @@ class ExperimentRunner:
 
             all_metrics.append(video_metrics)
 
-            metrics = round_metrics(video_metrics)
-            self._save_result(reconstructed.with_metrics(metrics))
+            # metrics = round_metrics(video_metrics)
+            self._save_result(reconstructed.with_metrics(video_metrics))
 
-            metrics.update({
+            video_metrics.update({
                 "num_captions": len(video.clips),
                 "masked": list(masked_indices)
             })
 
             logging.info(f"Evaluation complete for "
                          f"video_id={video.video_id} "
-                         f"metrics={metrics_to_json(metrics)}")
+                         f"metrics={metrics_to_json(video_metrics)}")
 
             logging.debug(f"Successfully processed video: {video.video_id}")
 

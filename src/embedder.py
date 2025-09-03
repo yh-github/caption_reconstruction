@@ -5,6 +5,7 @@ from google import genai
 from google.genai import types
 from config_loader import load_config
 from data_loaders import get_data_loader
+from data_models.captions_only import CaptionedVideo
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -90,7 +91,6 @@ class Embedder:
         if fail>0 or ok+hits!=len(all_texts):
             raise Exception(f"Embeddings failed for {video_id} {ok=} {fail=} {hits=} {len(all_texts)=}")
         return [self.cache[c] for c in all_texts]
-
 
     # def sim(self, video:CaptionedVideo):
     #     embeddings_matrix = np.array(self.get_embeddings(video))

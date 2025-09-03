@@ -1,6 +1,6 @@
 import pandas as pd
 from pydantic import BaseModel
-from typing import Iterator
+from typing import Iterator, Self
 import numpy as np
 from numpy.typing import NDArray
 from pathlib import Path
@@ -18,17 +18,100 @@ def load_numpy_files(
     for file_path in npy_files:
         yield np.load(file_path)[:max_rows], file_path.stem
 
-class SimStats(BaseModel):
+class VectorStats(BaseModel):
     mean:float
     std:float
     min:float
     max:float
 
+    @classmethod
+    def from_vector(cls, vector: list[float] | np.ndarray) -> Self:
+        if len(vector) == 0:
+            return cls(mean=0.0, std=0.0, min=0.0, max=0.0)
+
+        return cls(
+            mean=float(np.mean(vector)),
+            std=float(np.std(vector)),
+            min=float(np.min(vector)),
+            max=float(np.max(vector))
+        )
+
+def calculate_elementwise_cosine(
+    vectors_a: list[list[float]]|NDArray[np.float64],
+    vectors_b: list[list[float]]|NDArray[np.float64]
+) -> np.ndarray:
+    """
+    Takes two lists of vectors of the same length, validates them, and computes
+    the element-wise cosine similarity between corresponding vectors.
+
+    Args:
+        vectors_a: A list of M vectors, where each vector is a list of floats.
+        vectors_b: A list of M vectors, where each vector is a list of floats.
+
+    Returns:
+        A NumPy ndarray of shape (M,) where the element at index (i) is the
+        cosine similarity between the i-th vector in `vectors_a` and the i-th
+        vector in `vectors_b`.
+
+    Raises:
+        ValueError: If the input lists are empty, have a different number of vectors,
+                    are not 2D, or if the inner vectors do not have matching dimensions.
+    """
+    # --- Step 1: Convert lists to ndarrays ---
+    # Using np.float64 for better precision.
+    if isinstance(vectors_a, list):
+        matrix_a = np.array(vectors_a, dtype=np.float64)
+    else:
+        matrix_a = vectors_a
+    if isinstance(vectors_b, list):
+        matrix_b = np.array(vectors_b, dtype=np.float64)
+    else:
+        matrix_b = vectors_b
+
+    # --- Step 2: Validate dimensions ---
+    if matrix_a.ndim != 2 or matrix_b.ndim != 2:
+        raise ValueError("Inputs must be convertible to 2D matrices (list of lists).")
+
+    if matrix_a.shape[0] == 0 or matrix_b.shape[0] == 0:
+        raise ValueError("Input lists cannot be empty.")
+
+    # New check: ensure both lists have the same number of vectors.
+    if matrix_a.shape[0] != matrix_b.shape[0]:
+        raise ValueError(
+            f"Input lists must have the same number of vectors. Got {matrix_a.shape[0]} and {matrix_b.shape[0]}."
+        )
+
+    # The crucial check: the length of the inner vectors must be the same.
+    if matrix_a.shape[1] != matrix_b.shape[1]:
+        raise ValueError(
+            f"Vector dimensions do not match. Got {matrix_a.shape[1]} and {matrix_b.shape[1]}."
+        )
+
+    # --- Step 3: Calculate element-wise cosine similarity ---
+    # The formula for cosine similarity is: (A · B) / (||A|| * ||B||)
+    # We can compute this for all corresponding vector pairs at once.
+
+    # Element-wise product and sum along rows to get dot products
+    dot_products = np.sum(matrix_a * matrix_b, axis=1)
+
+    # Calculate L2 norms (magnitudes) for each vector in both matrices
+    norms_a = np.linalg.norm(matrix_a, axis=1)
+    norms_b = np.linalg.norm(matrix_b, axis=1)
+
+    # Denominator with a small epsilon to prevent division by zero
+    epsilon = 1e-8
+    denominator = norms_a * norms_b + epsilon
+
+    similarity_vector = dot_products / denominator
+
+    return similarity_vector
+
+
 def calculate_similarity_stats(
         m: NDArray[np.float64],
         start_index: int,
         end_index: int
-) -> SimStats:
+) -> VectorStats:
     """Calculate similarity statistics between vectors in a matrix.
 
     This function computes the cosine similarity between a reference vector and a set of
@@ -88,12 +171,7 @@ def calculate_similarity_stats(
 
     # --- 4. Calculate and Return Statistics ---
 
-    return SimStats(
-        mean=float(np.mean(similarities)),
-        std=float(np.std(similarities)),
-        min=float(np.min(similarities)),
-        max=float(np.max(similarities))
-    )
+    return VectorStats.from_vector(similarities)
 
 def get_indices(max_ind:int=60) -> list[tuple[int, int]]:
     def inner():

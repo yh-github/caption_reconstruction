@@ -14,7 +14,7 @@ from google import genai
 from config_loader import load_config
 from data_loaders import get_data_loader
 from data_models.exec_args import ExecArgs
-from evaluation import ReconstructionEvaluator_BertScore, EvaluatorNOP, ReconstructionEvaluator
+from evaluation import ReconstructionEvaluator_BertScore, EvaluatorNOP, ReconstructionEvaluator, metrics_to_json
 from experiment_runner import ExperimentRunner
 # Local imports
 from masking import get_masking_strategies
@@ -112,11 +112,7 @@ class ExperimentPipeline(ABC):
 
                         if metrics:
                             mlflow.log_metrics(metrics)
-                            log_message = (f"{runner.run_name} Logged aggregated metrics on"
-                                           f" {metrics['num_of_instances']} instances."
-                                           f" Mean F1: {metrics['mean_f1_score']:.4f}"
-                                           f" Mean P: {metrics['mean_precision']:.4f}"
-                                           f" Mean R: {metrics['mean_recall']:.4f}")
+                            log_message = f"{runner.run_name} Logged aggregated metrics {metrics_to_json(metrics)}"
                             logging.info(log_message)
                             notifier.info(log_message)
                         else:
