@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from data_models.captions_only import CaptionedVideo
-from utils import UserFacingError
 
 
 class PromptBuilder(ABC):

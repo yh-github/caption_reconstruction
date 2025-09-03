@@ -7,7 +7,6 @@ from pathlib import Path
 import diskcache
 import yaml
 from google import genai
-from google.genai.types import GenerateContentResponse
 
 from config_loader import load_config, get_llm_config
 from data_models.complex_struct import VideoAnalysis, VideoSegment
@@ -15,7 +14,8 @@ from dev_qa import QAData, load_wild_captions, build_evaluator, AnswerResponse, 
 from llm_interaction import LLM_Manager_Builder, LLM_Response
 from parsers import parse_llm_response
 from prompting import JSONPromptBuilder
-from utils import get_model_schema_lines, dump_model_compact_json, numbered_list, get_datetime_str, setup_logging
+from utils import get_model_schema_lines, dump_model_compact_json, numbered_list, get_datetime_str, setup_logging, \
+    ExceptionStr
 from video_link_loader import load_wild_dataset
 
 logger = logging.getLogger(__name__)
@@ -33,16 +33,16 @@ def save_to_file(path, video_id:str, thoughts:str, _answers:AnswerResponses, _sc
         }, sort_keys=False))
 
 
-def save_error(path, video_id:str, llm_response:LLM_Response, last_raw_response:GenerateContentResponse|None, exception:Exception, mask_start:float|None=None, mask_end:float|None=None):
+def save_error(path, video_id:str, llm_response:LLM_Response, exception:Exception, mask_start:float|None=None, mask_end:float|None=None):
     with open(path, 'w') as f:
         return f.write(yaml.dump(
             {
                 "video_id": video_id,
                 "mask_start": mask_start,
                 "mask_end": mask_end,
-                "llm_response": None if not llm_response else llm_response.model_dump_json(),
-                "last_raw_response": None if not last_raw_response else last_raw_response.model_dump_json(),
-                "exception": str(exception)
+                "llm_response": None if not llm_response else llm_response.model_dump_json(exclude_none=True),
+                # "last_raw_response": None if not last_raw_response else last_raw_response.model_dump_json(),
+                "exception": ExceptionStr(exception)
             }, sort_keys=False
         ))
 
@@ -121,11 +121,11 @@ if __name__ == "__main__":
 
             try:
                 res = llm.call(llm_input)
-                assert res and res.text, f"No response for {va.video_id}"
+                assert res and res.text, f"Bad LLM Response for {va.video_id}"
                 answers = parse_llm_response(model=AnswerResponses, response_text=res.text)
                 scores=do_eval(va.video_id, answers.root, qa_by_id[va.video_id])
                 save_to_file(OUT_FILE, va.video_id, res.thoughts, answers, scores)
             except Exception as e:
                 logging.error(f"Error saving {va.video_id} to file, {e=}, saving to {ERR_FILE=}")
-                save_error(ERR_FILE, va.video_id, res, llm.last_raw_response, e)
+                save_error(ERR_FILE, va.video_id, res, e)
                 time.sleep(1)

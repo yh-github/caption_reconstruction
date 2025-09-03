@@ -5,7 +5,6 @@ from google import genai
 from google.genai import types
 from config_loader import load_config
 from data_loaders import get_data_loader
-from data_models.captions_only import CaptionedVideo
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -112,10 +111,11 @@ def main(config, cmd):
                 video_id=_video.video_id,
                 all_texts=[c.caption for c in _video.clips]
             )
+            log_msg = f"{_video.video_id} ok={ok} fail={fail} hits={hits} all={len(_video.clips)}"
             if len(embs) == len(_video.clips):
-                logger.info(f"{_video.video_id} ok={ok} fail={fail} hits={hits} all={len(_video.clips)}")
+                logger.info(log_msg)
             else:
-                logger.warning(f"{_video.video_id} ok={ok} fail={fail} hits={hits} all={len(_video.clips)} BUT {len(embs)=}"))
+                logger.warning(f"{log_msg} BUT {len(embs)=}")
 
     # elif cmd == "cos" or cmd == "cosine":
     #     for _video in data:

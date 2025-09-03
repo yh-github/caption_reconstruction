@@ -74,13 +74,6 @@ class QAEvaluator_BertScore:
     """
 
     def __init__(self, model_type:str|None=None, text_for_idf:list[str]|None=None, verbose=False):
-        """
-        Initializes the evaluator with configuration for BERTScore.
-
-        Args:
-            model_type: The Hugging Face model to use for BERTScore.
-            idf: A boolean indicating whether to use inverse-document-frequency weighting.
-        """
         self.model_type = model_type
         self.verbose = verbose
         self.bert_scorer = BERTScorer(

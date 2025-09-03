@@ -111,13 +111,13 @@ def main(config:dict[str, Any], mask_start:float|None=None, mask_end:float|None=
             logging.debug(f'{llm_input=}')
             try:
                 res = llm.call(llm_input)
-                assert res and res.text, f"No response for {v_id}"
+                assert res and res.text, f"Bad response for {v_id}"
                 answers = parse_llm_response(model=AnswerResponses, response_text=res.text)
                 scores=do_eval(v_id, answers.root, qa_by_id[va.video_id])
                 save_to_file(OUT_FILE, va.video_id, res.thoughts, answers, scores, mask_start, mask_end)
             except Exception as e:
                 logging.error(f"Error saving {va.video_id} to file, {e=}, saving to {ERR_FILE=}")
-                save_error(ERR_FILE, va.video_id, res, llm.last_raw_response, e, mask_start, mask_end)
+                save_error(ERR_FILE, va.video_id, res, e, mask_start, mask_end)
                 time.sleep(1)
 
 if __name__ == "__main__":

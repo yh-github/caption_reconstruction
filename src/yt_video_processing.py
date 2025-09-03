@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import sys
@@ -10,14 +9,13 @@ import diskcache
 import yaml
 from google import genai
 from google.genai import types
-from google.genai.types import GenerateContentResponse
-from pydantic import RootModel, BaseModel
+from pydantic import BaseModel
 
 from config_loader import load_config, get_llm_config
 from data_models.video_link import VideoLinkData
 from llm_interaction import LLM_Response, LLM_Manager_Builder
 from parsers import parse_llm_response_list, T_BaseModel
-from utils import setup_logging, get_datetime_str
+from utils import setup_logging, get_datetime_str, ExceptionStr
 from video_link_loader import load_wild_dataset, WildVideoMetadata
 
 
@@ -91,16 +89,22 @@ def save_to_file(path, video_id, validated_captions:list[T_BaseModel], thoughts:
     with open(path, 'w') as f:
         f.write(va.model_dump_json())
 
-def save_error(path, video_id:str, llm_response:LLM_Response|None, last_raw_response:GenerateContentResponse|None, exception:Exception):
+def save_error(
+    path:Path,
+    video_id:str,
+    llm_response:LLM_Response|None,
+    exception:Exception|None
+):
     with open(path, 'w') as f:
-        return f.write(yaml.dump(
+        f.write(yaml.dump(
             {
                 "video_id": video_id,
-                "llm_response": None if not llm_response else llm_response.model_dump_json(),
-                "last_raw_response": None if not last_raw_response else last_raw_response.model_dump_json(),
-                "exception": str(exception)
+                "llm_response": None if not llm_response else llm_response.model_dump_json(exclude_none=True),
+                # "last_raw_response": None if not last_raw_response else last_raw_response.model_dump_json(),
+                "exception": ExceptionStr(exception) if exception else None
             }
         ))
+        time.sleep(1)
 
 def read_prompt(path:str|Path) -> str:
     with open(path, 'r') as f:
@@ -176,7 +180,7 @@ def main(config):
             res = None
             try:
                 res = llm.call(llm_input)
-                assert res and res.text, f"No response for {x.video_id}"
+                assert res and res.text, f"Bad LLM Response for {x.video_id}"
                 save_to_file(
                     OUT_FILE,
                     x.video_id,
@@ -185,9 +189,8 @@ def main(config):
                 )
                 ok += 1
             except Exception as e:
-                logging.error(f"Error saving {x.video_id} to file, {e=}, saving to {ERR_FILE=}")
-                save_error(ERR_FILE, x.video_id, res, llm.last_raw_response, e)
-                time.sleep(1)
+                logging.error(f"Error with {x.video_id}, {e=}, saving to {ERR_FILE=}")
+                save_error(ERR_FILE, x.video_id, res, e)
     print(f'{log_path = }')
 
 if __name__ == "__main__":
