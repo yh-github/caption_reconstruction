@@ -65,13 +65,17 @@ class ExperimentPipeline(ABC):
                 logging.warning("No evaluation config found. Setting evaluator to NOP.")
                 self.evaluator:ReconstructionEvaluator = EvaluatorNOP()
 
+        self.experiment_name = get_datetime_str(self.config.get('tz'))
+        self.parent_run_name = self.config["__parent_run_name__"]+f"__{self.experiment_name}"
+
         self.log_path: str | None = None
         self.mlflow_run_path: str | None = None
 
 
     def main(self):
-        experiment_name = get_datetime_str(self.config.get('tz'))
-        parent_run_name = self.config["__parent_run_name__"]+f" ({experiment_name})"
+        experiment_name = self.experiment_name
+        parent_run_name = self.parent_run_name
+
         mlflow_uri = self.config['paths']['mlflow_tracking_uri']
 
         git_commit_hash = check_git_repository_is_clean()
@@ -104,14 +108,7 @@ class ExperimentPipeline(ABC):
                         mlflow.log_params(runner.conf_for_log)
 
                         ###
-                        metrics, all_recon_videos = runner.run()
-
-                        if all_recon_videos:
-                            # mlflow.log_text(text="\n".join(all_recon_videos), artifact_file='all_recon_videos.jsonl')
-                            out_path = Path("results/recon/"+self.config["__parent_run_name__"]+"/"+runner.run_name)
-                            out_path.mkdir(parents=True, exist_ok=True)
-                            with open(out_path/"all_recon_videos.jsonl", "w") as f:
-                                f.write("\n".join([v.json_str() for v in all_recon_videos]))
+                        metrics = runner.run()
 
                         if metrics:
                             mlflow.log_metrics(metrics)
@@ -227,6 +224,8 @@ class ExperimentPipeline_Reconstruction(ExperimentPipeline):
                     masking_strategy=masker,
                     reconstruction_strategy=recon_strategy,
                     evaluator=self.evaluator,
+                    #TODO add result path to config
+                    save_path=Path("results/recon/" + self.parent_run_name),
                     conf_for_log=run_conf
                 )
                 yield runner

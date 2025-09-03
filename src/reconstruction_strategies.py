@@ -35,7 +35,10 @@ class Reconstructed(BaseModel):
         return candidates, references
 
     def skip(self, reason: str):
-        self.skip_reason = reason
+        if self.skip_reason:
+            self.skip_reason += f" | {reason}"
+        else:
+            self.skip_reason = reason
         return self
 
     def with_metrics(self, metrics: dict):
