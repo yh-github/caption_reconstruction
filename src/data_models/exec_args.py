@@ -1,4 +1,5 @@
 import argparse
+import logging
 from pathlib import Path
 
 import argcomplete
@@ -10,6 +11,10 @@ class ExecArgs(BaseModel):
     verbose: bool
     dry_run: bool
     validate_cache: bool
+    debug: bool
+
+    def log_level(self, log_level:int) -> int:
+        return log_level if not self.debug else logging.DEBUG
 
 def args_parser():
     parser = argparse.ArgumentParser(description="Command-line argument parser for experiment runner.")
@@ -24,6 +29,12 @@ def args_parser():
         "--verbose",
         action="store_true",
         help="Display detailed information about experiments."
+    )
+
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Display debug information."
     )
 
     parser.add_argument(

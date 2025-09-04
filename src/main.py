@@ -24,6 +24,7 @@ def validate_cache(xs):
 
 
 if __name__ == "__main__":
+    ep = None
     try:
         ep = ExperimentPipeline.build(exec_args)
         if exec_args.dry_run:
@@ -38,7 +39,11 @@ if __name__ == "__main__":
         sys.exit(1)
     except KeyboardInterrupt:
         print("\n\n🛑 Experiment batch cancelled by user. Shutting down gracefully.")
+        if ep:
+            ep.done()
         sys.exit(130) # 130 is the standard exit code for Ctrl+C
     except Exception as e:
         logging.error(f"Experiment failed with a critical error: {e}", exc_info=True)
-        raise
+        if ep:
+            ep.done(e)
+

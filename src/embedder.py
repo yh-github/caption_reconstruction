@@ -3,9 +3,10 @@ import sys
 import diskcache
 from google import genai
 from google.genai import types
+from google.genai.types import EmbedContentResponse
+
 from config_loader import load_config
 from data_loaders import get_data_loader
-from data_models.captions_only import CaptionedVideo
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -46,7 +47,11 @@ class Embedder:
         embeddings_dict:dict[str, list[float]] = {}
 
         try:
-            raw_res = self.client.models.embed_content(
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug(f"Embeddings for {video_id}")
+                for i,t in enumerate(texts, start=1):
+                    logger.debug(f"  {i}. {t}")
+            raw_res: EmbedContentResponse = self.client.models.embed_content(
                 model=self.model,
                 config=self.embed_config,
                 contents=texts
@@ -62,12 +67,17 @@ class Embedder:
         if len(raw_res.embeddings) != len(texts):
             logger.warning(f"Embeddings failed for {video_id} {len(raw_res.embeddings)=} {len(texts)=}")
 
+        logger.debug(f"Embeddings for {video_id} done {len(raw_res.embeddings)=} {len(texts)=}")
+
         for i, embedding in enumerate(raw_res.embeddings):
             es = embedding.values
             if es is None:
                 logger.warning(f"Embeddings failed for {video_id} {i=}")
             embeddings_dict[texts[i]] = es
         return embeddings_dict
+
+    def _check_emb(self, emb:list[float]|None) -> bool:
+        return emb is not None and len(emb)==self.embed_config.output_dimensionality
 
     def embed_save(self, video_id:str, all_texts:list[str]) -> tuple[int,int,int]:
         ok=0
@@ -79,8 +89,8 @@ class Embedder:
             return ok, fail, len(all_texts)
 
         for k,v in self._embed_new(video_id, texts).items():
-            self.cache[k] = v
-            if v:
+            if self._check_emb(v):
+                self.cache[k] = v
                 ok+=1
             else:
                 fail+=1

@@ -22,7 +22,7 @@ from experiment_runner import ExperimentRunner
 from masking import get_masking_strategies
 from reconstruction_strategies import ReconstructionStrategyBuilder
 from utils import check_git_repository_is_clean, setup_logging, flush_loggers, \
-    setup_mlflow, get_datetime_str, flat_dict, UserFacingError
+    setup_mlflow, get_datetime_str, flat_dict, UserFacingError, ExceptionStr
 
 from unittest.mock import Mock
 
@@ -30,7 +30,7 @@ class ExperimentPipeline(ABC):
 
     @staticmethod
     def build(exec_args:ExecArgs):
-        logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+        logging.basicConfig(level=exec_args.log_level(logging.INFO), format='%(asctime)s - %(levelname)s - %(message)s')
         config = load_config(exec_args.config_path)
         experiment_type = config['base_params'].get('experiment_type', 'recon').upper()
         if experiment_type == 'RECON':
@@ -95,7 +95,9 @@ class ExperimentPipeline(ABC):
                 log_path, notifier = setup_logging(
                     log_dir=self.config['paths']['log_dir'],
                     run_id=parent_run.info.run_id,
-                    tz_str=self.config.get('tz', None)
+                    tz_str=self.config.get('tz', None),
+                    console_level=self.exec_args.log_level(logging.WARNING),
+                    base_level=self.exec_args.log_level(logging.INFO)
                 )
                 self.log_path = log_path
 
@@ -131,13 +133,19 @@ class ExperimentPipeline(ABC):
 
                         flush_loggers()
 
-    def done(self):
+    def done(self, exception:Exception | None = None):
         logging.info(f'PID {os.getpid()} DONE.')
-        print(f"\n✅ Finished successfully.")
+        if not exception:
+            print(f"\n✅ Finished successfully.")
+        else:
+            print(ExceptionStr(exception).model_dump_json(indent=4, exclude_none=True))
         if self.mlflow_run_path:
             print(f"\nRun `mlflow ui` in your terminal to view the full results.")
             print(f"\nRun `python scripts/mlflow_runs.py {self.mlflow_run_path}` for command-line access.")
-        print(f"\nView log in {self.log_path}")
+        if self.log_path:
+            print(f"\nView log in {self.log_path}")
+        else:
+            print(f"\nNo log generated.")
         print()
 
     @abstractmethod
