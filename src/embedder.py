@@ -1,5 +1,7 @@
 import logging
 import sys
+from collections import Counter
+
 import diskcache
 from google import genai
 from google.genai import types
@@ -83,22 +85,23 @@ class Embedder:
         ok=0
         fail=0
 
-        texts = [c for c in all_texts if c not in self.cache]
-        if not texts:
+        counts = Counter(all_texts)
+        new_texts:list[str] = list(counts.keys())
+        if not new_texts:
             logger.debug(f"Embeddings cache full hit for {video_id}")
             return ok, fail, len(all_texts)
 
-        for k,v in self._embed_new(video_id, texts).items():
-            if self._check_emb(v):
-                self.cache[k] = v
-                ok+=1
+        for the_text, embs in self._embed_new(video_id, new_texts).items():
+            if self._check_emb(embs):
+                self.cache[the_text] = embs
+                ok += counts.get(the_text)
             else:
-                fail+=1
-        return ok, fail, len(all_texts)-len(texts)
+                fail += counts.get(the_text)
+        return ok, fail, len(all_texts)-counts.total()
 
     def get_embeddings(self, video_id:str, all_texts:list[str]) -> list[list[float]]:
         ok, fail, hits = self.embed_save(video_id, all_texts)
-        if fail>0 or ok+hits!=len(all_texts):
+        if fail>0 or ok+hits != len(all_texts):
             raise Exception(f"Embeddings failed for {video_id} {ok=} {fail=} {hits=} {len(all_texts)=}")
         return [self.cache[c] for c in all_texts]
 
