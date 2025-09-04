@@ -69,7 +69,7 @@ class Embedder:
         if len(raw_res.embeddings) != len(texts):
             logger.warning(f"Embeddings failed for {video_id} {len(raw_res.embeddings)=} {len(texts)=}")
 
-        logger.debug(f"Embeddings for {video_id} done {len(raw_res.embeddings)=} {len(texts)=}")
+        logger.debug(f"New embeddings for {video_id} done {len(raw_res.embeddings)=} {len(texts)=}")
 
         for i, embedding in enumerate(raw_res.embeddings):
             es = embedding.values
@@ -102,7 +102,8 @@ class Embedder:
     def get_embeddings(self, video_id:str, all_texts:list[str]) -> list[list[float]]:
         ok, fail, hits = self.embed_save(video_id, all_texts)
         if fail>0 or ok+hits != len(all_texts):
-            raise Exception(f"Embeddings failed for {video_id} {ok=} {fail=} {hits=} {len(all_texts)=}")
+            raise Exception(f"Embeddings FAILED for {video_id} {ok=} {fail=} {hits=} {len(all_texts)=}")
+        logger.debug(f"Embeddings GOOD for {video_id} {ok=} {fail=} {hits=} {len(all_texts)=}")
         return [self.cache[c] for c in all_texts]
 
     # def sim(self, video:CaptionedVideo):

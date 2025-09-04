@@ -80,6 +80,8 @@ class ExperimentPipeline(ABC):
         self.log_path: str | None = None
         self.mlflow_run_path: str | None = None
 
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.done(exc_val)
 
     def main(self):
         experiment_name = self.experiment_name
@@ -87,7 +89,7 @@ class ExperimentPipeline(ABC):
 
         mlflow_uri = self.config['paths']['mlflow_tracking_uri']
 
-        git_commit_hash = check_git_repository_is_clean()
+        git_commit_hash = check_git_repository_is_clean(ignore_risk=self.exec_args.debug)
 
         with FileLock(".lock"):
             setup_mlflow(experiment_name=experiment_name, tracking_uri=mlflow_uri)
@@ -135,6 +137,7 @@ class ExperimentPipeline(ABC):
 
     def done(self, exception:Exception | None = None):
         logging.info(f'PID {os.getpid()} DONE.')
+
         if not exception:
             print(f"\n✅ Finished successfully.")
         else:

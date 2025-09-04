@@ -116,16 +116,19 @@ def flush_loggers():
         handler.flush()
 
 
-def check_git_repository_is_clean():
+def check_git_repository_is_clean(ignore_risk: bool = False):
     """Checks for uncommitted changes and raises a specific error if dirty."""
     logging.info("Performing Git repository cleanliness check...")
     repo = git.Repo(search_parent_directories=True)
     if repo.is_dirty(untracked_files=True):
         error_message = "Git repository is dirty. Commit or stash changes before running."
         logging.error(error_message)
-        raise UserFacingError(error_message)
-    logging.info("Git repository is clean.")
-    return repo.head.object.hexsha
+        if not ignore_risk:
+            raise UserFacingError(error_message)
+        return repo.head.object.hexsha+"(DIRTY)"
+    else:
+        logging.info("Git repository is clean.")
+        return repo.head.object.hexsha
 
 def setup_mlflow(
     experiment_name: str,
