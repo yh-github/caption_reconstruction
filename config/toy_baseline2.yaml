@@ -1,0 +1,19 @@
+base_params:
+  master_seed: 42
+  experiment_type: "recon"
+
+evaluation:
+  type: "emb_sim"
+
+data_config:
+    name: "toy_data"
+    path: "datasets/toy_dataset/data.json"
+
+recon_strategy:
+  - name: "baseline_repeat_last"
+    type: "baseline_repeat_last"
+
+masking_configs:
+  - scheme: "partition"
+    num_partitions: 3
+    num_parts_to_mask: [1]

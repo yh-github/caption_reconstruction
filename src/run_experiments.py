@@ -49,6 +49,7 @@ class ExperimentPipeline(ABC):
 
         self.data_loader = get_data_loader(self.config["data_config"])
 
+        self.evaluator: ReconstructionEvaluator = EvaluatorNOP()
         if self.exec_args.dry_run or self.exec_args.validate_cache:
             logging.info("Running in dry-run mode. Blocking LLM client and Evaluator set to NOP.")
             self._llm_client = self._create_mock_llm_client()
@@ -60,7 +61,7 @@ class ExperimentPipeline(ABC):
             if self.experiment_type == 'RECON':
                 eval_type = eval_conf.get('type', 'bert_score')
                 if eval_type == 'bert_score':
-                    self.evaluator:ReconstructionEvaluator = ReconstructionEvaluator_BertScore(
+                    self.evaluator = ReconstructionEvaluator_BertScore(
                         model_type=eval_conf.get('model', 'microsoft/deberta-large-mnli'),
                         verbose=self.exec_args.verbose or eval_conf.get('verbose', False),
                         idf=eval_conf.get('idf', True)
@@ -71,10 +72,10 @@ class ExperimentPipeline(ABC):
                     raise UserFacingError(f"Unknown evaluation type '{eval_type}'")
             else:
                 logging.warning("No evaluation config found. Setting evaluator to NOP.")
-                self.evaluator:ReconstructionEvaluator = EvaluatorNOP()
+                self.evaluator = EvaluatorNOP()
 
-        self.experiment_name = get_datetime_str(self.config.get('tz'))
-        self.parent_run_name = self.config["__parent_run_name__"]+f"__{self.experiment_name}"
+        self.experiment_name:str = get_datetime_str(self.config.get('tz'))
+        self.parent_run_name:str = self.config["__parent_run_name__"]+f"__{self.experiment_name}"
 
         self.log_path: str | None = None
         self.mlflow_run_path: str | None = None

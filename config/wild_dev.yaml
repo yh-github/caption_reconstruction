@@ -1,5 +1,9 @@
 base_params:
   master_seed: 2025
+  experiment_type: "recon"
+
+evaluation:
+  type: "emb_sim"
 
 data_config:
   name: "wild_captions"

@@ -129,11 +129,7 @@ class ReconstructionEvaluator_EmbSimilarity(ReconstructionEvaluator):
     def __init__(self, embedder: Embedder):
         self.embedder = embedder
 
-    def evaluate(
-            self,
-            reconstructed: Reconstructed,
-            orig: CaptionedVideo
-    ) -> dict:
+    def evaluate(self, reconstructed: Reconstructed, orig: CaptionedVideo) -> dict:
         logger.debug("Aligning clips for BERTScore evaluation...")
 
         candidates, references = reconstructed.align(orig.clips)
