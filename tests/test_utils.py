@@ -1,5 +1,10 @@
+import re
+from pathlib import Path
+
 import pytest
-from utils import build_safe_dict, flat_dict
+
+from prompting import simple_safe_format
+from utils import build_safe_dict, flat_dict, ExceptionStr
 
 
 def test_build_safe_dict_successful_merge():
@@ -105,3 +110,86 @@ def test_flat_dict():
         'recon_strategy.llm.temperature': 0.6,
         'recon_strategy.llm.prompt_template': 'prompts/dense_zero_shot_v2.txt'
     }
+
+def test_simple_safe_format():
+    # Arrange
+    template = "Hello, {USER_NAME}! Welcome to {LOCATION}. Your support contact is {CONTACT_PERSON}."
+    substitution_data = {
+        "USER_NAME": "Alex",
+        "LOCATION": "the main server"
+    }
+
+    formatted_string, missing = simple_safe_format(template, substitution_data)
+
+    assert formatted_string == "Hello, Alex! Welcome to the main server. Your support contact is {CONTACT_PERSON}."
+    assert missing == ["CONTACT_PERSON"]
+
+
+def test_simple_safe_format_empty_template():
+    formatted_string, missing = simple_safe_format("", {})
+    assert formatted_string == ""
+    assert missing == []
+
+
+def test_simple_safe_format_no_placeholders():
+    formatted_string, missing = simple_safe_format("Hello World!", {"KEY": "value"})
+    assert formatted_string == "Hello World!"
+    assert missing == []
+
+
+def test_simple_safe_format_empty_data():
+    template = "Hello, {NAME}!"
+    formatted_string, missing = simple_safe_format(template, {})
+    assert formatted_string == "Hello, {NAME}!"
+    assert missing == ["NAME"]
+
+
+def test_simple_safe_format_repeated_placeholder():
+    template = "{WORD}, {WORD}! {WORD}..."
+    substitution_data = {"WORD": "hello"}
+    formatted_string, missing = simple_safe_format(template, substitution_data)
+    assert formatted_string == "hello, hello! hello..."
+    assert missing == []
+
+
+def test_simple_safe_format_special_chars():
+    substitution_data = {
+        "SPECIAL_1@#$": "value1",
+        "NOT_SPECIAL_2___": "value2"
+    }
+    with pytest.raises(AssertionError, match=re.escape(r"Bad keys: ['SPECIAL_1@#$']")):
+        simple_safe_format("", substitution_data)
+
+def test_simple_safe_format_special_and_lower():
+    substitution_data = {
+        "SPECIAL_1@#$": "value1",
+        "NOT_SPECIAL_2___": "value2",
+        "lower": "value3"
+    }
+    with pytest.raises(AssertionError, match=re.escape(r"Bad keys: ['SPECIAL_1@#$', 'lower']")):
+        simple_safe_format("", substitution_data)
+
+def test_component_simple_safe_format():
+    prompt_path = Path("../prompts")
+    text_files = prompt_path.glob('**/*.txt')
+    print()
+    print('===========')
+    for file_path in text_files:
+        with open(file_path) as f:
+            text = f.read()
+            formatted_string1, missing1 = simple_safe_format(text, {})
+            print(f"{file_path} - {missing1}")
+            rep_dict = {k:"replaced {k}" for k in missing1}
+            formatted_string2, missing2 = simple_safe_format(text, rep_dict)
+            assert missing2 == []
+            formatted_string3, missing3 = simple_safe_format(text, rep_dict)
+            assert missing3 == []
+            assert formatted_string2 == formatted_string3
+            if '```json' in text or '{"' in text:
+                with pytest.raises(KeyError):
+                    text.format_map(rep_dict)
+                assert formatted_string2 == text.replace('{', '{{').replace('}', '}}').format_map(rep_dict)
+            else:
+                assert text.format_map(rep_dict) == formatted_string2
+
+    print('===========')
