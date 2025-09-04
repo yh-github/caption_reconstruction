@@ -3,7 +3,7 @@ base_params:
   experiment_type: "recon"
 
 evaluation:
-  type: "bert_score"
+  type: "emb_sim"
 
 data_config:
   name: "wild_captions"
