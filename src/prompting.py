@@ -32,27 +32,29 @@ class FormatDict(dict):
 class JSONPromptBuilder(PromptBuilder):
     """Builds a prompt that instructs the LLM to work with JSON."""
 
-    def __init__(self, instruction_template: str, consts:dict[str,str]=None):
+    def __init__(self, instruction_template: str, consts:dict[str,str]|None=None):
         #FIXME handle instruction_template with JSON examples (the '{' character!)
-        self.instruction_template = instruction_template.format_map(FormatDict.from_dict(consts))
-        self.data_prompter = PromptBuilderDataOnly()
+        self._instruction_template = instruction_template
+        self.set_consts(consts)
+        self._data_prompter = PromptBuilderDataOnly()
 
     def build_prompt(self, masked_video: CaptionedVideo) -> str:
         """Builds the final JSON prompt to be sent to the LLM."""
-        instruction = self.instruction_template #.format(DATA_MISSING=DATA_MISSING)
+        instruction = self._instruction_template #.format(DATA_MISSING=DATA_MISSING)
 
         # captions_for_json = [clip.model_dump() for clip in masked_video.clips]
         # json_prompt_data = json.dumps(captions_for_json, indent=2)
-        json_prompt_data = self.data_prompter.build_prompt(masked_video)
+        json_prompt_data = self._data_prompter.build_prompt(masked_video)
 
         return f"{instruction}\n\n{json_prompt_data}"
 
-    def set_consts(self, consts:dict[str,str]):
-        self.instruction_template = self.instruction_template.format_map(FormatDict.from_dict(consts))
+    def set_consts(self, consts:dict[str,str]|None):
+        if consts:
+            self._instruction_template = self._instruction_template.format_map(FormatDict.from_dict(consts))
         return self
 
     def with_vars(self, values:dict[str,str]) -> str:
-        return self.instruction_template.format(**values)
+        return self._instruction_template.format(**values)
 
     @staticmethod
     def from_config(config: dict):
