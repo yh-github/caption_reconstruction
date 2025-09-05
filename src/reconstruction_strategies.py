@@ -90,11 +90,11 @@ class BaselineRepeatStrategy(ReconstructionStrategy):
         Fills masked clips by repeating the data from the last known clip.
         If initial clips are masked, it back-fills them with the first valid data.
         """
-        masked_clips = masked_video.clips
+        _clips = masked_video.clips
 
         # First Pass: Find the first available data payload
         first_valid_caption = None
-        for clip in masked_clips:
+        for clip in _clips:
             if clip.caption is not None:
                 first_valid_caption = clip.caption
                 break
@@ -103,10 +103,10 @@ class BaselineRepeatStrategy(ReconstructionStrategy):
         reconstructed_captions = {}
         last_known_caption = first_valid_caption
 
-        for clip in masked_clips:
+        for clip in _clips:
             if clip.caption is not None:
                 last_known_caption = clip.caption
-            else:
+            else: # clip is MASKED
                 reconstructed_captions[clip.index]=last_known_caption
         try:
             return Reconstructed(video_id=masked_video.video_id, reconstructed_captions=reconstructed_captions)
