@@ -17,9 +17,6 @@ GitPython~=3.1.45		# For programmatically interacting with the Git repository (e
 filelock~=3.19.1
 pytz~=2025.2
 
-# --- Stability & Error Handling ---
-tenacity~=8.5.0			# For robust retry logic (e.g., exponential backoff)
-
 # --- BertScore ---
 bert-score~=0.3.13		# For semantic similarity evaluation
 torch~=2.8.0			# A required backend for bert-score
@@ -39,7 +36,6 @@ rich~=14.1.0
 # --- Command line ---
 argcomplete~=3.6.2
 argparse~=1.4.0
-
 
 # --- Testing ---
 pytest==8.4.1

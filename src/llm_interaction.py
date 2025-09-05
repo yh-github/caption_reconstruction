@@ -5,13 +5,12 @@ import logging
 from typing import Any
 
 import diskcache
-import google.api_core.exceptions
+from google.api_core import retry
+
 from google import genai
 from google.genai.types import GenerateContentConfig, ThinkingConfig, GenerateContentResponse, Content, \
     ContentListUnion, SafetySetting, HarmCategory, HarmBlockThreshold
 from pydantic import BaseModel
-from tenacity import retry, wait_random_exponential, stop_after_attempt, retry_if_exception_type
-
 from data_models.schema import type_from_str, HashType
 from utils import ExceptionStr, raise_if
 
@@ -114,13 +113,13 @@ class LLM_Manager:
         sha.update(prompt.encode())
         return base64.urlsafe_b64encode(sha.digest()).decode('utf-8')
 
-    @retry(
-        wait=wait_random_exponential(multiplier=2, min=60, max=60*5),
-        stop=stop_after_attempt(6),
-        retry=retry_if_exception_type((
-            google.api_core.exceptions.ResourceExhausted,  # For rate limits
-            google.api_core.exceptions.ServerError  # For all 5xx server issues
-        ))
+
+    @retry.Retry(
+        predicate=retry.if_transient_error,  # Retry on transient API errors (e.g., 500, 503)
+        initial=2.0,  # Initial delay in seconds
+        maximum=64.0,  # Maximum delay in seconds
+        multiplier=2.0,  # Multiplier for exponential backoff
+        timeout=600.0,  # Total timeout for all retries in seconds
     )
     def _invoke_llm(self, prompt:ContentListUnion) -> GenerateContentResponse:
         return self._llm_client.models.generate_content(
