@@ -24,7 +24,13 @@ def round_metrics(metrics, ndigits=6) -> dict:
     return m
 
 def metrics_to_json(metrics):
-    return json.dumps(round_metrics(metrics))
+    d = None
+    try:
+        d=round_metrics(metrics)
+        return json.dumps(d)
+    except TypeError as te:
+        s = "\n".join(f"  {k}:{v.__class__.__name__}={v}" for k,v in d.items())
+        raise Exception(f"BAD_DICT=\n{s}\n") from te
 
 
 class ReconstructionEvaluator(ABC):
