@@ -4,7 +4,7 @@ from typing import Any
 
 from data_loaders import BaseDataLoader
 from data_models.captions_only import CaptionedVideo
-from evaluation import ReconstructionEvaluator, metrics_to_json, round_metrics
+from evaluation import ReconstructionEvaluator, metrics_to_json
 from masking import MaskingStrategy
 from reconstruction_strategies import ReconstructionStrategy, Reconstructed
 
@@ -25,11 +25,11 @@ class ExperimentRunner:
         conf_for_log:dict[str, Any]
     ):
         self.run_name = run_name
-        self.data_loader = data_loader
-        self.masking_strategy = masking_strategy
-        self.reconstruction_strategy = reconstruction_strategy
-        self.evaluator = evaluator
-        self.save_path = save_path/run_name
+        self._data_loader = data_loader
+        self._masking_strategy = masking_strategy
+        self._reconstruction_strategy = reconstruction_strategy
+        self._evaluator = evaluator
+        self._save_path = save_path/run_name
         self.conf_for_log = conf_for_log
 
     @staticmethod
@@ -41,17 +41,17 @@ class ExperimentRunner:
         if r.skip_reason:
             filename = f"skip__{filename}"
 
-        with open(self.save_path / filename, "w") as f:
+        with open(self._save_path / filename, "w") as f:
             f.write(r.json_str())
 
     def run(self) -> dict:
         """Runs the full experiment from data loading to evaluation."""
-        self.save_path.mkdir(parents=True, exist_ok=True)
-        all_videos:list[CaptionedVideo] = self.data_loader.load()
+        self._save_path.mkdir(parents=True, exist_ok=True)
+        all_videos:list[CaptionedVideo] = self._data_loader.load()
         all_metrics:list[dict] = []
 
         for video in all_videos:
-            if (self.save_path / self._filename(video.video_id)).exists():
+            if (self._save_path / self._filename(video.video_id)).exists():
                 logging.info(f"Video {video.video_id} already processed, skipping")
                 continue
 
@@ -64,16 +64,16 @@ class ExperimentRunner:
                     extra_debug_data=extra
                 )
 
-            masked_video, masked_indices = self.masking_strategy.mask_video(video)
+            masked_video, masked_indices = self._masking_strategy.mask_video(video)
             if not masked_video:
-                logging.warning(f"Not masking video {video.video_id} size={len(video.clips)} with {self.masking_strategy}")
+                logging.warning(f"Not masking video {video.video_id} size={len(video.clips)} with {self._masking_strategy}")
                 self._save_result(err("NOT_MASKING"))
                 continue
 
-            reconstructed:Reconstructed = self.reconstruction_strategy.reconstruct(masked_video)
+            reconstructed:Reconstructed = self._reconstruction_strategy.reconstruct(masked_video)
             # if not reconstructed or not reconstructed.reconstructed_captions:
             #     logging.error(f"Reconstruction failed for video: {video.video_id}")
-            #     self.save_result(err("RECONSTRUCTION_FAILED"))
+            #     self._save_result(err("RECONSTRUCTION_FAILED"))
             #     continue
 
             if not reconstructed.debug_data and reconstructed.reconstructed_captions.keys() != masked_indices:
@@ -92,7 +92,7 @@ class ExperimentRunner:
             elif reconstructed.debug_data:
                 logging.warning(f'Problems found in reconstructed_video {video.video_id}, proceeding anyway')
 
-            video_metrics = self.evaluator.evaluate(reconstructed, video)
+            video_metrics = self._evaluator.evaluate(reconstructed, video)
 
             all_metrics.append(video_metrics)
 
@@ -115,4 +115,4 @@ class ExperimentRunner:
 
         # TODO: keep only the sums (NA as 0)
 
-        return self.evaluator.agg_metrics(all_metrics)
+        return self._evaluator.agg_metrics(all_metrics)
