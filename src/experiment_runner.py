@@ -28,7 +28,7 @@ class ExperimentRunner:
         self._data_loader = data_loader
         self._masking_strategy = masking_strategy
         self._reconstruction_strategy = reconstruction_strategy
-        self._evaluator = evaluator
+        self.evaluator = evaluator
         self._save_path = save_path/run_name
         self.conf_for_log = conf_for_log
 
@@ -44,7 +44,7 @@ class ExperimentRunner:
         with open(self._save_path / filename, "w") as f:
             f.write(r.json_str())
 
-    def run(self) -> dict:
+    def run(self) -> list:
         """Runs the full experiment from data loading to evaluation."""
         self._save_path.mkdir(parents=True, exist_ok=True)
         all_videos:list[CaptionedVideo] = self._data_loader.load()
@@ -92,27 +92,24 @@ class ExperimentRunner:
             elif reconstructed.debug_data:
                 logging.warning(f'Problems found in reconstructed_video {video.video_id}, proceeding anyway')
 
-            video_metrics = self._evaluator.evaluate(reconstructed, video)
+            video_metrics = self.evaluator.evaluate(reconstructed, video)
 
             all_metrics.append(video_metrics)
 
             # metrics = round_metrics(video_metrics)
-            self._save_result(reconstructed.with_metrics(video_metrics))
+            self._save_result(reconstructed.with_metrics(video_metrics.copy()))
 
             video_metrics.update({
+                "video_id": video.video_id,
                 "num_captions": len(video.clips),
-                "masked": list(masked_indices)
+                "masked": list(masked_indices),
+                "recon_strategy": str(self._reconstruction_strategy)
             })
 
-            logging.info(f"Evaluation complete for "
-                         f"video_id={video.video_id} "
-                         f"metrics={metrics_to_json(video_metrics)}")
+            logging.info(f"Evaluation metrics {metrics_to_json(video_metrics)}")
 
             logging.debug(f"Successfully processed video: {video.video_id}")
 
-        if not all_metrics:
-            return {}
-
         # TODO: keep only the sums (NA as 0)
 
-        return self._evaluator.agg_metrics(all_metrics)
+        return all_metrics
