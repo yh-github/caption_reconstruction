@@ -169,6 +169,8 @@ class ExperimentPipeline(ABC):
         if self.mlflow_run_path:
             print(f"\nRun `mlflow ui` in your terminal to view the full results.")
             print(f"\nRun `python scripts/mlflow_runs.py {self.mlflow_run_path}` for command-line access.")
+        if self.result_path:
+            print(f"\nResults: {self.result_path}")
         if self.log_path:
             print(f"\nView log in {self.log_path}")
         else:
