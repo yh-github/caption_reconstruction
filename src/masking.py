@@ -11,7 +11,7 @@ class MaskingStrategy(ABC):
         self.scheme = scheme
 
     @abstractmethod
-    def _get_indices_to_mask(self, num_clips: int) -> set:
+    def get_indices_to_mask(self, num_clips: int) -> set[int]:
         pass
 
     @staticmethod
@@ -25,7 +25,7 @@ class MaskingStrategy(ABC):
         return masked_captions
 
     def apply(self, captions: list[CaptionedClip]) -> tuple[list[CaptionedClip], set]:
-        indices_to_mask: set = self._get_indices_to_mask(len(captions))
+        indices_to_mask: set = self.get_indices_to_mask(len(captions))
         masked_captions = self.mask_list(captions, indices_to_mask)
         return masked_captions, indices_to_mask
 
@@ -41,7 +41,7 @@ class MaskingStrategy(ABC):
         pass
 
     def mask_video(self, video: CaptionedVideo) -> tuple[None, None] | tuple[CaptionedVideo, set[int]]:
-        indices_to_mask: set = self._get_indices_to_mask(len(video.clips))
+        indices_to_mask: set = self.get_indices_to_mask(len(video.clips))
         if not indices_to_mask:
             return None, None
         masked_clips = self.mask_list(video.clips, indices_to_mask)
@@ -56,7 +56,7 @@ class RandomMasking(MaskingStrategy):
         self.ratio = ratio
         self.prn = prn_generator
 
-    def _get_indices_to_mask(self, num_clips: int) -> set:
+    def get_indices_to_mask(self, num_clips: int) -> set[int]:
         num_to_mask = int(num_clips * self.ratio)
         return set(self.prn.sample(range(num_clips), k=num_to_mask))
 
@@ -81,12 +81,12 @@ class ContiguousMasking(MaskingStrategy):
     def get_params_for_repr(self) -> dict:
         return {"seed": self.seed, "width": self.width}
 
-    def _get_indices_to_mask(self, num_clips: int) -> set[int]|None:
+    def get_indices_to_mask(self, num_clips: int) -> set[int]:
         """
         Determines the start index and returns the set of indices to be masked.
         """
         if self.width >= num_clips:
-            return None
+            return set()
 
         # The last possible starting position for the mask
         last_possible_start = num_clips - self.width
@@ -105,7 +105,7 @@ class PartitionMasking(MaskingStrategy):
         self.start_partition = start_partition
         self.num_parts_to_mask = num_parts_to_mask
 
-    def _get_indices_to_mask(self, num_clips: int) -> set:
+    def get_indices_to_mask(self, num_clips: int) -> set[int]:
         if self.num_partitions > num_clips:
             return set() # Cannot partition if there are more partitions than items
 
