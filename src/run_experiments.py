@@ -5,26 +5,29 @@ from abc import abstractmethod, ABC
 from importlib.metadata import version
 from pathlib import Path
 from typing import Any
+from unittest.mock import Mock
 
 import diskcache
 import mlflow
+import pandas as pd
 from filelock import FileLock
 from google import genai
 
 from config_loader import load_config
 from data_loaders import get_data_loader
 from data_models.exec_args import ExecArgs
-from embedder import Embedder
-from evaluation import ReconstructionEvaluator_BertScore, EvaluatorNOP, ReconstructionEvaluator, metrics_to_json, \
-    ReconstructionEvaluator_EmbSimilarity
+from evaluation import ReconstructionEvaluator, metrics_to_json
 from experiment_runner import ExperimentRunner
 # Local imports
 from masking import get_masking_strategies
 from reconstruction_strategies import ReconstructionStrategyBuilder
 from utils import check_git_repository_is_clean, setup_logging, flush_loggers, \
     setup_mlflow, get_datetime_str, flat_dict, UserFacingError, ExceptionStr
+from vectors.VectorRunner import VectorRunner
+from vectors.dataloaders import VectorDataLoader
+from vectors.eval_vectors import VectorReconstructionEvaluator
+from vectors.reconstruction_startegies import VectorReconstructionStrategyBuilder
 
-from unittest.mock import Mock
 
 class ExperimentPipeline(ABC):
 
@@ -33,49 +36,65 @@ class ExperimentPipeline(ABC):
         logging.basicConfig(level=exec_args.log_level(logging.INFO), format='%(asctime)s - %(levelname)s - %(message)s')
         config = load_config(exec_args.config_path)
         experiment_type = config['base_params'].get('experiment_type', 'recon').upper()
-        if experiment_type == 'RECON':
+        if experiment_type in {'RECON', 'RECON_VECTORS'}:
             return ExperimentPipeline_Reconstruction(exec_args, config)
         # elif experiment_type == 'QA':
         #     return ExperimentPipeline_QA(exec_args, config)
         else:
             raise UserFacingError(f"Unknown {experiment_type=}")
 
+    def _init_experiment_type(self):
+        return self.config['base_params'].get('experiment_type', 'recon').upper()
+
+    def _init_cache(self):
+        return diskcache.Cache(directory=self.config['paths']['disk_cache'])
+
+    def _init_llm_client(self):
+        if self.exec_args.dry_run or self.exec_args.validate_cache:
+            logging.info("Blocking LLM client.")
+            return self._create_mock_llm_client()
+        return genai.Client()
+
+    def _get_eval_conf(self):
+        eval_conf = self.config.get("evaluation", {}).copy()
+        if self.exec_args.dry_run or self.exec_args.validate_cache:
+            eval_conf['type'] = 'NOP'
+        if self.exec_args.verbose:
+            eval_conf['verbose'] = True
+        return eval_conf
+
     def __init__(self, exec_args:ExecArgs, config:dict[str, Any]):
-        self.experiment_type = config['base_params'].get('experiment_type', 'recon').upper()
         self.exec_args = exec_args
         self.config = config
+        self.experiment_type = self._init_experiment_type()
+        self.cache = self._init_cache()
 
-        self.cache = diskcache.Cache(directory=self.config['paths']['disk_cache'])
+        data_config = self.config["data_config"]
+        eval_conf = self._get_eval_conf()
 
-        self.data_loader = get_data_loader(self.config["data_config"])
+        if self.experiment_type == 'RECON':
+            self.data_loader = get_data_loader(data_config)
+            self.experiment_runner_factory = ExperimentRunner
+            self.rs_builder = ReconstructionStrategyBuilder(
+                llm_cache=self.cache,
+                master_seed=self.config["base_params"]["master_seed"],
+                llm_client=self._init_llm_client()
+            )
+            self.evaluator = ReconstructionEvaluator.from_config(eval_conf)
+            if hasattr(self.evaluator, 'idf') and self.evaluator.idf:
+                self.evaluator.calc_idf(self.data_loader.load_all_sentences())
 
-        self.evaluator: ReconstructionEvaluator = EvaluatorNOP()
-        if self.exec_args.dry_run or self.exec_args.validate_cache:
-            logging.info("Running in dry-run mode. Blocking LLM client and Evaluator set to NOP.")
-            self._llm_client = self._create_mock_llm_client()
-            self.evaluator = EvaluatorNOP()
+        elif self.experiment_type == 'RECON_VECTORS':
+            self.data_loader = VectorDataLoader.from_config(data_config)
+            self.experiment_runner_factory = VectorRunner
+            self.rs_builder = VectorReconstructionStrategyBuilder()
+            self.evaluator = VectorReconstructionEvaluator.from_conf(eval_conf)
         else:
-            self._llm_client = genai.Client()
-
-            eval_conf = self.config.get('evaluation', {})
-            if self.experiment_type == 'RECON':
-                eval_type = eval_conf.get('type', 'bert_score')
-                if eval_type == 'bert_score':
-                    self.evaluator = ReconstructionEvaluator_BertScore(
-                        model_type=eval_conf.get('model', 'microsoft/deberta-large-mnli'),
-                        verbose=self.exec_args.verbose or eval_conf.get('verbose', False),
-                        idf=eval_conf.get('idf', True)
-                    ).calc_idf(sents=self.data_loader.load_all_sentences())
-                elif eval_type == 'emb_sim':
-                    self.evaluator = ReconstructionEvaluator_EmbSimilarity(Embedder())
-                else:
-                    raise UserFacingError(f"Unknown evaluation type '{eval_type}'")
-            else:
-                logging.warning("No evaluation config found. Setting evaluator to NOP.")
-                self.evaluator = EvaluatorNOP()
+            raise Exception(f"Unknown {self.experiment_type=}")
 
         self.experiment_name:str = get_datetime_str(self.config.get('tz'))
         self.parent_run_name:str = self.config["__parent_run_name__"]+f"__{self.experiment_name}"
+        self.result_path = Path(f"results/{self.experiment_type.lower()}/" + self.parent_run_name)
 
         self.log_path: str | None = None
         self.mlflow_run_path: str | None = None
@@ -115,17 +134,20 @@ class ExperimentPipeline(ABC):
                 mlflow.log_param("python_version", platform.python_version())
                 mlflow.log_param("mlflow_version", version('mlflow'))
 
+                all_results = []
                 for runner in self.build_experiments():
                     with mlflow.start_run(run_name=runner.run_name, nested=True):
                         logging.info(f"--- Starting Nested Run: {runner.run_name} ---")
                         mlflow.log_params(runner.conf_for_log)
 
                         ###
-                        metrics = runner.run()
+                        run_metrics = runner.run()
+                        all_results.extend(run_metrics)
+                        agg_metrics = runner.evaluator.agg_metrics(run_metrics)
 
-                        if metrics:
-                            mlflow.log_metrics(metrics)
-                            log_message = f"{runner.run_name} Logged aggregated metrics {metrics_to_json(metrics)}"
+                        if agg_metrics:
+                            mlflow.log_metrics(agg_metrics)
+                            log_message = f"{runner.run_name} Logged aggregated metrics {metrics_to_json(agg_metrics)}"
                             logging.info(log_message)
                             notifier.info(log_message)
                         else:
@@ -134,6 +156,8 @@ class ExperimentPipeline(ABC):
                         ###
 
                         flush_loggers()
+                self.result_path.mkdir(parents=True, exist_ok=True)
+                pd.DataFrame(all_results).to_csv(self.result_path/(get_datetime_str(self.config.get('tz'))+".csv"))
 
     def done(self, exception:Exception | None = None):
         logging.info(f'PID {os.getpid()} DONE.')
@@ -205,11 +229,6 @@ class ExperimentPipeline_Reconstruction(ExperimentPipeline):
 
     def __init__(self, exec_args: ExecArgs, config: dict[str, Any]):
         super().__init__(exec_args, config)
-        self.rs_builder = ReconstructionStrategyBuilder(
-            llm_cache=self.cache,
-            master_seed=self.config["base_params"]["master_seed"],
-            llm_client=self._llm_client
-        )
 
     def build_experiments(self):
         config = self.config
@@ -234,14 +253,14 @@ class ExperimentPipeline_Reconstruction(ExperimentPipeline):
                     'masking': masker.get_params_for_repr(),
                     'recon_strategy': strategy_params
                 })
-                runner = ExperimentRunner(
+                runner = self.experiment_runner_factory(
                     run_name=f"{recon_strategy}__{masker}",
                     data_loader=self.data_loader,
                     masking_strategy=masker,
                     reconstruction_strategy=recon_strategy,
                     evaluator=self.evaluator,
                     #TODO add result path to config
-                    save_path=Path("results/recon/" + self.parent_run_name),
+                    save_path=self.result_path,
                     conf_for_log=run_conf
                 )
                 yield runner
