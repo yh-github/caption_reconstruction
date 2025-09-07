@@ -103,7 +103,7 @@ def test_contiguous_masking_correctly_masks_indices():
     
     # Act
     # With a seed of 42 and 10 clips, the random start index will be 1
-    masked_indices = strategy._get_indices_to_mask(num_clips=10)
+    masked_indices = strategy.get_indices_to_mask(num_clips=10)
     
     # Assert
     # The masked indices should be a contiguous block of 3, starting at 1
