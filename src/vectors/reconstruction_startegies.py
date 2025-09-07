@@ -13,6 +13,12 @@ class VectorReconstructionStrategy(ABC):
         """
         pass
 
+    def __str__(self):
+        return self.__class__.__name__
+
+    def __repr__(self):
+        return self.__str__()
+
 
 class RepeatClosestVector(VectorReconstructionStrategy):
     """
@@ -121,5 +127,4 @@ class VectorReconstructionStrategyBuilder:
 
         else:
             raise NotImplementedError(f"Strategy type '{strategy_type}' is not implemented.")
-
 
