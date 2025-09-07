@@ -16,7 +16,7 @@ from google import genai
 from config_loader import load_config
 from data_loaders import get_data_loader
 from data_models.exec_args import ExecArgs
-from evaluation import ReconstructionEvaluator, metrics_to_json
+from evaluation import ReconstructionEvaluator, metrics_to_json, round_metrics
 from experiment_runner import ExperimentRunner
 # Local imports
 from masking import get_masking_strategies
@@ -142,8 +142,8 @@ class ExperimentPipeline(ABC):
 
                         ###
                         run_metrics = runner.run()
-                        all_results.extend(run_metrics)
                         agg_metrics = runner.evaluator.agg_metrics(run_metrics)
+                        all_results.extend([round_metrics(m) for m in run_metrics])
 
                         if agg_metrics:
                             mlflow.log_metrics(agg_metrics)
