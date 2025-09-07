@@ -2,12 +2,11 @@ import json
 import logging
 import statistics
 from abc import abstractmethod, ABC
-
 from bert_score import BERTScorer
 from torch import Tensor
-
 from data_models.captions_only import CaptionedVideo
 from embedder import Embedder
+from utils import UserFacingError
 from vectors.eval_vectors import VectorStats, VectorReconstructionEvaluator
 from reconstruction_strategies import Reconstructed
 
@@ -37,6 +36,23 @@ class ReconstructionEvaluator(ABC):
     @abstractmethod
     def agg_metrics(all_metrics):
         return {}
+
+    @staticmethod
+    def from_config(eval_conf:dict):
+        eval_type = eval_conf.get('type', 'bert_score').lower()
+
+        if eval_type == 'bert_score':
+            return ReconstructionEvaluator_BertScore(
+                model_type=eval_conf.get('model', 'microsoft/deberta-large-mnli'),
+                verbose=eval_conf.get('verbose', False),
+                idf=eval_conf.get('idf', True)
+            )
+        elif eval_type == 'emb_sim':
+            return ReconstructionEvaluator_EmbSimilarity(Embedder())
+        elif eval_type == 'nop':
+            return EvaluatorNOP()
+        else:
+            raise UserFacingError(f"Unknown evaluation type '{eval_type}'")
 
 
 # noinspection PyUnusedLocal
@@ -101,10 +117,13 @@ class ReconstructionEvaluator_BertScore(ReconstructionEvaluator):
         }
 
     def calc_idf(self, sents: list[str]):
-        self.idf = True
-        self.bert_scorer.compute_idf(sents=sents)
-        # noinspection PyProtectedMember
-        logger.info(f'finished calc_idf for {len(sents)} sentences, idf_dict size = {len(self.bert_scorer._idf_dict.keys())}')
+        if sents:
+            self.idf = True
+            self.bert_scorer.compute_idf(sents=sents)
+            # noinspection PyProtectedMember
+            logger.info(f'finished calc_idf for {len(sents)} sentences, idf_dict size = {len(self.bert_scorer._idf_dict.keys())}')
+        else:
+            logger.info('no IDF')
         return self
 
     @staticmethod

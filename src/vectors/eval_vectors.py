@@ -4,6 +4,7 @@ from typing import Iterator, Self
 import numpy as np
 from numpy.typing import NDArray
 from pathlib import Path
+from utils import UserFacingError
 
 NPY_FILE_PATTERN = "*.npy"
 
@@ -239,7 +240,7 @@ class VectorReconstructionEvaluator:
         return VectorStats.from_vector(calculate_elementwise_cosine(pred_vecs, true_vecs)).model_dump()
 
     @staticmethod
-    def agg_metrics(all_metrics):
+    def agg_metrics(all_metrics) -> dict:
         vs = [VectorStats.model_validate(m) for m in all_metrics]
         means = VectorStats.from_vector([v.mean for v in vs])
 
@@ -250,6 +251,24 @@ class VectorReconstructionEvaluator:
             "mean_min": means.min,
             "mean_max": means.max
         }
+
+    @staticmethod
+    def from_conf(eval_conf:dict):
+        eval_type = eval_conf.get('type', 'emb_sim').lower()
+        if eval_type == 'emb_sim':
+            return VectorReconstructionEvaluator()
+        elif eval_type == 'nop':
+            return VectorEvaluatorNOP()
+        raise UserFacingError(f"VectorReconstructionEvaluator: Unknown evaluation type '{eval_type}'")
+
+class VectorEvaluatorNOP(VectorReconstructionEvaluator):
+    def evaluate(self, pred_vecs: Matrix, true_vecs: Matrix) -> dict:
+        return {}
+
+    @staticmethod
+    def agg_metrics(all_metrics) -> dict:
+        return {}
+
 
 
 # import time
