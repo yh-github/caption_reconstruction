@@ -40,7 +40,8 @@ class VectorRunner:
             logging.debug(f"--- Processing Video: {video_id} ---")
 
             masked_indices_set = self._masking_strategy.get_indices_to_mask(len(m))
-            masked_indices = np.array(sorted(list(masked_indices_set)))
+            masked_indices_list = sorted(list(masked_indices_set))
+            masked_indices = np.array(masked_indices_list)
             masked_video = m.copy()
             masked_video[masked_indices] = np.nan
             reconstructed_vectors = self._reconstruction_strategy.reconstruct(masked_video)
@@ -54,7 +55,7 @@ class VectorRunner:
             video_metrics.update({
                 "video_id": video_id,
                 "num_captions": len(m),
-                "masked": list(masked_indices),
+                "masked": masked_indices_list,
                 "recon_strategy": str(self._reconstruction_strategy)
             })
 
