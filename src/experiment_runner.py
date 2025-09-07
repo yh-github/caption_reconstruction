@@ -4,7 +4,7 @@ from typing import Any
 
 from data_loaders import BaseDataLoader
 from data_models.captions_only import CaptionedVideo
-from evaluation import ReconstructionEvaluator, metrics_to_json
+from evaluation import ReconstructionEvaluator, metrics_to_json, round_metrics
 from masking import MaskingStrategy
 from reconstruction_strategies import ReconstructionStrategy, Reconstructed
 
@@ -96,8 +96,7 @@ class ExperimentRunner:
 
             all_metrics.append(video_metrics)
 
-            # metrics = round_metrics(video_metrics)
-            self._save_result(reconstructed.with_metrics(video_metrics.copy()))
+            self._save_result(reconstructed.with_metrics(round_metrics(video_metrics)))
 
             video_metrics.update({
                 "video_id": video.video_id,
