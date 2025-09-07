@@ -48,6 +48,9 @@ class CaptionedVideo(BaseModel):
                 raise ValueError(f"Clip index mismatch at position {i}. Expected index {i}, but got {clip.index}.")
         return clips
 
+    def get_texts(self) -> list[str]:
+        return [c.caption for c in self.clips if not c.is_masked()]
+
 # class ReconstructedOutput(BaseModel):
 #     """
 #     Represents the sparse reconstruction output from the LLM for a single video.
