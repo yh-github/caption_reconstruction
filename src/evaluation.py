@@ -8,7 +8,7 @@ from torch import Tensor
 
 from data_models.captions_only import CaptionedVideo
 from embedder import Embedder
-from eval_vectors import calculate_elementwise_cosine, VectorStats
+from vectors.eval_vectors import VectorStats, VectorReconstructionEvaluator
 from reconstruction_strategies import Reconstructed
 
 logger = logging.getLogger(__name__)
@@ -128,6 +128,7 @@ class ReconstructionEvaluator_EmbSimilarity(ReconstructionEvaluator):
 
     def __init__(self, embedder: Embedder):
         self.embedder = embedder
+        self.inner = VectorReconstructionEvaluator()
 
     def evaluate(self, reconstructed: Reconstructed, orig: CaptionedVideo) -> dict:
         logger.debug("Aligning clips for EmbSimilarity evaluation...")
@@ -143,7 +144,8 @@ class ReconstructionEvaluator_EmbSimilarity(ReconstructionEvaluator):
         pred_vecs = self.embedder.get_embeddings(reconstructed.video_id+"(pred)", candidates)
         true_vecs = self.embedder.get_embeddings(reconstructed.video_id+"(orig)", references)
 
-        return VectorStats.from_vector(calculate_elementwise_cosine(pred_vecs, true_vecs)).model_dump()
+        # return VectorStats.from_vector(calculate_elementwise_cosine(pred_vecs, true_vecs)).model_dump()
+        return self.inner.evaluate(pred_vecs=pred_vecs,true_vecs=true_vecs)
 
     @staticmethod
     def agg_metrics(all_metrics):
