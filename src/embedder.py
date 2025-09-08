@@ -6,6 +6,7 @@ import diskcache
 from google import genai
 from google.api_core import retry
 from google.genai import types
+from google.genai.errors import ClientError
 from google.genai.types import EmbedContentResponse
 
 from config_loader import load_config
@@ -50,8 +51,17 @@ class Embedder:
     def log_retry(exception:Exception, try_num:int):
         logger.warning(f"Embedder log_retry {try_num=}, transient={retry.if_transient_error(exception)}, {type(exception)} -- {exception}")
 
+    @staticmethod
+    def should_retry(exception:Exception) -> bool:
+        transient=retry.if_transient_error(exception)
+        by_code = False
+        if isinstance(exception, ClientError):
+            by_code = exception.code == 429 or exception.code>=500
+        logger.warning(f"Embedder should_retry {transient=}, {by_code=} {type(exception)=}")
+        return transient or by_code
+
     @retry.Retry(
-        predicate=retry.if_transient_error,  # Retry on transient API errors (e.g., 500, 503)
+        predicate=should_retry,  # Retry on transient API errors (e.g., 500, 503)
         initial=5.0,  # Initial delay in seconds
         maximum=60.0,  # Maximum delay in seconds
         multiplier=2.0,  # Multiplier for exponential backoff
@@ -107,13 +117,14 @@ class Embedder:
         ok=0
         fail=0
 
-        counts = Counter(all_texts)
-        new_texts:list[str] = list(counts.keys())
+        new_texts = {t for t in all_texts if t not in self.cache}
         if not new_texts:
             logger.debug(f"Embeddings cache full hit for {video_id}")
             return ok, fail, len(all_texts)
 
-        for the_text, embs in self._embed_new(video_id, new_texts).items():
+        counts = Counter([t for t in all_texts if t in new_texts])
+
+        for the_text, embs in self._embed_new(video_id, list(new_texts)).items():
             if self._check_emb(embs):
                 self.cache[the_text] = embs
                 ok += counts.get(the_text)
@@ -167,5 +178,17 @@ def parse_args(argv):
 
     return config, cmd
 
-if __name__ == "__main__":
-    main(*parse_args(sys.argv))
+# import requests.exceptions
+# from google.api_core import exceptions
+# from google.auth import exceptions as auth_exceptions
+# if __name__ == "__main__":
+#     # main(*parse_args(sys.argv))
+#     for x in [
+#             exceptions.InternalServerError,
+#             exceptions.TooManyRequests,
+#             exceptions.ServiceUnavailable,
+#             requests.exceptions.ConnectionError,
+#             requests.exceptions.ChunkedEncodingError,
+#             auth_exceptions.TransportError
+#         ]:
+#         print(x, x.code)
