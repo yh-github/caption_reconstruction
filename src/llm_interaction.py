@@ -91,7 +91,6 @@ class LLM_Exception(Exception):
     def __str__(self):
         return f"{self.message=} {self.raw_response=}"
 
-
 class LLM_Manager:
 
     def __init__(self,
@@ -114,12 +113,18 @@ class LLM_Manager:
         return base64.urlsafe_b64encode(sha.digest()).decode('utf-8')
 
 
+    @staticmethod
+    def log_retry(exception:Exception):
+        logger.info(f"log_retry: {type(exception)} -- {exception}")
+        return True
+
     @retry.Retry(
         predicate=retry.if_transient_error,  # Retry on transient API errors (e.g., 500, 503)
-        initial=2.0,  # Initial delay in seconds
-        maximum=64.0,  # Maximum delay in seconds
+        initial=5.0,  # Initial delay in seconds
+        maximum=60.0,  # Maximum delay in seconds
         multiplier=2.0,  # Multiplier for exponential backoff
         timeout=600.0,  # Total timeout for all retries in seconds
+        on_error=log_retry
     )
     def _invoke_llm(self, prompt:ContentListUnion) -> GenerateContentResponse:
         return self._llm_client.models.generate_content(
