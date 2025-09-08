@@ -4,6 +4,7 @@ from collections import Counter
 
 import diskcache
 from google import genai
+from google.api_core import retry
 from google.genai import types
 from google.genai.types import EmbedContentResponse
 
@@ -45,6 +46,30 @@ class Embedder:
         self.client = genai.Client()
         self.cache = diskcache.Cache(directory=cache_dir)
 
+    @staticmethod
+    def log_retry(exception:Exception, try_num:int):
+        logger.warning(f"Embedder log_retry {try_num=}, transient={retry.if_transient_error(exception)}, {type(exception)} -- {exception}")
+
+    @retry.Retry(
+        predicate=retry.if_transient_error,  # Retry on transient API errors (e.g., 500, 503)
+        initial=5.0,  # Initial delay in seconds
+        maximum=60.0,  # Maximum delay in seconds
+        multiplier=2.0,  # Multiplier for exponential backoff
+        timeout=600.0,  # Total timeout for all retries in seconds
+    )
+    def _invoke_llm(self, texts:list[str]) -> EmbedContentResponse:
+        try:
+            self._try_num += 1
+
+            return self.client.models.embed_content(
+                model=self.model,
+                config=self.embed_config,
+                contents=texts
+            )
+        except Exception as ex:
+            self.log_retry(ex, self._try_num)
+            raise
+
     def _embed_new(self, video_id:str, texts:list[str]) -> dict[str, list[float]]:
         embeddings_dict:dict[str, list[float]] = {}
 
@@ -53,11 +78,8 @@ class Embedder:
                 logger.debug(f"Embeddings for {video_id}")
                 for i,t in enumerate(texts, start=1):
                     logger.debug(f"  {i}. {t}")
-            raw_res: EmbedContentResponse = self.client.models.embed_content(
-                model=self.model,
-                config=self.embed_config,
-                contents=texts
-            )
+            self._try_num = 0
+            raw_res: EmbedContentResponse = self._invoke_llm(texts)
         except Exception as e:
             logger.error(f"Embeddings failed for {video_id}, ** {e.__class__.__qualname__} ** {e}")
             return embeddings_dict

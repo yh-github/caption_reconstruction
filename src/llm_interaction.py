@@ -114,9 +114,8 @@ class LLM_Manager:
 
 
     @staticmethod
-    def log_retry(exception:Exception):
-        logger.info(f"log_retry: {type(exception)} -- {exception}")
-        return True
+    def log_retry(exception:Exception, try_num:int):
+        logger.warning(f"log_retry {try_num=}, transient={retry.if_transient_error(exception)}, {type(exception)} -- {exception}")
 
     @retry.Retry(
         predicate=retry.if_transient_error,  # Retry on transient API errors (e.g., 500, 503)
@@ -124,17 +123,22 @@ class LLM_Manager:
         maximum=60.0,  # Maximum delay in seconds
         multiplier=2.0,  # Multiplier for exponential backoff
         timeout=600.0,  # Total timeout for all retries in seconds
-        on_error=log_retry
     )
     def _invoke_llm(self, prompt:ContentListUnion) -> GenerateContentResponse:
-        return self._llm_client.models.generate_content(
-            model=self._model_name,
-            contents=prompt,
-            config=self._llm_config
-        )
+        try:
+            self._try_num += 1
+            return self._llm_client.models.generate_content(
+                model=self._model_name,
+                contents=prompt,
+                config=self._llm_config
+            )
+        except Exception as ex:
+            self.log_retry(ex, self._try_num)
+            raise
 
     def _call_retry(self, prompt:ContentListUnion) -> LLM_Response:
         raw_response = None
+        self._try_num = 0
         try:
             raw_response = self._invoke_llm(prompt)
             if is_perm_error(raw_response):
