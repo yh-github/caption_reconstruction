@@ -1,0 +1,22 @@
+base_params:
+  master_seed: 2025
+  experiment_type: "RECON_VECTORS"
+
+evaluation:
+  type: "emb_sim"
+
+data_config:
+  name: "np_files"
+  path: "local/wild_videos_embs/"
+  limit: 100
+
+recon_strategy:
+  - type: "mean_closest"
+  - type: "repeat_closest"
+
+
+masking_configs:
+  - scheme: "contiguous"
+    seed: [11,22]
+    width: [6,9,12,15,18]
+
