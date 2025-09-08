@@ -25,7 +25,7 @@ class VectorDataLoader(ABC):
             raise ValueError("Dataset 'name' and 'path' must be specified in the config.")
 
         if dataset_name == "np_files":
-            return VectorFileLoader(data_path, limit)
+            return VectorFileLoader(Path(data_path), limit)
         else:
             return VectorConvertorLoader(get_data_loader(data_config), Embedder())
 
