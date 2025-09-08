@@ -1,6 +1,6 @@
 from abc import abstractmethod, ABC
 from pathlib import Path
-from typing import Iterator, Self
+from typing import Iterator
 import numpy as np
 from numpy.typing import NDArray
 from data_loaders import BaseDataLoader, get_data_loader

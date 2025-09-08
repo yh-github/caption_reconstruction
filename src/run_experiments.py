@@ -23,7 +23,7 @@ from masking import get_masking_strategies
 from reconstruction_strategies import ReconstructionStrategyBuilder
 from utils import check_git_repository_is_clean, setup_logging, flush_loggers, \
     setup_mlflow, get_datetime_str, flat_dict, UserFacingError, ExceptionStr
-from vectors.VectorRunner import VectorRunner
+from vectors.vector_runner import VectorRunner
 from vectors.dataloaders import VectorDataLoader
 from vectors.eval_vectors import VectorReconstructionEvaluator
 from vectors.reconstruction_startegies import VectorReconstructionStrategyBuilder
