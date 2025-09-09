@@ -25,7 +25,7 @@ class ExperimentRunner:
         conf_for_log:dict[str, Any]
     ):
         self.run_name = run_name
-        self._data_loader = data_loader
+        self.data_loader = data_loader
         self._masking_strategy = masking_strategy
         self._reconstruction_strategy = reconstruction_strategy
         self.evaluator = evaluator
@@ -47,7 +47,7 @@ class ExperimentRunner:
     def run(self) -> list:
         """Runs the full experiment from data loading to evaluation."""
         self._save_path.mkdir(parents=True, exist_ok=True)
-        all_videos:list[CaptionedVideo] = self._data_loader.load()
+        all_videos:list[CaptionedVideo] = self.data_loader.load()
         all_metrics:list[dict] = []
 
         for video in all_videos:

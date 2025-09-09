@@ -19,6 +19,10 @@ def _parse_storytelling_timestamp(ts_str: str) -> float:
 class BaseDataLoader(ABC):
     """Abstract base class for all data loaders."""
 
+    @staticmethod
+    def get_data_type_name() -> str:
+        return CaptionedVideo.__name__
+
     @abstractmethod
     def load(self, limit:int|None=None) -> list[CaptionedVideo]:
         """Loads data and returns a list of CaptionedVideo objects."""

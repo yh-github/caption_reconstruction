@@ -143,7 +143,11 @@ class ExperimentPipeline(ABC):
                         ###
                         run_metrics = runner.run()
                         agg_metrics = runner.evaluator.agg_metrics(run_metrics)
-                        all_results.extend([round_metrics(m) for m in run_metrics])
+                        def update(met:dict):
+                            d = round_metrics(met)
+                            d['data_type'] = runner.data_loader.get_data_type_name()
+                            return d
+                        all_results.extend([update(m) for m in run_metrics])
 
                         if agg_metrics:
                             mlflow.log_metrics(agg_metrics)
@@ -201,6 +205,9 @@ class ExperimentPipeline(ABC):
         llm_mock.side_effect = lambda name: raise_exception(name)
 
         return llm_mock
+
+    def dry_run(self):
+        return list(self.build_experiments()), self.data_loader.count()
 
 
 # class ExperimentPipeline_QA(ExperimentPipeline):

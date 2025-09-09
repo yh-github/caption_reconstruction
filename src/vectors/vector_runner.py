@@ -25,7 +25,7 @@ class VectorRunner:
         conf_for_log:dict[str, Any]
     ):
         self.run_name = run_name
-        self._data_loader = data_loader
+        self.data_loader = data_loader
         self._masking_strategy = masking_strategy
         self._reconstruction_strategy = reconstruction_strategy
         self.evaluator = evaluator
@@ -36,7 +36,7 @@ class VectorRunner:
         """Runs the full experiment from data loading to evaluation."""
         all_metrics:list[dict] = []
 
-        for m, video_id in self._data_loader.load():
+        for m, video_id in self.data_loader.load():
             logging.debug(f"--- Processing Video: {video_id} ---")
 
             masked_indices_set = self._masking_strategy.get_indices_to_mask(len(m))
