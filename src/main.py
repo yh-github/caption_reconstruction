@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # PYTHON_ARGCOMPLETE_OK
 from data_models.exec_args import ExecArgs, args_parser
-exec_args:ExecArgs = args_parser() if __name__ == "__main__" else None
+_exec_args:ExecArgs = args_parser() if __name__ == "__main__" else None
 
 import logging
 import sys
@@ -23,12 +23,12 @@ def validate_cache(xs):
         r.run()
 
 
-if __name__ == "__main__":
+def main(exec_args:ExecArgs):
     ep = None
     try:
         ep = ExperimentPipeline.build(exec_args)
         if exec_args.dry_run:
-            dry_run(list(ep.build_experiments()), ep.data_loader.count(), verbose=exec_args.verbose)
+            dry_run(*ep.dry_run(), verbose=exec_args.verbose)
         elif exec_args.validate_cache:
             validate_cache(ep.build_experiments())
         else: # Run experiments
@@ -47,3 +47,7 @@ if __name__ == "__main__":
         if ep:
             ep.done(e)
 
+
+
+if __name__ == "__main__":
+    main(_exec_args)

@@ -8,10 +8,10 @@ from pydantic import BaseModel
 
 class ExecArgs(BaseModel):
     config_path: Path
-    verbose: bool
-    dry_run: bool
-    validate_cache: bool
-    debug: bool
+    verbose: bool = False
+    dry_run: bool = False
+    validate_cache: bool = False
+    debug: bool = False
 
     def log_level(self, log_level:int) -> int:
         return log_level if not self.debug else logging.DEBUG
