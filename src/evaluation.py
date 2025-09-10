@@ -76,10 +76,10 @@ class MetricsRecordRaw(BaseModel):
             metrics={k:VectorStats.from_vector(v) for k,v in self.raw_metrics.items()}
         )
 
-    def stats_z_score(self, mean:float, std:float) -> MetricsRecord:
+    def stats_z_score(self, global_stats:dict[str, VectorStats]) -> MetricsRecord:
         return MetricsRecord(
             metadata=self.metadata,
-            metrics={k:VectorStats.from_vector((v-mean)/std) for k,v in self.raw_metrics.items()}
+            metrics={k:VectorStats.from_vector((v-global_stats[k].mean)/global_stats[k].std) for k,v in self.raw_metrics.items()}
         )
 
 ########################################################################################################################
@@ -107,6 +107,14 @@ class ReconstructionEvaluator(ABC, Generic[T_RECON, T_ORIG]):
         for f in sums.keys():
             d[f"mean_{f}"] = sums[f]/counts[f]
         return d
+
+    @staticmethod
+    def global_stats(all_metrics:list[MetricsRecordRaw]) -> dict[str, VectorStats]:
+        d:dict[str,list[Matrix]] = defaultdict(list)
+        for m in all_metrics:
+            for f,v in m.raw_metrics.items():
+                d[f].append(v)
+        return {k:VectorStats.from_vector(np.concat(vs)) for k,vs in d.items()}
 
     @staticmethod
     def from_config(eval_conf:dict):

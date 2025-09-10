@@ -5,6 +5,7 @@ import pytest
 from pathlib import Path
 from data_models.exec_args import ExecArgs
 from run_experiments import ExperimentPipeline, ConfigError
+from utils import add_suffix_to_path
 
 
 @pytest.mark.parametrize(
@@ -56,6 +57,7 @@ all_results = {}
 def test_toy_data(config_filename:str, expected_num_exps:int, expected_data_count:int):
     if config_filename == "*":
         print("###########", file=sys.stderr)
+        print("\n\n")
         for k,v in all_results.items():
             print(f" ===> {k} <===")
             print(v)
@@ -77,7 +79,13 @@ def test_toy_data(config_filename:str, expected_num_exps:int, expected_data_coun
         df = pd.read_csv(csv_path, index_col=0)
         all_results[config_filename] = df
 
+        csv_path2 = add_suffix_to_path(csv_path, "_z_score")
+        df2 = pd.read_csv(csv_path2, index_col=0)
+
+        all_results[config_filename+"(Z_SCORE)"] = df2
+
         assert len(df) == expected_num_exps*expected_data_count, f"Mismatch in counts for {config_filename}"
+        assert len(df2) == expected_num_exps * expected_data_count, f"Mismatch in counts for {config_filename}"
         # assert data_count == , f"Mismatch in data count for {config_filename}"
     except ConfigError as e:
         print(e.config)

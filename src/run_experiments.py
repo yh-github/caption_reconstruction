@@ -23,7 +23,7 @@ from experiment_runner import ExperimentRunner
 from masking import get_masking_strategies
 from reconstruction_strategies import ReconstructionStrategyBuilder
 from utils import check_git_repository_is_clean, setup_logging, flush_loggers, \
-    setup_mlflow, get_datetime_str, flat_dict, UserFacingError, ExceptionStr
+    setup_mlflow, get_datetime_str, flat_dict, UserFacingError, ExceptionStr, add_suffix_to_path
 from vectors.vector_runner import VectorRunner
 from vectors.dataloaders import VectorDataLoader
 from vectors.reconstruction_startegies import VectorReconstructionStrategyBuilder
@@ -173,7 +173,10 @@ class ExperimentPipeline(ABC):
                         flush_loggers()
                 self.result_path.mkdir(parents=True, exist_ok=True)
                 CSV_PATH = self.result_path/(get_datetime_str(self.config.get('tz'))+".csv")
+                CSV_PATH2 = add_suffix_to_path(CSV_PATH, "_z_score")
                 pd.DataFrame([x.stats().to_flat_dict() for x in all_results]).to_csv(CSV_PATH)
+                global_stats = ReconstructionEvaluator.global_stats(all_results)
+                pd.DataFrame([x.stats_z_score(global_stats).to_flat_dict() for x in all_results]).to_csv(CSV_PATH2)
                 return CSV_PATH
 
     def done(self, exception:Exception | None = None):

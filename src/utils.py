@@ -2,11 +2,15 @@ import logging
 import os
 from datetime import datetime
 from typing import Any, Iterator, TypeVar
-
 import git
 import mlflow
 import pytz
 from typing import Callable
+from pathlib import Path
+
+def add_suffix_to_path(path:Path, suffix:str) -> Path:
+    new_filename = f"{path.stem}{suffix}{path.suffix}"
+    return path.parent / new_filename
 
 
 class UserFacingError(Exception):
