@@ -108,7 +108,8 @@ class ExperimentPipeline(ABC):
 
         self.experiment_name:str = get_datetime_str(self.config.get('tz'))
         self.parent_run_name:str = self.config["__parent_run_name__"]+f"__{self.experiment_name}"
-        self.result_path = Path(self.config["paths"].get("results", "results"))
+        results_path = self.config["paths"].get("results", "results")
+        self.result_path = Path(f"{results_path}/" + self.parent_run_name)
 
         self.log_path: str | None = None
         self.mlflow_run_path: str | None = None
@@ -171,7 +172,7 @@ class ExperimentPipeline(ABC):
 
                         flush_loggers()
                 self.result_path.mkdir(parents=True, exist_ok=True)
-                CSV_PATH = self.result_path/("csvs/"+self.parent_run_name+".csv")
+                CSV_PATH = self.result_path/(self.config["__parent_run_name__"]+".csv")
                 CSV_PATH2 = add_suffix_to_path(CSV_PATH, "_z_score")
                 pd.DataFrame([x.stats().to_flat_dict() for x in all_results]).to_csv(CSV_PATH)
                 global_stats = ReconstructionEvaluator.global_stats(all_results)
