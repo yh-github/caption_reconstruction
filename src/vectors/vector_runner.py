@@ -2,9 +2,8 @@ import logging
 from typing import Any
 import numpy as np
 from pathlib import Path
-from evaluation import metrics_to_json
+from evaluation import metrics_to_json, MetricsRecordRaw, MetricsMetadata, round_metrics, VectorReconstructionEvaluator
 from vectors.dataloaders import VectorDataLoader
-from vectors.eval_vectors import VectorReconstructionEvaluator
 
 from masking import MaskingStrategy
 from vectors.reconstruction_startegies import VectorReconstructionStrategy
@@ -32,9 +31,9 @@ class VectorRunner:
         self._result_path = save_path/run_name
         self.conf_for_log = conf_for_log
 
-    def run(self) -> list[dict]:
+    def run(self) -> list[MetricsRecordRaw]:
         """Runs the full experiment from data loading to evaluation."""
-        all_metrics:list[dict] = []
+        all_metrics:list[MetricsRecordRaw] = []
 
         for m, video_id in self.data_loader.load():
             logging.debug(f"--- Processing Video: {video_id} ---")
@@ -52,15 +51,19 @@ class VectorRunner:
 
             video_metrics = self.evaluator.evaluate(reconstructed_vectors, m[masked_indices])
 
-            video_metrics.update({
-                "video_id": video_id,
-                "num_captions": len(m),
-                "masked": masked_indices_list,
-                "recon_strategy": str(self._reconstruction_strategy)
-            })
+            raw_record = MetricsRecordRaw(
+                raw_metrics=video_metrics,
+                metadata=MetricsMetadata(
+                    video_id=video_id,
+                    size=len(m),
+                    masked=masked_indices_list,
+                    recon_strategy=str(self._reconstruction_strategy),
+                    data_type=self.data_loader.get_data_type_name()
+                )
+            )
 
-            all_metrics.append(video_metrics)
+            all_metrics.append(raw_record)
 
-            logging.info(f"Evaluation complete metrics={metrics_to_json(video_metrics)}")
+            logging.info(f"Evaluation complete metrics={metrics_to_json(round_metrics(video_metrics))}")
 
         return all_metrics

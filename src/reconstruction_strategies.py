@@ -4,6 +4,7 @@ from typing import Any
 
 from google import genai
 from pydantic import BaseModel
+from pydantic_core import PydanticSerializationError
 
 from data_models.captions_only import CaptionedClip, ReconstructedCaptions
 from data_models.captions_only import CaptionedVideo
@@ -46,7 +47,12 @@ class Reconstructed(BaseModel):
         return self
 
     def json_str(self):
-        return self.model_dump_json(exclude_none=True)
+        try:
+            return self.model_dump_json(exclude_none=True)
+        except PydanticSerializationError as e:
+            print(f"{e!r} {e!s}")
+            raise e
+
 
 
 class ReconstructionStrategy(ABC):

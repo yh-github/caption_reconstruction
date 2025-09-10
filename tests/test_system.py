@@ -1,7 +1,10 @@
+import sys
+
+import pandas as pd
 import pytest
 from pathlib import Path
 from data_models.exec_args import ExecArgs
-from run_experiments import ExperimentPipeline
+from run_experiments import ExperimentPipeline, ConfigError
 
 
 @pytest.mark.parametrize(
@@ -38,3 +41,44 @@ def test_toy_data_dry_run_results(
     # Pytest provides detailed output if an assertion fails.
     assert num_exps == expected_num_exps, f"Mismatch in experiment count for {config_filename}"
     assert data_count == expected_data_count, f"Mismatch in data count for {config_filename}"
+
+all_results = {}
+@pytest.mark.parametrize(
+    "config_filename, expected_num_exps, expected_data_count",
+    [
+        ("toy_llm2.yaml", 1, 2),
+        ("toy_baseline2.yaml", 3, 2),
+        ("toy_llm.yaml", 4, 2),
+        ("toy_baseline.yaml", 5, 2),
+        ("*", 5,5)
+    ]
+)
+def test_toy_data(config_filename:str, expected_num_exps:int, expected_data_count:int):
+    if config_filename == "*":
+        print("###########", file=sys.stderr)
+        for k,v in all_results.items():
+            print(f" ===> {k} <===")
+            print(v)
+        print()
+        return
+
+    config_path = Path("config") / config_filename
+    def set_results_path(conf:dict):
+        conf["paths"]["results"] = "test_results" # TODO freeze results
+        conf["paths"]["log_dir"] = "test_logs"
+
+    try:
+        ep = ExperimentPipeline.build(
+            ExecArgs(config_path=config_path, debug=True),
+            config_override=set_results_path
+        )
+
+        csv_path = ep.main()
+        df = pd.read_csv(csv_path, index_col=0)
+        all_results[config_filename] = df
+
+        assert len(df) == expected_num_exps*expected_data_count, f"Mismatch in counts for {config_filename}"
+        # assert data_count == , f"Mismatch in data count for {config_filename}"
+    except ConfigError as e:
+        print(e.config)
+        print()

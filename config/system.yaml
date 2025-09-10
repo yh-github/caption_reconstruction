@@ -16,3 +16,5 @@ paths:
 
   # experiment logs
   log_dir: "logs"
+
+  results: "results"

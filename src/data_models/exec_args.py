@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 class ExecArgs(BaseModel):
     config_path: Path
+    # system_config_path: Path TODO add system path
     verbose: bool = False
     dry_run: bool = False
     validate_cache: bool = False

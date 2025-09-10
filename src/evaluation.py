@@ -1,77 +1,157 @@
 import json
 import logging
-import statistics
 from abc import abstractmethod, ABC
+from collections import defaultdict
+from typing import Any, Generic, TypeVar
 from bert_score import BERTScorer
+import numpy as np
+from numpy.typing import NDArray
+from pydantic import BaseModel, ConfigDict
 from torch import Tensor
 from data_models.captions_only import CaptionedVideo
 from embedder import Embedder
 from utils import UserFacingError
-from vectors.eval_vectors import VectorStats, VectorReconstructionEvaluator
+from vectors.eval_vectors import VectorStats, Matrix, calculate_elementwise_cosine
 from reconstruction_strategies import Reconstructed
 
 logger = logging.getLogger(__name__)
 
+RAW_METRIC_OBJ=dict[str, NDArray[np.float64]]
+
 def round_metrics(metrics, ndigits=6) -> dict:
     m = {}
     for k,v in metrics.items():
-        if isinstance(v, Tensor): #k.startswith('bs_'):
-            m[k] = [round(x.item(), ndigits) for x in v]
+        if hasattr(v, "tolist"):
+            v = v.tolist()
+        if isinstance(v, list) and len(v) and isinstance(v[0], float):
+            m[k] = [round(x, ndigits) for x in v]
         elif isinstance(v, float):
             m[k] = round(v, ndigits)
         else:
             m[k] = v
     return m
 
-def metrics_to_json(metrics):
-    d = None
+def metrics_to_json(metrics:dict):
     try:
-        d=round_metrics(metrics)
-        return json.dumps(d)
+        return json.dumps(metrics)
     except TypeError as te:
-        s = "\n".join(f"  {k}:{v.__class__.__name__}={v}" for k,v in d.items())
+        s = "\n".join(f"  {k}:{v.__class__.__name__}={v}" for k,v in metrics.items())
         raise Exception(f"BAD_DICT=\n{s}\n") from te
 
 
-class ReconstructionEvaluator(ABC):
+class MetricsMetadata(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    data_type: str
+    recon_strategy: str
+    video_id: str
+    size: int # num_captions
+    masked: list[int]
+
+
+class MetricsRecord(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    metadata: MetricsMetadata
+    metrics: dict[str, VectorStats]
+
+    def flat_metrics(self, *filter_stat:str) -> dict[str, float]:
+        return {
+            f"{k}_{f}":v
+            for k, vs in self.metrics.items()
+            for f,v in vs.model_dump().items() if not filter_stat or f in filter_stat
+        }
+
+    def to_flat_dict(self, *filter_stat:str) -> dict[str, Any]:
+        d = self.metadata.model_dump()
+        d.update(self.flat_metrics(*filter_stat))
+        return d
+
+class MetricsRecordRaw(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
+    metadata: MetricsMetadata
+    raw_metrics: RAW_METRIC_OBJ
+
+    def stats(self) -> MetricsRecord:
+        return MetricsRecord(
+            metadata=self.metadata,
+            metrics={k:VectorStats.from_vector(v) for k,v in self.raw_metrics.items()}
+        )
+
+    def stats_z_score(self, mean:float, std:float) -> MetricsRecord:
+        return MetricsRecord(
+            metadata=self.metadata,
+            metrics={k:VectorStats.from_vector((v-mean)/std) for k,v in self.raw_metrics.items()}
+        )
+
+########################################################################################################################
+
+T_RECON = TypeVar('T_RECON')
+T_ORIG = TypeVar('T_ORIG')
+
+class ReconstructionEvaluator(ABC, Generic[T_RECON, T_ORIG]):
     @abstractmethod
-    def evaluate(self, reconstructed: Reconstructed, orig: CaptionedVideo) -> dict:
+    def evaluate(self, reconstructed: T_RECON, orig: T_ORIG) -> RAW_METRIC_OBJ:
         return {}
 
     @staticmethod
-    @abstractmethod
-    def agg_metrics(all_metrics):
-        return {}
+    def agg_metrics(all_metrics:list[MetricsRecordRaw], *filter_stat:str) -> dict[str, Any]:
+        if not filter_stat:
+            filter_stat = ("min", "mean")
+        sums:dict[str, float] = defaultdict(float)
+        counts:dict[str, int] = defaultdict(int)
+        for m in all_metrics:
+            for f,v in m.stats().flat_metrics(*filter_stat).items(): # XXX PARAM? INIT_PARAM? INIT_CONST?
+                sums[f] += v
+                counts[f] += 1
+
+        d:dict[str, Any] = {"num_of_instances": len(all_metrics)}
+        for f in sums.keys():
+            d[f"mean_{f}"] = sums[f]/counts[f]
+        return d
 
     @staticmethod
     def from_config(eval_conf:dict):
         eval_type = eval_conf.get('type', 'bert_score').lower()
+        is_embeddings = 'embeddings' in eval_conf.get('data_type','') # video_embeddings
 
-        if eval_type == 'bert_score':
-            return ReconstructionEvaluator_BertScore(
-                model_type=eval_conf.get('model', 'microsoft/deberta-large-mnli'),
-                verbose=eval_conf.get('verbose', False),
-                idf=eval_conf.get('idf', True)
-            )
-        elif eval_type == 'emb_sim':
-            return ReconstructionEvaluator_EmbSimilarity(Embedder())
-        elif eval_type == 'nop':
-            return EvaluatorNOP()
+        if is_embeddings:
+            eval_type = eval_conf.get('type', 'emb_sim').lower()
+            if eval_type == 'emb_sim':
+                return VectorReconstructionEvaluator()
+            elif eval_type == 'nop':
+                return VectorEvaluatorNOP()
+            raise UserFacingError(f"VectorReconstructionEvaluator: Unknown evaluation type '{eval_type}'")
         else:
-            raise UserFacingError(f"Unknown evaluation type '{eval_type}'")
+            if eval_type == 'bert_score':
+                return ReconstructionEvaluator_BertScore(
+                    model_type=eval_conf.get('model', 'microsoft/deberta-large-mnli'),
+                    verbose=eval_conf.get('verbose', False),
+                    idf=eval_conf.get('idf', True)
+                )
+            elif eval_type == 'emb_sim':
+                return ReconstructionEvaluator_EmbSimilarity(Embedder())
+            elif eval_type == 'nop':
+                return EvaluatorNOP()
+            else:
+                raise UserFacingError(f"Unknown evaluation type '{eval_type}'")
 
 
-# noinspection PyUnusedLocal
-class EvaluatorNOP(ReconstructionEvaluator):
+class VectorReconstructionEvaluator(ReconstructionEvaluator[Matrix, Matrix]):
+    def evaluate(self, pred_vecs:Matrix, true_vecs:Matrix) -> RAW_METRIC_OBJ:
+        return {"cos_sim": calculate_elementwise_cosine(pred_vecs, true_vecs)}
 
-    def evaluate(self, reconstructed: Reconstructed, orig: CaptionedVideo) -> dict:
+class VectorEvaluatorNOP(VectorReconstructionEvaluator):
+    def evaluate(self, pred_vecs: Matrix, true_vecs: Matrix) -> RAW_METRIC_OBJ:
         return {}
 
-    @staticmethod
-    def agg_metrics(all_metrics):
+class TextReconstructionEvaluator(ReconstructionEvaluator[Reconstructed, CaptionedVideo], ABC):
+    pass
+
+class EvaluatorNOP(TextReconstructionEvaluator):
+
+    def evaluate(self, reconstructed: Reconstructed, orig: CaptionedVideo) -> RAW_METRIC_OBJ:
         return {}
 
-class ReconstructionEvaluator_BertScore(ReconstructionEvaluator):
+class ReconstructionEvaluator_BertScore(TextReconstructionEvaluator):
     """
     Encapsulates the logic for evaluating caption reconstruction using BERTScore.
     """
@@ -95,11 +175,19 @@ class ReconstructionEvaluator_BertScore(ReconstructionEvaluator):
         )
         logger.info(f"ReconstructionEvaluator initialized with model: {self.model_type}, idf: {self.idf}")
 
+    @staticmethod
+    def to_metric_obj(bs_p:Tensor, bs_r:Tensor, bs_f1:Tensor) -> RAW_METRIC_OBJ:
+        return {
+            "bs_p": bs_p.numpy(),
+            "bs_r": bs_r.numpy(),
+            "bs_f1": bs_f1.numpy()
+        }
+
     def evaluate(
             self,
             reconstructed: Reconstructed,
             orig: CaptionedVideo
-    ) -> dict:
+    ) -> RAW_METRIC_OBJ:
         logger.debug("Aligning clips for BERTScore evaluation...")
 
         candidates, references = reconstructed.align(orig.clips)
@@ -110,17 +198,11 @@ class ReconstructionEvaluator_BertScore(ReconstructionEvaluator):
 
         logger.debug(f"Calculating BERTScore for {len(candidates)} clip pairs.")
 
-        bs_p, bs_r, bs_f1 = self.bert_scorer.score(
+        return self.to_metric_obj(*self.bert_scorer.score(
             cands=candidates,
             refs=references,
             batch_size=4
-        )
-
-        return {
-            "bs_p": bs_p,
-            "bs_r": bs_r,
-            "bs_f1": bs_f1
-        }
+        ))
 
     def calc_idf(self, sents: list[str]):
         if sents:
@@ -132,21 +214,7 @@ class ReconstructionEvaluator_BertScore(ReconstructionEvaluator):
             logger.info('no IDF')
         return self
 
-    @staticmethod
-    def agg_metrics(all_metrics):
-        mean_f1 = statistics.mean([m['bs_f1'].min().item() for m in all_metrics])
-        mean_precision = statistics.mean([m['bs_p'].min().item() for m in all_metrics])
-        mean_recall = statistics.mean([m['bs_r'].min().item() for m in all_metrics])
-
-        return {
-            "num_of_instances": len(all_metrics),
-            "mean_f1_score": mean_f1,
-            "mean_precision": mean_precision,
-            "mean_recall": mean_recall
-        }
-
-
-class ReconstructionEvaluator_EmbSimilarity(ReconstructionEvaluator):
+class ReconstructionEvaluator_EmbSimilarity(TextReconstructionEvaluator):
     """
     Encapsulates the logic for evaluating caption reconstruction using BERTScore.
     """
@@ -155,7 +223,7 @@ class ReconstructionEvaluator_EmbSimilarity(ReconstructionEvaluator):
         self.embedder = embedder
         self.inner = VectorReconstructionEvaluator()
 
-    def evaluate(self, reconstructed: Reconstructed, orig: CaptionedVideo) -> dict:
+    def evaluate(self, reconstructed: Reconstructed, orig: CaptionedVideo) -> RAW_METRIC_OBJ:
         logger.debug("Aligning clips for EmbSimilarity evaluation...")
 
         candidates, references = reconstructed.align(orig.clips)
@@ -169,19 +237,4 @@ class ReconstructionEvaluator_EmbSimilarity(ReconstructionEvaluator):
         pred_vecs = self.embedder.get_embeddings(reconstructed.video_id+"(pred)", candidates)
         true_vecs = self.embedder.get_embeddings(reconstructed.video_id+"(orig)", references)
 
-        # return VectorStats.from_vector(calculate_elementwise_cosine(pred_vecs, true_vecs)).model_dump()
         return self.inner.evaluate(pred_vecs=pred_vecs,true_vecs=true_vecs)
-
-    @staticmethod
-    def agg_metrics(all_metrics):
-        vs = [VectorStats.model_validate(m) for m in all_metrics]
-        means = VectorStats.from_vector([v.mean for v in vs])
-
-        return {
-            "num_of_instances": len(all_metrics),
-            "mean_mean": means.mean,
-            "mean_std": means.std,
-            "mean_min": means.min,
-            "mean_max": means.max
-        }
-

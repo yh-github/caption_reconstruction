@@ -4,7 +4,7 @@ from typing import Any
 
 from data_loaders import BaseDataLoader
 from data_models.captions_only import CaptionedVideo
-from evaluation import ReconstructionEvaluator, metrics_to_json, round_metrics
+from evaluation import ReconstructionEvaluator, metrics_to_json, round_metrics, MetricsMetadata, MetricsRecordRaw
 from masking import MaskingStrategy
 from reconstruction_strategies import ReconstructionStrategy, Reconstructed
 
@@ -44,11 +44,11 @@ class ExperimentRunner:
         with open(self._save_path / filename, "w") as f:
             f.write(r.json_str())
 
-    def run(self) -> list:
+    def run(self) -> list[MetricsRecordRaw]:
         """Runs the full experiment from data loading to evaluation."""
         self._save_path.mkdir(parents=True, exist_ok=True)
         all_videos:list[CaptionedVideo] = self.data_loader.load()
-        all_metrics:list[dict] = []
+        all_metrics:list[MetricsRecordRaw] = []
 
         for video in all_videos:
             if (self._save_path / self._filename(video.video_id)).exists():
@@ -94,18 +94,22 @@ class ExperimentRunner:
 
             video_metrics = self.evaluator.evaluate(reconstructed, video)
 
-            all_metrics.append(video_metrics)
+            raw_record = MetricsRecordRaw(
+                raw_metrics=video_metrics,
+                metadata=MetricsMetadata(
+                    video_id=video.video_id,
+                    size=len(video.clips),
+                    masked=list(masked_indices),
+                    recon_strategy=str(self._reconstruction_strategy),
+                    data_type=self.data_loader.get_data_type_name()
+                )
+            )
 
-            self._save_result(reconstructed.with_metrics(round_metrics(video_metrics)))
+            all_metrics.append(raw_record)
+            rounded = round_metrics(video_metrics)
+            self._save_result(reconstructed.with_metrics(rounded))
 
-            video_metrics.update({
-                "video_id": video.video_id,
-                "num_captions": len(video.clips),
-                "masked": list(masked_indices),
-                "recon_strategy": str(self._reconstruction_strategy)
-            })
-
-            logging.info(f"Evaluation metrics {metrics_to_json(video_metrics)}")
+            logging.info(f"Evaluation metrics {metrics_to_json(rounded)}")
 
             logging.debug(f"Successfully processed video: {video.video_id}")
 

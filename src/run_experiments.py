@@ -2,6 +2,7 @@ import logging
 import os
 import platform
 from abc import abstractmethod, ABC
+from collections.abc import Callable
 from importlib.metadata import version
 from pathlib import Path
 from typing import Any
@@ -16,7 +17,7 @@ from google import genai
 from config_loader import load_config
 from data_loaders import get_data_loader
 from data_models.exec_args import ExecArgs
-from evaluation import ReconstructionEvaluator, metrics_to_json, round_metrics
+from evaluation import ReconstructionEvaluator, metrics_to_json, MetricsRecordRaw
 from experiment_runner import ExperimentRunner
 # Local imports
 from masking import get_masking_strategies
@@ -25,23 +26,37 @@ from utils import check_git_repository_is_clean, setup_logging, flush_loggers, \
     setup_mlflow, get_datetime_str, flat_dict, UserFacingError, ExceptionStr
 from vectors.vector_runner import VectorRunner
 from vectors.dataloaders import VectorDataLoader
-from vectors.eval_vectors import VectorReconstructionEvaluator
 from vectors.reconstruction_startegies import VectorReconstructionStrategyBuilder
+
+class ConfigError(Exception):
+
+    def __init__(self, key: str, exec_args: ExecArgs, config: dict|None):
+        self.key = key
+        self.exec_args = exec_args
+        self.config = config
 
 
 class ExperimentPipeline(ABC):
 
     @staticmethod
-    def build(exec_args:ExecArgs):
-        logging.basicConfig(level=exec_args.log_level(logging.INFO), format='%(asctime)s - %(levelname)s - %(message)s')
-        config = load_config(exec_args.config_path)
-        experiment_type = config['base_params'].get('experiment_type', 'recon').upper()
-        if experiment_type in {'RECON', 'RECON_VECTORS'}:
-            return ExperimentPipeline_Reconstruction(exec_args, config)
-        # elif experiment_type == 'QA':
-        #     return ExperimentPipeline_QA(exec_args, config)
-        else:
-            raise UserFacingError(f"Unknown {experiment_type=}")
+    def build(exec_args:ExecArgs, config_override:Callable[[dict], None]):
+        config = None
+        try:
+            logging.basicConfig(level=exec_args.log_level(logging.INFO), format='%(asctime)s - %(levelname)s - %(message)s')
+            config = load_config(exec_args.config_path)
+            if config_override:
+                print('config_override')
+                config_override(config)
+                # print(json.dumps(config, indent=4))
+            experiment_type = config['base_params'].get('experiment_type', 'recon').upper()
+            if experiment_type in {'RECON', 'RECON_VECTORS'}:
+                return ExperimentPipeline_Reconstruction(exec_args, config)
+            # elif experiment_type == 'QA':
+            #     return ExperimentPipeline_QA(exec_args, config)
+            else:
+                raise UserFacingError(f"Unknown {experiment_type=}")
+        except KeyError as e:
+            raise ConfigError(str(e), exec_args, config) from e
 
     def _init_experiment_type(self):
         return self.config['base_params'].get('experiment_type', 'recon').upper()
@@ -61,6 +76,7 @@ class ExperimentPipeline(ABC):
             eval_conf['type'] = 'NOP'
         if self.exec_args.verbose:
             eval_conf['verbose'] = True
+        eval_conf['data_type'] = self.data_loader.get_data_type_name()
         return eval_conf
 
     def __init__(self, exec_args:ExecArgs, config:dict[str, Any]):
@@ -70,7 +86,6 @@ class ExperimentPipeline(ABC):
         self.cache = self._init_cache()
 
         data_config = self.config["data_config"]
-        eval_conf = self._get_eval_conf()
 
         if self.experiment_type == 'RECON':
             self.data_loader = get_data_loader(data_config)
@@ -80,21 +95,21 @@ class ExperimentPipeline(ABC):
                 master_seed=self.config["base_params"]["master_seed"],
                 llm_client=self._init_llm_client()
             )
-            self.evaluator = ReconstructionEvaluator.from_config(eval_conf)
-            if hasattr(self.evaluator, 'idf') and self.evaluator.idf:
-                self.evaluator.calc_idf(self.data_loader.load_all_sentences())
-
         elif self.experiment_type == 'RECON_VECTORS':
             self.data_loader = VectorDataLoader.from_config(data_config)
             self.experiment_runner_factory = VectorRunner
             self.rs_builder = VectorReconstructionStrategyBuilder()
-            self.evaluator = VectorReconstructionEvaluator.from_conf(eval_conf)
         else:
             raise Exception(f"Unknown {self.experiment_type=}")
 
+        self.evaluator = ReconstructionEvaluator.from_config(self._get_eval_conf())
+        if hasattr(self.evaluator, 'idf') and self.evaluator.idf:
+            self.evaluator.calc_idf(self.data_loader.load_all_sentences())
+
         self.experiment_name:str = get_datetime_str(self.config.get('tz'))
         self.parent_run_name:str = self.config["__parent_run_name__"]+f"__{self.experiment_name}"
-        self.result_path = Path(f"results/{self.experiment_type.lower()}/" + self.parent_run_name)
+        results_path = self.config["paths"].get("results", "results")
+        self.result_path = Path(f"{results_path}/{self.experiment_type.lower()}/" + self.parent_run_name)
 
         self.log_path: str | None = None
         self.mlflow_run_path: str | None = None
@@ -141,13 +156,9 @@ class ExperimentPipeline(ABC):
                         mlflow.log_params(runner.conf_for_log)
 
                         ###
-                        run_metrics = runner.run()
+                        run_metrics:list[MetricsRecordRaw] = runner.run()
                         agg_metrics = runner.evaluator.agg_metrics(run_metrics)
-                        def update(met:dict):
-                            d = round_metrics(met)
-                            d['data_type'] = runner.data_loader.get_data_type_name()
-                            return d
-                        all_results.extend([update(m) for m in run_metrics])
+                        all_results.extend(run_metrics)
 
                         if agg_metrics:
                             mlflow.log_metrics(agg_metrics)
@@ -161,7 +172,9 @@ class ExperimentPipeline(ABC):
 
                         flush_loggers()
                 self.result_path.mkdir(parents=True, exist_ok=True)
-                pd.DataFrame(all_results).to_csv(self.result_path/(get_datetime_str(self.config.get('tz'))+".csv"))
+                CSV_PATH = self.result_path/(get_datetime_str(self.config.get('tz'))+".csv")
+                pd.DataFrame([x.stats().to_flat_dict() for x in all_results]).to_csv(CSV_PATH)
+                return CSV_PATH
 
     def done(self, exception:Exception | None = None):
         logging.info(f'PID {os.getpid()} DONE.')

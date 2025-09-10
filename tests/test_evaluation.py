@@ -1,8 +1,6 @@
+import numpy as np
 import pytest
-import torch
 from unittest.mock import MagicMock
-
-# Import the class and functions we are testing
 from evaluation import ReconstructionEvaluator_BertScore, round_metrics, metrics_to_json
 
 from data_models.captions_only import (
@@ -19,9 +17,9 @@ def mock_bert_scorer(mocker):
     """A fixture to mock the BERTScorer object."""
     scorer_instance = MagicMock()
     scorer_instance.score.return_value = (
-        torch.tensor([0.9, 0.95]),  # Mock Precision
-        torch.tensor([0.8, 0.85]),  # Mock Recall
-        torch.tensor([0.85, 0.9]),   # Mock F1
+        np.array([0.9, 0.95]),  # Mock Precision
+        np.array([0.8, 0.85]),  # Mock Recall
+        np.array([0.85, 0.9]),   # Mock F1
     )
     # Patch the BERTScorer class in the evaluation module
     mocker.patch('evaluation.BERTScorer', return_value=scorer_instance)
@@ -73,7 +71,7 @@ def test_reconstruction_evaluator_evaluate_method(mock_bert_scorer, sample_data)
     assert call_kwargs['refs'] == ["clip two original", "clip three original"]
     
     # 3. Check that the metrics returned are the tensors from our mock
-    assert torch.equal(metrics['bs_f1'], torch.tensor([0.85, 0.9]))
+    assert np.equal(metrics['bs_f1'], np.array([0.85, 0.9]))
 
 
 def test_round_metrics():
@@ -82,7 +80,7 @@ def test_round_metrics():
     """
     # Arrange
     raw_metrics = {
-        "bs_p": torch.tensor([0.912345]),
+        "bs_p": np.array([0.912345]),
         "other_metric": 10
     }
     
