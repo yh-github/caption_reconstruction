@@ -39,7 +39,7 @@ class ConfigError(Exception):
 class ExperimentPipeline(ABC):
 
     @staticmethod
-    def build(exec_args:ExecArgs, config_override:Callable[[dict], None]):
+    def build(exec_args:ExecArgs, config_override:Callable[[dict], None]|None=None):
         config = None
         try:
             logging.basicConfig(level=exec_args.log_level(logging.INFO), format='%(asctime)s - %(levelname)s - %(message)s')
