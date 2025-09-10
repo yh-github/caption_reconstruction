@@ -27,3 +27,5 @@ notebooks/.ipynb_checkpoints/
 remote/
 local/
 results/
+test_logs/
+test_results/
