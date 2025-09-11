@@ -125,7 +125,7 @@ class ExperimentPipeline(ABC):
 
         git_commit_hash = check_git_repository_is_clean(ignore_risk=self.exec_args.debug)
 
-        with FileLock(".lock"):
+        with FileLock(self.config['paths'].get("lock",".lock")):
             setup_mlflow(experiment_name=experiment_name, tracking_uri=mlflow_uri)
             with mlflow.start_run(run_name=parent_run_name) as parent_run, self.cache:
                 log_path, notifier = setup_logging(

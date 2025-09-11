@@ -1,6 +1,6 @@
 from pydantic import ValidationError
 from data_models.captions_only import ReconstructedCaptions, ReconstructedCaption
-from parsers import parse_llm_response
+from llm.parsers import parse_llm_response
 import pytest
 
 

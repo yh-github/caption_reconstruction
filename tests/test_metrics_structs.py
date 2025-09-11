@@ -84,8 +84,10 @@ def test_metrics_record_raw_stats(sample_raw_record: MetricsRecordRaw):
 
 def test_metrics_record_raw_stats_z_score(sample_raw_record: MetricsRecordRaw):
     """Tests the stats_z_score() method for normalization."""
-    mean, std = 0.5, 0.2
-    z_score_record = sample_raw_record.stats_z_score(mean, std)
+    z_score_record = sample_raw_record.stats_z_score({
+        "similarity": VectorStats(mean=0.5, std=0.2, max=1., min=0.0),
+        "distance": VectorStats(mean=0.5, std=0.2, max=1., min=0.0)
+    })
 
     # The raw "similarity" vector was [0.8, 0.9, 0.7]
     # The z-scored vector should be ([0.8, 0.9, 0.7] - 0.5) / 0.2

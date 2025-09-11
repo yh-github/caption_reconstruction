@@ -8,9 +8,9 @@ from pydantic_core import PydanticSerializationError
 
 from data_models.captions_only import CaptionedClip, ReconstructedCaptions
 from data_models.captions_only import CaptionedVideo
-from llm_interaction import LLM_Manager_Builder, LLM_Response, LLM_ResponseError
-from parsers import parse_llm_response
-from prompting import PromptBuilder, JSONPromptBuilder
+from llm.llm_interaction import LLM_Manager_Builder, LLM_Response, LLM_ResponseError
+from llm.parsers import parse_llm_response
+from llm.prompting import PromptBuilder, JSONPromptBuilder
 from utils import UserFacingError, ExceptionStr
 
 

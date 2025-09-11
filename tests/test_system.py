@@ -68,6 +68,7 @@ def test_toy_data(config_filename:str, expected_num_exps:int, expected_data_coun
     def set_results_path(conf:dict):
         conf["paths"]["results"] = "test_results" # TODO freeze results
         conf["paths"]["log_dir"] = "test_logs"
+        conf["paths"]["lock"] = ".test_lock"
 
     try:
         ep = ExperimentPipeline.build(

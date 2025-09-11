@@ -5,7 +5,7 @@ import numpy as np
 import yaml
 from numpy.typing import NDArray
 from data_loaders import BaseDataLoader, get_data_loader
-from embedder import Embedder
+from llm.embedder import Embedder
 
 
 class VectorDataLoader(ABC):

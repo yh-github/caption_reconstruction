@@ -1,7 +1,7 @@
 import re
 from pathlib import Path
 import pytest
-from prompting import simple_safe_format
+from llm.prompting import simple_safe_format
 from utils import build_safe_dict, flat_dict
 
 

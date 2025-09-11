@@ -2,7 +2,7 @@ import sys
 
 from data_loaders import get_data_loader
 from config_loader import load_config
-from prompting import JSONPromptBuilder
+from llm.prompting import JSONPromptBuilder
 
 config_path = sys.argv[1]
 ind = int(sys.argv[2])

@@ -13,8 +13,8 @@ from pydantic import BaseModel
 
 from config_loader import load_config, get_llm_config
 from data_models.video_link import VideoLinkData
-from llm_interaction import LLM_Response, LLM_Manager_Builder
-from parsers import parse_llm_response_list, T_BaseModel
+from llm.llm_interaction import LLM_Response, LLM_Manager_Builder
+from llm.parsers import parse_llm_response_list, T_BaseModel
 from utils import setup_logging, get_datetime_str, ExceptionStr
 from video_link_loader import load_wild_dataset, WildVideoMetadata
 

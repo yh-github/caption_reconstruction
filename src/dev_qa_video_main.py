@@ -14,9 +14,9 @@ from data_models.video_link import VideoLinkData
 from dev_qa import QAData, load_wild_captions, build_evaluator, AnswerResponse, AnswerResponses, \
     MASKED_VIDEO_INSTRUCTIONS
 from dev_qa_main import save_to_file, save_error
-from llm_interaction import LLM_Manager_Builder
-from parsers import parse_llm_response
-from prompting import JSONPromptBuilder
+from llm.llm_interaction import LLM_Manager_Builder
+from llm.parsers import parse_llm_response
+from llm.prompting import JSONPromptBuilder
 from utils import numbered_list, get_datetime_str, setup_logging
 from video_link_loader import load_wild_dataset
 from yt_video_processing import gen_content_prompt_multi
