@@ -15,7 +15,7 @@ from filelock import FileLock
 from google import genai
 
 from config_loader import load_config
-from data_loaders import get_data_loader
+from data.data_loaders import get_data_loader
 from data_models.exec_args import ExecArgs
 from evaluation import ReconstructionEvaluator, metrics_to_json, MetricsRecordRaw
 from experiment_runner import ExperimentRunner

@@ -16,7 +16,7 @@ from llm.parsers import parse_llm_response
 from llm.prompting import JSONPromptBuilder
 from utils import get_model_schema_lines, dump_model_compact_json, numbered_list, get_datetime_str, setup_logging, \
     ExceptionStr
-from video_link_loader import load_wild_dataset
+from data.video_link_loader import load_wild_dataset
 
 logger = logging.getLogger(__name__)
 

@@ -8,7 +8,7 @@ from bert_score import BERTScorer
 from pydantic import BaseModel, Field, RootModel
 
 from data_models.complex_struct import VideoAnalysis
-from video_link_loader import WildVideoMetadata
+from data.video_link_loader import WildVideoMetadata
 
 logger = logging.getLogger(__name__)
 

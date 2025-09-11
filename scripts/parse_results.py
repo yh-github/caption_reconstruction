@@ -4,7 +4,7 @@ from pathlib import Path
 
 from config_loader import load_config
 from dev_qa import QAData
-from video_link_loader import load_wild_dataset
+from data.video_link_loader import load_wild_dataset
 
 input_text="""
 run_name='llm_wild_text1' Millennial-Farmer_1-clip-11__2 bs_f1=0.8236556053161621

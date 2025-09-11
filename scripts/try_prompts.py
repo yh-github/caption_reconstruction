@@ -1,6 +1,6 @@
 import sys
 
-from data_loaders import get_data_loader
+from data.data_loaders import get_data_loader
 from config_loader import load_config
 from llm.prompting import JSONPromptBuilder
 

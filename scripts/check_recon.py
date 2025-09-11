@@ -3,7 +3,7 @@ import sys
 from pydantic import ValidationError, BaseModel, Field, ConfigDict
 
 from config_loader import load_config
-from data_loaders import get_data_loader
+from data.data_loaders import get_data_loader
 from utils import UserFacingError
 from reconstruction_strategies import Reconstructed
 from evaluation import ReconstructionEvaluator_BertScore

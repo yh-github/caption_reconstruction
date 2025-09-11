@@ -18,7 +18,7 @@ from llm.llm_interaction import LLM_Manager_Builder
 from llm.parsers import parse_llm_response
 from llm.prompting import JSONPromptBuilder
 from utils import numbered_list, get_datetime_str, setup_logging
-from video_link_loader import load_wild_dataset
+from data.video_link_loader import load_wild_dataset
 from yt_video_processing import gen_content_prompt_multi
 
 logger = logging.getLogger(__name__)

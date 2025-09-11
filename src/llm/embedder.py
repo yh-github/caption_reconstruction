@@ -9,7 +9,7 @@ from google.genai import types
 from google.genai.types import EmbedContentResponse
 
 from config_loader import load_config
-from data_loaders import get_data_loader
+from data.data_loaders import get_data_loader
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

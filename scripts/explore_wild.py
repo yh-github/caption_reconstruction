@@ -5,7 +5,7 @@ import numpy as np
 from urllib.parse import urlparse
 
 from utils import build_safe_dict
-from video_link_loader import load_wild_dataset
+from data.video_link_loader import load_wild_dataset
 
 
 def extract_filename(url: str) -> str:
