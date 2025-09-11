@@ -12,7 +12,7 @@ from evaluation import (
     MetricsRecordRaw, MetricsMetadata
 )
 from data_models.captions_only import CaptionedVideo, CaptionedClip, TimestampRange
-from reconstruction_strategies import Reconstructed
+from reconstruction.reconstruction_strategies import Reconstructed
 from vectors.eval_vectors import VectorStats
 
 

@@ -5,7 +5,7 @@ from pathlib import Path
 from evaluation import metrics_to_json, MetricsRecordRaw, MetricsMetadata, round_metrics, VectorReconstructionEvaluator
 from vectors.dataloaders import VectorDataLoader
 
-from masking import MaskingStrategy
+from reconstruction.masking import MaskingStrategy
 from vectors.reconstruction_startegies import VectorReconstructionStrategy
 
 class VectorRunner:

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 
-from dev_qa import AnswerResponse
+from qa.dev_qa import AnswerResponse
 
 # noinspection PyUnresolvedReferences, PyProtectedMember
 HashType = hashlib._hashlib.HASH

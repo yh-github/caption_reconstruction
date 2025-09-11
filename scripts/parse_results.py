@@ -3,7 +3,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from config_loader import load_config
-from dev_qa import QAData
+from qa.dev_qa import QAData
 from data.video_link_loader import load_wild_dataset
 
 input_text="""

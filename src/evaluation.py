@@ -12,7 +12,7 @@ from data_models.captions_only import CaptionedVideo
 from llm.embedder import Embedder
 from utils import UserFacingError
 from vectors.eval_vectors import VectorStats, Matrix, calculate_elementwise_cosine
-from reconstruction_strategies import Reconstructed
+from reconstruction.reconstruction_strategies import Reconstructed
 
 logger = logging.getLogger(__name__)
 

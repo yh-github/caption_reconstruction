@@ -1,5 +1,5 @@
 import pytest
-from masking import PartitionMasking, get_masking_strategies
+from reconstruction.masking import PartitionMasking, get_masking_strategies
 from data_models.captions_only import CaptionedClip,  TimestampRange
 
 # --- The Fixture (no changes needed) ---
@@ -91,7 +91,7 @@ def test_factory_generates_correct_number_of_strategies_1_2_3_4():
     assert len(strategies) == 14
     assert all(isinstance(s, PartitionMasking) for s in strategies)
 
-from masking import ContiguousMasking
+from reconstruction.masking import ContiguousMasking
 
 def test_contiguous_masking_correctly_masks_indices():
     """

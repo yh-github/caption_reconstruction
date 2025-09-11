@@ -20,8 +20,8 @@ from data_models.exec_args import ExecArgs
 from evaluation import ReconstructionEvaluator, metrics_to_json, MetricsRecordRaw
 from experiment_runner import ExperimentRunner
 # Local imports
-from masking import get_masking_strategies
-from reconstruction_strategies import ReconstructionStrategyBuilder
+from reconstruction.masking import get_masking_strategies
+from reconstruction.reconstruction_strategies import ReconstructionStrategyBuilder
 from utils import check_git_repository_is_clean, setup_logging, flush_loggers, \
     setup_mlflow, get_datetime_str, flat_dict, UserFacingError, ExceptionStr, add_suffix_to_path
 from vectors.vector_runner import VectorRunner
