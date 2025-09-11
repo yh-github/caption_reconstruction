@@ -6,7 +6,7 @@ _exec_args:ExecArgs = args_parser() if __name__ == "__main__" else None
 import logging
 import sys
 from run_experiments import ExperimentPipeline
-from utils import UserFacingError
+from utils import UserFacingError, handle_ctrl_c
 from experiment_runner import ExperimentRunner
 
 def dry_run(xs:list[ExperimentRunner], count:int, verbose=False):
@@ -26,6 +26,7 @@ def validate_cache(xs):
 def main(exec_args:ExecArgs):
     ep = None
     try:
+        handle_ctrl_c()
         ep = ExperimentPipeline.build(exec_args)
         if exec_args.dry_run:
             dry_run(*ep.dry_run(), verbose=exec_args.verbose)

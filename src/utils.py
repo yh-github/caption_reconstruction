@@ -349,3 +349,53 @@ class ExceptionStr(BaseModel):
                 message=str(e),
                 traceback=traceback.format_tb(e.__traceback__)
             )
+
+
+######
+
+from types import FrameType
+import signal
+
+def handle_ctrl_c():
+    """
+    Factory function to create a signal handler. This allows us to keep track
+    of how many times Ctrl+C has been pressed.
+    """
+    press_count = [0]
+
+    def signal_handler(sig:int, frame:FrameType|None):
+        """
+        This function is called when a SIGINT signal (Ctrl+C) is received.
+        """
+        press_count[0] += 1
+
+        # On the first press, ask for confirmation.
+        if press_count[0] != 1:
+            raise KeyboardInterrupt
+
+        if frame:
+            print("\n" + "-"*40)
+            print(f"Signal {signal.Signals(sig).name} received.")
+            print(f"Interrupted at: File '{frame.f_code.co_filename}', Line {frame.f_lineno}")
+            print("-" * 40)
+
+        response = ''
+        try:
+            # handle interruptions during the prompt itself.
+            response = input("\n\nAre you sure you want to exit? (y/n) ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            # Handle cases where the user presses Ctrl+D or Ctrl+C at the prompt.
+            print("\nExit prompt cancelled. Continuing program.")
+            press_count[0] = 0
+            return # Exit the handler to continue the main loop
+
+        # The logic to handle the response is now outside the try/except block.
+        if response == 'y':
+            print("Exiting program.")
+            # This raise is no longer caught by the except block above.
+            raise KeyboardInterrupt
+        else:
+            print("Continuing program...")
+            press_count[0] = 0
+
+    signal.signal(signal.SIGINT, signal_handler)
