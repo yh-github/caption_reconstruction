@@ -1,13 +1,11 @@
 import logging
 import sys
 from collections import Counter
-
 import diskcache
 from google import genai
 from google.api_core import retry
 from google.genai import types
 from google.genai.types import EmbedContentResponse
-
 from config_loader import load_config
 from data.data_loaders import get_data_loader
 
@@ -47,8 +45,8 @@ class Embedder:
         self.cache = diskcache.Cache(directory=cache_dir)
 
     @staticmethod
-    def log_retry(exception:Exception, try_num:int):
-        logger.warning(f"Embedder log_retry {try_num=}, transient={retry.if_transient_error(exception)}, {type(exception)} -- {exception}")
+    def log_retry(exception:Exception, try_num:int, video_id:str):
+        logger.warning(f"Embedder log_retry {try_num=} {video_id=}, transient={retry.if_transient_error(exception)}, {type(exception)} -- {exception}")
 
     @staticmethod
     def should_retry(exception:Exception) -> bool:
@@ -65,7 +63,7 @@ class Embedder:
         multiplier=2.0,  # Multiplier for exponential backoff
         timeout=600.0,  # Total timeout for all retries in seconds
     )
-    def _invoke_llm(self, texts:list[str]) -> EmbedContentResponse:
+    def _invoke_llm(self, video_id:str, texts:list[str]) -> EmbedContentResponse:
         try:
             self._try_num += 1
 
@@ -75,7 +73,7 @@ class Embedder:
                 contents=texts
             )
         except Exception as ex:
-            self.log_retry(ex, self._try_num)
+            self.log_retry(ex, self._try_num, video_id)
             raise
 
     def _embed_new(self, video_id:str, texts:list[str]) -> dict[str, list[float]]:
@@ -87,7 +85,7 @@ class Embedder:
                 for i,t in enumerate(texts, start=1):
                     logger.debug(f"  {i}. {t}")
             self._try_num = 0
-            raw_res: EmbedContentResponse = self._invoke_llm(texts)
+            raw_res: EmbedContentResponse = self._invoke_llm(video_id, texts)
         except Exception as e:
             logger.error(f"Embeddings failed for {video_id}, ** {e.__class__.__qualname__} ** {e}")
             return embeddings_dict
@@ -175,18 +173,3 @@ def parse_args(argv):
     cmd = argv[2]
 
     return config, cmd
-
-# import requests.exceptions
-# from google.api_core import exceptions
-# from google.auth import exceptions as auth_exceptions
-# if __name__ == "__main__":
-#     # main(*parse_args(sys.argv))
-#     for x in [
-#             exceptions.InternalServerError,
-#             exceptions.TooManyRequests,
-#             exceptions.ServiceUnavailable,
-#             requests.exceptions.ConnectionError,
-#             requests.exceptions.ChunkedEncodingError,
-#             auth_exceptions.TransportError
-#         ]:
-#         print(x, x.code)
