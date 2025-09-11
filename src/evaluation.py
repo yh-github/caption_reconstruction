@@ -2,7 +2,7 @@ import json
 import logging
 from abc import abstractmethod, ABC
 from collections import defaultdict
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, TypeVar, Self
 from bert_score import BERTScorer
 import numpy as np
 from numpy.typing import NDArray
@@ -130,9 +130,7 @@ class ReconstructionEvaluator(ABC, Generic[T_RECON, T_ORIG]):
             raise UserFacingError(f"VectorReconstructionEvaluator: Unknown evaluation type '{eval_type}'")
         else:
             if eval_type == 'bert_score':
-                return ReconstructionEvaluator_BertScore(
-                    model_type=eval_conf.get('model', 'microsoft/deberta-large-mnli'),
-                    verbose=eval_conf.get('verbose', False),
+                return ReconstructionEvaluator_BertScore.build(
                     idf=eval_conf.get('idf', True)
                 )
             elif eval_type == 'emb_sim':
@@ -164,24 +162,26 @@ class ReconstructionEvaluator_BertScore(TextReconstructionEvaluator):
     Encapsulates the logic for evaluating caption reconstruction using BERTScore.
     """
 
-    def __init__(self, model_type:str|None=None, idf:bool=False, verbose=False):
-        """
-        Initializes the evaluator with configuration for BERTScore.
+    def __init__(self, bert_scorer: BERTScorer):
+        self.bert_scorer = bert_scorer
 
-        Args:
-            model_type: The Hugging Face model to use for BERTScore.
-            idf: A boolean indicating whether to use inverse-document-frequency weighting.
-        """
-        self.model_type = model_type
-        self.idf = idf
-        self.verbose = verbose
-        self.bert_scorer = BERTScorer(
-            model_type=self.model_type,
-            idf=self.idf,
+    @property
+    def idf(self):
+        return self.bert_scorer.idf
+
+    @property
+    def model_type(self):
+        return self.bert_scorer.model_type
+
+    @classmethod
+    def build(cls, model_type: str | None=None, idf:bool=False) -> Self:
+        logger.info(f"ReconstructionEvaluator initialized with model: {model_type}, idf: {idf}")
+        return cls(bert_scorer = BERTScorer(
+            model_type=model_type,
+            idf=idf,
             use_fast_tokenizer=False,
             lang="en"
-        )
-        logger.info(f"ReconstructionEvaluator initialized with model: {self.model_type}, idf: {self.idf}")
+        ))
 
     @staticmethod
     def to_metric_obj(bs_p:Tensor, bs_r:Tensor, bs_f1:Tensor) -> RAW_METRIC_OBJ:
@@ -214,7 +214,7 @@ class ReconstructionEvaluator_BertScore(TextReconstructionEvaluator):
 
     def calc_idf(self, sents: list[str]):
         if sents:
-            self.idf = True
+            self.bert_scorer._idf = True
             self.bert_scorer.compute_idf(sents=sents)
             # noinspection PyProtectedMember
             logger.info(f'finished calc_idf for {len(sents)} sentences, idf_dict size = {len(self.bert_scorer._idf_dict.keys())}')

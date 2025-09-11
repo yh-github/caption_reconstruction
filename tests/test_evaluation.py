@@ -3,6 +3,7 @@ import numpy as np
 import torch
 from unittest.mock import MagicMock, patch
 
+
 # Import all the classes and functions we need to test or use
 from evaluation import (
     ReconstructionEvaluator,
@@ -40,7 +41,7 @@ def sample_metrics_records():
         MetricsRecordRaw(metadata=metadata2, raw_metrics={"score": np.array([0.7, 0.8])}),
     ]
 @pytest.fixture
-def sample_data():
+def sample_text_data():
     """Provides sample original and reconstructed data for tests using the new models."""
     original_video = CaptionedVideo(
         video_id="test_vid",
@@ -106,7 +107,7 @@ def test_vector_reconstruction_evaluator_with_real_data():
 
 # --- Test for ReconstructionEvaluator_BertScore ---
 
-@patch('evaluation.BERTScorer')
+@patch('bert_score.BERTScorer')
 def test_bert_score_evaluator(MockBERTScorer, sample_text_data):
     """
     Tests the BERTScore evaluator. We mock BERTScorer to avoid loading the model.
@@ -119,7 +120,7 @@ def test_bert_score_evaluator(MockBERTScorer, sample_text_data):
     )
 
     original_video, reconstructed_data = sample_text_data
-    evaluator = ReconstructionEvaluator_BertScore(model_type="mock-model")
+    evaluator = ReconstructionEvaluator_BertScore(bert_scorer=mock_scorer_instance)
 
     # Act
     metrics = evaluator.evaluate(reconstructed_data, original_video)

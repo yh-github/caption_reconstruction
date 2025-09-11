@@ -1,10 +1,9 @@
 import sys
-
 import pandas as pd
 import pytest
 from pathlib import Path
 from data_models.exec_args import ExecArgs
-from run_experiments import ExperimentPipeline, ConfigError
+from pipeline import ExperimentPipeline, ConfigError
 from utils import add_suffix_to_path
 
 
