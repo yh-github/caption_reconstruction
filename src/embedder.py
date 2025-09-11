@@ -6,7 +6,6 @@ import diskcache
 from google import genai
 from google.api_core import retry
 from google.genai import types
-from google.genai.errors import ClientError
 from google.genai.types import EmbedContentResponse
 
 from config_loader import load_config
@@ -54,9 +53,8 @@ class Embedder:
     @staticmethod
     def should_retry(exception:Exception) -> bool:
         transient=retry.if_transient_error(exception)
-        by_code = False
-        if isinstance(exception, ClientError):
-            by_code = exception.code == 429 or exception.code>=500
+        code = getattr(exception, 'code', 0)
+        by_code = code == 429 or code>=500
         logger.warning(f"Embedder should_retry {transient=}, {by_code=} {type(exception)=}")
         return transient or by_code
 
