@@ -14,7 +14,7 @@ from dev_qa import QAData, load_wild_captions, build_evaluator, AnswerResponse, 
 from llm.llm_interaction import LLM_Manager_Builder, LLM_Response
 from llm.parsers import parse_llm_response
 from llm.prompting import JSONPromptBuilder
-from utils import get_model_schema_lines, dump_model_compact_json, numbered_list, get_datetime_str, setup_logging, \
+from common_utils.utils import get_model_schema_lines, dump_model_compact_json, numbered_list, get_datetime_str, setup_logging, \
     ExceptionStr
 from data.video_link_loader import load_wild_dataset
 

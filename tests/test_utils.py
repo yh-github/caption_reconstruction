@@ -2,7 +2,7 @@ import re
 from pathlib import Path
 import pytest
 from llm.prompting import simple_safe_format
-from utils import build_safe_dict, flat_dict
+from common_utils.utils import build_safe_dict, flat_dict
 
 
 def test_build_safe_dict_successful_merge():

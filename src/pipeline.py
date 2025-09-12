@@ -15,7 +15,7 @@ from evaluation import ReconstructionEvaluator
 from experiment_runner import ExperimentRunner
 from reconstruction.masking import get_masking_strategies
 from reconstruction.reconstruction_strategies import ReconstructionStrategyBuilder
-from utils import get_datetime_str, flat_dict, UserFacingError
+from common_utils.utils import get_datetime_str, flat_dict, UserFacingError
 from vectors.dataloaders import VectorDataLoader
 from vectors.reconstruction_startegies import VectorReconstructionStrategyBuilder
 from vectors.vector_runner import VectorRunner

@@ -14,7 +14,7 @@ from pydantic import BaseModel
 
 from evaluation import ReconstructionEvaluator, metrics_to_json, MetricsRecordRaw
 from pipeline import ExperimentPipeline
-from utils import check_git_repository_is_clean, setup_logging, flush_loggers, \
+from common_utils.utils import check_git_repository_is_clean, setup_logging, flush_loggers, \
     setup_mlflow, add_suffix_to_path, ExceptionStr
 
 

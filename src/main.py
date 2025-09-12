@@ -5,7 +5,7 @@ _exec_args:ExecArgs = args_parser() if __name__ == "__main__" else None
 
 import logging
 import sys
-from utils import UserFacingError, handle_ctrl_c
+from common_utils.utils import UserFacingError, handle_ctrl_c
 from experiment_runner import ExperimentRunner
 from pipeline import ExperimentPipeline
 from pipeline_executor import Executor

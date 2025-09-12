@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict
 from torch import Tensor
 from data_models.captions_only import CaptionedVideo
 from llm.embedder import Embedder
-from utils import UserFacingError
+from common_utils.utils import UserFacingError
 from vectors.eval_vectors import VectorStats, Matrix, calculate_elementwise_cosine
 from reconstruction.reconstruction_strategies import Reconstructed
 

@@ -1,5 +1,5 @@
 from typing import Callable
-from utils import UserFacingError
+from common_utils.utils import UserFacingError
 import numpy as np
 from abc import ABC, abstractmethod
 from numpy.typing import NDArray

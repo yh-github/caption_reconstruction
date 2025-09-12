@@ -11,7 +11,7 @@ from data_models.captions_only import CaptionedVideo
 from llm.llm_interaction import LLM_Manager_Builder, LLM_Response, LLM_ResponseError
 from llm.parsers import parse_llm_response
 from llm.prompting import PromptBuilder, JSONPromptBuilder
-from utils import UserFacingError, ExceptionStr
+from common_utils.utils import UserFacingError, ExceptionStr
 
 
 class Reconstructed(BaseModel):

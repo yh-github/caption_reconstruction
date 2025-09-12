@@ -12,7 +12,7 @@ from google.genai.types import GenerateContentConfig, ThinkingConfig, GenerateCo
     ContentListUnion, SafetySetting, HarmCategory, HarmBlockThreshold
 from pydantic import BaseModel
 from data_models.schema import type_from_str, HashType
-from utils import ExceptionStr, raise_if
+from common_utils.utils import ExceptionStr, raise_if
 
 logger = logging.getLogger(__name__)
 
