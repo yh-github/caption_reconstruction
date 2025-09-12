@@ -4,7 +4,7 @@ import pytest
 from pathlib import Path
 from data_models.exec_args import ExecArgs
 from pipeline import ExperimentPipeline, ConfigError
-from utils import add_suffix_to_path
+from pipeline_executor import Executor
 
 
 @pytest.mark.parametrize(
@@ -75,11 +75,14 @@ def test_toy_data(config_filename:str, expected_num_exps:int, expected_data_coun
             config_override=set_results_path
         )
 
-        csv_path = ep.main()
+        executor = Executor(ep)
+        exec_results = executor.main()
+
+        csv_path = exec_results.results_paths[0]
         df = pd.read_csv(csv_path, index_col=0)
         all_results[config_filename] = df
 
-        csv_path2 = add_suffix_to_path(csv_path, "_z_score")
+        csv_path2 = exec_results.results_paths[1]
         df2 = pd.read_csv(csv_path2, index_col=0)
 
         all_results[config_filename+"(Z_SCORE)"] = df2

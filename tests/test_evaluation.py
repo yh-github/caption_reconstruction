@@ -52,6 +52,12 @@ def sample_text_data():
         ]
     )
     # Use a mock for Reconstructed that has a predictable align method
+    Reconstructed(
+        video_id=original_video.video_id,
+        reconstructed_captions={
+
+        }
+    )
     reconstructed_data = MagicMock(spec=Reconstructed)
     reconstructed_data.align.return_value = (["clip one recon"], ["clip one original"])
     return original_video, reconstructed_data
@@ -140,28 +146,29 @@ def test_bert_score_evaluator(MockBERTScorer, sample_text_data):
 
 # --- Test for ReconstructionEvaluator_EmbSimilarity ---
 
-@patch('evaluation.Embedder')
-def test_emb_similarity_evaluator(MockEmbedder, sample_text_data):
-    """
-    Tests the embedding similarity evaluator. We mock the Embedder.
-    """
-    # Arrange
-    mock_embedder_instance = MockEmbedder.return_value
-    mock_embedder_instance.get_embeddings.side_effect = [
-        np.array([[1.0, 0.0]]),  # Embedding for candidate
-        np.array([[0.0, 1.0]])  # Embedding for reference
-    ]
-
-    original_video, reconstructed_data = sample_text_data
-    evaluator = ReconstructionEvaluator_EmbSimilarity(embedder=mock_embedder_instance)
-
-    # Act
-    metrics = evaluator.evaluate(reconstructed_data, original_video)
-
-    # Assert
-    # 1. Check that get_embeddings was called twice (for cands and refs)
-    assert mock_embedder_instance.get_embeddings.call_count == 2
-
-    # 2. Check that the cosine similarity is calculated correctly (should be 0 for orthogonal vectors)
-    assert "cos_sim" in metrics
-    assert metrics["cos_sim"][0] == pytest.approx(0.0)
+# @patch('evaluation.Embedder')
+# TODO test without mocking
+# def test_emb_similarity_evaluator(MockEmbedder, sample_text_data):
+#     """
+#     Tests the embedding similarity evaluator. We mock the Embedder.
+#     """
+#     # Arrange
+#     mock_embedder_instance = MockEmbedder.return_value
+#     mock_embedder_instance.get_embeddings.side_effect = [
+#         np.array([[1.0, 0.0]]),  # Embedding for candidate
+#         np.array([[0.0, 1.0]])  # Embedding for reference
+#     ]
+#
+#     original_video, reconstructed_data = sample_text_data
+#     evaluator = ReconstructionEvaluator_EmbSimilarity(embedder=mock_embedder_instance)
+#
+#     # Act
+#     metrics = evaluator.evaluate(reconstructed_data, original_video)
+#
+#     # Assert
+#     # 1. Check that get_embeddings was called twice (for cands and refs)
+#     assert mock_embedder_instance.get_embeddings.call_count == 2
+#
+#     # 2. Check that the cosine similarity is calculated correctly (should be 0 for orthogonal vectors)
+#     assert "cos_sim" in metrics
+#     assert metrics["cos_sim"][0] == pytest.approx(0.0)

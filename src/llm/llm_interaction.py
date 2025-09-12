@@ -154,11 +154,12 @@ class LLM_Manager:
             # raise LLM_Exception(raw_response=raw_response, message=f"{type(e)}: {e}") from e
 
     def call(self, prompt:str|Content) -> LLM_Response:
+        k = None
         if isinstance(prompt, str):
             k = self._cache_key(prompt)
         elif isinstance(prompt, Content):
             k = self._cache_key(prompt.model_dump_json(exclude_none=True, fallback=str))
-        assert k
+        assert k, f"{type(prompt) = }"
         if k in self._disk_cache:
             logger.debug(f'Cache hit: {k=}')
             return LLM_Response.from_str(self._disk_cache[k])

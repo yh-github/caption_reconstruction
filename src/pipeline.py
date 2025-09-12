@@ -1,32 +1,25 @@
 import logging
-import os
-import platform
 from abc import abstractmethod, ABC
 from collections.abc import Callable
-from importlib.metadata import version
 from pathlib import Path
 from typing import Any
 from unittest.mock import Mock
 
 import diskcache
-import mlflow
-import pandas as pd
-from filelock import FileLock
 from google import genai
 
 from config_loader import load_config
 from data.data_loaders import get_data_loader
 from data_models.exec_args import ExecArgs
-from evaluation import ReconstructionEvaluator, metrics_to_json, MetricsRecordRaw
+from evaluation import ReconstructionEvaluator
 from experiment_runner import ExperimentRunner
-# Local imports
 from reconstruction.masking import get_masking_strategies
 from reconstruction.reconstruction_strategies import ReconstructionStrategyBuilder
-from utils import check_git_repository_is_clean, setup_logging, flush_loggers, \
-    setup_mlflow, get_datetime_str, flat_dict, UserFacingError, ExceptionStr, add_suffix_to_path
-from vectors.vector_runner import VectorRunner
+from utils import get_datetime_str, flat_dict, UserFacingError
 from vectors.dataloaders import VectorDataLoader
 from vectors.reconstruction_startegies import VectorReconstructionStrategyBuilder
+from vectors.vector_runner import VectorRunner
+
 
 class ConfigError(Exception):
 
@@ -110,92 +103,6 @@ class ExperimentPipeline(ABC):
         self.parent_run_name:str = self.config["__parent_run_name__"]+f"__{self.experiment_name}"
         results_path = self.config["paths"].get("results", "results")
         self.result_path = Path(f"{results_path}/" + self.parent_run_name)
-
-        self.log_path: str | None = None
-        self.mlflow_run_path: str | None = None
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.done(exc_val)
-
-    def main(self):
-        experiment_name = self.experiment_name
-        parent_run_name = self.parent_run_name
-
-        mlflow_uri = self.config['paths']['mlflow_tracking_uri']
-
-        git_commit_hash = check_git_repository_is_clean(ignore_risk=self.exec_args.debug)
-
-        with FileLock(self.config['paths'].get("lock",".lock")):
-            setup_mlflow(experiment_name=experiment_name, tracking_uri=mlflow_uri)
-            with mlflow.start_run(run_name=parent_run_name) as parent_run, self.cache:
-                log_path, notifier = setup_logging(
-                    log_dir=self.config['paths']['log_dir'],
-                    run_id=parent_run.info.run_id,
-                    tz_str=self.config.get('tz', None),
-                    console_level=self.exec_args.log_level(logging.WARNING),
-                    base_level=self.exec_args.log_level(logging.INFO)
-                )
-                self.log_path = log_path
-
-                print(f'{log_path = }')
-                start_msg = f"--- Starting Experiment Batch: {parent_run_name=} experiment_id={parent_run.info.experiment_id} ---"
-                self.mlflow_run_path = str(os.path.join(mlflow_uri.removeprefix("file:"),parent_run.info.experiment_id))
-
-                logging.info(start_msg)
-                notifier.info(start_msg)
-
-                # Log reproducibility parameters
-                mlflow.log_param("git_commit_hash", git_commit_hash)
-                mlflow.log_param("python_version", platform.python_version())
-                mlflow.log_param("mlflow_version", version('mlflow'))
-
-                all_results = []
-                for runner in self.build_experiments():
-                    with mlflow.start_run(run_name=runner.run_name, nested=True):
-                        logging.info(f"--- Starting Nested Run: {runner.run_name} ---")
-                        mlflow.log_params(runner.conf_for_log)
-
-                        ###
-                        run_metrics:list[MetricsRecordRaw] = runner.run()
-                        agg_metrics = runner.evaluator.agg_metrics(run_metrics)
-                        all_results.extend(run_metrics)
-
-                        if agg_metrics:
-                            mlflow.log_metrics(agg_metrics)
-                            log_message = f"{runner.run_name} Logged aggregated metrics {metrics_to_json(agg_metrics)}"
-                            logging.info(log_message)
-                            notifier.info(log_message)
-                        else:
-                            logging.error("No metrics were generated")
-
-                        ###
-
-                        flush_loggers()
-                self.result_path.mkdir(parents=True, exist_ok=True)
-                CSV_PATH = self.result_path/(self.config["__parent_run_name__"]+".csv")
-                CSV_PATH2 = add_suffix_to_path(CSV_PATH, "_z_score")
-                pd.DataFrame([x.stats().to_flat_dict() for x in all_results]).to_csv(CSV_PATH)
-                global_stats = ReconstructionEvaluator.global_stats(all_results)
-                pd.DataFrame([x.stats_z_score(global_stats).to_flat_dict() for x in all_results]).to_csv(CSV_PATH2)
-                return CSV_PATH
-
-    def done(self, exception:Exception | None = None):
-        logging.info(f'PID {os.getpid()} DONE.')
-
-        if not exception:
-            print(f"\n✅ Finished successfully.")
-        else:
-            print(ExceptionStr(exception).model_dump_json(indent=4, exclude_none=True))
-        if self.mlflow_run_path:
-            print(f"\nRun `mlflow ui` in your terminal to view the full results.")
-            print(f"\nRun `python scripts/mlflow_runs.py {self.mlflow_run_path}` for command-line access.")
-        if self.result_path:
-            print(f"\nResults: {self.result_path}")
-        if self.log_path:
-            print(f"\nView log in {self.log_path}")
-        else:
-            print(f"\nNo log generated.")
-        print()
 
     @abstractmethod
     def build_experiments(self):

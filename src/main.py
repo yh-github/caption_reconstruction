@@ -5,9 +5,11 @@ _exec_args:ExecArgs = args_parser() if __name__ == "__main__" else None
 
 import logging
 import sys
-from run_experiments import ExperimentPipeline
 from utils import UserFacingError, handle_ctrl_c
 from experiment_runner import ExperimentRunner
+from pipeline import ExperimentPipeline
+from pipeline_executor import Executor
+
 
 def dry_run(xs:list[ExperimentRunner], count:int, verbose=False):
     print(f"prepared {len(xs)} experiments, with {count} videos. Total runs = {len(xs)*count}")
@@ -24,29 +26,30 @@ def validate_cache(xs):
 
 
 def main(exec_args:ExecArgs):
-    ep = None
+    executor = None
     try:
         handle_ctrl_c()
-        ep = ExperimentPipeline.build(exec_args)
+        pipeline = ExperimentPipeline.build(exec_args)
+        executor = Executor(pipeline)
         if exec_args.dry_run:
-            dry_run(*ep.dry_run(), verbose=exec_args.verbose)
+            dry_run(*pipeline.dry_run(), verbose=exec_args.verbose)
         elif exec_args.validate_cache:
-            validate_cache(ep.build_experiments())
-        else: # Run experiments
-            ep.main()
-            ep.done()
+            validate_cache(pipeline.build_experiments())
+        else:
+            executor.main()
+            executor.done()
     except UserFacingError as e:
         print(f"\n❌ Error: {e}", file=sys.stderr)
         sys.exit(1)
     except KeyboardInterrupt:
         print("\n\n🛑 Experiment batch cancelled by user. Shutting down gracefully.")
-        if ep:
-            ep.done()
+        if executor:
+            executor.done()
         sys.exit(130) # 130 is the standard exit code for Ctrl+C
     except Exception as e:
         logging.error(f"Experiment failed with a critical error: {e}", exc_info=True)
-        if ep:
-            ep.done(e)
+        if executor:
+            executor.done(e)
 
 
 

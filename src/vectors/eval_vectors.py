@@ -4,7 +4,7 @@ from typing import Iterator, Self
 import numpy as np
 from numpy.typing import NDArray
 from pathlib import Path
-from utils import UserFacingError
+
 
 NPY_FILE_PATTERN = "*.npy"
 

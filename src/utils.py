@@ -72,7 +72,7 @@ def get_notification_logger(formatter):
 
     return notification_logger
 
-def setup_logging(log_dir: str, run_id: str, console_level=logging.WARN, base_level=logging.INFO, tz_str:str|None=None):
+def setup_logging(log_dir: str, run_id: str, console_level=logging.WARN, base_level=logging.INFO, tz_str:str|None=None)->tuple[str, logging.Logger]:
     """
     Configures logging to write to both the console and a unique file
     for the given MLflow run ID.
