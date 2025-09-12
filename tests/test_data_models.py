@@ -1,6 +1,6 @@
 import pytest
 from data_models.captions_only import CaptionedClip, ReconstructedCaptions
-from reconstruction.reconstruction_strategies import Reconstructed
+from reconstruction.text_reconstruction import Reconstructed
 
 # --- Test Data Fixture ---
 @pytest.fixture

@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 from data_models.captions_only import CaptionedVideo, CaptionedClip
-from reconstruction.reconstruction_strategies import Reconstructed
-from reconstruction.reconstruction_strategies import ReconstructionStrategy, BaselineRepeatStrategy, LLMStrategy
+from reconstruction.text_reconstruction import Reconstructed
+from reconstruction.text_reconstruction import ReconstructionStrategy, BaselineRepeatStrategy, LLMStrategy
 
 
 def test_create_error_result():

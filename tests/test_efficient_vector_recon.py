@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from numpy.typing import NDArray
-from vectors.efficient_startegies import MeanClosestVectors, RepeatClosestVector
+from reconstruction.efficient_startegies import MeanClosestVectors, RepeatClosestVector
 
 
 @pytest.mark.parametrize("strategy_class, expected_indices", [

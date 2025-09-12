@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from numpy.typing import NDArray
-from vectors.reconstruction_startegies import MeanClosestVectors, RepeatClosestVector
+from reconstruction.vector_reconstruction import MeanClosestVectors, RepeatClosestVector
 
 
 @pytest.fixture

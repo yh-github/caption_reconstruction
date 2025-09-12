@@ -17,9 +17,9 @@ from data_models.exec_args import ExecArgs
 from evaluations.evaluation import ReconstructionEvaluator
 from experiment_runner import ExperimentRunner
 from reconstruction.masking import get_masking_strategies
-from reconstruction.reconstruction_strategies import ReconstructionStrategyBuilder
+from reconstruction.text_reconstruction import ReconstructionStrategyBuilder
 from data.vector_dataloaders import VectorDataLoader
-from vectors.reconstruction_startegies import VectorReconstructionStrategyBuilder
+from reconstruction.vector_reconstruction import VectorReconstructionStrategyBuilder
 from vectors.vector_runner import VectorRunner
 
 
