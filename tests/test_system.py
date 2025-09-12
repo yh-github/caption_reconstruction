@@ -2,6 +2,7 @@ import sys
 import pandas as pd
 import pytest
 from pathlib import Path
+from pandas import DataFrame
 from data_models.exec_args import ExecArgs
 from pipeline import ExperimentPipeline, ConfigError
 from pipeline_executor import Executor
@@ -42,27 +43,19 @@ def test_toy_data_dry_run_results(
     assert num_exps == expected_num_exps, f"Mismatch in experiment count for {config_filename}"
     assert data_count == expected_data_count, f"Mismatch in data count for {config_filename}"
 
-all_results = {}
+all_results:dict[str, DataFrame] = {}
 @pytest.mark.parametrize(
     "config_filename, expected_num_exps, expected_data_count",
     [
         ("toy_llm2.yaml", 1, 2),
         ("toy_baseline2.yaml", 3, 2),
         ("toy_llm.yaml", 4, 2),
-        ("toy_baseline.yaml", 5, 2),
-        ("*", 5,5)
+        ("toy_baseline.yaml", 5, 2)
+        # ,("*", 5,5)
     ]
 )
 def test_toy_data(config_filename:str, expected_num_exps:int, expected_data_count:int):
-    if config_filename == "*":
-        print("###########", file=sys.stderr)
-        print("\n\n")
-        for k,v in all_results.items():
-            print(f" ===> {k} <===")
-            print(v)
-        print()
-        return
-
+    expected_results_dir = Path('tests/fixtures/toy_results')
     config_path = Path("config") / config_filename
     def set_results_path(conf:dict):
         conf["paths"]["results"] = "test_results" # TODO freeze results
@@ -78,18 +71,15 @@ def test_toy_data(config_filename:str, expected_num_exps:int, expected_data_coun
         executor = Executor(ep)
         exec_results = executor.main()
 
-        csv_path = exec_results.results_paths[0]
-        df = pd.read_csv(csv_path, index_col=0)
-        all_results[config_filename] = df
 
-        csv_path2 = exec_results.results_paths[1]
-        df2 = pd.read_csv(csv_path2, index_col=0)
-
-        all_results[config_filename+"(Z_SCORE)"] = df2
-
-        assert len(df) == expected_num_exps*expected_data_count, f"Mismatch in counts for {config_filename}"
-        assert len(df2) == expected_num_exps * expected_data_count, f"Mismatch in counts for {config_filename}"
-        # assert data_count == , f"Mismatch in data count for {config_filename}"
+        assert len(exec_results.results_paths) == 2
+        for csv_path in exec_results.results_paths:
+            df = pd.read_csv(csv_path, index_col=0)
+            assert len(df) == expected_num_exps * expected_data_count, f"Mismatch in counts for {config_filename}"
+            # df.to_csv(expected_results_dir/csv_path.name)
+            # all_results[config_path.stem] = df
+            expected_df = pd.read_csv(expected_results_dir/csv_path.name, index_col=0)
+            pd.testing.assert_frame_equal(df, expected_df)
     except ConfigError as e:
         print(e.config)
         print()
