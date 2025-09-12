@@ -2,7 +2,7 @@ from pathlib import Path
 import zipfile
 
 # The class we are testing
-from backup import RemoteBackuper
+from common_utils.backup import RemoteBackuper
 
 def test_remote_backuper_backup_file(tmp_path: Path):
     """
