@@ -84,7 +84,6 @@ class TextReconstructionEvaluator(ReconstructionEvaluator[Reconstructed, Caption
     pass
 
 class EvaluatorNOP(TextReconstructionEvaluator):
-
     def evaluate(self, reconstructed: Reconstructed, orig: CaptionedVideo) -> RAW_METRIC_OBJ:
         return {}
 
