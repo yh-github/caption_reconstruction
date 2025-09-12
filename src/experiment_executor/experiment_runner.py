@@ -3,7 +3,8 @@ from pathlib import Path
 from typing import Any
 from data.data_loaders import BaseDataLoader
 from data_models.captions_only import CaptionedVideo
-from evaluations.evaluation import ReconstructionEvaluator, metrics_to_json, round_metrics, MetricsMetadata, MetricsRecordRaw
+from evaluations.evaluation import ReconstructionEvaluator
+from evaluations.metrics import metrics_to_json, round_metrics, MetricsMetadata, MetricsRecordRaw
 from reconstruction.masking import MaskingStrategy
 from reconstruction.text_reconstruction import ReconstructionStrategy, Reconstructed
 

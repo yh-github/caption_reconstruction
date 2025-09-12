@@ -5,14 +5,13 @@ from importlib.metadata import version
 from logging import Logger
 from pathlib import Path
 from typing import Iterator
-
 import mlflow
 import pandas as pd
 from filelock import FileLock
 from mlflow.entities import RunInfo
 from pydantic import BaseModel
-
-from evaluations.evaluation import ReconstructionEvaluator, metrics_to_json, MetricsRecordRaw
+from evaluations.evaluation import ReconstructionEvaluator
+from evaluations.metrics import MetricsRecordRaw, metrics_to_json
 from experiment_executor.pipeline import ExperimentPipeline
 from common_utils.tracking import check_git_repository_is_clean, setup_logging, flush_loggers, \
     setup_mlflow

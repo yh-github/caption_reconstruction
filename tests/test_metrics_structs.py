@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from evaluations.evaluation import MetricsMetadata, MetricsRecordRaw, MetricsRecord
+from evaluations.metrics import MetricsRecordRaw, MetricsMetadata, MetricsRecord
 from evaluations.eval_vectors import VectorStats
 
 

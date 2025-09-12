@@ -8,9 +8,9 @@ from unittest.mock import MagicMock, patch
 from evaluations.evaluation import (
     ReconstructionEvaluator,
     ReconstructionEvaluator_BertScore,
-    VectorReconstructionEvaluator,
-    MetricsRecordRaw, MetricsMetadata
+    VectorReconstructionEvaluator
 )
+from evaluations.metrics import MetricsRecordRaw, MetricsMetadata
 from data_models.captions_only import CaptionedVideo, CaptionedClip, TimestampRange
 from reconstruction.text_reconstruction import Reconstructed
 from evaluations.eval_vectors import VectorStats
