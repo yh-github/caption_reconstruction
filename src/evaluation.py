@@ -131,6 +131,7 @@ class ReconstructionEvaluator(ABC, Generic[T_RECON, T_ORIG]):
         else:
             if eval_type == 'bert_score':
                 return ReconstructionEvaluator_BertScore.build(
+                    model_type=eval_conf.get('model_type', 'microsoft/deberta-large-mnli'),
                     idf=eval_conf.get('idf', True)
                 )
             elif eval_type == 'emb_sim':
