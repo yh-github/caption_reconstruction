@@ -6,9 +6,9 @@ _exec_args:ExecArgs = args_parser() if __name__ == "__main__" else None
 import logging
 import sys
 from common_utils.error_handling import UserFacingError, handle_ctrl_c
-from experiment_runner import ExperimentRunner
-from pipeline import ExperimentPipeline
-from pipeline_executor import Executor
+from experiment_executor.experiment_runner import ExperimentRunner
+from experiment_executor.pipeline import ExperimentPipeline
+from experiment_executor.pipeline_executor import Executor
 
 
 def dry_run(xs:list[ExperimentRunner], count:int, verbose=False):

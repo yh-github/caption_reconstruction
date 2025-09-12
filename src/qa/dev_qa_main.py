@@ -11,7 +11,7 @@ from google import genai
 from common_utils.error_handling import ExceptionStr
 from common_utils.jsonables import get_model_schema_lines, dump_model_compact_json
 from common_utils.tracking import setup_logging, get_datetime_str
-from config_loader import load_config, get_llm_config
+from experiment_executor.config_loader import load_config, get_llm_config
 from data_models.complex_struct import VideoAnalysis, VideoSegment
 from dev_qa import QAData, load_wild_captions, build_evaluator, AnswerResponse, AnswerResponses
 from llm.llm_interaction import LLM_Manager_Builder, LLM_Response

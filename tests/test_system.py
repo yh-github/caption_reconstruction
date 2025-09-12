@@ -3,8 +3,8 @@ import pytest
 from pathlib import Path
 from pandas import DataFrame
 from data_models.exec_args import ExecArgs
-from pipeline import ExperimentPipeline, ConfigError
-from pipeline_executor import Executor
+from experiment_executor.pipeline import ExperimentPipeline, ConfigError
+from experiment_executor.pipeline_executor import Executor
 
 
 @pytest.mark.parametrize(

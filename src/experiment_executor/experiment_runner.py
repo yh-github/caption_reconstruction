@@ -1,7 +1,6 @@
 import logging
 from pathlib import Path
 from typing import Any
-
 from data.data_loaders import BaseDataLoader
 from data_models.captions_only import CaptionedVideo
 from evaluations.evaluation import ReconstructionEvaluator, metrics_to_json, round_metrics, MetricsMetadata, MetricsRecordRaw

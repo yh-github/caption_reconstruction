@@ -6,7 +6,7 @@ from google import genai
 from google.api_core import retry
 from google.genai import types
 from google.genai.types import EmbedContentResponse
-from config_loader import load_config
+from experiment_executor.config_loader import load_config
 from data.data_loaders import get_data_loader
 
 logger = logging.getLogger()

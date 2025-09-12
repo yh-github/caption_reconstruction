@@ -2,7 +2,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-from config_loader import load_config
+from experiment_executor.config_loader import load_config
 from qa.dev_qa import QAData
 from data.video_link_loader import load_wild_dataset
 

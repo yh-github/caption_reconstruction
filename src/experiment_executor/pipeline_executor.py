@@ -13,7 +13,7 @@ from mlflow.entities import RunInfo
 from pydantic import BaseModel
 
 from evaluations.evaluation import ReconstructionEvaluator, metrics_to_json, MetricsRecordRaw
-from pipeline import ExperimentPipeline
+from experiment_executor.pipeline import ExperimentPipeline
 from common_utils.tracking import check_git_repository_is_clean, setup_logging, flush_loggers, \
     setup_mlflow
 from common_utils.path_handling import add_suffix_to_path

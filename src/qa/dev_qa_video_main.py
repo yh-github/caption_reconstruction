@@ -9,7 +9,7 @@ from typing import Any
 import diskcache
 from google import genai
 
-from config_loader import load_config, get_llm_config
+from experiment_executor.config_loader import load_config, get_llm_config
 from data_models.video_link import VideoLinkData
 from dev_qa import QAData, load_wild_captions, build_evaluator, AnswerResponse, AnswerResponses, \
     MASKED_VIDEO_INSTRUCTIONS
@@ -19,7 +19,7 @@ from llm.parsers import parse_llm_response
 from llm.prompting import JSONPromptBuilder, numbered_list
 from common_utils.tracking import get_datetime_str, setup_logging
 from data.video_link_loader import load_wild_dataset
-from yt_video_processing import gen_content_prompt_multi
+from experiment_executor.yt_video_processing import gen_content_prompt_multi
 
 logger = logging.getLogger(__name__)
 
