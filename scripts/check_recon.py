@@ -6,9 +6,9 @@ from config_loader import load_config
 from data.data_loaders import get_data_loader
 from common_utils.error_handling import UserFacingError
 from reconstruction.reconstruction_strategies import Reconstructed
-from evaluation import ReconstructionEvaluator_BertScore
+from evaluations.evaluation import ReconstructionEvaluator_BertScore
 from data_models.captions_only import CaptionedVideo
-from evaluation import round_metrics
+from evaluations.evaluation import round_metrics
 
 
 def str_ts(ts:float) -> str:

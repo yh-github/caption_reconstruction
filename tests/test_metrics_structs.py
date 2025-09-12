@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
-from evaluation import MetricsMetadata, MetricsRecordRaw, MetricsRecord
-from vectors.eval_vectors import VectorStats
+from evaluations.evaluation import MetricsMetadata, MetricsRecordRaw, MetricsRecord
+from evaluations.eval_vectors import VectorStats
 
 
 @pytest.fixture

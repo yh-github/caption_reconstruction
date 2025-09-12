@@ -12,7 +12,7 @@ from filelock import FileLock
 from mlflow.entities import RunInfo
 from pydantic import BaseModel
 
-from evaluation import ReconstructionEvaluator, metrics_to_json, MetricsRecordRaw
+from evaluations.evaluation import ReconstructionEvaluator, metrics_to_json, MetricsRecordRaw
 from pipeline import ExperimentPipeline
 from common_utils.tracking import check_git_repository_is_clean, setup_logging, flush_loggers, \
     setup_mlflow

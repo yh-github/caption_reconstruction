@@ -5,16 +5,15 @@ from unittest.mock import MagicMock, patch
 
 
 # Import all the classes and functions we need to test or use
-from evaluation import (
+from evaluations.evaluation import (
     ReconstructionEvaluator,
     ReconstructionEvaluator_BertScore,
-    ReconstructionEvaluator_EmbSimilarity,
     VectorReconstructionEvaluator,
     MetricsRecordRaw, MetricsMetadata
 )
 from data_models.captions_only import CaptionedVideo, CaptionedClip, TimestampRange
 from reconstruction.reconstruction_strategies import Reconstructed
-from vectors.eval_vectors import VectorStats
+from evaluations.eval_vectors import VectorStats
 
 
 @pytest.fixture

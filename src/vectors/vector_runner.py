@@ -2,9 +2,8 @@ import logging
 from typing import Any
 import numpy as np
 from pathlib import Path
-from evaluation import metrics_to_json, MetricsRecordRaw, MetricsMetadata, round_metrics, VectorReconstructionEvaluator
-from vectors.dataloaders import VectorDataLoader
-
+from evaluations.evaluation import metrics_to_json, MetricsRecordRaw, MetricsMetadata, round_metrics, VectorReconstructionEvaluator
+from data.vector_dataloaders import VectorDataLoader
 from reconstruction.masking import MaskingStrategy
 from vectors.reconstruction_startegies import VectorReconstructionStrategy
 

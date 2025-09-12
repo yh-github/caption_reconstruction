@@ -11,7 +11,7 @@ from torch import Tensor
 from data_models.captions_only import CaptionedVideo
 from llm.embedder import Embedder
 from common_utils.error_handling import UserFacingError
-from vectors.eval_vectors import VectorStats, Matrix, calculate_elementwise_cosine
+from evaluations.eval_vectors import VectorStats, Matrix, calculate_elementwise_cosine
 from reconstruction.reconstruction_strategies import Reconstructed
 
 logger = logging.getLogger(__name__)
