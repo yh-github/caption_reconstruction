@@ -93,7 +93,7 @@ def load_questions():
 
 qs_df = pd.DataFrame(load_questions())
 
-def data_as_dicts(data):
+def data_as_dicts(input_text:str):
     rex = re.compile(r"run_name='(?P<method>.*?)' (?P<video__q_id>(?P<vid_id>\S+?)__(?P<q_id>\S+)) bs_f1=(?P<bs_f1>\S+)$")
     for line in input_text.split("\n"):
         m = rex.match(line)

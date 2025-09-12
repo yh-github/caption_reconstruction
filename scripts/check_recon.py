@@ -4,7 +4,7 @@ from pydantic import ValidationError, BaseModel, Field, ConfigDict
 
 from config_loader import load_config
 from data.data_loaders import get_data_loader
-from common_utils.utils import UserFacingError
+from common_utils.error_handling import UserFacingError
 from reconstruction.reconstruction_strategies import Reconstructed
 from evaluation import ReconstructionEvaluator_BertScore
 from data_models.captions_only import CaptionedVideo

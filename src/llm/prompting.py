@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from typing import Iterator
+
 from data_models.captions_only import CaptionedVideo
 import re
 
@@ -121,3 +123,7 @@ class JSONPromptBuilder(PromptBuilder):
     def from_string(template_string: str):
         """Constructs the builder directly from a string."""
         return JSONPromptBuilder(instruction_template=template_string)
+
+
+def numbered_list(xs:Iterator[str]) -> str:
+    return "".join(f"{i}. {x}\n" for i, x in enumerate(xs, start=1))

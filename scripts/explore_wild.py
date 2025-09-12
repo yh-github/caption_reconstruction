@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 from urllib.parse import urlparse
 
-from common_utils.utils import build_safe_dict
+from common_utils.jsonables import build_safe_dict
 from data.video_link_loader import load_wild_dataset
 
 
