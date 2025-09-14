@@ -50,7 +50,7 @@ class Executor:
         self.exec_status = ExecutionResult.empty()
 
     def _execute(self) -> Iterator[ExecutionResult]:
-        check_git_repository_is_clean(ignore_risk=self.pipeline.exec_args.debug)
+        check_git_repository_is_clean(ignore_risk=self.pipeline.exec_args.should_ignore_unsafe())
         mlflow_uri = self.pipeline.config['paths']['mlflow_tracking_uri']
 
         with FileLock(self.pipeline.config['paths'].get("lock", ".lock")):
@@ -96,16 +96,20 @@ class Executor:
         self.log_path = log_path
 
         print(f'{log_path = }')
-        start_msg = (f"--- Starting Experiment Batch: "
-                     f"parent_run_name={self.pipeline.parent_run_name} "
-                     f"experiment_id={parent_run_info.experiment_id} ---")
+        start_msg = (
+            f"--- Starting: "
+             f"parent_run_name={self.pipeline.parent_run_name} "
+             f"experiment_id={parent_run_info.experiment_id} "
+             f"pipeline={self.pipeline} "
+             f"---"
+        )
         self.mlflow_run_path = str(os.path.join(mlflow_uri.removeprefix("file:"), parent_run_info.experiment_id))
 
         logging.info(start_msg)
         self.notifier.info(start_msg)
 
         # Log reproducibility parameters
-        mlflow.log_param("git_commit_hash", check_git_repository_is_clean(ignore_risk=self.pipeline.exec_args.debug))
+        mlflow.log_param("git_commit_hash", check_git_repository_is_clean(ignore_risk=self.pipeline.exec_args.should_ignore_unsafe()))
         mlflow.log_param("python_version", platform.python_version())
         mlflow.log_param("mlflow_version", version('mlflow'))
 

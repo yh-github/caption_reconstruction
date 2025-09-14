@@ -234,7 +234,7 @@ class LLMStrategy(ReconstructionStrategy):
 
         return ok, failed, changed_unmasked, reconstructed_dict
 
-class ReconstructionStrategyBuilder:
+class TextReconstructionStrategyBuilder:
     """
     A builder class responsible for creating reconstruction strategy objects.
     """

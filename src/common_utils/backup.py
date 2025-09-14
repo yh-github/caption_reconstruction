@@ -15,7 +15,7 @@ class RemoteBackuper:
         # Ensure the destination is a Path object
         self.destination_dir = Path(destination_dir)
         self.destination_dir.mkdir(parents=True, exist_ok=True)
-        logging.info(f"RemoteBackuper initialized. Destination: '{self.destination_dir}'")
+        logging.debug(f"RemoteBackuper initialized. Destination: '{self.destination_dir}'")
 
     def backup_file(self, source_path: str | Path):
         """
@@ -28,9 +28,9 @@ class RemoteBackuper:
 
         try:
             destination_path = self.destination_dir / source.name
-            logging.info(f"Copying '{source}' to '{destination_path}'...")
+            logging.debug(f"Copying '{source}' to '{destination_path}'...")
             shutil.copyfile(source, destination_path)
-            logging.info("✅ File backup successful.")
+            logging.debug("✅ File backup successful.")
         except Exception as e:
             logging.error(f"❌ Error during file backup: {e}")
 
@@ -48,7 +48,7 @@ class RemoteBackuper:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             archive_name = f"{archive_name_prefix}_{timestamp}"
             
-            logging.info(f"Creating archive '{archive_name}.zip' from '{source}'...")
+            logging.debug(f"Creating archive '{archive_name}.zip' from '{source}'...")
             
             # Create the zip file locally first
             archive_path_str = shutil.make_archive(
@@ -73,6 +73,6 @@ class RemoteBackuper:
             # Clean up the local zip file after copying
             local_archive_path.unlink()
             
-            logging.info(f"✅ Directory backup successful. Archive saved to '{destination_zip_path}'")
+            logging.debug(f"✅ Directory backup successful. Archive saved to '{destination_zip_path}'")
         except Exception as e:
             logging.error(f"❌ Error during directory backup: {e}")

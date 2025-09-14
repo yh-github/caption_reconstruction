@@ -7,8 +7,6 @@ from bert_score import BERTScorer
 from pydantic import BaseModel, Field, RootModel
 from data_models.complex_struct import VideoAnalysis
 from data.video_link_loader import WildVideoMetadata
-from evaluations.evaluation import ReconstructionEvaluator
-from evaluations.metrics import RAW_METRIC_OBJ
 
 logger = logging.getLogger(__name__)
 
@@ -67,11 +65,6 @@ class AnswerResponse(BaseModel):
 
 class AnswerResponses(RootModel[list[AnswerResponse]]):
     pass
-
-class QAEvaluator(ReconstructionEvaluator[AnswerResponse, QAData]):
-
-    def evaluate(self, reconstructed: AnswerResponse, orig: QAData) -> RAW_METRIC_OBJ:
-        pass
 
 
 class QAEvaluator_BertScore:

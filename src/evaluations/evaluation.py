@@ -18,6 +18,15 @@ T_RECON = TypeVar('T_RECON')
 T_ORIG = TypeVar('T_ORIG')
 
 class ReconstructionEvaluator(ABC, Generic[T_RECON, T_ORIG]):
+
+    def __repr__(self) -> str:
+        attrs = {k: v for k, v in self.__dict__.items() if not k.startswith('_')}
+        attr_str = ", ".join([f'{k}={v!r}' for k, v in attrs.items()]) # Use !r for unambiguous repr
+        return f"{self.__class__.__name__}({attr_str})"
+
+    def __str__(self) -> str:
+            return self.__repr__()
+
     @abstractmethod
     def evaluate(self, reconstructed: T_RECON, orig: T_ORIG) -> RAW_METRIC_OBJ:
         return {}
@@ -93,15 +102,23 @@ class ReconstructionEvaluator_BertScore(TextReconstructionEvaluator):
     """
 
     def __init__(self, bert_scorer: BERTScorer):
-        self.bert_scorer = bert_scorer
-
-    @property
-    def idf(self):
-        return self.bert_scorer.idf
+        self._bert_scorer = bert_scorer
 
     @property
     def model_type(self):
-        return self.bert_scorer.model_type
+        return self._bert_scorer.model_type
+
+    @property
+    def idf(self):
+        return self._bert_scorer.idf
+
+    @property
+    def idf_dict_size(self):
+        if self.idf:
+            # noinspection PyProtectedMember
+            return len(self._bert_scorer._idf_dict.keys())
+        return 0
+
 
     @classmethod
     def build(cls, model_type: str | None=None, idf:bool=False) -> Self:
@@ -136,7 +153,7 @@ class ReconstructionEvaluator_BertScore(TextReconstructionEvaluator):
 
         logger.debug(f"Calculating BERTScore for {len(candidates)} clip pairs.")
 
-        return self.to_metric_obj(*self.bert_scorer.score(
+        return self.to_metric_obj(*self._bert_scorer.score(
             cands=candidates,
             refs=references,
             batch_size=4
@@ -144,12 +161,11 @@ class ReconstructionEvaluator_BertScore(TextReconstructionEvaluator):
 
     def calc_idf(self, sents: list[str]):
         if sents:
-            self.bert_scorer._idf = True
-            self.bert_scorer.compute_idf(sents=sents)
-            # noinspection PyProtectedMember
-            logger.info(f'finished calc_idf for {len(sents)} sentences, idf_dict size = {len(self.bert_scorer._idf_dict.keys())}')
+            self._bert_scorer._idf = True
+            self._bert_scorer.compute_idf(sents=sents)
+            logger.info(f'finished calc_idf for {len(sents)} sentences, {self.idf_dict_size=}')
         else:
-            logger.info('no IDF')
+            logger.warning('no sentences, no IDF')
         return self
 
 class ReconstructionEvaluator_EmbSimilarity(TextReconstructionEvaluator):
@@ -158,8 +174,8 @@ class ReconstructionEvaluator_EmbSimilarity(TextReconstructionEvaluator):
     """
 
     def __init__(self, embedder: Embedder):
-        self.embedder = embedder
-        self.inner = VectorReconstructionEvaluator()
+        self._embedder = embedder
+        self._inner = VectorReconstructionEvaluator()
 
     def evaluate(self, reconstructed: Reconstructed, orig: CaptionedVideo) -> RAW_METRIC_OBJ:
         logger.debug("Aligning clips for EmbSimilarity evaluation...")
@@ -172,7 +188,7 @@ class ReconstructionEvaluator_EmbSimilarity(TextReconstructionEvaluator):
 
         logger.debug(f"Calculating sim score for {len(candidates)} clip pairs.")
 
-        pred_vecs = self.embedder.get_embeddings(reconstructed.video_id+"(pred)", candidates)
-        true_vecs = self.embedder.get_embeddings(reconstructed.video_id+"(orig)", references)
+        pred_vecs = self._embedder.get_embeddings(reconstructed.video_id + "(pred)", candidates)
+        true_vecs = self._embedder.get_embeddings(reconstructed.video_id + "(orig)", references)
 
-        return self.inner.evaluate(pred_vecs=pred_vecs,true_vecs=true_vecs)
+        return self._inner.evaluate(pred_vecs=pred_vecs, true_vecs=true_vecs)

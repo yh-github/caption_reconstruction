@@ -15,7 +15,7 @@ from data_models.exec_args import ExecArgs
 from evaluations.evaluation import ReconstructionEvaluator
 from experiment_executor.experiment_runner import ExperimentRunner
 from reconstruction.masking import get_masking_strategies
-from reconstruction.text_reconstruction import ReconstructionStrategyBuilder
+from reconstruction.text_reconstruction import TextReconstructionStrategyBuilder
 from data.vector_dataloaders import VectorDataLoader
 from reconstruction.vector_reconstruction import VectorReconstructionStrategyBuilder
 from experiment_executor.vector_runner import VectorRunner
@@ -83,7 +83,7 @@ class ExperimentPipeline(ABC):
         if self.experiment_type == 'RECON':
             self.data_loader = get_data_loader(data_config)
             self.experiment_runner_factory = ExperimentRunner
-            self.rs_builder = ReconstructionStrategyBuilder(
+            self.rs_builder = TextReconstructionStrategyBuilder(
                 llm_cache=self.cache,
                 master_seed=self.config["base_params"]["master_seed"],
                 llm_client=self._init_llm_client()
@@ -103,6 +103,14 @@ class ExperimentPipeline(ABC):
         self.parent_run_name:str = self.config["__parent_run_name__"]+f"__{self.experiment_name}"
         results_path = self.config["paths"].get("results", "results")
         self.result_path = Path(f"{results_path}/" + self.parent_run_name)
+
+    def __str__(self):
+        return (
+            f"Pipeline: "
+            f"dataloader={self.data_loader.__class__.__name__} "
+            f"runner={self.experiment_runner_factory.__name__} "
+            f"evaluator={self.evaluator}"
+        )
 
     @abstractmethod
     def build_experiments(self):

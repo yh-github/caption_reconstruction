@@ -44,6 +44,12 @@ class Embedder:
         self.client = genai.Client()
         self.cache = diskcache.Cache(directory=cache_dir)
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.model=}, {', '.join(f'{k}={v}' for k,v in self.embed_config.model_dump(exclude_none=True))})"
+
+    def __str__(self):
+        return self.__repr__()
+
     @staticmethod
     def log_retry(exception:Exception, try_num:int, video_id:str):
         logger.warning(f"Embedder log_retry {try_num=} {video_id=}, transient={retry.if_transient_error(exception)}, {type(exception)} -- {exception}")

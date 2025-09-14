@@ -13,7 +13,10 @@ class ExecArgs(BaseModel):
     dry_run: bool = False
     validate_cache: bool = False
     debug: bool = False
+    ignore_unsafe: bool = False
 
+    def should_ignore_unsafe(self) -> bool:
+        return self.debug or self.ignore_unsafe
 
     def log_level(self, log_level:int) -> int:
         return log_level if not self.debug else logging.DEBUG
