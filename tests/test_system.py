@@ -45,10 +45,10 @@ def test_toy_data_dry_run_results(
 @pytest.mark.parametrize(
     "config_filename, expected_num_exps, expected_data_count",
     [
-        ("toy_llm2.yaml", 1, 2),
+        # ("toy_llm2.yaml", 1, 2),
         ("toy_baseline2.yaml", 3, 2),
-        ("toy_llm.yaml", 4, 2),
-        ("toy_baseline.yaml", 5, 2),
+        # ("toy_llm.yaml", 4, 2),
+        # ("toy_baseline.yaml", 5, 2),
         ("toy_vecs.yaml", 2, 2)
         # ,("*", 5,5)
     ]

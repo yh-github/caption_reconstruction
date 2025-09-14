@@ -7,7 +7,7 @@ from bert_score import BERTScorer
 from torch import Tensor
 from common_utils.error_handling import UserFacingError
 from data_models.captions_only import CaptionedVideo
-from evaluations.eval_vectors import VectorStats, Matrix, calculate_elementwise_cosine
+from evaluations.eval_vectors import VectorStats, Matrix, calculate_elementwise_cosine, context_projection
 from evaluations.metrics import MetricsRecordRaw, RAW_METRIC_OBJ
 from llm.embedder import Embedder
 from reconstruction.text_reconstruction import Reconstructed
@@ -84,6 +84,21 @@ class ReconstructionEvaluator(ABC, Generic[T_RECON, T_ORIG]):
 class VectorReconstructionEvaluator(ReconstructionEvaluator[Matrix, Matrix]):
     def evaluate(self, pred_vecs:Matrix, true_vecs:Matrix) -> RAW_METRIC_OBJ:
         return {"cos_sim": calculate_elementwise_cosine(pred_vecs, true_vecs)}
+
+    def evaluate_residual(self, pred_vecs:Matrix, true_vecs:Matrix, context:Matrix) -> RAW_METRIC_OBJ:
+        if isinstance(context, list):
+            context = np.array(context, dtype=np.float64)
+
+        mean_vector = context.mean(axis=0)
+        pred_proj = context_projection(pred_vecs, mean_vector)
+        true_proj = context_projection(true_vecs, mean_vector)
+
+        return {
+            # "cos_sim": calculate_elementwise_cosine(pred_vecs, true_vecs),
+            **self.evaluate(pred_vecs, true_vecs),
+            "cos_sim_residual": calculate_elementwise_cosine(pred_proj, true_proj)
+        }
+
 
 class VectorEvaluatorNOP(VectorReconstructionEvaluator):
     def evaluate(self, pred_vecs: Matrix, true_vecs: Matrix) -> RAW_METRIC_OBJ:
@@ -191,4 +206,10 @@ class ReconstructionEvaluator_EmbSimilarity(TextReconstructionEvaluator):
         pred_vecs = self._embedder.get_embeddings(reconstructed.video_id + "(pred)", candidates)
         true_vecs = self._embedder.get_embeddings(reconstructed.video_id + "(orig)", references)
 
-        return self._inner.evaluate(pred_vecs=pred_vecs, true_vecs=true_vecs)
+        ##
+        masked_inds = set(reconstructed.reconstructed_captions.keys())
+        unmaksed = [x.caption for x in orig.clips if x.index not in masked_inds]
+        context_vecs = self._embedder.get_embeddings(reconstructed.video_id + "(unmaksed)", unmaksed)
+        ##
+
+        return self._inner.evaluate_residual(pred_vecs=pred_vecs, true_vecs=true_vecs, context=context_vecs)

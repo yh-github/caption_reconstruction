@@ -55,14 +55,15 @@ class VectorRunner:
                 logging.warning(f'Bad indices found in reconstructed_video {video_id}, {masked_indices_list=}, skipping')
                 continue
 
-            video_metrics = self.evaluator.evaluate(reconstructed_vectors, m[mask])
+            # video_metrics = self.evaluator.evaluate(reconstructed_vectors, m[mask])
+            video_metrics = self.evaluator.evaluate_residual(reconstructed_vectors, m[mask], m[~mask])
 
             ####
-            mean_unmasked = m[~mask].mean(axis=0)
-            pred_proj = context_projection(reconstructed_vectors, mean_unmasked)
-            true_proj = context_projection(m[mask], mean_unmasked)
-            video_metrics_context = {f"proj_{k}":v for k,v in self.evaluator.evaluate(pred_proj, true_proj).items()}
-            video_metrics.update(video_metrics_context)
+            # mean_unmasked = m[~mask].mean(axis=0)
+            # pred_proj = context_projection(reconstructed_vectors, mean_unmasked)
+            # true_proj = context_projection(m[mask], mean_unmasked)
+            # video_metrics_context = {f"proj_{k}":v for k,v in self.evaluator.evaluate(pred_proj, true_proj).items()}
+            # video_metrics.update(video_metrics_context)
             ####
 
             raw_record = MetricsRecordRaw(

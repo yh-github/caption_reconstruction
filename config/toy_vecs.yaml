@@ -1,0 +1,22 @@
+base_params:
+  master_seed: 2025
+  experiment_type: "RECON_VECTORS"
+
+evaluation:
+  type: "emb_sim"
+
+data_config:
+  name: "toy_vectors"
+  limit: 2
+
+recon_strategy:
+  - type: "mean_closest"
+  - type: "repeat_closest"
+
+
+masking_configs:
+  - scheme: "contiguous"
+    seed: [1]
+    width: [2]
+
+
