@@ -1,7 +1,6 @@
 import pandas as pd
 import pytest
 from pathlib import Path
-from pandas import DataFrame
 from data_models.exec_args import ExecArgs
 from experiment_executor.pipeline import ExperimentPipeline, ConfigError
 from experiment_executor.pipeline_executor import Executor
@@ -14,6 +13,7 @@ from experiment_executor.pipeline_executor import Executor
         ("toy_baseline2.yaml", 3, 2),
         ("toy_llm.yaml", 4, 2),
         ("toy_baseline.yaml", 5, 2),
+        ("toy_vecs.yaml", 2, 2)
     ]
 )
 def test_toy_data_dry_run_results(
@@ -48,7 +48,8 @@ def test_toy_data_dry_run_results(
         ("toy_llm2.yaml", 1, 2),
         ("toy_baseline2.yaml", 3, 2),
         ("toy_llm.yaml", 4, 2),
-        ("toy_baseline.yaml", 5, 2)
+        ("toy_baseline.yaml", 5, 2),
+        ("toy_vecs.yaml", 2, 2)
         # ,("*", 5,5)
     ]
 )

@@ -18,6 +18,9 @@ class VectorDataLoader(ABC):
     def load(self) -> Iterator[tuple[NDArray[np.float64], str]]:
         pass
 
+    def count(self) -> int:
+        return len(list(self.load()))
+
     @staticmethod
     def from_config(data_config: dict):
         """
@@ -25,14 +28,20 @@ class VectorDataLoader(ABC):
         data loader instance.
         """
         dataset_name = data_config["name"]  # TODO rename to dataset_type?
-        data_path = Path(data_config["path"])
         limit = data_config.get("limit")
 
         if dataset_name == "np_files":
+            data_path = Path(data_config["path"])
             return VectorFileLoader(
                 directory=data_path,
                 data_type_name=VectorFileLoader.data_type_name(data_path),
                 limit=limit
+            )
+        elif dataset_name == "toy_vectors":
+            return ToyVectorsLoader(
+                data_type_name="video_embeddings",
+                row_num=10,
+                number_of_matrices=limit or 5
             )
         else:
             return VectorConvertorLoader(
@@ -40,6 +49,51 @@ class VectorDataLoader(ABC):
                 Embedder() #TODO extern
             )
 
+class ToyVectorsLoader(VectorDataLoader):
+    """
+    A data loader that generates a deterministic, random toy dataset of vector matrices.
+    Perfect for system tests and reproducibility.
+    """
+    def __init__(
+            self,
+            data_type_name: str = "video_embeddings",
+            number_of_matrices: int = 10,
+            row_num: int = 8,
+            col_num: int = 32,
+            seed: int = 42
+    ):
+        """
+        Initializes the toy data loader with specified dimensions and seed.
+
+        Args:
+            number_of_matrices: The total number of matrices to generate.
+            row_num: The number of rows (vectors) in each matrix.
+            col_num: The number of columns (embedding dimensions) in each vector.
+            seed: The seed for the random number generator to ensure reproducibility.
+        """
+        self.data_type_name = data_type_name
+        self.number_of_matrices = number_of_matrices
+        self.row_num = row_num
+        self.col_num = col_num
+        self._rng = np.random.default_rng(seed)
+
+    def load(self) -> Iterator[tuple[NDArray[np.float64], str]]:
+        """
+        Yields a specified number of random matrices and their unique IDs.
+        """
+        for i in range(self.number_of_matrices):
+            matrix_id = f'toy_matrix_{i}'
+
+            # Generate a random matrix with values between 0 and 1
+            matrix = self._rng.random(size=(self.row_num, self.col_num), dtype=np.float64)
+            norm = np.linalg.norm(matrix, axis=1, keepdims=True)
+            # Avoid division by zero for any zero-vectors
+            norm[norm == 0] = 1
+            normalized_matrix = matrix / norm
+            yield normalized_matrix, matrix_id
+
+    def get_data_type_name(self):
+        return self.data_type_name
 
 class VectorFileLoader(VectorDataLoader):
     def __init__(self, directory: Path, data_type_name:str, limit:int|None=None, file_pattern: str = "*.npy"):

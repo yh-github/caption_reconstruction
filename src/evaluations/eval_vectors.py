@@ -108,6 +108,43 @@ def calculate_elementwise_cosine(
     return similarity_vector
 
 
+def context_projection(matrix: NDArray[np.float64], mean_vector: NDArray[np.float64]) -> NDArray[np.float64]:
+    """
+    Projects each vector (row) in a matrix onto the mean_vector and
+    returns the matrix of residual vectors.
+
+    Args:
+        matrix: The matrix of vectors to process (e.g., m_true or m_predicted).
+        mean_vector: The context vector to project onto.
+
+    Returns:
+        A new matrix containing the residual vectors.
+    """
+    # Ensure mean_vector is a 1D array
+    # mean_vector = mean_vector.flatten()
+
+    # Calculate the dot product of each row in the matrix with the mean_vector
+    dot_products = np.dot(matrix, mean_vector)
+
+    # Calculate the squared magnitude of the mean_vector
+    mean_vector_mag_sq = np.dot(mean_vector, mean_vector)
+
+    # Avoid division by zero if the mean_vector is a zero vector
+    if mean_vector_mag_sq == 0:
+        return matrix.copy()
+
+    # Calculate the scale for each projection
+    # Reshape dot_products to (num_rows, 1) for broadcasting
+    scales = (dot_products / mean_vector_mag_sq)[:, np.newaxis]
+
+    # Calculate the matrix of projection vectors
+    projections = scales * mean_vector
+
+    # Subtract the projections to get the residuals
+    residuals = matrix - projections
+
+    return residuals
+
 def calculate_similarity_stats(
         m: NDArray[np.float64],
         start_index: int,

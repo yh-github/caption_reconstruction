@@ -3,6 +3,7 @@ from typing import Any
 import numpy as np
 from pathlib import Path
 
+from evaluations.eval_vectors import context_projection
 from evaluations.evaluation import VectorReconstructionEvaluator
 from evaluations.metrics import metrics_to_json, MetricsRecordRaw, MetricsMetadata, round_metrics
 from data.vector_dataloaders import VectorDataLoader
@@ -32,6 +33,9 @@ class VectorRunner:
         self._result_path = save_path/run_name
         self.conf_for_log = conf_for_log
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}(run_name={self.run_name})"
+
     def run(self) -> list[MetricsRecordRaw]:
         """Runs the full experiment from data loading to evaluation."""
         all_metrics:list[MetricsRecordRaw] = []
@@ -41,16 +45,25 @@ class VectorRunner:
 
             masked_indices_set = self._masking_strategy.get_indices_to_mask(len(m))
             masked_indices_list = sorted(list(masked_indices_set))
-            masked_indices = np.array(masked_indices_list)
+            mask = np.isin(np.arange(m.shape[0]), np.array(masked_indices_list))
+
             masked_video = m.copy()
-            masked_video[masked_indices] = np.nan
+            masked_video[mask] = np.nan
             reconstructed_vectors = self._reconstruction_strategy.reconstruct(masked_video)
 
-            if len(reconstructed_vectors) != len(masked_indices):
-                logging.warning(f'Bad indices found in reconstructed_video {video_id}, {masked_indices=}, skipping')
+            if len(reconstructed_vectors) != len(masked_indices_list):
+                logging.warning(f'Bad indices found in reconstructed_video {video_id}, {masked_indices_list=}, skipping')
                 continue
 
-            video_metrics = self.evaluator.evaluate(reconstructed_vectors, m[masked_indices])
+            video_metrics = self.evaluator.evaluate(reconstructed_vectors, m[mask])
+
+            ####
+            mean_unmasked = m[~mask].mean(axis=0)
+            pred_proj = context_projection(reconstructed_vectors, mean_unmasked)
+            true_proj = context_projection(m[mask], mean_unmasked)
+            video_metrics_context = {f"proj_{k}":v for k,v in self.evaluator.evaluate(pred_proj, true_proj).items()}
+            video_metrics.update(video_metrics_context)
+            ####
 
             raw_record = MetricsRecordRaw(
                 raw_metrics=video_metrics,
