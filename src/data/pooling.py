@@ -14,6 +14,10 @@ RawData = List[Tuple[np.ndarray, str]]
 class FeatureExtractionStrategy(ABC):
     """Abstract base class for all matrix-to-vector feature extraction strategies."""
 
+    def __str__(self) -> str:
+        # Provides a clean default name for printing, e.g., "MeanStrategy"
+        return self.__class__.__name__
+
     @abstractmethod
     def extract(self, matrix: np.ndarray) -> np.ndarray:
         """Takes a 2D matrix and returns a single 1D feature vector."""
@@ -76,6 +80,10 @@ class ConcatKeyFramesStrategy(FeatureExtractionStrategy):
         # Default to first and last frames/sentences
         self.key_indices = key_indices
 
+    def __str__(self) -> str:
+        # Override the default __str__ to include the parameters
+        return f"{self.__class__.__name__}(key_indices={self.key_indices})"
+
     def extract(self, matrix: np.ndarray) -> np.ndarray:
         num_rows = len(matrix)
         # Resolve negative indices (like -1 for the last element)
@@ -92,6 +100,24 @@ class ConcatKeyFramesStrategy(FeatureExtractionStrategy):
 
 
 # --- Main Processing Pipeline ---
+
+def get_all_strategies() -> List[FeatureExtractionStrategy]:
+    """
+    Automatically finds and instantiates all concrete FeatureExtractionStrategy
+    subclasses defined in this file.
+    """
+    strategies = []
+    # This line finds all classes that inherit from our base strategy
+    for subclass in FeatureExtractionStrategy.__subclasses__():
+        if subclass == ConcatKeyFramesStrategy:
+            # For configurable strategies, we can add multiple interesting instances
+            strategies.append(ConcatKeyFramesStrategy(key_indices=[0, -1]))
+            strategies.append(ConcatKeyFramesStrategy(key_indices=[0, 60 // 2, -1]))
+        else:
+            # Instantiate all other strategies with their default settings
+            strategies.append(subclass())
+    return strategies
+
 
 def generate_mock_data(num_samples: int = 20) -> RawData:
     """Generates a list of tuples, each containing a random matrix and a unique ID."""
@@ -112,13 +138,14 @@ def process_and_cluster_with_ids(
     """
     Performs the full pipeline using a specified feature extraction strategy.
     """
-    print(f"--- Starting data processing pipeline with strategy: {strategy.__class__.__name__} ---")
+    print(f"--- Starting data processing pipeline with strategy: {strategy} ---")
 
     # 1. Feature Extraction and ID Tracking
     feature_vectors = []
     original_ids = []
 
-    print(f"Extracting features from {len(raw_data)} data points...")
+    # This print statement can be verbose, so it's commented out.
+    # print(f"Extracting features from {len(raw_data)} data points...")
     for matrix, sample_id in raw_data:
         feature_vector = strategy.extract(matrix)
         feature_vectors.append(feature_vector)
@@ -126,21 +153,21 @@ def process_and_cluster_with_ids(
 
     # 2. Data Preparation
     feature_matrix = np.array(feature_vectors)
-    print(f"Created feature matrix with shape: {feature_matrix.shape}")
+    # print(f"Created feature matrix with shape: {feature_matrix.shape}")
 
     # 3. Dimensionality Reduction
-    print(f"Reducing dimensions from {feature_matrix.shape[1]} to {n_components} using PCA...")
+    # print(f"Reducing dimensions from {feature_matrix.shape[1]} to {n_components} using PCA...")
     pca = PCA(n_components=n_components)
     reduced_vectors = pca.fit_transform(feature_matrix)
-    print(f"Created reduced matrix with shape: {reduced_vectors.shape}")
+    # print(f"Created reduced matrix with shape: {reduced_vectors.shape}")
 
     # 4. Clustering
-    print(f"Clustering the {reduced_vectors.shape[0]} points into {n_clusters} clusters using K-Means...")
+    # print(f"Clustering the {reduced_vectors.shape[0]} points into {n_clusters} clusters using K-Means...")
     kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init='auto')
     cluster_labels = kmeans.fit_predict(reduced_vectors)
 
     # 5. Association and Final Output
-    print("Associating results with original IDs...")
+    # print("Associating results with original IDs...")
     results_df = pd.DataFrame({
         'id': original_ids,
         'x_reduced': reduced_vectors[:, 0],
@@ -156,39 +183,17 @@ if __name__ == "__main__":
     # Generate some sample data
     my_raw_data = generate_mock_data(num_samples=50)
 
-    # --- Run the pipeline with different strategies ---
+    # Automatically get all defined strategies
+    all_strategies = get_all_strategies()
 
-    # Strategy 1: The original Mean strategy
-    mean_strategy = MeanStrategy()
-    mean_results = process_and_cluster_with_ids(
-        my_raw_data,
-        strategy=mean_strategy,
-        n_components=2,
-        n_clusters=5
-    )
-    print("\n--- Results using MeanStrategy ---")
-    print(mean_results.head(5))
-
-    # Strategy 2: Concatenate first, middle, and last frames
-    # The middle index will be 60 // 2 = 30
-    concat_strategy = ConcatKeyFramesStrategy(key_indices=[0, 30, -1])
-    concat_results = process_and_cluster_with_ids(
-        my_raw_data,
-        strategy=concat_strategy,
-        n_components=2,
-        n_clusters=5
-    )
-    print("\n--- Results using ConcatKeyFramesStrategy (First, Middle, Last) ---")
-    print(concat_results.head(5))
-
-    # Strategy 3: Use the Temporal Differencing (velocity) strategy
-    temp_diff_strategy = TemporalMeanDiffStrategy()
-    temp_diff_results = process_and_cluster_with_ids(
-        my_raw_data,
-        strategy=temp_diff_strategy,
-        n_components=2,
-        n_clusters=5
-    )
-    print("\n--- Results using TemporalMeanDiffStrategy ---")
-    print(temp_diff_results.head(5))
-
+    # --- Run the pipeline for every strategy to compare results ---
+    for strategy_instance in all_strategies:
+        results = process_and_cluster_with_ids(
+            my_raw_data,
+            strategy=strategy_instance,
+            n_components=2,
+            n_clusters=5
+        )
+        print(f"\n--- Results using {strategy_instance} ---")
+        print(results.head(5))
+        print("\n" + "=" * 70)
