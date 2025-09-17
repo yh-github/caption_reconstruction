@@ -1,4 +1,4 @@
-import json
+import yaml
 import logging
 from common_utils.jsonables import dump_model_compact_json
 import pandas as pd
@@ -9,6 +9,12 @@ from pydantic import BaseModel
 
 from data.data_loaders import WildLoader
 from data_models.captions_only import CaptionedVideo
+
+class AnalysisArgs(BaseModel):
+    method1: str = 'CaptionedVideo__pro_d_one_shot_v1__t=1'
+    method2: str = 'video_embeddings__MeanClosestVectors'
+    metric: str = 'cos_sim_mean'
+    use_z_score: bool = False
 
 
 def prep(df):
@@ -42,12 +48,13 @@ def load_dfs(dir:Path|str):
     logging.info(f"Total length: {len(combined_df_z)=}")
     return prep(combined_df), prep(combined_df_z)
 
-def get_high_diff_ranks(method1:str, method2:str, metric:str, use_z_score:bool=False) -> dict[str, list[str]]:
+def get_high_diff_ranks(args:AnalysisArgs) -> dict[str, list[str]]:
     df_1, df_z = load_dfs("results/upload/")
-    combined_df = df_1 if not use_z_score else df_z
+    combined_df = df_1 if not args.use_z_score else df_z
 
-    selected_methods = ['CaptionedVideo__pro_d_one_shot_v1__t=1', 'video_embeddings__MeanClosestVectors']
-    ranking_column = 'cos_sim_residual_mean'
+    selected_methods = [args.method1, args.method2]
+    ranking_column = args.metric
+    assert ranking_column in combined_df.columns, f"Metric must be {combined_df.columns = }"
     filtered_df = combined_df[combined_df['method'].isin(selected_methods)].copy()
 
     grouped_df = filtered_df.groupby(['method', 'video_id'])[ranking_column].mean().reset_index()
@@ -79,8 +86,8 @@ def get_high_diff_ranks(method1:str, method2:str, metric:str, use_z_score:bool=F
     method1_low_method2_high = merged_ranks.sort_values(by='rank_difference', ascending=True).head(5)
 
     return {
-        method1: get_id_list(method1_high_method2_low),
-        method2: get_id_list(method1_low_method2_high)
+        args.method1: get_id_list(method1_high_method2_low),
+        args.method2: get_id_list(method1_low_method2_high)
     }
 
 class TwoVideoLists(BaseModel):
@@ -91,11 +98,6 @@ class CompareResult(BaseModel):
     characteristics1: list[str]
     characteristics2: list[str]
     key_differences: list[str]
-
-def struct(ids_dict: dict[str, list[str]]) -> TwoVideoLists:
-    assert len(ids_dict.keys()) == 2
-    vids = [get_vid_data(ids) for ids in ids_dict.values()]
-    return TwoVideoLists(captioned_video_list1=vids[0], captioned_video_list2=vids[1])
 
 def build_prompt(lists: TwoVideoLists) -> str:
     return f"""\
@@ -129,24 +131,33 @@ Here are the lists:
 {dump_model_compact_json(lists, code_block=True)}    
 """
 
-if __name__ == "__main__":
-
+def main(args:AnalysisArgs):
     dataloader = WildLoader("datasets/wildQA/captions__wild2/", limit=100)
-    def get_vid_data(ids:list[str]):
+
+    def get_vid_data(ids: list[str]):
         return [dataloader.find(vid_id) for vid_id in ids]
 
-    ids = get_high_diff_ranks(
-        method1='CaptionedVideo__pro_d_one_shot_v1__t=1',
-        method2='video_embeddings__MeanClosestVectors',
-        metric='cos_sim_mean'
-    )
+    def struct(ids_dict: dict[str, list[str]]) -> TwoVideoLists:
+        assert len(ids_dict.keys()) == 2
+        vids = [get_vid_data(ids) for ids in ids_dict.values()]
+        return TwoVideoLists(captioned_video_list1=vids[0], captioned_video_list2=vids[1])
+
+    ids = get_high_diff_ranks(args)
 
     lists = struct(ids)
     prompt=build_prompt(lists)
 
+    print("ARGS:")
+    print(yaml.dump(args.model_dump(), sort_keys=False))
+    print()
     print("IDS:")
-    print(json.dumps(ids, indent=4))
+    print(yaml.dump(ids))
     print()
-    print("PROMPT:")
-    print(prompt)
-    print()
+
+    with open("prompt.txt", 'w') as f:
+        f.write(prompt)
+
+import sys
+if __name__ == "__main__":
+    dargs = dict(enumerate(sys.argv[1:], start=1))
+    main(AnalysisArgs(metric=dargs[1], use_z_score=dargs.get(2) == '--z'))
