@@ -144,8 +144,8 @@ class WildLoader(BaseDataLoader):
         self.limit = limit
         self.ext = ".json"
 
-    def find(self, video_id):
-        return self.load_file(video_id + self.ext)
+    def find(self, video_id:str):
+        return self.load_file(self.data_path/(video_id + self.ext))
 
     def load(self, limit: int | None = None) -> list[CaptionedVideo]:
         logging.info(f"Loading from Wild Video Captions dataset at: {self.data_path} {self.limit=}")
