@@ -158,7 +158,7 @@ class CompactJSONEncoder(json.JSONEncoder):
         return formatted_json
 
 
-def dump_model_compact_json(model_or_list: BaseModel|list[BaseModel], width: int = 100) -> str:
+def dump_model_compact_json(model_or_list:BaseModel|list[BaseModel], width:int = 100, code_block:bool=False) -> str:
     """
     Dumps a Pydantic model or a list of models to a compact JSON string.
 
@@ -171,4 +171,7 @@ def dump_model_compact_json(model_or_list: BaseModel|list[BaseModel], width: int
     else:
         data_to_dump = model_or_list.model_dump()
 
-    return json.dumps(data_to_dump, cls=CompactJSONEncoder, indent=2, compact_width=width)
+    j = json.dumps(data_to_dump, cls=CompactJSONEncoder, indent=2, compact_width=width)
+    if code_block:
+        return f"```json\n{j}\n```"
+    return j
