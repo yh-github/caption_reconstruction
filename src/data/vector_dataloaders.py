@@ -1,6 +1,6 @@
 from abc import abstractmethod, ABC
 from pathlib import Path
-from typing import Iterator
+from typing import Iterator, Any, Self
 import numpy as np
 import yaml
 from numpy.typing import NDArray
@@ -21,8 +21,8 @@ class VectorDataLoader(ABC):
     def count(self) -> int:
         return len(list(self.load()))
 
-    @staticmethod
-    def from_config(data_config: dict):
+    @classmethod
+    def from_config(cls, data_config: dict[str, Any]) -> Self:
         """
         Factory function that reads the config and returns the appropriate
         data loader instance.
@@ -40,8 +40,10 @@ class VectorDataLoader(ABC):
         elif dataset_name == "toy_vectors":
             return ToyVectorsLoader(
                 data_type_name="video_embeddings",
-                row_num=10,
-                number_of_matrices=limit or 5
+                number_of_matrices=limit or 5,
+                row_num=data_config.get("row_num", 8),
+                col_num=data_config.get("col_num", 32),
+                seed=42
             )
         else:
             return VectorConvertorLoader(
@@ -56,11 +58,11 @@ class ToyVectorsLoader(VectorDataLoader):
     """
     def __init__(
             self,
-            data_type_name: str = "video_embeddings",
-            number_of_matrices: int = 10,
-            row_num: int = 8,
-            col_num: int = 32,
-            seed: int = 42
+            data_type_name: str,
+            number_of_matrices: int,
+            row_num: int,
+            col_num: int,
+            seed: int
     ):
         """
         Initializes the toy data loader with specified dimensions and seed.
