@@ -1,5 +1,4 @@
 import sys
-
 import numpy as np
 import yaml
 import pandas as pd
@@ -16,9 +15,9 @@ class Labeler(BaseModel):
     method_names: tuple[str, str]
     lists: tuple[list[str], list[str]]
 
-    def to_label_dict(self) -> dict[str,str]:
+    def to_label_dict(self) -> dict[str, str]:
         return {
-            k:f"high {self.metric} for {method}"
+            k: f"high {self.metric} for {method}"
             for method, ids in zip(self.method_names, self.lists)
             for k in ids
         }
@@ -46,7 +45,7 @@ cos_sim_residual_mean = Labeler(
 )
 
 
-def to_meta_path(path:Path) -> Path:
+def to_meta_path(path: Path) -> Path:
     return path.parent / f"{path.stem}_meta.yaml"
 
 
@@ -69,7 +68,7 @@ def plot_results(
         output_dir: If provided, the plot will be saved to this directory as a PNG.
     """
     # 1. Load Data and Metadata
-    assert csv_path.exists(),f"CSV file not found at {csv_path}"
+    assert csv_path.exists(), f"CSV file not found at {csv_path}"
 
     # Infer the metadata path from the CSV path
     meta_path = to_meta_path(csv_path)
@@ -79,56 +78,63 @@ def plot_results(
 
     df = pd.read_csv(csv_path)
 
-    # 2. Prepare for Plotting (Handle Labels and Colors)
-    hue_column = None
-    palette = None
+    # 2. Create the Plot Figure
+    plt.figure(figsize=(14, 8))
+
+    # 3. Plotting Logic
     if label_mapping:
-        hue_column = 'label'
-        # Map the IDs to their labels. Unmapped IDs will get a default value.
-        df[hue_column] = df['id'].map(label_mapping).fillna('unlabeled')
+        df['label'] = df['id'].map(label_mapping).fillna('unlabeled')
 
-        # Create a color palette
-        unique_labels = df[hue_column].unique()
-        # Use a nice color palette from seaborn
-        colors = sns.color_palette("husl", n_colors=len(unique_labels) - 1)
+        unlabeled_df = df[df['label'] == 'unlabeled']
+        labeled_df = df[df['label'] != 'unlabeled']
 
-        palette = {label: color for label, color in zip(unique_labels, colors)}
-        # Ensure 'unlabeled' points are a neutral gray
-        palette['unlabeled'] = 'lightgray'
+        # Plot unlabeled points first (in gray)
+        sns.scatterplot(
+            data=unlabeled_df, x='x', y='y',
+            color='lightgray', alpha=0.7, s=50, label='unlabeled'
+        )
 
-    # 3. Create the Scatter Plot
-    plt.figure(figsize=(12, 8))
+        # Create a high-contrast palette for labeled points
+        real_labels = sorted([label for label in df['label'].unique() if label != 'unlabeled'])
+        strong_colors = ['red', 'blue', 'green', 'purple', 'orange', 'cyan']
+        palette = {label: strong_colors[i % len(strong_colors)] for i, label in enumerate(real_labels)}
 
-    plot = sns.scatterplot(
-        data=df,
-        x='x',
-        y='y',
-        hue=hue_column,
-        palette=palette,
-        alpha=0.8,
-        s=50  # marker size
-    )
+        # Plot labeled points on top, with more pronounced style
+        sns.scatterplot(
+            data=labeled_df, x='x', y='y',
+            hue='label',
+            palette=palette,
+            s=150,  # Larger size
+            marker='X',  # Different shape
+            edgecolor='black',
+            linewidth=0.5
+        )
+    else:
+        # If no labels, just plot all points normally
+        sns.scatterplot(data=df, x='x', y='y', alpha=0.8, s=50)
 
     # 4. Format and Title the Plot
-    dataset_name = metadata.get("dataset_name")
+    dataset_name = metadata.get("dataset_name", "Unknown Dataset")
     feature_strat = metadata.get("feature_extraction_strategy", "Unknown Feature Strategy")
-    reduction_strat = metadata.get("dimensionality_reduction_strategy", "Unknown Reduction Strategy")
+    reduction_strat_full = metadata.get("dimensionality_reduction_strategy", "Unknown Reduction Strategy")
+    # Shorten the reduction strategy name for the title
+    reduction_strat_short = reduction_strat_full.split('(')[0]
 
-    plt.title(f"'{dataset_name}: {feature_strat}' with '{reduction_strat}'", fontsize=14)
-    # plt.xlabel("Component 1", fontsize=12)
-    # plt.ylabel("Component 2", fontsize=12)
+    plt.title(f"'{dataset_name}': {feature_strat} -> {reduction_strat_short}", fontsize=16)
     plt.grid(True, linestyle='--', alpha=0.6)
 
-    if hue_column:
-        plt.legend(title="Labels")
+    # 5. Position legend outside the plot
+    # Adjust subplot to make room for the legend
+    plt.subplots_adjust(right=0.75)
+    plt.legend(bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0.)
 
-    # 5. Save or Show the Plot
+    # 6. Save or Show the Plot
     if output_dir:
         output_dir.mkdir(parents=True, exist_ok=True)
         # Use the same base filename as the CSV for easy association
         output_filename = csv_path.with_suffix(".png").name
         output_path = output_dir / output_filename
-        plt.savefig(output_path, dpi=150)
+        plt.savefig(output_path, dpi=150, bbox_inches='tight')  # bbox_inches ensures legend is saved
         print(f"Plot saved to: {output_path}")
     else:
         plt.show()
@@ -147,11 +153,12 @@ def create_mock_results_files(results_dir: Path):
         'y': np.random.randn(10) * 2 + 10,
     })
     meta1 = {
+        'dataset_name': 'Videos',
         'feature_extraction_strategy': 'MeanStrategy',
-        'dimensionality_reduction_strategy': 'PCA(n_components_2)'
+        'dimensionality_reduction_strategy': 'PCA(n_components=2)'
     }
     df1.to_csv(results_dir / "MeanStrategy_PCA(n_components_2).csv", index=False)
-    with open(results_dir / "MeanStrategy_PCA(n_components_2).yaml", 'w') as f:
+    with open(results_dir / "MeanStrategy_PCA(n_components_2)_meta.yaml", 'w') as f:
         yaml.dump(meta1, f)
 
     # Mock Data for File 2
@@ -161,33 +168,19 @@ def create_mock_results_files(results_dir: Path):
         'y': np.random.randn(10) * 3 - 5,
     })
     meta2 = {
+        'dataset_name': 'Text Captions',
         'feature_extraction_strategy': 'TemporalMeanDiffStrategy',
-        'dimensionality_reduction_strategy': 'TSNE(n_components_2_perplexity_5)'
+        'dimensionality_reduction_strategy': 'TSNE(n_components=2, perplexity=5)'
     }
     df2.to_csv(results_dir / "TemporalMeanDiffStrategy_TSNE(n_components_2_perplexity_5).csv", index=False)
-    with open(results_dir / "TemporalMeanDiffStrategy_TSNE(n_components_2_perplexity_5).yaml", 'w') as f:
+    with open(results_dir / "TemporalMeanDiffStrategy_TSNE(n_components_2_perplexity_5)_meta.yaml", 'w') as f:
         yaml.dump(meta2, f)
 
 
 if __name__ == "__main__":
-    # # --- Setup ---
-    # # Create a directory with some fake result files to plot
-    # mock_results_dir = Path("mock_results")
-    # create_mock_results_files(mock_results_dir)
-    #
-    # # Define a sample label mapping. We are hypothesizing that certain videos
-    # # belong to "Group A" and "Group B".
-    # my_label_hypothesis = {
-    #     'vid_1': 'Group A',
-    #     'vid_3': 'Group A',
-    #     'vid_8': 'Group B',
-    #     'txt_2': 'Group B'  # Labels can apply across datasets
-    # }
-
-    # --- Main Logic ---
     # Find all CSV files in the results directory
     data_dir = Path(sys.argv[1])
-    image_dir = Path("results/plots/"+data_dir.stem)
+    image_dir = Path("results/plots/" + data_dir.stem)
     csv_files_to_plot = sorted(data_dir.glob("*.csv"))
 
     my_label_hypothesis = cos_sim_residual_mean.to_label_dict()
@@ -202,3 +195,4 @@ if __name__ == "__main__":
                 label_mapping=my_label_hypothesis,
                 output_dir=image_dir
             )
+
