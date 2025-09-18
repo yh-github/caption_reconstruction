@@ -238,7 +238,7 @@ if __name__ == "__main__":
     my_raw_data = list(dataloader.load())
 
     results_dir = Path("results/pooling/")/dataset_name
-    results_dir.mkdir(exist_ok=True)
+    results_dir.mkdir(parents=True, exist_ok=True)
 
     # Get all strategy instances to iterate over
     feature_strategies = get_all_feature_strategies()
