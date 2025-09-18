@@ -80,9 +80,10 @@ def plot_results(
     df = pd.read_csv(csv_path)
 
     # 2. Create the Plot Figure
-    plt.figure(figsize=(14, 8))
+    plt.figure(figsize=(12, 9)) # Increased height to make room for legend
 
     # 3. Plotting Logic
+    real_labels = []
     if label_mapping:
         df['label'] = df['id'].map(label_mapping).fillna('unlabeled')
 
@@ -118,16 +119,24 @@ def plot_results(
     dataset_name = metadata.get("dataset_name", "Unknown Dataset")
     feature_strat = metadata.get("feature_extraction_strategy", "Unknown Feature Strategy")
     reduction_strat_full = metadata.get("dimensionality_reduction_strategy", "Unknown Reduction Strategy")
-    # Shorten the reduction strategy name for the title
+    # Shorten the reduction strategy name for the title and axis labels
     reduction_strat_short = reduction_strat_full.split('(')[0]
 
-    plt.title(f"'{dataset_name}': {feature_strat} -> {reduction_strat_short}", fontsize=16)
+    plt.title(f"'{dataset_name}': {feature_strat} -> {reduction_strat_short}", fontsize=16, pad=20)
+    # Use dynamic axis labels
+    plt.xlabel(f"{reduction_strat_short} 1", fontsize=12)
+    plt.ylabel(f"{reduction_strat_short} 2", fontsize=12)
     plt.grid(True, linestyle='--', alpha=0.6)
 
-    # 5. Position legend outside the plot
-    # Adjust subplot to make room for the legend
-    plt.subplots_adjust(right=0.75)
-    plt.legend(bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0.)
+    # 5. Position legend above the plot
+    # The legend will be horizontal with a number of columns equal to the labels.
+    if label_mapping:
+        plt.legend(
+            bbox_to_anchor=(0.5, 1.15), # Positioned above the plot title
+            loc='upper center',
+            borderaxespad=0.,
+            ncol=len(real_labels) + 1 # +1 for the 'unlabeled' category
+        )
 
     # 6. Save or Show the Plot
     if output_dir:
