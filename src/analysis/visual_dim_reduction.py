@@ -106,10 +106,11 @@ def plot_results(
             data=labeled_df, x='x', y='y',
             hue='label',
             palette=palette,
-            s=150,  # Larger size
-            marker='X',  # Different shape
+            s=150,          # Larger size
+            marker='X',     # Different shape
             edgecolor='black',
-            linewidth=0.5
+            linewidth=0.5,
+            alpha=0.7       # Add transparency to show overlaps
         )
     else:
         # If no labels, just plot all points normally
