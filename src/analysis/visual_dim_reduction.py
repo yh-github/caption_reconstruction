@@ -16,6 +16,7 @@ class Labeler(BaseModel):
     lists: tuple[list[str], list[str]]
 
     def to_label_dict(self) -> dict[str, str]:
+        assert set(self.lists[0]).isdisjoint(set(self.lists[1])) #TODO handle intersections
         return {
             k: f"high {self.metric} for {method}"
             for method, ids in zip(self.method_names, self.lists)
