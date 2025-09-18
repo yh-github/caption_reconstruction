@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 from typing import Any
-
 from pydantic import BaseModel
 
 
@@ -18,7 +17,7 @@ class Labeler(BaseModel):
     def to_label_dict(self) -> dict[str, str]:
         assert set(self.lists[0]).isdisjoint(set(self.lists[1])) #TODO handle intersections
         return {
-            k: f"high {self.metric} for {method}"
+            k: f"{method} with high {self.metric}"
             for method, ids in zip(self.method_names, self.lists)
             for k in ids
         }
@@ -44,6 +43,28 @@ cos_sim_residual_mean = Labeler(
         ]
     )
 )
+
+cos_sim_mean = Labeler(
+    metric="cos_sim_mean",
+    method_names=("CaptionedVideo__pro_d_one_shot_v1__t=1", "video_embeddings__MeanClosestVectors"),
+    lists=(
+        [
+            "Welker-Farms-Inc_3-clip-4",
+            "Climate-Change_7-clip-3",
+            "How-Farms-Work_3-clip-2",
+            "Sandboxx_0-clip-4",
+            "Natural-Disaster_10-clip-0"
+        ],
+        [
+            "Millennial-Farmer_8-clip-16",
+            "Survival-Instinct_8-clip-4",
+            "Survival-Instinct_11-clip-10",
+            "King-Kong-Amazon_5-clip-14",
+            "Joe-Robinet_2-clip-5"
+        ]
+    )
+)
+
 
 
 def to_meta_path(path: Path) -> Path:
