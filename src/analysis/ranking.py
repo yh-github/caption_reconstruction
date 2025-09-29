@@ -55,41 +55,60 @@ def get_high_diff_ranks(rank_df: DataFrame, method1: str, method2: str, top_n: i
 
 
 def plot_rank_stability(
-        rank_df: DataFrame,
+        rank_df: pd.DataFrame,
         output_path: Path,
         top_n: int = 5,
-        stability_metric: str = 'std'
+        aggregation_method: str = 'mean',
+        max_masked: int = 30
 ):
     """
-    Creates a line plot showing rank difference stability for a subset of videos.
+    Creates a line plot showing rank difference for the most extreme videos.
 
     Args:
-        rank_df: The DataFrame containing rank differences.
-        output_path: The path to save the plot image.
-        top_n: The number of videos to include in the plot.
-        stability_metric: 'std' to show the most unstable videos, or
-                          'mean_abs_diff' to show the most consistently different videos.
+        rank_df: DataFrame with rank differences.
+        output_path: Path to save the plot.
+        top_n: The number of top positive and top negative videos to show.
+        aggregation_method: 'mean' for average difference, 'max' for peak difference.
+        max_masked: The maximum number of masked captions to show on the x-axis.
     """
-    print(f"Generating rank stability plot for top {top_n} videos by '{stability_metric}'...")
+    print(f"Generating rank stability plot for top {top_n} videos by '{aggregation_method}' difference...")
 
-    if stability_metric == 'std':
-        # Find videos with the highest standard deviation in rank difference (most unstable)
-        agg = rank_df.groupby('video_id')['rank_difference'].std().nlargest(top_n)
-        title_suffix = "Top Movers (Most Unstable)"
-    else:  # 'mean_abs_diff'
-        # Find videos with the largest average absolute rank difference
-        agg = rank_df.groupby('video_id')['rank_difference'].apply(lambda x: x.abs().mean()).nlargest(top_n)
-        title_suffix = "Top Average Difference"
+    # 1. Filter the DataFrame by max_masked
+    plot_df = rank_df[rank_df['num_masked'] <= max_masked].copy()
 
-    top_videos_to_plot = agg.index
-    plot_df = rank_df[rank_df['video_id'].isin(top_videos_to_plot)]
+    # 2. Select the videos to plot based on the aggregation method
+    if aggregation_method == 'mean':
+        # Find videos with the highest and lowest average rank difference
+        agg = plot_df.groupby('video_id')['rank_difference'].mean()
+        title_suffix = f"Top {top_n} Highest & Lowest by Mean Difference"
+    elif aggregation_method == 'max':
+        # Find videos with the single largest positive or negative rank difference
+        agg = plot_df.loc[plot_df.groupby('video_id')['rank_difference'].abs().idxmax()]
+        agg = agg.set_index('video_id')['rank_difference']
+        title_suffix = f"Top {top_n} Highest & Lowest by Max Difference"
+    else:
+        raise ValueError("aggregation_method must be 'mean' or 'max'")
 
+    # Sort the aggregated values
+    sorted_agg = agg.sort_values()
+    # Get top N lowest (most negative) and top N highest (most positive)
+    top_n_lowest = sorted_agg.head(top_n)
+    top_n_highest = sorted_agg.tail(top_n)
+    # Combine their indices (which are the video_ids)
+    top_videos_to_plot = pd.concat([top_n_lowest, top_n_highest]).index
+
+    # Filter the main plot DataFrame to only these videos
+    plot_df = plot_df[plot_df['video_id'].isin(top_videos_to_plot)]
+
+    # 3. Create the plot
     g = sns.relplot(
         data=plot_df, x='num_masked', y='rank_difference', hue='video_id',
-        col='first_masked_bin', kind='line', col_wrap=3, height=4, aspect=1.5,
+        col='first_masked_bin', kind='line', col_wrap=3,
+        height=6,  # Increased height for better visibility
+        aspect=1.2,
         legend=False
     )
-    g.figure.suptitle(f'Rank Difference Stability vs. Number of Masked Captions\n({title_suffix})', y=1.05)
+    g.figure.suptitle(f'Rank Difference Stability (up to {max_masked} masked)\n({title_suffix})', y=1.05)
     g.set_axis_labels("Number of Masked Captions", "Rank Difference (Method1 - Method2)")
     g.map(plt.axhline, y=0, color='k', linestyle='--', lw=1)
 
@@ -138,8 +157,24 @@ def main(args: AnalysisArgs):
 
     results_dir = Path("results/plots/rank_stability")
     results_dir.mkdir(exist_ok=True, parents=True)
-    plot_rank_stability(rank_df, results_dir / "rank_stability_top_movers.png", stability_metric='std')
-    plot_rank_stability(rank_df, results_dir / "rank_stability_top_diff.png", stability_metric='mean_abs_diff')
+    # plot_rank_stability(rank_df, results_dir / "rank_stability_top_movers.png", aggregation_method='std')
+    # plot_rank_stability(rank_df, results_dir / "rank_stability_top_diff.png", aggregation_method='mean_abs_diff')
+
+    plot_rank_stability(
+        rank_df,
+        results_dir / "rank_stability_by_mean_diff.png",
+        top_n=5,
+        aggregation_method='mean',
+        max_masked=30
+    )
+    plot_rank_stability(
+        rank_df,
+        results_dir / "rank_stability_by_max_diff.png",
+        top_n=5,
+        aggregation_method='max',
+        max_masked=30
+    )
+
     plot_aggregate_stability_heatmap(rank_df, results_dir / "aggregate_stability_heatmap.png")
 
 
