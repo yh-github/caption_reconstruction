@@ -3,7 +3,6 @@ import logging
 from common_utils.jsonables import dump_model_compact_json
 import pandas as pd
 from pathlib import Path
-
 from pandas import DataFrame
 from pydantic import BaseModel
 
@@ -17,6 +16,31 @@ class AnalysisArgs(BaseModel):
     use_z_score: bool = False
 
 
+def create_bin_labels(bins: list[int], open_ended_last: bool = False) -> list[str]:
+    """
+    Creates a list of string labels from a list of numerical bin edges.
+
+    Args:
+        bins: A list of numerical bin edges.
+        open_ended_last: If True, the last label will be "X+". Otherwise, it will be a range.
+
+    Example:
+        `create_bin_labels([0, 5, 10, 50])` -> `['0-5', '5-10', '50+']`
+        `create_bin_labels([0, 20, 40, 60], open_ended_last=False)` -> `['0-20', '20-40', '40-60']`
+    """
+    labels = []
+    num_labels = len(bins) - 1
+    if num_labels <= 0:
+        return []
+
+    for i in range(num_labels):
+        if i == num_labels - 1 and open_ended_last:
+            labels.append(f"{bins[i]}+")
+        else:
+            labels.append(f"{bins[i]}-{bins[i+1]}")
+    return labels
+
+
 def prep(df):
     filter_out = [
         'CaptionedVideo__BaselineRepeatStrategy',
@@ -24,6 +48,8 @@ def prep(df):
     df['method'] = df['data_type'] + '__' + df['recon_strategy']
     df['num_masked'] = df['masked'].apply(lambda x: len(eval(x)))
     df['first_masked'] = df['masked'].apply(lambda x: min(eval(x)))
+    bins = [0, 20, 40, 60]
+    df['first_masked_bin'] = pd.cut(df['first_masked'], bins=bins, right=False, labels=create_bin_labels(bins))
     filtered_df = df[~df['method'].isin(filter_out)].copy()
     return filtered_df
 
