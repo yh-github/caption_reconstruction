@@ -21,7 +21,7 @@ class ExecArgs(BaseModel):
     def log_level(self, log_level:int) -> int:
         return log_level if not self.debug else logging.DEBUG
 
-def args_parser():
+def args_parser() -> ExecArgs:
     parser = argparse.ArgumentParser(description="Command-line argument parser for experiment runner.")
 
     parser.add_argument(
@@ -59,3 +59,8 @@ def args_parser():
     args = parser.parse_args()
 
     return ExecArgs.model_validate(vars(args))
+
+
+import sys
+def get_dargs() -> dict[int, str]:
+    return dict(enumerate(sys.argv[1:], start=1))
