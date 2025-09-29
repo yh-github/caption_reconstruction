@@ -23,6 +23,7 @@ def prep(df):
     ]
     df['method'] = df['data_type'] + '__' + df['recon_strategy']
     df['num_masked'] = df['masked'].apply(lambda x: len(eval(x)))
+    df['first_masked'] = df['masked'].apply(lambda x: min(eval(x)))
     filtered_df = df[~df['method'].isin(filter_out)].copy()
     return filtered_df
 
