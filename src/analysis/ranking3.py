@@ -66,6 +66,16 @@ def calculate_rank_differences_by_tuple(df: DataFrame, method1: str, method2: st
     return merged_ranks
 
 
+def get_video_id_ordering(rank_df: DataFrame, base_num_masked: int) -> list[str]:
+    """
+    Get the canonical ordering of video IDs based on method1's rank at a specific num_masked.
+    This ordering will be used consistently across all plots.
+    """
+    base_df = rank_df[rank_df['num_masked'] == base_num_masked].copy()
+    base_df = base_df.sort_values(by='rank_m1', ascending=True)
+    return base_df['video_id'].tolist()
+
+
 def get_high_diff_ranks(rank_df: DataFrame, method1: str, method2: str, top_n: int = 5) -> dict[str, list[str]]:
     """
     Extracts top N videos with the highest/lowest rank differences based ONLY
@@ -217,6 +227,7 @@ def plot_rank_comparison(
         rank_df: pd.DataFrame,
         output_path: Path,
         num_masked: int,
+        video_id_order: list[str],
         metric: str,
         method1: str,
         method2: str,
@@ -224,7 +235,7 @@ def plot_rank_comparison(
 ):
     """
     Creates a dumbbell plot comparing the ranks of videos for two methods
-    at a specific num_masked value, with a horizontal tolerance band around y=x.
+    at a specific num_masked value, using a fixed video ID ordering.
     """
     print(f"Generating rank comparison dumbbell plot for num_masked={num_masked}...")
 
@@ -234,13 +245,14 @@ def plot_rank_comparison(
         print(f"No data found for num_masked={num_masked}. Skipping plot.")
         return
 
-    # Sort by rank_m1 and reset index to ensure clean sequential indexing
-    plot_df = plot_df.sort_values(by='rank_m1', ascending=True).reset_index(drop=True)
+    # Use the provided ordering, but only include videos that exist in this data
+    available_videos = set(plot_df['video_id'])
+    ordered_videos = [vid for vid in video_id_order if vid in available_videos]
 
-    # Debug: Check if ranks are sequential
-    print(f"rank_m1 min: {plot_df['rank_m1'].min()}, max: {plot_df['rank_m1'].max()}")
-    print(f"Number of videos: {len(plot_df)}")
-    print(f"First 10 rank_m1 values: {plot_df['rank_m1'].head(10).tolist()}")
+    # Filter and reorder the dataframe
+    plot_df = plot_df[plot_df['video_id'].isin(ordered_videos)].copy()
+    plot_df['video_order'] = plot_df['video_id'].map({vid: i for i, vid in enumerate(ordered_videos)})
+    plot_df = plot_df.sort_values('video_order')
 
     short_m1 = _shorten_method_name(method1)
     short_m2 = _shorten_method_name(method2)
@@ -248,34 +260,39 @@ def plot_rank_comparison(
     plt.figure(figsize=(20, 10))
     ax = plt.gca()
 
-    # Use actual rank values as x-coordinates for a true rank-vs-rank plot
-    x_coords = plot_df['rank_m1'].values
+    x_coords = np.arange(len(plot_df))
 
-    # For the tolerance band, the diagonal is now simply y=x
-    # --- Add the Tolerance Band around the diagonal (y=x line) ---
+    # For the tolerance band, use method1's rank as the reference
+    # (since x-axis order is based on method1's rank at num_masked=6)
+    diagonal_line = plot_df['rank_m1'].values
+
+    # --- Add the Tolerance Band ---
     ax.fill_between(
         x_coords,
-        x_coords - tolerance,
-        x_coords + tolerance,
+        diagonal_line - tolerance,
+        diagonal_line + tolerance,
         color='gray',
         alpha=0.2,
-        label=f'Tolerance Band (±{tolerance} ranks from perfect agreement)',
+        label=f'Tolerance Band (±{tolerance} ranks from {short_m1})',
         zorder=1
     )
 
     # Create the vertical "dumbbell" lines connecting the two ranks
-    for i, (x, y1, y2) in enumerate(zip(x_coords, plot_df['rank_m1'], plot_df['rank_m2'])):
-        ax.plot([x, x], [y1, y2], color='lightgray', linestyle='-', linewidth=1.5, zorder=2)
+    for i, (y1, y2) in enumerate(zip(plot_df['rank_m1'], plot_df['rank_m2'])):
+        ax.plot([i, i], [y1, y2], color='lightgray', linestyle='-', linewidth=1.5, zorder=2)
 
     # Plot the points for each method
-    ax.scatter(x=x_coords, y=plot_df['rank_m1'], color='red', s=50, label=short_m1, zorder=3)
-    ax.scatter(x=x_coords, y=plot_df['rank_m2'], color='blue', s=50, label=short_m2, zorder=3)
+    ax.scatter(x=x_coords, y=plot_df['rank_m1'], color='red', s=50, label=short_m1, zorder=3, alpha=0.5)
+    ax.scatter(x=x_coords, y=plot_df['rank_m2'], color='blue', s=50, label=short_m2, zorder=3, alpha=0.5)
 
-    # Format the plot
-    ax.set_title(f"Rank Comparison at num_masked={num_masked} (metric: {metric})")
-    ax.set_xlabel(f"{short_m1} Rank")
-    ax.set_ylabel(f"{short_m2} Rank")
-    ax.grid(True, linestyle='--', alpha=0.7)
+    # Format the plot with video IDs
+    ax.set_xticks(x_coords)
+    ax.set_xticklabels(plot_df['video_id'], rotation=90, fontsize=8)
+    ax.set_title(
+        f"Rank Comparison at num_masked={num_masked} (metric: {metric})\n(x-axis order fixed from num_masked=6)")
+    ax.set_xlabel("Video ID (ordered by base ranking)")
+    ax.set_ylabel("Rank")
+    ax.grid(axis='y', linestyle='--', alpha=0.7)
 
     # Invert y-axis so Rank #1 is at the top
     ax.invert_yaxis()
@@ -294,6 +311,12 @@ def main(args: AnalysisArgs):
     # --- Generate data for both plots ---
     rank_df_by_num = calculate_rank_differences_by_num_masked(combined_df, args.method1, args.method2, args.metric)
     rank_df_by_tuple = calculate_rank_differences_by_tuple(combined_df, args.method1, args.method2, args.metric)
+
+    # --- Get fixed video ID ordering from num_masked=6 ---
+    base_num_masked = 6
+    video_id_order = get_video_id_ordering(rank_df_by_num, base_num_masked)
+    print(f"Fixed video ID ordering established from num_masked={base_num_masked}")
+    print(f"Total videos in base ordering: {len(video_id_order)}")
 
     # --- Select videos and print IDs ---
     ids_dict = get_high_diff_ranks(rank_df_by_num, args.method1, args.method2, top_n=5)
@@ -326,15 +349,24 @@ def main(args: AnalysisArgs):
         method2=args.method2
     )
 
-    plot_rank_comparison(
-        rank_df_by_num,
-        results_dir / "rank_comparison_at_6_masked.png",
-        num_masked=6,
-        metric=args.metric,
-        method1=args.method1,
-        method2=args.method2,
-        tolerance=10
-    )
+    # --- Generate comparison plots for multiple num_masked values ---
+    num_masked_values = sorted(rank_df_by_num['num_masked'].unique())
+    print(f"\nGenerating comparison plots for num_masked values: {num_masked_values}")
+
+    for num_masked in num_masked_values:
+        plot_rank_comparison(
+            rank_df_by_num,
+            results_dir / f"rank_comparison_at_{num_masked}_masked.png",
+            num_masked=num_masked,
+            video_id_order=video_id_order,
+            metric=args.metric,
+            method1=args.method1,
+            method2=args.method2,
+            tolerance=10
+        )
+
+    print(f"\nAll plots saved to {results_dir}")
+    print(f"You can now compare plots across different num_masked values with consistent x-axis ordering")
 
 
 if __name__ == "__main__":
