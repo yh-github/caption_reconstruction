@@ -19,6 +19,14 @@ def calculate_rank_differences_by_num_masked(df: DataFrame, method1: str, method
     selected_methods = [method1, method2]
     filtered_df = df[df['method'].isin(selected_methods)].copy()
 
+    # --- New Filtering Logic ---
+    # For each 'num_masked', count how many methods each 'video_id' appears in.
+    video_counts = filtered_df.groupby(['num_masked', 'video_id'])['method'].nunique()
+    # Identify the video_ids that appear in both methods (count == 2).
+    common_videos = video_counts[video_counts == 2].reset_index()[['num_masked', 'video_id']]
+    # Filter the original dataframe to keep only these common videos for a fair ranking.
+    filtered_df = pd.merge(filtered_df, common_videos, on=['num_masked', 'video_id'])
+
     # Group by the number of masked items, method, and video_id, averaging the metric.
     grouped = filtered_df.groupby(['num_masked', 'method', 'video_id'], observed=False)[metric].mean().reset_index()
 
@@ -47,6 +55,13 @@ def calculate_rank_differences_by_tuple(df: DataFrame, method1: str, method2: st
     filtered_df = df[df['method'].isin(selected_methods)].copy()
 
     filtered_df['masked_tuple'] = filtered_df['masked'].apply(lambda x: tuple(sorted(eval(x))))
+
+    # --- New Filtering Logic ---
+    # For each 'masked_tuple', find the intersection of video_ids.
+    video_counts = filtered_df.groupby(['masked_tuple', 'video_id'])['method'].nunique()
+    common_videos = video_counts[video_counts == 2].reset_index()[['masked_tuple', 'video_id']]
+    filtered_df = pd.merge(filtered_df, common_videos, on=['masked_tuple', 'video_id'])
+
     grouped = filtered_df.groupby(['masked_tuple', 'method', 'video_id'], observed=False)[metric].mean().reset_index()
 
     rank_groups = ['masked_tuple', 'method']
@@ -361,7 +376,7 @@ def main(args: AnalysisArgs):
             video_id_order=video_id_order,
             metric=args.metric,
             method1=args.method1,
-            method2=args.method2,
+            method2=args.gita.method2,
             tolerance=10
         )
 
@@ -372,3 +387,4 @@ def main(args: AnalysisArgs):
 if __name__ == "__main__":
     dargs = get_dargs()
     main(AnalysisArgs(metric=dargs.get(1, 'cos_sim_mean')))
+
