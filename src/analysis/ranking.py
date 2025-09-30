@@ -81,7 +81,7 @@ def plot_rank_stability(
         metric: str,
         method1: str,
         method2: str,
-        max_masked: int = 30,
+        max_masked: int = 45,
 ):
     """
     Creates a line plot showing the rank difference trajectory for a specific
@@ -117,7 +117,7 @@ def plot_rank_stability(
         estimator=None,
         palette={label_neg: 'red', label_pos: 'blue'},
         alpha=0.5,
-        linewidth=1.8  # Increased linewidth
+        linewidth=1.8
     )
 
     ax.yaxis.grid(True, linestyle=':', alpha=0.7)
@@ -142,44 +142,65 @@ def plot_rank_stability(
     print(f"Plot saved to {output_path}")
 
 
-def plot_impact_by_masked_index(
+def plot_impact_as_lineplot(
         rank_df: pd.DataFrame,
         output_path: Path,
         videos_to_plot: list[str],
-        metric: str
+        target_index: int,
+        metric: str,
+        method1: str,
+        method2: str
 ):
     """
-    Creates a boxplot showing the distribution of rank differences when each
-    specific caption index is masked, for a selected list of videos.
+    Creates a line plot showing how rank difference changes when a specific
+    caption index is masked.
     """
-    print(f"Generating impact plot for {len(videos_to_plot)} selected videos...")
+    print(f"Generating impact line plot for target_index={target_index}...")
 
     # Filter for only the videos we care about
     filtered_df = rank_df[rank_df['video_id'].isin(videos_to_plot)].copy()
 
-    # "Explode" the DataFrame so each row represents one video and one masked index
-    exploded_df = filtered_df.explode('masked_tuple')
-    exploded_df = exploded_df.rename(columns={'masked_tuple': 'masked_index'})
+    # Create the new boolean column for the x-axis
+    filtered_df['target_is_masked'] = filtered_df['masked_tuple'].apply(lambda x: target_index in x)
 
-    # --- Create the Boxplot ---
-    plt.figure(figsize=(20, 8))
-    ax = sns.boxplot(
-        data=exploded_df,
-        x='masked_index',
+    # Aggregate the data: for each video, get the mean rank_difference when the
+    # target is masked vs. when it is not.
+    agg_df = filtered_df.groupby(['video_id', 'target_is_masked'])['rank_difference'].mean().reset_index()
+
+    # Determine the starting group for coloring, same as the other plot
+    min_masked = rank_df['num_masked'].min()
+    start_ranks = rank_df[rank_df['num_masked'] == min_masked]
+    label_neg = f"{method1} better (starts negative)"
+    label_pos = f"{method2} better (starts positive)"
+    video_to_group = {
+        video_id: label_neg if group_df['rank_difference'].mean() < 0 else label_pos
+        for video_id, group_df in start_ranks.groupby('video_id')
+    }
+    agg_df['start_group'] = agg_df['video_id'].map(video_to_group)
+
+    # --- Create the Line Plot ---
+    plt.figure(figsize=(12, 8))
+    ax = sns.lineplot(
+        data=agg_df,
+        x='target_is_masked',
         y='rank_difference',
-        color="skyblue"  # A neutral color for the boxes
+        hue='start_group',
+        units='video_id',
+        estimator=None,
+        palette={label_neg: 'red', label_pos: 'blue'},
+        alpha=0.5,
+        linewidth=1.8
     )
 
     ax.axhline(0, color='black', linestyle='--', lw=1.5)
     ax.set_title(
-        f"Distribution of Rank Difference when a Specific Caption is Masked\n(for {len(videos_to_plot)} selected videos, metric: {metric})")
-    ax.set_xlabel("Caption Index That Was Masked")
-    ax.set_ylabel("Rank Difference Distribution (m1 - m2)")
+        f"Impact of Masking Index {target_index} on Rank Difference\n(for {len(videos_to_plot)} selected videos, metric: {metric})")
+    ax.set_xlabel(f"Was Caption at Index {target_index} Masked?")
+    ax.set_ylabel("Average Rank Difference (m1 - m2)")
+    ax.set_xticks([False, True])  # Ensure x-axis only shows False and True
+    ax.set_xticklabels(['Not Masked', 'Masked'])
 
-    # Improve x-axis readability if there are many indices
-    if len(exploded_df['masked_index'].unique()) > 25:
-        plt.xticks(rotation=45, ha="right")
-
+    plt.legend(title="Initial Rank Difference")
     plt.tight_layout()
     plt.savefig(output_path, dpi=150, bbox_inches='tight')
     plt.close()
@@ -210,15 +231,18 @@ def main(args: AnalysisArgs):
         metric=args.metric,
         method1=args.method1,
         method2=args.method2,
-        max_masked=30
+        max_masked=45
     )
 
     # Generate the new impact plot
-    plot_impact_by_masked_index(
+    plot_impact_as_lineplot(
         rank_df,
-        results_dir / "impact_by_masked_index.png",
+        results_dir / "impact_by_mask_index_1.png",
         videos_to_plot=videos_to_plot,
-        metric=args.metric
+        target_index=1,
+        metric=args.metric,
+        method1=args.method1,
+        method2=args.method2
     )
 
 
