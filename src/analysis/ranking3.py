@@ -376,7 +376,7 @@ def main(args: AnalysisArgs):
             video_id_order=video_id_order,
             metric=args.metric,
             method1=args.method1,
-            method2=args.gita.method2,
+            method2=args.method2,
             tolerance=10
         )
 
