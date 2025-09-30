@@ -1,3 +1,5 @@
+import logging
+
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -15,24 +17,30 @@ def calculate_rank_differences(df: DataFrame, method1: str, method2: str, metric
     selected_methods = [method1, method2]
     filtered_df = df[df['method'].isin(selected_methods)].copy()
 
-    # Group by the conditions AND the method to rank within each slice
-    grouped = filtered_df.groupby(['num_masked', 'first_masked_bin', 'method', 'video_id'], observed=False)[metric].mean().reset_index()
+    # Group by the conditions AND the method to rank within each slice.
+    # `first_masked_bin` has been removed from the grouping.
+    grouped = filtered_df.groupby(['num_masked', 'method', 'video_id'], observed=False)[metric].mean().reset_index()
 
-    # Calculate ranks within each group
-    grouped['rank'] = grouped.groupby(['num_masked', 'first_masked_bin', 'method'], observed=False)[metric].rank(method='first',
-                                                                                                 ascending=True)
+    # Define the grouping keys for ranking
+    rank_groups = ['num_masked', 'method']
 
-    # Pivot and merge to compare ranks
+    # --- Rank Calculation Logic ---
+    # For similarity metrics, a higher score is better, so it should get the #1 rank.
+    # Therefore, we use ascending=False.
+    grouped['rank'] = grouped.groupby(rank_groups, observed=False)[metric].rank(method='first', ascending=False)
+
+    # --- Merging and Difference Calculation ---
     method1_ranks = grouped[grouped['method'] == method1]
     method2_ranks = grouped[grouped['method'] == method2]
 
     merged_ranks = pd.merge(
         method1_ranks,
         method2_ranks,
-        on=['video_id', 'num_masked', 'first_masked_bin'],
+        on=['video_id', 'num_masked'],  # `first_masked_bin` removed from merge key
         suffixes=('_m1', '_m2')
     )
 
+    # A negative value means method1 has a better (lower) rank number than method2.
     merged_ranks['rank_difference'] = merged_ranks['rank_m1'] - merged_ranks['rank_m2']
     return merged_ranks
 
@@ -40,17 +48,25 @@ def calculate_rank_differences(df: DataFrame, method1: str, method2: str, metric
 def get_high_diff_ranks(rank_df: DataFrame, method1: str, method2: str, top_n: int = 5) -> dict[str, list[str]]:
     """
     Takes the detailed rank difference DataFrame and extracts the top N videos
-    with the highest and lowest rank differences (aggregated across all conditions).
+    with the highest and lowest rank differences, based ONLY on the lowest
+    num_masked value.
     """
-    # Aggregate by taking the mean rank difference across all conditions for each video
-    agg_ranks = rank_df.groupby('video_id')['rank_difference'].mean().reset_index()
+    # 1. Find the minimum num_masked value in the dataset
+    min_num_masked = rank_df['num_masked'].min()
+    logging.info(f"Selecting top videos based on the lowest number of masked captions: {min_num_masked}")
 
-    method1_high_method2_low = agg_ranks.sort_values(by='rank_difference', ascending=False).head(top_n)
-    method1_low_method2_high = agg_ranks.sort_values(by='rank_difference', ascending=True).head(top_n)
+    # 2. Filter the DataFrame to this specific slice of data
+    lowest_masked_df = rank_df[rank_df['num_masked'] == min_num_masked]
+
+    # 3. Sort by rank difference to find the most extreme videos in this slice
+    # A large negative difference means method1 is better.
+    method1_better = lowest_masked_df.sort_values(by='rank_difference', ascending=True).head(top_n)
+    # A large positive difference means method2 is better.
+    method2_better = lowest_masked_df.sort_values(by='rank_difference', ascending=False).head(top_n)
 
     return {
-        method1: method1_high_method2_low['video_id'].tolist(),
-        method2: method1_low_method2_high['video_id'].tolist()
+        method1: method1_better['video_id'].tolist(),
+        method2: method2_better['video_id'].tolist()
     }
 
 
@@ -59,17 +75,10 @@ def plot_rank_stability(
         output_path: Path,
         top_n: int = 5,
         aggregation_method: str = 'mean',
-        max_masked: int = 30
+        max_masked: int = 30,
 ):
     """
     Creates a line plot showing rank difference for the most extreme videos.
-
-    Args:
-        rank_df: DataFrame with rank differences.
-        output_path: Path to save the plot.
-        top_n: The number of top positive and top negative videos to show.
-        aggregation_method: 'mean' for average difference, 'max' for peak difference.
-        max_masked: The maximum number of masked captions to show on the x-axis.
     """
     print(f"Generating rank stability plot for top {top_n} videos by '{aggregation_method}' difference...")
 
@@ -80,12 +89,12 @@ def plot_rank_stability(
     if aggregation_method == 'mean':
         # Find videos with the highest and lowest average rank difference
         agg = plot_df.groupby('video_id')['rank_difference'].mean()
-        title_suffix = f"Top {top_n} Highest & Lowest by Mean Difference"
+        title_suffix = f"Top {top_n} by Mean Difference"
     elif aggregation_method == 'max':
         # Find videos with the single largest positive or negative rank difference
-        agg = plot_df.loc[plot_df.groupby('video_id')['rank_difference'].abs().idxmax()]
-        agg = agg.set_index('video_id')['rank_difference']
-        title_suffix = f"Top {top_n} Highest & Lowest by Max Difference"
+        indices_of_max = plot_df.loc[plot_df.groupby('video_id', observed=False)['rank_difference'].abs().idxmax()]
+        agg = indices_of_max.set_index('video_id')['rank_difference']
+        title_suffix = f"Top {top_n} by Max Difference"
     else:
         raise ValueError("aggregation_method must be 'mean' or 'max'")
 
@@ -101,52 +110,21 @@ def plot_rank_stability(
     plot_df = plot_df[plot_df['video_id'].isin(top_videos_to_plot)]
 
     # 3. Create the plot
-    g = sns.relplot(
+    plt.figure(figsize=(14, 8))
+    ax = sns.lineplot(
         data=plot_df, x='num_masked', y='rank_difference', hue='video_id',
-        col='first_masked_bin', kind='line', col_wrap=3,
-        height=6,  # Increased height for better visibility
-        aspect=1.2,
-        legend=False
+        palette='viridis'
     )
-    g.figure.suptitle(f'Rank Difference Stability (up to {max_masked} masked)\n({title_suffix})', y=1.05)
-    g.set_axis_labels("Number of Masked Captions", "Rank Difference (Method1 - Method2)")
-    g.map(plt.axhline, y=0, color='k', linestyle='--', lw=1)
+    ax.axhline(0, color='k', linestyle='--', lw=1)
+    ax.set_title(f'Rank Difference Stability\n(up to {max_masked} masked, {title_suffix})')
+    ax.set_xlabel("Number of Masked Captions")
+    ax.set_ylabel("Rank Difference (m1 - m2)")
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.tight_layout(rect=[0, 0, 0.85, 1])  # Make room for legend
 
     plt.savefig(output_path, dpi=150, bbox_inches='tight')
     plt.close()
     print(f"Plot saved to {output_path}")
-
-
-def plot_aggregate_stability_heatmap(rank_df: DataFrame, output_path: Path):
-    """
-    Creates a heatmap showing the average absolute rank difference across all conditions.
-    """
-    print(f"Generating aggregate stability heatmap at {output_path}...")
-
-    # Pivot the data to create a matrix for the heatmap
-    heatmap_data = rank_df.pivot_table(
-        index='first_masked_bin',
-        columns='num_masked',
-        values='rank_difference',
-        observed=False,
-        aggfunc=lambda x: x.abs().mean()  # Aggregate by mean absolute difference
-    )
-
-    plt.figure(figsize=(16, 8))
-    sns.heatmap(
-        heatmap_data,
-        annot=True,  # Show the values in the cells
-        fmt=".1f",  # Format values to one decimal place
-        cmap="viridis",
-        linewidths=.5
-    )
-    plt.title("Aggregate Stability: Average Absolute Rank Difference", pad=20)
-    plt.xlabel("Number of Masked Captions")
-    plt.ylabel("First Masked Caption Index (Bin)")
-
-    plt.savefig(output_path, dpi=150, bbox_inches='tight')
-    plt.close()
-    print(f"Heatmap saved to {output_path}")
 
 
 def main(args: AnalysisArgs):
@@ -155,11 +133,17 @@ def main(args: AnalysisArgs):
 
     rank_df = calculate_rank_differences(combined_df, args.method1, args.method2, args.metric)
 
+    # Get the top N videos based on the new logic (lowest num_masked)
+    ids = get_high_diff_ranks(rank_df, args.method1, args.method2, top_n=5)
+    print("Top difference videos (selected from lowest num_masked):")
+    # This import was missing from the original file
+    import yaml
+    print(yaml.dump(ids))
+
     results_dir = Path("results/plots/rank_stability")
     results_dir.mkdir(exist_ok=True, parents=True)
-    # plot_rank_stability(rank_df, results_dir / "rank_stability_top_movers.png", aggregation_method='std')
-    # plot_rank_stability(rank_df, results_dir / "rank_stability_top_diff.png", aggregation_method='mean_abs_diff')
 
+    # Generate the simplified stability plot
     plot_rank_stability(
         rank_df,
         results_dir / "rank_stability_by_mean_diff.png",
@@ -167,6 +151,7 @@ def main(args: AnalysisArgs):
         aggregation_method='mean',
         max_masked=30
     )
+
     plot_rank_stability(
         rank_df,
         results_dir / "rank_stability_by_max_diff.png",
@@ -174,8 +159,6 @@ def main(args: AnalysisArgs):
         aggregation_method='max',
         max_masked=30
     )
-
-    plot_aggregate_stability_heatmap(rank_df, results_dir / "aggregate_stability_heatmap.png")
 
 
 if __name__ == "__main__":
