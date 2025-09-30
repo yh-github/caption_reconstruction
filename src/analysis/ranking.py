@@ -141,7 +141,7 @@ def plot_rank_stability(
     print(f"Plot saved to {output_path}")
 
 
-def plot_impact_trajectories(
+def plot_signed_max_impact(
         rank_df: pd.DataFrame,
         output_path: Path,
         videos_to_plot: list[str],
@@ -150,10 +150,10 @@ def plot_impact_trajectories(
         method2: str
 ):
     """
-    Creates a line plot showing the average rank difference for each video,
-    conditioned on which specific caption index was masked.
+    Creates a bar plot showing the signed maximum absolute rank difference
+    caused by masking each specific caption index.
     """
-    print(f"Generating impact trajectory plot for {len(videos_to_plot)} selected videos...")
+    print(f"Generating signed max impact plot for {len(videos_to_plot)} selected videos...")
 
     # Filter for only the videos we care about
     filtered_df = rank_df[rank_df['video_id'].isin(videos_to_plot)].copy()
@@ -162,43 +162,32 @@ def plot_impact_trajectories(
     exploded_df = filtered_df.explode('masked_tuple')
     exploded_df = exploded_df.rename(columns={'masked_tuple': 'masked_index'})
 
-    # For this plot, we need to aggregate the rank difference for each video and masked_index
-    # This gives us the average impact of masking a specific index for a specific video
-    plot_df = exploded_df.groupby(['video_id', 'masked_index'])['rank_difference'].mean().reset_index()
+    # For each masked_index, find the index of the row with the max *absolute* rank_difference
+    idx = exploded_df.groupby('masked_index')['rank_difference'].abs().idxmax()
+    # Use .loc to select these "most extreme" rows from the original exploded_df
+    most_extreme_cases = exploded_df.loc[idx]
 
-    # Determine the starting group for coloring, same as the other plot
-    min_masked = rank_df['num_masked'].min()
-    start_ranks = rank_df[rank_df['num_masked'] == min_masked]
-    label_neg = f"{method1} better (initially)"
-    label_pos = f"{method2} better (initially)"
-    video_to_group = {
-        video_id: label_neg if group_df['rank_difference'].mean() < 0 else label_pos
-        for video_id, group_df in start_ranks.groupby('video_id')
-    }
-    plot_df['start_group'] = plot_df['video_id'].map(video_to_group)
+    # Create the color palette based on the sign of the original rank_difference
+    most_extreme_cases['color'] = ['red' if x < 0 else 'blue' for x in most_extreme_cases['rank_difference']]
 
-    # --- Create the Line Plot ---
+    # --- Create the Bar Plot ---
     plt.figure(figsize=(20, 8))
-    ax = sns.lineplot(
-        data=plot_df,
+    ax = sns.barplot(
+        data=most_extreme_cases,
         x='masked_index',
         y='rank_difference',
-        hue='start_group',
-        units='video_id',
-        estimator=None,
-        palette={label_neg: 'red', label_pos: 'blue'},
-        alpha=0.5,
-        linewidth=1.8
+        hue='color',
+        palette={'red': 'red', 'blue': 'blue'},
+        dodge=False,
+        legend=False
     )
 
-    ax.axhline(0, color='black', linestyle='--', lw=1.5)
+    ax.axhline(0, color='black', lw=1)
     ax.set_title(
-        f"Impact of Specific Masked Captions on Rank Difference\n(for {len(videos_to_plot)} selected videos, metric: {metric})")
+        f"Signed Max Absolute Rank Difference when an Index is Masked\n(for {len(videos_to_plot)} selected videos, metric: {metric})")
     ax.set_xlabel("Caption Index That Was Masked")
-    ax.set_ylabel("Average Rank Difference (m1 - m2)")
+    ax.set_ylabel(f"Most Extreme Rank Difference ({method1} - {method2})")
 
-    plt.legend(title="Initial Rank Difference")
-    plt.tight_layout()
     plt.savefig(output_path, dpi=150, bbox_inches='tight')
     plt.close()
     print(f"Plot saved to {output_path}")
@@ -231,10 +220,10 @@ def main(args: AnalysisArgs):
         max_masked=45
     )
 
-    # Generate the new impact line plot
-    plot_impact_trajectories(
+    # Generate the new impact bar plot
+    plot_signed_max_impact(
         rank_df,
-        results_dir / "impact_by_masked_index_lines.png",
+        results_dir / "impact_by_masked_index_bars.png",
         videos_to_plot=videos_to_plot,
         metric=args.metric,
         method1=args.method1,
