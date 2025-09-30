@@ -78,29 +78,50 @@ def plot_rank_stability(
 ):
     """
     Creates a line plot showing the rank difference trajectory for a specific
-    list of videos.
+    list of videos, colored by their initial rank difference.
     """
     min_masked = rank_df['num_masked'].min()
     title_suffix = f"Top videos selected at num_masked={min_masked}"
     print(f"Generating rank stability plot for {len(videos_to_plot)} selected videos...")
 
-    # 1. Filter the DataFrame by max_masked
-    plot_df = rank_df[rank_df['num_masked'] <= max_masked].copy()
+    # 1. Filter the DataFrame by max_masked and the selected videos
+    plot_df = rank_df[
+        (rank_df['num_masked'] <= max_masked) &
+        (rank_df['video_id'].isin(videos_to_plot))
+        ].copy()
 
-    # 2. Filter the main plot DataFrame to only the provided videos
-    plot_df = plot_df[plot_df['video_id'].isin(videos_to_plot)]
+    # 2. Determine the starting group for each video based on its sign at min_masked
+    start_ranks = plot_df[plot_df['num_masked'] == min_masked]
+    video_to_group = {
+        row['video_id']: 'Method1 Better (starts negative)' if row[
+                                                                   'rank_difference'] < 0 else 'Method2 Better (starts positive)'
+        for _, row in start_ranks.iterrows()
+    }
+    plot_df['start_group'] = plot_df['video_id'].map(video_to_group)
 
     # 3. Create the plot
     plt.figure(figsize=(14, 8))
     ax = sns.lineplot(
-        data=plot_df, x='num_masked', y='rank_difference', hue='video_id',
-        palette='viridis'
+        data=plot_df,
+        x='num_masked',
+        y='rank_difference',
+        hue='start_group',  # Color lines based on the starting group
+        units='video_id',  # Draw a separate line for each video
+        estimator=None,  # Don't aggregate, draw the raw lines
+        palette={'Method1 Better (starts negative)': 'blue', 'Method2 Better (starts positive)': 'red'},
+        alpha=0.5,  # Make lines semi-transparent to show overlaps
+        linewidth=1.5
     )
-    ax.axhline(0, color='k', linestyle='--', lw=1)
+
+    # 4. Add guidelines for readability
+    ax.yaxis.grid(True, linestyle=':', alpha=0.7)
+    ax.axhline(0, color='black', linestyle='--', lw=1.5)  # Pronounced zero line
+
+    # 5. Final Formatting
     ax.set_title(f'Rank Difference Stability\n(up to {max_masked} masked, {title_suffix})')
     ax.set_xlabel("Number of Masked Captions")
     ax.set_ylabel("Rank Difference (m1 - m2)")
-    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Initial Rank Difference")
     plt.tight_layout(rect=[0, 0, 0.85, 1])  # Make room for legend
 
     plt.savefig(output_path, dpi=150, bbox_inches='tight')
