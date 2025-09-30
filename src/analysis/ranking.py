@@ -149,8 +149,8 @@ def plot_impact_by_masked_index(
         metric: str
 ):
     """
-    Creates a bar plot showing the most extreme rank difference caused by
-    masking each specific caption index.
+    Creates a boxplot showing the distribution of rank differences when each
+    specific caption index is masked, for a selected list of videos.
     """
     print(f"Generating impact plot for {len(videos_to_plot)} selected videos...")
 
@@ -161,31 +161,26 @@ def plot_impact_by_masked_index(
     exploded_df = filtered_df.explode('masked_tuple')
     exploded_df = exploded_df.rename(columns={'masked_tuple': 'masked_index'})
 
-    # For each masked_index, find the rank_difference with the largest absolute value
-    abs_rank_diff = exploded_df['rank_difference'].abs()
-    indices_of_worst_cases = abs_rank_diff.groupby(exploded_df['masked_index']).idxmax()
-    worst_cases = exploded_df.loc[indices_of_worst_cases]
-
-    # Create the color mapping column
-    worst_cases['color'] = ['red' if x < 0 else 'blue' for x in worst_cases['rank_difference']]
-
-    # Create the bar plot
+    # --- Create the Boxplot ---
     plt.figure(figsize=(20, 8))
-    ax = sns.barplot(
-        data=worst_cases,
+    ax = sns.boxplot(
+        data=exploded_df,
         x='masked_index',
         y='rank_difference',
-        hue='color',  # Use the 'color' column to determine the bar color
-        palette={'red': 'red', 'blue': 'blue'},  # Map color names to actual colors
-        dodge=False,  # Prevent bars from being side-by-side
-        legend=False  # The legend is redundant here
+        color="skyblue"  # A neutral color for the boxes
     )
 
-    ax.axhline(0, color='black', lw=1)
-    ax.set_title(f"Most Extreme Rank Difference Caused by Masking Each Caption Index\n(metric: {metric})")
+    ax.axhline(0, color='black', linestyle='--', lw=1.5)
+    ax.set_title(
+        f"Distribution of Rank Difference when a Specific Caption is Masked\n(for {len(videos_to_plot)} selected videos, metric: {metric})")
     ax.set_xlabel("Caption Index That Was Masked")
-    ax.set_ylabel("Worst Rank Difference Observed")
+    ax.set_ylabel("Rank Difference Distribution (m1 - m2)")
 
+    # Improve x-axis readability if there are many indices
+    if len(exploded_df['masked_index'].unique()) > 25:
+        plt.xticks(rotation=45, ha="right")
+
+    plt.tight_layout()
     plt.savefig(output_path, dpi=150, bbox_inches='tight')
     plt.close()
     print(f"Plot saved to {output_path}")
