@@ -1,0 +1,4 @@
+masking_configs:
+  - scheme: "fixed_fill"
+    width: [6,9,12,15]
+    start_ind: [0, 29, 59]
