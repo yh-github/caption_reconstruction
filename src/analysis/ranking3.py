@@ -220,10 +220,11 @@ def plot_rank_comparison(
         metric: str,
         method1: str,
         method2: str,
+        tolerance: int = 10
 ):
     """
     Creates a dumbbell plot comparing the ranks of videos for two methods
-    at a specific num_masked value.
+    at a specific num_masked value, with a tolerance band.
     """
     print(f"Generating rank comparison dumbbell plot for num_masked={num_masked}...")
 
@@ -240,8 +241,20 @@ def plot_rank_comparison(
     plt.figure(figsize=(20, 10))
     ax = plt.gca()
 
-    # Create the vertical "dumbbell" lines
     x_coords = np.arange(len(plot_df))
+    rank_m1_values = plot_df['rank_m1']
+
+    # --- Add the Tolerance Band ---
+    ax.fill_between(
+        x_coords,
+        rank_m1_values - tolerance,
+        rank_m1_values + tolerance,
+        color='gray',
+        alpha=0.2,
+        label=f'Tolerance Band (±{tolerance} ranks)'
+    )
+
+    # Create the vertical "dumbbell" lines
     ax.vlines(x=x_coords, ymin=plot_df['rank_m1'], ymax=plot_df['rank_m2'], color='lightgray', linestyle='-')
 
     # Plot the points for each method
@@ -311,7 +324,8 @@ def main(args: AnalysisArgs):
         num_masked=6,
         metric=args.metric,
         method1=args.method1,
-        method2=args.method2
+        method2=args.method2,
+        tolerance=10  # Added the tolerance parameter
     )
 
 
