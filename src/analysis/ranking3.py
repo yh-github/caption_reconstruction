@@ -1,4 +1,3 @@
-import numpy as np
 import logging
 
 import seaborn as sns
@@ -6,6 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from pandas import DataFrame
 from pathlib import Path
+import numpy as np
 
 from analysis.llm_based import load_dfs, AnalysisArgs
 from data_models.exec_args import get_dargs
@@ -220,13 +220,12 @@ def plot_rank_comparison(
         metric: str,
         method1: str,
         method2: str,
-        tolerance: int = 10
 ):
     """
-    Creates a point plot comparing the ranks of videos for two methods
-    at a specific num_masked value, with a tolerance band.
+    Creates a dumbbell plot comparing the ranks of videos for two methods
+    at a specific num_masked value.
     """
-    print(f"Generating rank comparison plot for num_masked={num_masked}...")
+    print(f"Generating rank comparison dumbbell plot for num_masked={num_masked}...")
 
     plot_df = rank_df[rank_df['num_masked'] == num_masked].copy()
 
@@ -235,52 +234,31 @@ def plot_rank_comparison(
         return
 
     plot_df = plot_df.sort_values(by='rank_m1', ascending=True)
-    video_order = plot_df['video_id']
     short_m1 = _shorten_method_name(method1)
     short_m2 = _shorten_method_name(method2)
 
-    melted_df = plot_df.melt(
-        id_vars=['video_id'],
-        value_vars=['rank_m1', 'rank_m2'],
-        var_name='method_rank',
-        value_name='rank'
-    )
-    melted_df['method'] = melted_df['method_rank'].map({'rank_m1': short_m1, 'rank_m2': short_m2})
-
     plt.figure(figsize=(20, 10))
-    ax = plt.gca()  # Get current axes
+    ax = plt.gca()
 
-    # --- Add the Tolerance Band ---
-    x_coords = np.arange(len(video_order))
-    rank_m1_values = plot_df['rank_m1']
-    ax.fill_between(
-        x_coords,
-        rank_m1_values - tolerance,
-        rank_m1_values + tolerance,
-        color='gray',
-        alpha=0.2,
-        label=f'Tolerance Band (±{tolerance} ranks)'
-    )
+    # Create the vertical "dumbbell" lines
+    x_coords = np.arange(len(plot_df))
+    ax.vlines(x=x_coords, ymin=plot_df['rank_m1'], ymax=plot_df['rank_m2'], color='lightgray', linestyle='-')
 
-    # --- Plot the Points on Top ---
-    sns.pointplot(
-        data=melted_df,
-        x='video_id',
-        y='rank',
-        hue='method',
-        order=video_order,
-        palette={short_m1: 'red', short_m2: 'blue'},
-        dodge=True,
-        ax=ax  # Ensure seaborn plots on our axes
-    )
+    # Plot the points for each method
+    ax.scatter(x=x_coords, y=plot_df['rank_m1'], color='red', s=50, label=short_m1, zorder=3)
+    ax.scatter(x=x_coords, y=plot_df['rank_m2'], color='blue', s=50, label=short_m2, zorder=3)
 
-    plt.xticks(rotation=90)
+    # Format the plot
+    ax.set_xticks(x_coords)
+    ax.set_xticklabels(plot_df['video_id'], rotation=90)
     ax.set_title(f"Rank Comparison at num_masked={num_masked} (metric: {metric})")
     ax.set_xlabel(f"Video ID (sorted by {short_m1}'s rank)")
     ax.set_ylabel("Rank")
     ax.grid(axis='y', linestyle='--', alpha=0.7)
+
+    # Invert y-axis so Rank #1 is at the top
     ax.invert_yaxis()
-    ax.legend()  # Show the legend for the tolerance band
+    ax.legend()
 
     plt.tight_layout()
     plt.savefig(output_path, dpi=150, bbox_inches='tight')
@@ -333,8 +311,7 @@ def main(args: AnalysisArgs):
         num_masked=6,
         metric=args.metric,
         method1=args.method1,
-        method2=args.method2,
-        tolerance=10  # Added the tolerance parameter
+        method2=args.method2
     )
 
 
