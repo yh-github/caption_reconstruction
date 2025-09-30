@@ -73,41 +73,22 @@ def get_high_diff_ranks(rank_df: DataFrame, method1: str, method2: str, top_n: i
 def plot_rank_stability(
         rank_df: pd.DataFrame,
         output_path: Path,
-        top_n: int = 5,
-        aggregation_method: str = 'mean',
+        videos_to_plot: list[str],
         max_masked: int = 30,
 ):
     """
-    Creates a line plot showing rank difference for the most extreme videos.
+    Creates a line plot showing the rank difference trajectory for a specific
+    list of videos.
     """
-    print(f"Generating rank stability plot for top {top_n} videos by '{aggregation_method}' difference...")
+    min_masked = rank_df['num_masked'].min()
+    title_suffix = f"Top videos selected at num_masked={min_masked}"
+    print(f"Generating rank stability plot for {len(videos_to_plot)} selected videos...")
 
     # 1. Filter the DataFrame by max_masked
     plot_df = rank_df[rank_df['num_masked'] <= max_masked].copy()
 
-    # 2. Select the videos to plot based on the aggregation method
-    if aggregation_method == 'mean':
-        # Find videos with the highest and lowest average rank difference
-        agg = plot_df.groupby('video_id')['rank_difference'].mean()
-        title_suffix = f"Top {top_n} by Mean Difference"
-    elif aggregation_method == 'max':
-        # Find videos with the single largest positive or negative rank difference
-        indices_of_max = plot_df.loc[plot_df.groupby('video_id', observed=False)['rank_difference'].abs().idxmax()]
-        agg = indices_of_max.set_index('video_id')['rank_difference']
-        title_suffix = f"Top {top_n} by Max Difference"
-    else:
-        raise ValueError("aggregation_method must be 'mean' or 'max'")
-
-    # Sort the aggregated values
-    sorted_agg = agg.sort_values()
-    # Get top N lowest (most negative) and top N highest (most positive)
-    top_n_lowest = sorted_agg.head(top_n)
-    top_n_highest = sorted_agg.tail(top_n)
-    # Combine their indices (which are the video_ids)
-    top_videos_to_plot = pd.concat([top_n_lowest, top_n_highest]).index
-
-    # Filter the main plot DataFrame to only these videos
-    plot_df = plot_df[plot_df['video_id'].isin(top_videos_to_plot)]
+    # 2. Filter the main plot DataFrame to only the provided videos
+    plot_df = plot_df[plot_df['video_id'].isin(videos_to_plot)]
 
     # 3. Create the plot
     plt.figure(figsize=(14, 8))
@@ -133,30 +114,24 @@ def main(args: AnalysisArgs):
 
     rank_df = calculate_rank_differences(combined_df, args.method1, args.method2, args.metric)
 
-    # Get the top N videos based on the new logic (lowest num_masked)
-    ids = get_high_diff_ranks(rank_df, args.method1, args.method2, top_n=5)
+    # 1. Get the top N videos based on the lowest num_masked condition.
+    ids_dict = get_high_diff_ranks(rank_df, args.method1, args.method2, top_n=5)
     print("Top difference videos (selected from lowest num_masked):")
     # This import was missing from the original file
     import yaml
-    print(yaml.dump(ids))
+    print(yaml.dump(ids_dict))
 
     results_dir = Path("results/plots/rank_stability")
     results_dir.mkdir(exist_ok=True, parents=True)
 
-    # Generate the simplified stability plot
-    plot_rank_stability(
-        rank_df,
-        results_dir / "rank_stability_by_mean_diff.png",
-        top_n=5,
-        aggregation_method='mean',
-        max_masked=30
-    )
+    # 2. Create a flat, unique list of these video IDs to plot.
+    videos_to_plot = sorted(list(set(ids_dict[args.method1] + ids_dict[args.method2])))
 
+    # 3. Generate the stability plot using the selected IDs.
     plot_rank_stability(
         rank_df,
-        results_dir / "rank_stability_by_max_diff.png",
-        top_n=5,
-        aggregation_method='max',
+        results_dir / "rank_stability_of_initial_diffs.png",
+        videos_to_plot=videos_to_plot,
         max_masked=30
     )
 
