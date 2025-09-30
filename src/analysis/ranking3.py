@@ -224,7 +224,7 @@ def plot_rank_comparison(
 ):
     """
     Creates a dumbbell plot comparing the ranks of videos for two methods
-    at a specific num_masked value, with a tolerance band.
+    at a specific num_masked value, with a horizontal tolerance band around y=x.
     """
     print(f"Generating rank comparison dumbbell plot for num_masked={num_masked}...")
 
@@ -234,40 +234,48 @@ def plot_rank_comparison(
         print(f"No data found for num_masked={num_masked}. Skipping plot.")
         return
 
-    plot_df = plot_df.sort_values(by='rank_m1', ascending=True)
+    # Sort by rank_m1 and reset index to ensure clean sequential indexing
+    plot_df = plot_df.sort_values(by='rank_m1', ascending=True).reset_index(drop=True)
+
+    # Debug: Check if ranks are sequential
+    print(f"rank_m1 min: {plot_df['rank_m1'].min()}, max: {plot_df['rank_m1'].max()}")
+    print(f"Number of videos: {len(plot_df)}")
+    print(f"First 10 rank_m1 values: {plot_df['rank_m1'].head(10).tolist()}")
+
     short_m1 = _shorten_method_name(method1)
     short_m2 = _shorten_method_name(method2)
 
     plt.figure(figsize=(20, 10))
     ax = plt.gca()
 
-    x_coords = np.arange(len(plot_df))
-    rank_m1_values = plot_df['rank_m1']
+    # Use actual rank values as x-coordinates for a true rank-vs-rank plot
+    x_coords = plot_df['rank_m1'].values
 
-    # --- Add the Tolerance Band ---
+    # For the tolerance band, the diagonal is now simply y=x
+    # --- Add the Tolerance Band around the diagonal (y=x line) ---
     ax.fill_between(
         x_coords,
-        rank_m1_values - tolerance,
-        rank_m1_values + tolerance,
+        x_coords - tolerance,
+        x_coords + tolerance,
         color='gray',
         alpha=0.2,
-        label=f'Tolerance Band (±{tolerance} ranks)'
+        label=f'Tolerance Band (±{tolerance} ranks from perfect agreement)',
+        zorder=1
     )
 
-    # Create the vertical "dumbbell" lines
-    ax.vlines(x=x_coords, ymin=plot_df['rank_m1'], ymax=plot_df['rank_m2'], color='lightgray', linestyle='-')
+    # Create the vertical "dumbbell" lines connecting the two ranks
+    for i, (x, y1, y2) in enumerate(zip(x_coords, plot_df['rank_m1'], plot_df['rank_m2'])):
+        ax.plot([x, x], [y1, y2], color='lightgray', linestyle='-', linewidth=1.5, zorder=2)
 
     # Plot the points for each method
     ax.scatter(x=x_coords, y=plot_df['rank_m1'], color='red', s=50, label=short_m1, zorder=3)
     ax.scatter(x=x_coords, y=plot_df['rank_m2'], color='blue', s=50, label=short_m2, zorder=3)
 
     # Format the plot
-    ax.set_xticks(x_coords)
-    ax.set_xticklabels(plot_df['video_id'], rotation=90)
     ax.set_title(f"Rank Comparison at num_masked={num_masked} (metric: {metric})")
-    ax.set_xlabel(f"Video ID (sorted by {short_m1}'s rank)")
-    ax.set_ylabel("Rank")
-    ax.grid(axis='y', linestyle='--', alpha=0.7)
+    ax.set_xlabel(f"{short_m1} Rank")
+    ax.set_ylabel(f"{short_m2} Rank")
+    ax.grid(True, linestyle='--', alpha=0.7)
 
     # Invert y-axis so Rank #1 is at the top
     ax.invert_yaxis()
@@ -325,11 +333,10 @@ def main(args: AnalysisArgs):
         metric=args.metric,
         method1=args.method1,
         method2=args.method2,
-        tolerance=10  # Added the tolerance parameter
+        tolerance=10
     )
 
 
 if __name__ == "__main__":
     dargs = get_dargs()
     main(AnalysisArgs(metric=dargs.get(1, 'cos_sim_mean')))
-
