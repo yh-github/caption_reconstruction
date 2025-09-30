@@ -85,6 +85,11 @@ def get_high_diff_ranks(rank_df: DataFrame, method1: str, method2: str, top_n: i
     }
 
 
+def _shorten_method_name(name: str) -> str:
+    """Shortens a long method name for cleaner plot labels."""
+    return name.split('__')[0]
+
+
 def plot_rank_stability(
         rank_df: pd.DataFrame,
         output_path: Path,
@@ -107,8 +112,8 @@ def plot_rank_stability(
         ].copy()
 
     start_ranks = plot_df[plot_df['num_masked'] == min_masked]
-    label_neg = f"{method1} better (starts negative)"
-    label_pos = f"{method2} better (starts positive)"
+    label_neg = f"{_shorten_method_name(method1)} better (starts negative)"
+    label_pos = f"{_shorten_method_name(method2)} better (starts positive)"
 
     video_to_group = {
         video_id: label_neg if group_df['rank_difference'].mean() < 0 else label_pos
@@ -133,7 +138,7 @@ def plot_rank_stability(
     ax.axhline(0, color='black', linestyle='--', lw=1.5)
     ax.set_title(f'Rank Difference Stability for metric: {metric}\n(up to {max_masked} masked, {title_suffix})')
     ax.set_xlabel("Number of Masked Captions")
-    ax.set_ylabel(f"Rank Difference ({method1} - {method2})")
+    ax.set_ylabel(f"Rank Difference ({_shorten_method_name(method1)} - {_shorten_method_name(method2)})")
 
     ax.legend(
         bbox_to_anchor=(0.5, 1.15),
@@ -157,7 +162,7 @@ def plot_impact_trajectories(
         method2: str
 ):
     """
-    Creates a line plot showing the average rank difference for each video,
+    Creates a line plot showing the signed max absolute rank difference for each video,
     conditioned on which specific caption index was masked.
     """
     print(f"Generating impact trajectory plot for {len(videos_to_plot)} selected videos...")
@@ -166,38 +171,47 @@ def plot_impact_trajectories(
     exploded_df = filtered_df.explode('masked_tuple')
     exploded_df = exploded_df.rename(columns={'masked_tuple': 'masked_index'})
 
-    plot_df = exploded_df.groupby(['video_id', 'masked_index'])['rank_difference'].mean().reset_index()
+    # --- Correct Aggregation Logic ---
+    # For each (video_id, masked_index) pair, find the single most extreme rank difference.
+    # 1. Find the index of the max absolute value for each group.
+    idx = exploded_df.groupby(['video_id', 'masked_index'])['rank_difference'].abs().idxmax()
+    # 2. Use .loc to select the original rows with the signed value.
+    plot_df = exploded_df.loc[idx].reset_index(drop=True)
 
+    # --- Correct Plotting Logic ---
+    # Determine the starting group for coloring, same as the other plot
     min_masked = rank_df['num_masked'].min()
     start_ranks = rank_df[rank_df['num_masked'] == min_masked]
-    label_neg = f"{method1} better (initially)"
-    label_pos = f"{method2} better (initially)"
+    label_neg = f"{_shorten_method_name(method1)} better (initially)"
+    label_pos = f"{_shorten_method_name(method2)} better (initially)"
     video_to_group = {
         video_id: label_neg if group_df['rank_difference'].mean() < 0 else label_pos
         for video_id, group_df in start_ranks.groupby('video_id')
     }
-    plot_df['start_group'] = plot_df['video_id'].map(video_to_group)
+    # Create the color palette that maps each specific video_id to its group color
+    video_color_palette = {
+        vid: 'red' if video_to_group.get(vid) == label_neg else 'blue'
+        for vid in videos_to_plot
+    }
 
     plt.figure(figsize=(20, 8))
     ax = sns.lineplot(
         data=plot_df,
         x='masked_index',
         y='rank_difference',
-        hue='start_group',
-        units='video_id',
-        estimator=None,
-        palette={label_neg: 'red', label_pos: 'blue'},
-        alpha=0.5,
-        linewidth=1.8
+        hue='video_id',  # Hue by video_id to force separate lines
+        palette=video_color_palette,  # Use the custom palette for red/blue grouping
+        alpha=0.6,
+        linewidth=1.8,
+        legend=None  # The legend would be too crowded; colors are the guide
     )
 
     ax.axhline(0, color='black', linestyle='--', lw=1.5)
     ax.set_title(
-        f"Impact of Specific Masked Captions on Rank Difference\n(for {len(videos_to_plot)} selected videos, metric: {metric})")
+        f"Most Extreme Impact of Specific Masked Captions\n(for {len(videos_to_plot)} selected videos, metric: {metric})")
     ax.set_xlabel("Caption Index That Was Masked")
-    ax.set_ylabel("Average Rank Difference (m1 - m2)")
+    ax.set_ylabel(f"Signed Max Abs Rank Difference ({_shorten_method_name(method1)} - {_shorten_method_name(method2)})")
 
-    plt.legend(title="Initial Rank Difference")
     plt.tight_layout()
     plt.savefig(output_path, dpi=150, bbox_inches='tight')
     plt.close()
