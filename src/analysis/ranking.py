@@ -13,19 +13,19 @@ from data_models.exec_args import get_dargs
 def calculate_rank_differences(df: DataFrame, method1: str, method2: str, metric: str) -> DataFrame:
     """
     Core function to calculate rank differences for all videos across all conditions.
-    This version groups by the number of masked captions.
+    This version groups by the specific combination of masked captions.
     """
     selected_methods = [method1, method2]
     filtered_df = df[df['method'].isin(selected_methods)].copy()
 
-    # We need the specific masked list later, so we evaluate it here.
+    # Create a hashable version of the masked list to group by
     filtered_df['masked_tuple'] = filtered_df['masked'].apply(lambda x: tuple(sorted(eval(x))))
 
-    # Group by the number of masked items, method, and video_id.
-    grouped = filtered_df.groupby(['num_masked', 'method', 'video_id'], observed=False)[metric].mean().reset_index()
+    # Group by the specific masked tuple, method, and video_id.
+    grouped = filtered_df.groupby(['masked_tuple', 'method', 'video_id'], observed=False)[metric].mean().reset_index()
 
     # Define the grouping keys for ranking
-    rank_groups = ['num_masked', 'method']
+    rank_groups = ['masked_tuple', 'method']
 
     # --- Rank Calculation Logic ---
     grouped['rank'] = grouped.groupby(rank_groups, observed=False)[metric].rank(method='first', ascending=False)
@@ -37,16 +37,13 @@ def calculate_rank_differences(df: DataFrame, method1: str, method2: str, metric
     merged_ranks = pd.merge(
         method1_ranks,
         method2_ranks,
-        on=['video_id', 'num_masked'],
+        on=['video_id', 'masked_tuple'],
         suffixes=('_m1', '_m2')
     )
 
     merged_ranks['rank_difference'] = merged_ranks['rank_m1'] - merged_ranks['rank_m2']
-    # We need to bring the original masked_tuple back for the second plot
-    merged_ranks = merged_ranks.merge(
-        filtered_df[['video_id', 'num_masked', 'masked_tuple']].drop_duplicates(),
-        on=['video_id', 'num_masked']
-    )
+    # Add num_masked back for convenience in other plots
+    merged_ranks['num_masked'] = merged_ranks['masked_tuple'].apply(len)
     return merged_ranks
 
 
@@ -96,18 +93,21 @@ def plot_rank_stability(
         (rank_df['video_id'].isin(videos_to_plot))
         ].copy()
 
+    # For this plot, we need to aggregate by num_masked since there can be
+    # multiple masked_tuples for the same number of masks.
+    plot_df = plot_df.groupby(['video_id', 'num_masked'])['rank_difference'].mean().reset_index()
+
     start_ranks = plot_df[plot_df['num_masked'] == min_masked]
     label_neg = f"{method1} better (starts negative)"
     label_pos = f"{method2} better (starts positive)"
 
-    # Because there can be multiple rows for the same video at min_masked, we take the mean.
     video_to_group = {
         video_id: label_neg if group_df['rank_difference'].mean() < 0 else label_pos
         for video_id, group_df in start_ranks.groupby('video_id')
     }
     plot_df['start_group'] = plot_df['video_id'].map(video_to_group)
 
-    plt.figure(figsize=(14, 9))  # Increased height for legend
+    plt.figure(figsize=(14, 9))
     ax = sns.lineplot(
         data=plot_df,
         x='num_masked',
@@ -127,7 +127,6 @@ def plot_rank_stability(
     ax.set_xlabel("Number of Masked Captions")
     ax.set_ylabel(f"Rank Difference ({method1} - {method2})")
 
-    # Position legend above the plot
     ax.legend(
         bbox_to_anchor=(0.5, 1.15),
         loc='upper center',
@@ -135,54 +134,54 @@ def plot_rank_stability(
         ncol=2,
         title="Initial Rank Difference"
     )
-    plt.tight_layout(rect=[0, 0, 1, 0.95])  # Adjust layout to prevent title overlap
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
 
     plt.savefig(output_path, dpi=150, bbox_inches='tight')
     plt.close()
     print(f"Plot saved to {output_path}")
 
 
-def plot_impact_as_lineplot(
+def plot_impact_trajectories(
         rank_df: pd.DataFrame,
         output_path: Path,
         videos_to_plot: list[str],
-        target_index: int,
         metric: str,
         method1: str,
         method2: str
 ):
     """
-    Creates a line plot showing how rank difference changes when a specific
-    caption index is masked.
+    Creates a line plot showing the average rank difference for each video,
+    conditioned on which specific caption index was masked.
     """
-    print(f"Generating impact line plot for target_index={target_index}...")
+    print(f"Generating impact trajectory plot for {len(videos_to_plot)} selected videos...")
 
     # Filter for only the videos we care about
     filtered_df = rank_df[rank_df['video_id'].isin(videos_to_plot)].copy()
 
-    # Create the new boolean column for the x-axis
-    filtered_df['target_is_masked'] = filtered_df['masked_tuple'].apply(lambda x: target_index in x)
+    # "Explode" the DataFrame so each row represents one video and one masked index
+    exploded_df = filtered_df.explode('masked_tuple')
+    exploded_df = exploded_df.rename(columns={'masked_tuple': 'masked_index'})
 
-    # Aggregate the data: for each video, get the mean rank_difference when the
-    # target is masked vs. when it is not.
-    agg_df = filtered_df.groupby(['video_id', 'target_is_masked'])['rank_difference'].mean().reset_index()
+    # For this plot, we need to aggregate the rank difference for each video and masked_index
+    # This gives us the average impact of masking a specific index for a specific video
+    plot_df = exploded_df.groupby(['video_id', 'masked_index'])['rank_difference'].mean().reset_index()
 
     # Determine the starting group for coloring, same as the other plot
     min_masked = rank_df['num_masked'].min()
     start_ranks = rank_df[rank_df['num_masked'] == min_masked]
-    label_neg = f"{method1} better (starts negative)"
-    label_pos = f"{method2} better (starts positive)"
+    label_neg = f"{method1} better (initially)"
+    label_pos = f"{method2} better (initially)"
     video_to_group = {
         video_id: label_neg if group_df['rank_difference'].mean() < 0 else label_pos
         for video_id, group_df in start_ranks.groupby('video_id')
     }
-    agg_df['start_group'] = agg_df['video_id'].map(video_to_group)
+    plot_df['start_group'] = plot_df['video_id'].map(video_to_group)
 
     # --- Create the Line Plot ---
-    plt.figure(figsize=(12, 8))
+    plt.figure(figsize=(20, 8))
     ax = sns.lineplot(
-        data=agg_df,
-        x='target_is_masked',
+        data=plot_df,
+        x='masked_index',
         y='rank_difference',
         hue='start_group',
         units='video_id',
@@ -194,11 +193,9 @@ def plot_impact_as_lineplot(
 
     ax.axhline(0, color='black', linestyle='--', lw=1.5)
     ax.set_title(
-        f"Impact of Masking Index {target_index} on Rank Difference\n(for {len(videos_to_plot)} selected videos, metric: {metric})")
-    ax.set_xlabel(f"Was Caption at Index {target_index} Masked?")
+        f"Impact of Specific Masked Captions on Rank Difference\n(for {len(videos_to_plot)} selected videos, metric: {metric})")
+    ax.set_xlabel("Caption Index That Was Masked")
     ax.set_ylabel("Average Rank Difference (m1 - m2)")
-    ax.set_xticks([False, True])  # Ensure x-axis only shows False and True
-    ax.set_xticklabels(['Not Masked', 'Masked'])
 
     plt.legend(title="Initial Rank Difference")
     plt.tight_layout()
@@ -234,12 +231,11 @@ def main(args: AnalysisArgs):
         max_masked=45
     )
 
-    # Generate the new impact plot
-    plot_impact_as_lineplot(
+    # Generate the new impact line plot
+    plot_impact_trajectories(
         rank_df,
-        results_dir / "impact_by_mask_index_1.png",
+        results_dir / "impact_by_masked_index_lines.png",
         videos_to_plot=videos_to_plot,
-        target_index=1,
         metric=args.metric,
         method1=args.method1,
         method2=args.method2
