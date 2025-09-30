@@ -64,6 +64,61 @@ class RandomMasking(MaskingStrategy):
         return {"ratio": self.ratio}
 
 
+class FixedFillMasking(MaskingStrategy):
+
+    def __init__(self, width:int, start_ind:int):
+        super().__init__("fixed_fill")
+        self.width:int = width
+        self.start_ind:int = start_ind
+
+    def get_params_for_repr(self) -> dict:
+        return {"w": self.width, "i": self.start_ind}
+
+    def get_indices_to_mask(self, num_clips: int) -> set[int]:
+        """
+        Calculates a set of indices to mask, starting from start_ind and
+        expanding symmetrically until 'width' indices are collected.
+        Handles boundaries by continuing expansion in the valid direction.
+
+        Args:
+            num_clips: The total number of available clips (indices are 0 to num_clips-1).
+
+        Returns:
+            A set of integer indices to be masked.
+        """
+        if self.start_ind >= num_clips:
+            raise ValueError(f"start_ind ({self.start_ind}) must be less than num_clips ({num_clips}).")
+
+        indices: set[int] = {self.start_ind}
+        offset = 1
+
+        # Clamp the width to not exceed the total number of clips
+        target_width = min(self.width, num_clips - 1) # TODO assert?
+
+        while len(indices) < target_width:
+            # Check right side
+            right_idx = self.start_ind + offset
+            if right_idx < num_clips:
+                indices.add(right_idx)
+                if len(indices) == target_width:
+                    break
+
+            # Check left side
+            left_idx = self.start_ind - offset
+            if left_idx >= 0:
+                indices.add(left_idx)
+                if len(indices) == target_width:
+                    break
+
+            offset += 1
+
+            # Safety break in case all possible indices have been added
+            if (self.start_ind + offset >= num_clips) and (self.start_ind - offset < 0):
+                break
+
+        return indices
+
+
 class ContiguousMasking(MaskingStrategy):
     """
     A masking strategy that masks a single, contiguous block of clips.

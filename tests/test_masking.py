@@ -1,5 +1,5 @@
 import pytest
-from reconstruction.masking import PartitionMasking, get_masking_strategies
+from reconstruction.masking import PartitionMasking, get_masking_strategies, FixedFillMasking
 from data_models.captions_only import CaptionedClip,  TimestampRange
 
 # --- The Fixture (no changes needed) ---
@@ -108,3 +108,58 @@ def test_contiguous_masking_correctly_masks_indices():
     # Assert
     # The masked indices should be a contiguous block of 3, starting at 1
     assert masked_indices == {1, 2, 3}
+
+
+###################
+
+# This test file is dedicated to testing the FixedFillMasking class.
+
+@pytest.mark.parametrize("width, start_ind, num_clips, expected", [
+    # Standard cases
+    (5, 3, 10, {1, 2, 3, 4, 5}),
+    (4, 5, 10, {4, 5, 6, 7}),
+
+    # Edge cases near the start
+    (5, 0, 10, {0, 1, 2, 3, 4}),
+    (5, 1, 10, {0, 1, 2, 3, 4}),
+
+    # Edge cases near the end
+    (5, 9, 10, {5, 6, 7, 8, 9}),
+    (3, 8, 10, {7, 8, 9}),
+
+    # Single item width
+    (1, 5, 10, {5}),
+
+    # Full width cases
+    (10, 5, 10, set(range(10))),
+    (12, 5, 10, set(range(10))),  # Width larger than num_clips
+])
+def test_get_indices_to_mask(width, start_ind, num_clips, expected):
+    """
+    Tests the get_indices_to_mask method with various valid inputs.
+    """
+    strategy = FixedFillMasking(width=width, start_ind=start_ind)
+    result = strategy.get_indices_to_mask(num_clips)
+    assert result == expected
+
+
+def test_get_indices_to_mask_invalid_start():
+    """
+    Tests that the method raises a ValueError if the start_ind is out of bounds.
+    """
+    strategy = FixedFillMasking(width=5, start_ind=10)
+    with pytest.raises(ValueError, match="start_ind (10) must be less than num_clips (10)"):
+        strategy.get_indices_to_mask(num_clips=10)
+
+
+def test_get_indices_to_mask_with_zero_clips():
+    """
+    Tests behavior when there are no clips available.
+    """
+    strategy = FixedFillMasking(width=5, start_ind=0)
+    with pytest.raises(ValueError):
+        strategy.get_indices_to_mask(num_clips=0)  # start_ind=0 is not < num_clips=0
+
+    # A valid case where the result should be empty
+    strategy_valid = FixedFillMasking(width=5, start_ind=0)
+    assert strategy_valid.get_indices_to_mask(num_clips=1) == {0}
