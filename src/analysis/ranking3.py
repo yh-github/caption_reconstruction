@@ -81,14 +81,22 @@ def calculate_rank_differences_by_tuple(df: DataFrame, method1: str, method2: st
     return merged_ranks
 
 
-def get_video_id_ordering(rank_df: DataFrame, base_num_masked: int) -> list[str]:
     """
     Get the canonical ordering of video IDs based on method1's rank at a specific num_masked.
     This ordering will be used consistently across all plots.
     """
+def get_video_id_ordering(rank_df: DataFrame, base_num_masked: int, by:int=1) -> tuple[list[str], pd.Series]:
+    by_str = f'rank_m{by}'
     base_df = rank_df[rank_df['num_masked'] == base_num_masked].copy()
-    base_df = base_df.sort_values(by='rank_m1', ascending=True)
-    return base_df['video_id'].tolist()
+    base_df = base_df.sort_values(by=by_str, ascending=True)
+    ids:list[str] = base_df['video_id'].tolist()
+
+    # Capture the baseline ranks to use for the fixed tolerance band
+    base_df = rank_df[rank_df['num_masked'] == base_num_masked]
+    baseline_ranks = base_df.set_index('video_id')[by_str]
+    baseline_ranks.name = base_num_masked  # Store the num_masked value for the title
+
+    return ids, baseline_ranks
 
 
 def get_high_diff_ranks(rank_df: DataFrame, method1: str, method2: str, top_n: int = 5) -> dict[str, list[str]]:
@@ -243,14 +251,15 @@ def plot_rank_comparison(
         output_path: Path,
         num_masked: int,
         video_id_order: list[str],
+        baseline_ranks: pd.Series,
         metric: str,
         method1: str,
         method2: str,
         tolerance: int = 10
 ):
     """
-    Creates a dumbbell plot comparing the ranks of videos for two methods
-    at a specific num_masked value, using a fixed video ID ordering.
+    Creates a dumbbell plot comparing video ranks, with a fixed tolerance band
+    based on the baseline ranking.
     """
     print(f"Generating rank comparison dumbbell plot for num_masked={num_masked}...")
 
@@ -260,14 +269,10 @@ def plot_rank_comparison(
         print(f"No data found for num_masked={num_masked}. Skipping plot.")
         return
 
-    # Use the provided ordering, but only include videos that exist in this data
     available_videos = set(plot_df['video_id'])
     ordered_videos = [vid for vid in video_id_order if vid in available_videos]
 
-    # Filter and reorder the dataframe
-    plot_df = plot_df[plot_df['video_id'].isin(ordered_videos)].copy()
-    plot_df['video_order'] = plot_df['video_id'].map({vid: i for i, vid in enumerate(ordered_videos)})
-    plot_df = plot_df.sort_values('video_order')
+    plot_df = plot_df.set_index('video_id').reindex(ordered_videos).reset_index()
 
     short_m1 = _shorten_method_name(method1)
     short_m2 = _shorten_method_name(method2)
@@ -277,39 +282,37 @@ def plot_rank_comparison(
 
     x_coords = np.arange(len(plot_df))
 
-    # For the tolerance band, use method1's rank as the reference
-    # (since x-axis order is based on method1's rank at num_masked=6)
-    diagonal_line = plot_df['rank_m1'].values
+    # Get the baseline ranks for the videos in the current plot, in the correct order.
+    baseline_rank_values = baseline_ranks.reindex(ordered_videos).values
 
-    # --- Add the Tolerance Band ---
+    # --- Add the Constant Tolerance Band ---
     ax.fill_between(
         x_coords,
-        diagonal_line - tolerance,
-        diagonal_line + tolerance,
+        baseline_rank_values - tolerance,
+        baseline_rank_values + tolerance,
         color='gray',
         alpha=0.2,
-        label=f'Tolerance Band (±{tolerance} ranks from {short_m1})',
+        label=f'Tolerance (±{tolerance}) around baseline rank',
         zorder=1
     )
 
-    # Create the vertical "dumbbell" lines connecting the two ranks
-    for i, (y1, y2) in enumerate(zip(plot_df['rank_m1'], plot_df['rank_m2'])):
-        ax.plot([i, i], [y1, y2], color='lightgray', linestyle='-', linewidth=1.5, zorder=2)
+    # Create the vertical "dumbbell" lines
+    ax.vlines(x=x_coords, ymin=plot_df['rank_m1'], ymax=plot_df['rank_m2'], color='lightgray', linestyle='-')
 
     # Plot the points for each method
-    ax.scatter(x=x_coords, y=plot_df['rank_m1'], color='red', s=50, label=short_m1, zorder=3, alpha=0.5)
-    ax.scatter(x=x_coords, y=plot_df['rank_m2'], color='blue', s=50, label=short_m2, zorder=3, alpha=0.5)
+    ax.scatter(x=x_coords, y=plot_df['rank_m1'], color='red', s=50, label=short_m1, zorder=3)
+    ax.scatter(x=x_coords, y=plot_df['rank_m2'], color='blue', s=50, label=short_m2, zorder=3)
 
-    # Format the plot with video IDs
+    # Format the plot
     ax.set_xticks(x_coords)
     ax.set_xticklabels(plot_df['video_id'], rotation=90, fontsize=8)
     ax.set_title(
-        f"Rank Comparison at num_masked={num_masked} (metric: {metric})\n(x-axis order fixed from num_masked=6)")
-    ax.set_xlabel("Video ID (ordered by base ranking)")
+        f"Rank Comparison at num_masked={num_masked} (metric: {metric})\n"
+        f"(x-axis order and tolerance band fixed from baseline at num_masked={baseline_ranks.name})"
+    )
+    ax.set_xlabel("Video ID (ordered by baseline ranking)")
     ax.set_ylabel("Rank")
     ax.grid(axis='y', linestyle='--', alpha=0.7)
-
-    # Invert y-axis so Rank #1 is at the top
     ax.invert_yaxis()
     ax.legend()
 
@@ -327,42 +330,16 @@ def main(args: AnalysisArgs):
     rank_df_by_num = calculate_rank_differences_by_num_masked(combined_df, args.method1, args.method2, args.metric)
     rank_df_by_tuple = calculate_rank_differences_by_tuple(combined_df, args.method1, args.method2, args.metric)
 
-    # --- Get fixed video ID ordering from num_masked=6 ---
+    # --- Get fixed video ID ordering and baseline ranks from num_masked=6 ---
     base_num_masked = 6
-    video_id_order = get_video_id_ordering(rank_df_by_num, base_num_masked)
-    print(f"Fixed video ID ordering established from num_masked={base_num_masked}")
-    print(f"Total videos in base ordering: {len(video_id_order)}")
+    video_id_order, baseline_ranks = get_video_id_ordering(rank_df_by_num, base_num_masked, by=2)
+
+    print(f"Fixed video ID ordering and baseline ranks established from num_masked={base_num_masked}")
 
     # --- Select videos and print IDs ---
-    ids_dict = get_high_diff_ranks(rank_df_by_num, args.method1, args.method2, top_n=5)
-    print("Top difference videos (selected from lowest num_masked):")
-    import yaml
-    print(yaml.dump(ids_dict))
 
     results_dir = Path("results/plots/rank_stability")
     results_dir.mkdir(exist_ok=True, parents=True)
-
-    videos_to_plot = sorted(list(set(ids_dict[args.method1] + ids_dict[args.method2])))
-
-    # --- Generate the plots ---
-    plot_rank_stability(
-        rank_df_by_num,
-        results_dir / "rank_stability_of_initial_diffs.png",
-        videos_to_plot=videos_to_plot,
-        metric=args.metric,
-        method1=args.method1,
-        method2=args.method2,
-        max_masked=45
-    )
-
-    plot_impact_trajectories(
-        rank_df_by_tuple,
-        results_dir / "impact_by_masked_index_lines.png",
-        videos_to_plot=videos_to_plot,
-        metric=args.metric,
-        method1=args.method1,
-        method2=args.method2
-    )
 
     # --- Generate comparison plots for multiple num_masked values ---
     num_masked_values = sorted(rank_df_by_num['num_masked'].unique())
@@ -374,6 +351,7 @@ def main(args: AnalysisArgs):
             results_dir / f"rank_comparison_at_{num_masked}_masked.png",
             num_masked=num_masked,
             video_id_order=video_id_order,
+            baseline_ranks=baseline_ranks,
             metric=args.metric,
             method1=args.method1,
             method2=args.method2,
