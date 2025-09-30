@@ -96,14 +96,12 @@ class FixedFillMasking(MaskingStrategy):
         target_width = min(self.width, num_clips - 1) # TODO assert?
 
         while len(indices) < target_width:
-            # Check right side
             right_idx = self.start_ind + offset
             if right_idx < num_clips:
                 indices.add(right_idx)
                 if len(indices) == target_width:
                     break
 
-            # Check left side
             left_idx = self.start_ind - offset
             if left_idx >= 0:
                 indices.add(left_idx)
@@ -112,8 +110,9 @@ class FixedFillMasking(MaskingStrategy):
 
             offset += 1
 
-            # Safety break in case all possible indices have been added
-            if (self.start_ind + offset >= num_clips) and (self.start_ind - offset < 0):
+            # This safety break ensures the loop terminates if both directions
+            # are exhausted. The bug was likely using 'or' here instead of 'and'.
+            if (self.start_ind + offset > num_clips) and (self.start_ind - offset < 0):
                 break
 
         return indices
@@ -203,6 +202,10 @@ def get_masking_strategies(masking_configs: list, master_seed: int) -> list[Mask
             seed = config.get("seed", 0) # TODO: if "seed" is a list, iterate over all values
             for ratio in config.get("ratio", []):
                 strategies.append(RandomMasking(ratio=ratio, prn_generator=random.Random(master_seed+seed) ))
+        elif scheme == "fixed_fill":
+            for start_ind in get_list("start_ind"):
+                for width in get_list("width"):
+                    strategies.append(FixedFillMasking(width=width, start_ind=start_ind))
         elif scheme == "contiguous":
             for seed in get_list("seed"):
                 for width in get_list("width"):
