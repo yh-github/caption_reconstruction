@@ -74,6 +74,7 @@ def plot_rank_stability(
         rank_df: pd.DataFrame,
         output_path: Path,
         videos_to_plot: list[str],
+        metric: str,
         max_masked: int = 30,
 ):
     """
@@ -110,7 +111,9 @@ def plot_rank_stability(
         estimator=None,  # Don't aggregate, draw the raw lines
         palette={'Method1 Better (starts negative)': 'blue', 'Method2 Better (starts positive)': 'red'},
         alpha=0.5,  # Make lines semi-transparent to show overlaps
-        linewidth=1.5
+        linewidth=1.8,
+        # marker='o',
+        # markersize=8
     )
 
     # 4. Add guidelines for readability
@@ -118,7 +121,7 @@ def plot_rank_stability(
     ax.axhline(0, color='black', linestyle='--', lw=1.5)  # Pronounced zero line
 
     # 5. Final Formatting
-    ax.set_title(f'Rank Difference Stability\n(up to {max_masked} masked, {title_suffix})')
+    ax.set_title(f'Rank Difference Stability for metric: {metric}\n(up to {max_masked} masked, {title_suffix})')
     ax.set_xlabel("Number of Masked Captions")
     ax.set_ylabel("Rank Difference (m1 - m2)")
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Initial Rank Difference")
@@ -153,11 +156,12 @@ def main(args: AnalysisArgs):
         rank_df,
         results_dir / "rank_stability_of_initial_diffs.png",
         videos_to_plot=videos_to_plot,
-        max_masked=30
+        metric=args.metric,
+        max_masked=45
     )
 
 
 if __name__ == "__main__":
     dargs = get_dargs()
-    main(AnalysisArgs(metric=dargs.get(1, 'cos_sim_mean')))
+    main(AnalysisArgs(metric=dargs.get(1, 'cos_sim_min')))
 
