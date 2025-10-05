@@ -49,10 +49,9 @@ def calculate_rank_differences_by_num_masked(df: DataFrame, method1: str, method
 def bin_ranks(rank_values: pd.Series, bin_size: int = 10) -> pd.Series:
     """
     Bin ranks into groups (0-9, 10-19, 20-29, etc.)
-    Returns the midpoint of each bin (4.5 for 0-9, 14.5 for 10-19, etc.)
+    Returns the lower bound of each bin.
     """
-    bin_lower = (rank_values // bin_size) * bin_size
-    return bin_lower + (bin_size - 1) / 2
+    return (rank_values // bin_size) * bin_size
 
 
 def get_video_id_ordering(rank_df: DataFrame, base_num_masked: int, by: int = 1) -> tuple[list[str], pd.Series]:
@@ -299,18 +298,13 @@ def plot_rank_comparison(
         f"(Ranks binned by {bin_size}, x-axis order and tolerance band fixed from baseline at num_masked={baseline_ranks.name})"
     )
     ax.set_xlabel("Video ID (ordered by baseline ranking)")
-    ax.set_ylabel(f"Rank Bin Midpoint (4.5 = ranks 0-9, 14.5 = ranks 10-19, etc.)")
+    ax.set_ylabel(f"Rank Bin (0-{bin_size - 1}, {bin_size}-{bin_size * 2 - 1}, etc.)")
 
-    # Set y-ticks to show bin midpoints clearly
+    # Set y-ticks to show bin boundaries clearly
     max_rank_bin = max(plot_df['rank_m1_binned'].max(), plot_df['rank_m2_binned'].max())
-    min_rank_bin = min(plot_df['rank_m1_binned'].min(), plot_df['rank_m2_binned'].min())
-
-    # Generate ticks at bin midpoints
-    tick_start = (min_rank_bin // bin_size) * bin_size + (bin_size - 1) / 2
-    tick_end = (max_rank_bin // bin_size + 1) * bin_size + (bin_size - 1) / 2
-    y_ticks = np.arange(tick_start, tick_end, bin_size)
+    y_ticks = np.arange(0, max_rank_bin + bin_size, bin_size)
     ax.set_yticks(y_ticks)
-    ax.set_yticklabels([f"{y:.1f}" for y in y_ticks])
+    ax.set_yticklabels([f"{int(y)}" for y in y_ticks])
 
     ax.grid(axis='y', linestyle='--', alpha=0.7)
     ax.invert_yaxis()
