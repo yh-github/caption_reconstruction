@@ -46,19 +46,28 @@ def calculate_rank_differences_by_num_masked(df: DataFrame, method1: str, method
     return merged_ranks
 
 
-def get_video_id_ordering(rank_df: DataFrame, base_num_masked: int, by:int=1) -> tuple[list[str], pd.Series]:
+def bin_ranks(rank_values: pd.Series, bin_size: int = 10) -> pd.Series:
     """
-    Get the canonical ordering of video IDs based on method1's rank at a specific num_masked.
+    Bin ranks into groups (0-9, 10-19, 20-29, etc.)
+    Returns the lower bound of each bin.
+    """
+    return (rank_values // bin_size) * bin_size
+
+
+def get_video_id_ordering(rank_df: DataFrame, base_num_masked: int, by: int = 1) -> tuple[list[str], pd.Series]:
+    """
+    Get the canonical ordering of video IDs based on method's rank at a specific num_masked.
     This ordering will be used consistently across all plots.
     """
     by_str = f'rank_m{by}'
     base_df = rank_df[rank_df['num_masked'] == base_num_masked].copy()
     base_df = base_df.sort_values(by=by_str, ascending=True)
-    ids:list[str] = base_df['video_id'].tolist()
+    ids: list[str] = base_df['video_id'].tolist()
 
-    # Capture the baseline ranks to use for the fixed tolerance band
-    base_df = rank_df[rank_df['num_masked'] == base_num_masked]
+    # Capture the baseline ranks (binned) to use for the fixed tolerance band
+    base_df = rank_df[rank_df['num_masked'] == base_num_masked].copy()
     baseline_ranks = base_df.set_index('video_id')[by_str]
+    baseline_ranks = bin_ranks(baseline_ranks)
     baseline_ranks.name = base_num_masked  # Store the num_masked value for the title
 
     return ids, baseline_ranks
@@ -220,11 +229,12 @@ def plot_rank_comparison(
         metric: str,
         method1: str,
         method2: str,
-        tolerance: int = 10
+        bin_size: int = 10,
+        tolerance: int = 1
 ):
     """
-    Creates a dumbbell plot comparing video ranks, with a fixed tolerance band
-    based on the baseline ranking.
+    Creates a dumbbell plot comparing video ranks (binned into groups of bin_size),
+    with a fixed tolerance band based on the baseline ranking.
     """
     print(f"Generating rank comparison dumbbell plot for num_masked={num_masked}...")
 
@@ -233,6 +243,10 @@ def plot_rank_comparison(
     if plot_df.empty:
         print(f"No data found for num_masked={num_masked}. Skipping plot.")
         return
+
+    # Bin the ranks
+    plot_df['rank_m1_binned'] = bin_ranks(plot_df['rank_m1'], bin_size)
+    plot_df['rank_m2_binned'] = bin_ranks(plot_df['rank_m2'], bin_size)
 
     available_videos = set(plot_df['video_id'])
     ordered_videos = [vid for vid in video_id_order if vid in available_videos]
@@ -253,30 +267,45 @@ def plot_rank_comparison(
     # --- Add the Constant Tolerance Band ---
     ax.fill_between(
         x_coords,
-        baseline_rank_values - tolerance,
-        baseline_rank_values + tolerance,
+        baseline_rank_values - (tolerance * bin_size),
+        baseline_rank_values + (tolerance * bin_size),
         color='gray',
         alpha=0.2,
-        label=f'Tolerance (±{tolerance}) around baseline rank',
+        label=f'Tolerance (±{tolerance} bins = ±{tolerance * bin_size} ranks) around baseline',
         zorder=1
     )
 
     # Create the vertical "dumbbell" lines
-    ax.vlines(x=x_coords, ymin=plot_df['rank_m1'], ymax=plot_df['rank_m2'], color='lightgray', linestyle='-')
+    ax.vlines(
+        x=x_coords,
+        ymin=plot_df['rank_m1_binned'],
+        ymax=plot_df['rank_m2_binned'],
+        color='lightgray',
+        linestyle='-',
+        linewidth=1.5,
+        zorder=2
+    )
 
-    # Plot the points for each method
-    ax.scatter(x=x_coords, y=plot_df['rank_m1'], color='red', s=50, label=short_m1, zorder=3)
-    ax.scatter(x=x_coords, y=plot_df['rank_m2'], color='blue', s=50, label=short_m2, zorder=3)
+    # Plot the points for each method (using binned values)
+    ax.scatter(x=x_coords, y=plot_df['rank_m1_binned'], color='red', s=50, label=short_m1, zorder=3)
+    ax.scatter(x=x_coords, y=plot_df['rank_m2_binned'], color='blue', s=50, label=short_m2, zorder=3)
 
     # Format the plot
     ax.set_xticks(x_coords)
     ax.set_xticklabels(plot_df['video_id'], rotation=90, fontsize=8)
     ax.set_title(
         f"Rank Comparison at num_masked={num_masked} (metric: {metric})\n"
-        f"(x-axis order and tolerance band fixed from baseline at num_masked={baseline_ranks.name})"
+        f"(Ranks binned by {bin_size}, x-axis order and tolerance band fixed from baseline at num_masked={baseline_ranks.name})"
     )
     ax.set_xlabel("Video ID (ordered by baseline ranking)")
-    ax.set_ylabel("Rank")
+    ax.set_ylabel(f"Rank Bin (0-{bin_size - 1}, {bin_size}-{bin_size * 2 - 1}, etc.)")
+
+    # Set y-ticks to show bin boundaries clearly
+    max_rank_bin = max(plot_df['rank_m1_binned'].max(), plot_df['rank_m2_binned'].max())
+    y_ticks = np.arange(0, max_rank_bin + bin_size, bin_size)
+    ax.set_yticks(y_ticks)
+    ax.set_yticklabels([f"{int(y)}" for y in y_ticks])
+
     ax.grid(axis='y', linestyle='--', alpha=0.7)
     ax.invert_yaxis()
     ax.legend()
@@ -285,6 +314,7 @@ def plot_rank_comparison(
     plt.savefig(output_path, dpi=150, bbox_inches='tight')
     plt.close()
     print(f"Plot saved to {output_path}")
+
 
 def main(args: AnalysisArgs):
     df, df_z = load_dfs("results/upload/")
@@ -299,14 +329,15 @@ def main(args: AnalysisArgs):
 
     print(f"Fixed video ID ordering and baseline ranks established from num_masked={base_num_masked}")
 
-    # --- Select videos and print IDs ---
-
     results_dir = Path("results/plots/rank_stability")
     results_dir.mkdir(exist_ok=True, parents=True)
 
     # --- Generate comparison plots for multiple num_masked values ---
     num_masked_values = sorted(rank_df_by_num['num_masked'].unique())
     print(f"\nGenerating comparison plots for num_masked values: {num_masked_values}")
+
+    bin_size = 10
+    tolerance_bins = 1  # ±1 bin = ±10 ranks
 
     for num_masked in num_masked_values:
         plot_rank_comparison(
@@ -318,14 +349,16 @@ def main(args: AnalysisArgs):
             metric=args.metric,
             method1=args.method1,
             method2=args.method2,
-            tolerance=10
+            bin_size=bin_size,
+            tolerance=tolerance_bins
         )
 
     print(f"\nAll plots saved to {results_dir}")
     print(f"You can now compare plots across different num_masked values with consistent x-axis ordering")
+    print(
+        f"Ranks are binned by {bin_size}, tolerance band is ±{tolerance_bins} bins (±{tolerance_bins * bin_size} ranks)")
 
 
 if __name__ == "__main__":
     dargs = get_dargs()
     main(AnalysisArgs(metric=dargs.get(1, 'cos_sim_mean')))
-
