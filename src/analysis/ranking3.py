@@ -46,46 +46,11 @@ def calculate_rank_differences_by_num_masked(df: DataFrame, method1: str, method
     return merged_ranks
 
 
-def calculate_rank_differences_by_tuple(df: DataFrame, method1: str, method2: str, metric: str) -> DataFrame:
-    """
-    Calculates rank differences by grouping by the *specific tuple* of masked captions.
-    This provides the detailed data needed for the second impact analysis plot.
-    """
-    selected_methods = [method1, method2]
-    filtered_df = df[df['method'].isin(selected_methods)].copy()
-
-    filtered_df['masked_tuple'] = filtered_df['masked'].apply(lambda x: tuple(sorted(eval(x))))
-
-    # --- New Filtering Logic ---
-    # For each 'masked_tuple', find the intersection of video_ids.
-    video_counts = filtered_df.groupby(['masked_tuple', 'video_id'])['method'].nunique()
-    common_videos = video_counts[video_counts == 2].reset_index()[['masked_tuple', 'video_id']]
-    filtered_df = pd.merge(filtered_df, common_videos, on=['masked_tuple', 'video_id'])
-
-    grouped = filtered_df.groupby(['masked_tuple', 'method', 'video_id'], observed=False)[metric].mean().reset_index()
-
-    rank_groups = ['masked_tuple', 'method']
-    grouped['rank'] = grouped.groupby(rank_groups, observed=False)[metric].rank(method='first', ascending=False)
-
-    method1_ranks = grouped[grouped['method'] == method1]
-    method2_ranks = grouped[grouped['method'] == method2]
-
-    merged_ranks = pd.merge(
-        method1_ranks,
-        method2_ranks,
-        on=['video_id', 'masked_tuple'],
-        suffixes=('_m1', '_m2')
-    )
-    merged_ranks['rank_difference'] = merged_ranks['rank_m1'] - merged_ranks['rank_m2']
-    merged_ranks['num_masked'] = merged_ranks['masked_tuple'].apply(len)
-    return merged_ranks
-
-
+def get_video_id_ordering(rank_df: DataFrame, base_num_masked: int, by:int=1) -> tuple[list[str], pd.Series]:
     """
     Get the canonical ordering of video IDs based on method1's rank at a specific num_masked.
     This ordering will be used consistently across all plots.
     """
-def get_video_id_ordering(rank_df: DataFrame, base_num_masked: int, by:int=1) -> tuple[list[str], pd.Series]:
     by_str = f'rank_m{by}'
     base_df = rank_df[rank_df['num_masked'] == base_num_masked].copy()
     base_df = base_df.sort_values(by=by_str, ascending=True)
@@ -321,14 +286,12 @@ def plot_rank_comparison(
     plt.close()
     print(f"Plot saved to {output_path}")
 
-
 def main(args: AnalysisArgs):
     df, df_z = load_dfs("results/upload/")
     combined_df = df if not args.use_z_score else df_z
 
     # --- Generate data for both plots ---
     rank_df_by_num = calculate_rank_differences_by_num_masked(combined_df, args.method1, args.method2, args.metric)
-    rank_df_by_tuple = calculate_rank_differences_by_tuple(combined_df, args.method1, args.method2, args.metric)
 
     # --- Get fixed video ID ordering and baseline ranks from num_masked=6 ---
     base_num_masked = 6
