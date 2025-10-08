@@ -50,11 +50,14 @@ def bin_ranks(rank_values: pd.Series, bin_size: int = 10) -> pd.Series:
     """
     Bin ranks into groups (0-9, 10-19, 20-29, etc.)
     Returns the lower bound of each bin.
+    If bin_size is None or <= 0, returns the original ranks (no binning).
     """
+    if bin_size is None or bin_size <= 0:
+        return rank_values
     return (rank_values // bin_size) * bin_size
 
 
-def get_video_id_ordering(rank_df: DataFrame, base_num_masked: int, by: int = 1) -> tuple[list[str], pd.Series]:
+def get_video_id_ordering(rank_df: DataFrame, base_num_masked: int, bin_size:int, by: int = 1) -> tuple[list[str], pd.Series]:
     """
     Get the canonical ordering of video IDs based on method's rank at a specific num_masked.
     This ordering will be used consistently across all plots.
@@ -67,7 +70,7 @@ def get_video_id_ordering(rank_df: DataFrame, base_num_masked: int, by: int = 1)
     # Capture the baseline ranks (binned) to use for the fixed tolerance band
     base_df = rank_df[rank_df['num_masked'] == base_num_masked].copy()
     baseline_ranks = base_df.set_index('video_id')[by_str]
-    baseline_ranks = bin_ranks(baseline_ranks)
+    baseline_ranks = bin_ranks(baseline_ranks, bin_size=bin_size)
     baseline_ranks.name = base_num_masked  # Store the num_masked value for the title
 
     return ids, baseline_ranks
@@ -233,8 +236,9 @@ def plot_rank_comparison(
         tolerance: int = 1
 ):
     """
-    Creates a dumbbell plot comparing video ranks (binned into groups of bin_size),
+    Creates a dumbbell plot comparing video ranks (optionally binned into groups of bin_size),
     with a fixed tolerance band based on the baseline ranking.
+    Set bin_size to None or <= 0 to disable binning.
     """
     print(f"Generating rank comparison dumbbell plot for num_masked={num_masked}...")
 
@@ -244,7 +248,7 @@ def plot_rank_comparison(
         print(f"No data found for num_masked={num_masked}. Skipping plot.")
         return
 
-    # Bin the ranks
+    # Bin the ranks (or keep original if bin_size is None/<=0)
     plot_df['rank_m1_binned'] = bin_ranks(plot_df['rank_m1'], bin_size)
     plot_df['rank_m2_binned'] = bin_ranks(plot_df['rank_m2'], bin_size)
 
@@ -264,14 +268,17 @@ def plot_rank_comparison(
     # Get the baseline ranks for the videos in the current plot, in the correct order.
     baseline_rank_values = baseline_ranks.reindex(ordered_videos).values
 
+    # Calculate tolerance in actual rank units
+    tolerance_value = tolerance * bin_size if bin_size and bin_size > 0 else tolerance
+
     # --- Add the Constant Tolerance Band ---
     ax.fill_between(
         x_coords,
-        baseline_rank_values - (tolerance * bin_size),
-        baseline_rank_values + (tolerance * bin_size),
+        baseline_rank_values - tolerance_value,
+        baseline_rank_values + tolerance_value,
         color='gray',
         alpha=0.2,
-        label=f'Tolerance (±{tolerance} bins = ±{tolerance * bin_size} ranks) around baseline',
+        label=f'Tolerance (±{tolerance_value} ranks) around baseline',
         zorder=1
     )
 
@@ -293,18 +300,26 @@ def plot_rank_comparison(
     # Format the plot
     ax.set_xticks(x_coords)
     ax.set_xticklabels(plot_df['video_id'], rotation=90, fontsize=8)
+
+    # Title changes based on whether binning is enabled
+    binning_text = f"Ranks binned by {bin_size}" if bin_size and bin_size > 0 else "Raw ranks (no binning)"
     ax.set_title(
         f"Rank Comparison at num_masked={num_masked} (metric: {metric})\n"
-        f"(Ranks binned by {bin_size}, x-axis order and tolerance band fixed from baseline at num_masked={baseline_ranks.name})"
+        f"({binning_text}, x-axis order and tolerance band fixed from baseline at num_masked={baseline_ranks.name})"
     )
     ax.set_xlabel("Video ID (ordered by baseline ranking)")
-    ax.set_ylabel(f"Rank Bin (0-{bin_size - 1}, {bin_size}-{bin_size * 2 - 1}, etc.)")
 
-    # Set y-ticks to show bin boundaries clearly
-    max_rank_bin = max(plot_df['rank_m1_binned'].max(), plot_df['rank_m2_binned'].max())
-    y_ticks = np.arange(0, max_rank_bin + bin_size, bin_size)
-    ax.set_yticks(y_ticks)
-    ax.set_yticklabels([f"{int(y)}" for y in y_ticks])
+    # Y-axis label and ticks depend on binning
+    if bin_size and bin_size > 0:
+        ax.set_ylabel(f"Rank Bin (0-{bin_size - 1}, {bin_size}-{bin_size * 2 - 1}, etc.)")
+
+        # Set y-ticks to show bin boundaries clearly
+        max_rank_bin = max(plot_df['rank_m1_binned'].max(), plot_df['rank_m2_binned'].max())
+        y_ticks = np.arange(0, max_rank_bin + bin_size, bin_size)
+        ax.set_yticks(y_ticks)
+        ax.set_yticklabels([f"{int(y)}" for y in y_ticks])
+    else:
+        ax.set_ylabel("Rank")
 
     ax.grid(axis='y', linestyle='--', alpha=0.7)
     ax.invert_yaxis()
@@ -317,6 +332,10 @@ def plot_rank_comparison(
 
 
 def main(args: AnalysisArgs):
+    bin_size = 0  # Set to None or 0 to disable binning
+    tolerance = 10
+    tolerance_bins = tolerance/bin_size if bin_size else None
+
     df, df_z = load_dfs("results/upload/")
     combined_df = df if not args.use_z_score else df_z
 
@@ -325,7 +344,7 @@ def main(args: AnalysisArgs):
 
     # --- Get fixed video ID ordering and baseline ranks from num_masked=6 ---
     base_num_masked = 6
-    video_id_order, baseline_ranks = get_video_id_ordering(rank_df_by_num, base_num_masked, by=2)
+    video_id_order, baseline_ranks = get_video_id_ordering(rank_df_by_num, base_num_masked, bin_size=bin_size, by=2)
 
     print(f"Fixed video ID ordering and baseline ranks established from num_masked={base_num_masked}")
 
@@ -336,8 +355,6 @@ def main(args: AnalysisArgs):
     num_masked_values = sorted(rank_df_by_num['num_masked'].unique())
     print(f"\nGenerating comparison plots for num_masked values: {num_masked_values}")
 
-    bin_size = 10
-    tolerance_bins = 1  # ±1 bin = ±10 ranks
 
     for num_masked in num_masked_values:
         plot_rank_comparison(
@@ -350,13 +367,16 @@ def main(args: AnalysisArgs):
             method1=args.method1,
             method2=args.method2,
             bin_size=bin_size,
-            tolerance=tolerance_bins
+            tolerance=tolerance_bins or tolerance
         )
 
     print(f"\nAll plots saved to {results_dir}")
     print(f"You can now compare plots across different num_masked values with consistent x-axis ordering")
-    print(
-        f"Ranks are binned by {bin_size}, tolerance band is ±{tolerance_bins} bins (±{tolerance_bins * bin_size} ranks)")
+    if bin_size and bin_size > 0:
+        print(
+            f"Ranks are binned by {bin_size}, tolerance band is ±{tolerance_bins} bins (±{tolerance_bins * bin_size} ranks)")
+    else:
+        print(f"Raw ranks used (no binning), tolerance band is ±{tolerance} ranks")
 
 
 if __name__ == "__main__":
