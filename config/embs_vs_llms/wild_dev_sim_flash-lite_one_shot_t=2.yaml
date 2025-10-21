@@ -1,0 +1,25 @@
+base_params:
+  master_seed: 2025
+  experiment_type: "recon"
+
+evaluation:
+  type: "emb_sim"
+
+data_config:
+  name: "wild_captions"
+  path: "datasets/wildQA/captions__wild2/"
+  limit: 100
+
+recon_strategy:
+  - name: "flash-lite_d_one_shot_v1__t=2"
+    type: "llm"
+    llm:
+      model_name: "gemini-2.5-flash-lite"
+      thought_budget: 1000
+      temperature: 2
+      prompt_template: "prompts/dense_one_shot_v1.txt"
+  - name: "baseline_repeat_last"
+    type: "baseline_repeat_last"
+
+IMPORT masking_configs: masking_fill.yaml
+

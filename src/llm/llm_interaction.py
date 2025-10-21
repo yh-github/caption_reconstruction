@@ -107,7 +107,7 @@ class LLM_Manager:
         self._base_cache_key = base_cache_key
         # self.last_raw_response: GenerateContentResponse | None = None
 
-    def _cache_key(self, prompt:str):
+    def _cache_key(self, prompt:str) -> str:
         sha = self._base_cache_key.copy()
         sha.update(prompt.encode())
         return base64.urlsafe_b64encode(sha.digest()).decode('utf-8')
@@ -154,7 +154,7 @@ class LLM_Manager:
             # raise LLM_Exception(raw_response=raw_response, message=f"{type(e)}: {e}") from e
 
     def call(self, prompt:str|Content) -> LLM_Response:
-        k = None
+        k:str|None = None
         if isinstance(prompt, str):
             k = self._cache_key(prompt)
         elif isinstance(prompt, Content):
@@ -165,12 +165,19 @@ class LLM_Manager:
             return LLM_Response.from_str(self._disk_cache[k])
         res = self._call_retry(prompt)
         if res.should_cache():
+            self.log_token_usage(k, res)
             self._disk_cache[k] = res.dump()
 
         if self._llm_config.thinking_config and res.text and not res.thoughts:
             logger.warning(f"No thoughts in LLM response: {res.text=}")
 
         return res
+
+    def log_token_usage(self, cache_key:str, response: LLM_Response) -> None:
+        if response.raw_response and response.raw_response.usage_metadata:
+            metadata_str = response.raw_response.usage_metadata.model_dump_json(exclude_none=True, fallback=str)
+            logger.info(f"{cache_key=} metadata={metadata_str}")
+
 
 class LLM_Manager_Builder:
 
