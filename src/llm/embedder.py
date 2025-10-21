@@ -1,26 +1,12 @@
 import logging
-import sys
 from collections import Counter
 import diskcache
 from google import genai
 from google.api_core import retry
 from google.genai import types
 from google.genai.types import EmbedContentResponse
-from experiment_executor.config_loader import load_config
-from data.data_loaders import get_data_loader
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-# Create a handler
-handler = logging.StreamHandler()  # or logging.FileHandler('filename.log')
-handler.setLevel(logging.INFO)
-
-# Create and set formatter
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-
-# Add handler to logger
-logger.addHandler(handler)
+logger = logging.getLogger(__name__)
 
 def get_cache_dir(model, output_dimensionality, task_type):
     return f"disk_cache/{model}__{output_dimensionality}__{task_type}" #TODO config
