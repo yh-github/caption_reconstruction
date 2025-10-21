@@ -115,7 +115,7 @@ class Embedder:
     def _check_emb(self, emb:list[float]|None) -> bool:
         return emb is not None and len(emb)==self.embed_config.output_dimensionality
 
-    def embed_save(self, video_id:str, all_texts:list[str]) -> tuple[int,int,int]:
+    def _embed_save(self, video_id:str, all_texts:list[str]) -> tuple[int,int,int]:
         ok=0
         fail=0
 
@@ -135,7 +135,7 @@ class Embedder:
         return ok, fail, len(all_texts)-counts.total()
 
     def get_embeddings(self, video_id:str, all_texts:list[str]) -> list[list[float]]:
-        ok, fail, hits = self.embed_save(video_id, all_texts)
+        ok, fail, hits = self._embed_save(video_id, all_texts)
         if fail>0 or ok+hits != len(all_texts):
             raise Exception(f"Embeddings FAILED for {video_id} {ok=} {fail=} {hits=} {len(all_texts)=}")
         logger.debug(f"Embeddings GOOD for {video_id} {ok=} {fail=} {hits=} {len(all_texts)=}")
@@ -152,7 +152,7 @@ def main(config, cmd):
     data = data_loader.load()
     if cmd == "emb" or cmd == "embed":
         for _video in data:
-            ok, fail, hits = embedder.embed_save(
+            ok, fail, hits = embedder._embed_save(
                 video_id=_video.video_id,
                 all_texts=[c.caption for c in _video.clips]
             )
