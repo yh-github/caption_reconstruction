@@ -18,8 +18,8 @@ recon_strategy:
       thought_budget: 1000
       temperature: 2
       prompt_template: "prompts/dense_one_shot_v1.txt"
-  - name: "baseline_repeat_last"
-    type: "baseline_repeat_last"
+  #- name: "baseline_repeat_last"
+    #type: "baseline_repeat_last"
 
 IMPORT masking_configs: masking_fill.yaml
 
