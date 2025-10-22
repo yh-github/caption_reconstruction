@@ -3,7 +3,8 @@ base_params:
   experiment_type: "recon"
 
 evaluation:
-  type: "emb_sim"
+  #type: "emb_sim"
+  type: "NOP"
 
 data_config:
   name: "wild_captions"
