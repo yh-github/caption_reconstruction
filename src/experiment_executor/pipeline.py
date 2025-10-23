@@ -29,18 +29,16 @@ class ConfigError(Exception):
         self.config = config
 
 
+
+
 class ExperimentPipeline(ABC):
 
     @staticmethod
-    def build(exec_args:ExecArgs, config_override:Callable[[dict], None]|None=None):
+    def build(exec_args:ExecArgs):
         config = None
         try:
             logging.basicConfig(level=exec_args.log_level(logging.INFO), format='%(asctime)s - %(levelname)s - %(message)s')
-            config = load_config(exec_args.config_path)
-            if config_override:
-                print('config_override')
-                config_override(config)
-                # print(json.dumps(config, indent=4))
+            config = config_from_args(exec_args)
             experiment_type = config['base_params'].get('experiment_type', 'recon').upper()
             if experiment_type in {'RECON', 'RECON_VECTORS'}:
                 return ExperimentPipeline_Reconstruction(exec_args, config)

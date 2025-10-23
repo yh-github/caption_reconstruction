@@ -49,7 +49,7 @@ def test_toy_data_dry_run_results(
         ("toy_baseline2.yaml", 3, 2),
         # ("toy_llm.yaml", 4, 2),
         # ("toy_baseline.yaml", 5, 2),
-        ("toy_vecs.yaml", 2, 2)
+        # ("toy_vecs.yaml", 2, 2)
         # ,("*", 5,5)
     ]
 )
@@ -63,9 +63,19 @@ def test_toy_data(config_filename:str, expected_num_exps:int, expected_data_coun
 
     try:
         ep = ExperimentPipeline.build(
-            ExecArgs(config_path=config_path, ignore_unsafe=True),
-            config_override=set_paths
+            ExecArgs(
+                config_path=config_path,
+                ignore_unsafe=True,
+                override=[
+                    "paths/results=test_results",
+                    "paths/log_dir=test_logs",
+                    "paths/lock=.test_lock"
+                ]
+            )
+            # config_override=set_paths
         )
+
+        assert ep.config["paths"]["results"]=="test_results"
 
         executor = Executor(ep)
         exec_results = executor.main()

@@ -36,6 +36,7 @@ rich~=14.1.0
 # --- Command line ---
 argcomplete~=3.6.2
 argparse~=1.4.0
+dict-path~=1.1.1
 
 # --- Testing ---
 pytest==8.4.1

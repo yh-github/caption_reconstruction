@@ -2,6 +2,8 @@ import logging
 from pathlib import Path
 from typing import Any
 import yaml
+from data_models.exec_args import DEFAULT_SYSTEM_CONFIG_PATH, ExecArgs
+
 
 def load_yaml(path:Path|str) -> dict[str, Any]:
     with open(path, 'r') as f:
@@ -10,7 +12,7 @@ def load_yaml(path:Path|str) -> dict[str, Any]:
 
 def load_config(
     experiment_config_path:Path|str,
-    system_config_path:Path|str="config/system.yaml"
+    system_config_path:Path|str=DEFAULT_SYSTEM_CONFIG_PATH
 ) -> dict[str, Any]:
     """
     Loads both system and experiment configurations and merges them.
@@ -53,8 +55,30 @@ def get_llm_config(config:dict[str, Any]) -> dict[str, Any]:
     return llm_config
 
 
+from dict_path import DictPath
+def config_from_args(exec_args:ExecArgs) -> dict[str, Any]:
+    con = DictPath(load_config(exec_args.config_path, exec_args.system_config_path))
+    if exec_args.override:
+        for x in exec_args.override:
+            k, v = x.split('=', 1)
+            old_v = con.get(k)
+            if old_v is not None and type(old_v) != type(v):
+                con.set(k,type(old_v)(v)) # TODO use eval instead of cast? Support lists?
+            else:
+                con.set(k, v)
+
+    return con.dict
+
+
 if __name__ == "__main__":
-    conf = load_config("/home/yoavh/code/research/caption_reconstruction/config/embs_vs_llms/wild_dev_sim.yaml")
+    conf = config_from_args(ExecArgs(
+        config_path=Path("/home/yoavh/code/research/caption_reconstruction/config/embs_vs_llms/wild_dev_sim.yaml"),
+        override=[
+            "paths/results=test_res/",
+            "base_params/master_seed=4455"
+        ]
+    ))
+
     import json
     print(json.dumps(conf, indent=4))
 

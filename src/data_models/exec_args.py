@@ -4,11 +4,16 @@ from pathlib import Path
 
 import argcomplete
 from argcomplete import FilesCompleter
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+
+DEFAULT_SYSTEM_CONFIG_PATH = Path("config/system.yaml")
+
 
 class ExecArgs(BaseModel):
     config_path: Path
-    # system_config_path: Path TODO add system path
+    system_config_path: Path = DEFAULT_SYSTEM_CONFIG_PATH
+    override: list[str] = Field(default_factory=list, description="raw override key-value pairs")
     verbose: bool = False
     dry_run: bool = False
     validate_cache: bool = False
@@ -29,6 +34,21 @@ def args_parser() -> ExecArgs:
         type=Path,
         help="Path to the experiment configuration file.",
     ).completer = FilesCompleter(allowednames=[".yaml", ".yml"])
+
+    parser.add_argument(
+        "--system_config_path",
+        type=Path,
+        help="Path to the system configuration file.",
+    ).completer = FilesCompleter(allowednames=[".yaml", ".yml"])
+
+    parser.add_argument(
+        "--override",
+        type=str,
+        metavar="KEY=VALUE",
+        nargs='+',
+        help="Config key value pairs to override.",
+    )
+
 
     parser.add_argument(
         "--verbose",
