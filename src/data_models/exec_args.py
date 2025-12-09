@@ -78,7 +78,10 @@ def args_parser() -> ExecArgs:
     # Parse arguments
     args = parser.parse_args()
 
-    return ExecArgs.model_validate(vars(args))
+    # Filter out None values to let Pydantic handle defaults
+    args_dict = {k: v for k, v in vars(args).items() if v is not None}
+
+    return ExecArgs.model_validate(args_dict)
 
 
 import sys

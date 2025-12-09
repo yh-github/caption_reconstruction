@@ -8,6 +8,11 @@ The **Caption Reconstruction** project is designed to experiment with reconstruc
 4.  **Evaluation**: Measuring the quality of reconstruction using metrics like BERTScore.
 5.  **Tracking**: Managing experiments and results using MLflow.
 
+## Quick Start
+
+1.  **Setup**: Follow the [Setup Guide](setup.md) to initialize your environment and data directories.
+2.  **Run**: Execute the main pipeline:
+
 ## Directory Structure
 
 *   `src/`: Source code for the project.

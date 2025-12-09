@@ -9,7 +9,7 @@ from google import genai
 from common_utils.error_handling import UserFacingError
 from common_utils.jsonables import flat_dict
 from common_utils.tracking import get_datetime_str
-from experiment_executor.config_loader import load_config
+from experiment_executor.config_loader import load_config, config_from_args
 from data.data_loaders import get_data_loader
 from data_models.exec_args import ExecArgs
 from evaluations.evaluation import ReconstructionEvaluator
