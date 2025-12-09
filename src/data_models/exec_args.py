@@ -17,6 +17,7 @@ class ExecArgs(BaseModel):
     verbose: bool = False
     dry_run: bool = False
     validate_cache: bool = False
+    cached_execution_only: bool = Field(default=False, alias='block_llm')  # New flag
     debug: bool = False
     ignore_unsafe: bool = False
 
@@ -70,6 +71,14 @@ def args_parser() -> ExecArgs:
     parser.add_argument(
         "--validate-cache",
         action="store_true"
+    )
+
+    parser.add_argument(
+        "--block-llm",
+        "--cached-execution-only",
+        dest="block_llm",
+        action="store_true",
+        help="Run without calling the LLM API (fails if not cached)."
     )
 
     # Add argcomplete support

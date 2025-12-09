@@ -56,13 +56,15 @@ class ExperimentPipeline(ABC):
         return diskcache.Cache(directory=self.config['paths']['disk_cache'])
 
     def _init_llm_client(self):
-        if self.exec_args.dry_run or self.exec_args.validate_cache:
-            logging.info("Blocking LLM client.")
+        # Block LLM if dry-run, validate-cache, OR cached-execution-only is set
+        if self.exec_args.dry_run or self.exec_args.validate_cache or self.exec_args.cached_execution_only:
+            logging.info("Blocking LLM client (Mock Mode).")
             return self._create_mock_llm_client()
         return genai.Client()
 
     def _get_eval_conf(self):
         eval_conf = self.config.get("evaluation", {}).copy()
+        # NOP only for dry-run or validation. cached_execution_only SHOULD run evaluation.
         if self.exec_args.dry_run or self.exec_args.validate_cache:
             eval_conf['type'] = 'NOP'
         if self.exec_args.verbose:
