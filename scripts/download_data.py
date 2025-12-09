@@ -51,7 +51,8 @@ def extract_zip(zip_path: Path, output_dir: Path):
 
 def backup_directory(path: Path):
     if path.exists():
-        backup_path = path.with_name(f"{path.name}_backup_{get_datetime_str()}")
+        backup_dir = Path("local/backup").mkdir(parents=True, exist_ok=True)
+        backup_path = backup_dir / path.with_name(f"{path.name}_backup_{get_datetime_str()}")
         logger.info(f"Backing up {path} to {backup_path}")
         shutil.move(str(path), str(backup_path))
 
