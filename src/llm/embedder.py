@@ -27,7 +27,14 @@ class Embedder:
         cache_dir = get_cache_dir(model, output_dimensionality, task_type)
 
         logger.info(f"Embedder cache dir: {cache_dir}")
-        self.client = client if client is not None else genai.Client()
+        
+        if client is None:
+            logger.warning("Embedder initialized with client=None. Creating default genai.Client()! (This should not happen in --block-llm mode)")
+            self.client = genai.Client()
+        else:
+            logger.info(f"Embedder initialized with provided client: {type(client)}")
+            self.client = client
+            
         self.cache = diskcache.Cache(directory=cache_dir)
 
     def __repr__(self):
