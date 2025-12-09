@@ -54,7 +54,7 @@ def save_error(path, video_id:str, llm_response:LLM_Response, exception:Exceptio
 
 if __name__ == "__main__":
 
-    config = load_config('/home/yoavh/code/research/caption_reconstruction/config/qa/wild_text1.yaml')
+    config = load_config('config/qa/wild_text1.yaml')
 
     llm_config = get_llm_config(config)
 

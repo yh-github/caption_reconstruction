@@ -137,7 +137,7 @@ def download_urls(urls: list[str], output_directory: str):
 print('\nAll downloads complete!')
 
 
-json_path = Path("/home/yoavh/code/research/caption_reconstruction/datasets/wildQA/dev.json")
+json_path = Path("datasets/wildQA/dev.json")
 for x in dropbox_download_list(json_path):
     print(x)
 

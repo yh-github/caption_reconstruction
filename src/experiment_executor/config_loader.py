@@ -72,7 +72,7 @@ def config_from_args(exec_args:ExecArgs) -> dict[str, Any]:
 
 if __name__ == "__main__":
     conf = config_from_args(ExecArgs(
-        config_path=Path("/home/yoavh/code/research/caption_reconstruction/config/embs_vs_llms/wild_dev_sim.yaml"),
+        config_path=Path("config/embs_vs_llms/wild_dev_sim.yaml"),
         override=[
             "paths/results=test_res/",
             "base_params/master_seed=4455"
