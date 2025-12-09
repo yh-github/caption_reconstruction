@@ -331,6 +331,129 @@ def plot_rank_comparison(
     print(f"Plot saved to {output_path}")
 
 
+def print_rank_correlations(rank_df: pd.DataFrame, metric:str):
+    """
+    Print Pearson correlation (on raw metric values) and Spearman correlation (on ranks)
+    between method1 and method2 for each num_masked value, as well as overall.
+    """
+    from scipy.stats import pearsonr, spearmanr
+
+    print("\n" + "=" * 80)
+    print("CORRELATIONS BETWEEN METHODS")
+    print("=" * 80)
+
+    # short_m1 = _shorten_method_name(method1)
+    # short_m2 = _shorten_method_name(method2)
+
+    # Overall correlations (across all num_masked values)
+    # Pearson on raw metric values
+    overall_pearson, overall_p_pearson = pearsonr(rank_df[f'{metric}_m1'], rank_df[f'{metric}_m2'])
+    # Spearman on ranks
+    overall_spearman, overall_p_spearman = spearmanr(rank_df['rank_m1'], rank_df['rank_m2'])
+
+    print(f"\nOVERALL (all num_masked values combined):")
+    print(f"  Pearson correlation (raw metric):  {overall_pearson:.4f} (p={overall_p_pearson:.4e})")
+    print(f"  Spearman correlation (ranks):      {overall_spearman:.4f} (p={overall_p_spearman:.4e})")
+
+    # Per num_masked correlations
+    print(f"\nPER NUM_MASKED:")
+    print(f"{'num_masked':<12} {'Pearson':<10} {'p-value':<12} {'Spearman':<10} {'p-value':<12} {'n':<8}")
+    print(f"{'':12} {'(metric)':<10} {'':12} {'(ranks)':<10} {'':12}")
+    print("-" * 80)
+
+    for num_masked in sorted(rank_df['num_masked'].unique()):
+        subset = rank_df[rank_df['num_masked'] == num_masked]
+        n = len(subset)
+
+        if n < 3:  # Need at least 3 points for correlation
+            print(f"{num_masked:<12} {'N/A':<10} {'N/A':<12} {'N/A':<10} {'N/A':<12} {n:<8}")
+            continue
+
+        # Pearson on raw metric values
+        pearson_r, pearson_p = pearsonr(subset[f'{metric}_m1'], subset[f'{metric}_m2'])
+        # Spearman on ranks
+        spearman_r, spearman_p = spearmanr(subset['rank_m1'], subset['rank_m2'])
+
+        print(f"{num_masked:<12} {pearson_r:<10.4f} {pearson_p:<12.4e} {spearman_r:<10.4f} {spearman_p:<12.4e} {n:<8}")
+
+    print("=" * 80 + "\n")
+
+
+def plot_rank_vs_rank(
+        rank_df: pd.DataFrame,
+        output_path: Path,
+        num_masked: int,
+        metric: str,
+        method1: str,
+        method2: str
+):
+    """
+    Creates a scatter plot of rank_m1 vs rank_m2 to visualize agreement between methods.
+    """
+    print(f"Generating rank vs rank scatter plot for num_masked={num_masked}...")
+
+    plot_df = rank_df[rank_df['num_masked'] == num_masked].copy()
+
+    if plot_df.empty:
+        print(f"No data found for num_masked={num_masked}. Skipping plot.")
+        return
+
+    short_m1 = _shorten_method_name(method1)
+    short_m2 = _shorten_method_name(method2)
+
+    plt.figure(figsize=(12, 12))
+    ax = plt.gca()
+
+    # Calculate distance from diagonal (rank difference) for color coding
+    plot_df['rank_diff_abs'] = (plot_df['rank_m1'] - plot_df['rank_m2']).abs()
+
+    # Create scatter plot with color based on agreement
+    scatter = ax.scatter(
+        plot_df['rank_m1'],
+        plot_df['rank_m2'],
+        c=plot_df['rank_diff_abs'],
+        cmap='RdYlGn_r',  # Red (high disagreement) to Green (high agreement)
+        alpha=0.7,
+        s=60,
+        edgecolors='black',
+        linewidth=0.5
+    )
+
+    # Add colorbar
+    cbar = plt.colorbar(scatter, ax=ax)
+    cbar.set_label('Absolute Rank Difference', rotation=270, labelpad=20)
+
+    # Add diagonal line (perfect agreement)
+    max_rank = max(plot_df['rank_m1'].max(), plot_df['rank_m2'].max())
+    min_rank = min(plot_df['rank_m1'].min(), plot_df['rank_m2'].min())
+    ax.plot([min_rank, max_rank], [min_rank, max_rank], 'k--', linewidth=2, label='Perfect agreement', alpha=0.5)
+
+    # Calculate and display correlation
+    from scipy.stats import pearsonr, spearmanr
+    pearson_r, pearson_p = pearsonr(plot_df[f'{metric}_m1'], plot_df[f'{metric}_m2'])
+    spearman_r, spearman_p = spearmanr(plot_df['rank_m1'], plot_df['rank_m2'])
+
+    # Format the plot
+    ax.set_xlabel(f"{short_m1} Rank", fontsize=12)
+    ax.set_ylabel(f"{short_m2} Rank", fontsize=12)
+    ax.set_title(
+        f"Rank Agreement at num_masked={num_masked} (metric: {metric})\n"
+        f"Pearson (metric): {pearson_r:.3f} (p={pearson_p:.2e}) | "
+        f"Spearman (rank): {spearman_r:.3f} (p={spearman_p:.2e}) | n={len(plot_df)}",
+        fontsize=11
+    )
+
+    # Make it square and set equal aspect
+    ax.set_aspect('equal', adjustable='box')
+    ax.grid(True, linestyle='--', alpha=0.3)
+    ax.legend()
+
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    plt.close()
+    print(f"Plot saved to {output_path}")
+
+
 def main(args: AnalysisArgs):
     bin_size = 0  # Set to None or 0 to disable binning
     tolerance = 10
@@ -342,13 +465,15 @@ def main(args: AnalysisArgs):
     # --- Generate data for both plots ---
     rank_df_by_num = calculate_rank_differences_by_num_masked(combined_df, args.method1, args.method2, args.metric)
 
+    print_rank_correlations(rank_df_by_num,  args.metric)
+
     # --- Get fixed video ID ordering and baseline ranks from num_masked=6 ---
     base_num_masked = 6
     video_id_order, baseline_ranks = get_video_id_ordering(rank_df_by_num, base_num_masked, bin_size=bin_size, by=2)
 
     print(f"Fixed video ID ordering and baseline ranks established from num_masked={base_num_masked}")
 
-    results_dir = Path("results/plots/rank_stability")
+    results_dir = Path("results/plots/rank_stability_Nov")
     results_dir.mkdir(exist_ok=True, parents=True)
 
     # --- Generate comparison plots for multiple num_masked values ---
@@ -357,6 +482,15 @@ def main(args: AnalysisArgs):
 
 
     for num_masked in num_masked_values:
+        plot_rank_vs_rank(
+            rank_df_by_num,
+            results_dir / f"rank_vs_rank_at_{num_masked}_masked.png",
+            num_masked=num_masked,
+            metric=args.metric,
+            method1=args.method1,
+            method2=args.method2
+        )
+
         plot_rank_comparison(
             rank_df_by_num,
             results_dir / f"rank_comparison_at_{num_masked}_masked.png",
