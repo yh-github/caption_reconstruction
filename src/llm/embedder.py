@@ -12,7 +12,7 @@ def get_cache_dir(model, output_dimensionality, task_type):
     return f"disk_cache/{model}__{output_dimensionality}__{task_type}" #TODO config
 
 class Embedder:
-    def __init__(self, model="gemini-embedding-001", output_dimensionality=512, task_type="SEMANTIC_SIMILARITY"):
+    def __init__(self, model="gemini-embedding-001", output_dimensionality=512, task_type="SEMANTIC_SIMILARITY", client=None):
         """
         model: "gemini-embedding-001"
         output_dimensionality: 512, 768
@@ -27,7 +27,7 @@ class Embedder:
         cache_dir = get_cache_dir(model, output_dimensionality, task_type)
 
         logger.info(f"Embedder cache dir: {cache_dir}")
-        self.client = genai.Client()
+        self.client = client if client is not None else genai.Client()
         self.cache = diskcache.Cache(directory=cache_dir)
 
     def __repr__(self):

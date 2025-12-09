@@ -77,6 +77,7 @@ class ExperimentPipeline(ABC):
         self.config = config
         self.experiment_type = self._init_experiment_type()
         self.cache = self._init_cache()
+        self.llm_client = self._init_llm_client()
 
         data_config = self.config["data_config"]
 
@@ -86,7 +87,7 @@ class ExperimentPipeline(ABC):
             self.rs_builder = TextReconstructionStrategyBuilder(
                 llm_cache=self.cache,
                 master_seed=self.config["base_params"]["master_seed"],
-                llm_client=self._init_llm_client()
+                llm_client=self.llm_client
             )
         elif self.experiment_type == 'RECON_VECTORS':
             self.data_loader = VectorDataLoader.from_config(data_config)
@@ -95,7 +96,7 @@ class ExperimentPipeline(ABC):
         else:
             raise Exception(f"Unknown {self.experiment_type=}")
 
-        self.evaluator = ReconstructionEvaluator.from_config(self._get_eval_conf())
+        self.evaluator = ReconstructionEvaluator.from_config(self._get_eval_conf(), llm_client=self.llm_client)
         if hasattr(self.evaluator, 'idf') and self.evaluator.idf:
             self.evaluator.calc_idf(self.data_loader.load_all_sentences())
 

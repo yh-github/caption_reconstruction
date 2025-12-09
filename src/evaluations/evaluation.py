@@ -56,7 +56,7 @@ class ReconstructionEvaluator(ABC, Generic[T_RECON, T_ORIG]):
         return {k:VectorStats.from_vector(np.concat(vs)) for k,vs in d.items()}
 
     @staticmethod
-    def from_config(eval_conf:dict):
+    def from_config(eval_conf:dict, llm_client=None):
         eval_type = eval_conf.get('type', 'bert_score').lower()
         is_embeddings = 'embeddings' in eval_conf.get('data_type','') # video_embeddings
 
@@ -74,7 +74,7 @@ class ReconstructionEvaluator(ABC, Generic[T_RECON, T_ORIG]):
                     idf=eval_conf.get('idf', True)
                 )
             elif eval_type == 'emb_sim':
-                return ReconstructionEvaluator_EmbSimilarity(Embedder())
+                return ReconstructionEvaluator_EmbSimilarity(Embedder(client=llm_client))
             elif eval_type == 'nop':
                 return EvaluatorNOP()
             else:
