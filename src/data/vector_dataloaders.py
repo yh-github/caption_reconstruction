@@ -22,7 +22,7 @@ class VectorDataLoader(ABC):
         return len(list(self.load()))
 
     @classmethod
-    def from_config(cls, data_config: dict[str, Any]) -> Self:
+    def from_config(cls, data_config: dict[str, Any], llm_client=None) -> Self:
         """
         Factory function that reads the config and returns the appropriate
         data loader instance.
@@ -48,7 +48,7 @@ class VectorDataLoader(ABC):
         else:
             return VectorConvertorLoader(
                 get_data_loader(data_config),
-                Embedder() #TODO extern
+                Embedder(client=llm_client) #TODO extern
             )
 
 class ToyVectorsLoader(VectorDataLoader):

@@ -74,6 +74,12 @@ def args_parser() -> ExecArgs:
     )
 
     parser.add_argument(
+        "--ignore-unsafe",
+        action="store_true",
+        help="Ignore safety checks (e.g. git dirty state)."
+    )
+
+    parser.add_argument(
         "--block-llm",
         "--cached-execution-only",
         dest="block_llm",

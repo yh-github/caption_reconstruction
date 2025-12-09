@@ -90,7 +90,7 @@ class ExperimentPipeline(ABC):
                 llm_client=self.llm_client
             )
         elif self.experiment_type == 'RECON_VECTORS':
-            self.data_loader = VectorDataLoader.from_config(data_config)
+            self.data_loader = VectorDataLoader.from_config(data_config, llm_client=self.llm_client)
             self.experiment_runner_factory = VectorRunner
             self.rs_builder = VectorReconstructionStrategyBuilder()
         else:
@@ -123,20 +123,25 @@ class ExperimentPipeline(ABC):
         Creates a mock for `llm_client` that raises exceptions for any accessed attribute
         or method.
         """
-
-        # Dynamically handle all attribute/method access
-        def raise_exception(name):
-            def _raise(*args, **kwargs):
+        class BlockingClient:
+            def __init__(self, name="LLM_Client"):
+                self.name = name
+            
+            def __getattr__(self, name):
+                # Raise error immediately on attribute access (e.g., client.models)
                 raise RuntimeError(
-                    f"llm_client: Attempted to call method '{name}' with args: {args}, kwargs: {kwargs}"
+                    f"LLM Client Blocked: Attempted to access '{self.name}.{name}'. "
+                    "This indicates a CACHE MISS while running in --block-llm (cached execution only) mode. "
+                    "Please ensure you have all necessary data cached."
+                )
+            
+            def __call__(self, *args, **kwargs):
+                raise RuntimeError(
+                    f"LLM Client Blocked: Attempted to call '{self.name}'. "
+                    "This indicates a CACHE MISS while running in --block-llm (cached execution only) mode."
                 )
 
-            return _raise
-
-        llm_mock = Mock()
-        llm_mock.side_effect = lambda name: raise_exception(name)
-
-        return llm_mock
+        return BlockingClient()
 
     def dry_run(self):
         return list(self.build_experiments()), self.data_loader.count()
