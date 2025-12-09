@@ -1,9 +1,4 @@
 
-import cv2
-import torch
-import timm
-from PIL import Image
-from torchvision import transforms
 import numpy as np
 from pathlib import Path
 from collections import defaultdict
@@ -21,6 +16,17 @@ class VideoEmbedder:
         """
         Initializes the VideoEmbedder, loading the model and setting up the device.
         """
+        try:
+            global cv2, torch, timm, Image, transforms
+            import cv2
+            import torch
+            import timm
+            from PIL import Image
+            from torchvision import transforms
+        except ImportError as e:
+            logger.error("Missing required libraries for VideoEmbedder. Please install 'opencv-python-headless' and 'timm'.")
+            raise e
+
         self.model_name = model_name
         self.device = device if device else ("cuda" if torch.cuda.is_available() else "cpu")
         logger.info(f"Using device: {self.device}")

@@ -25,8 +25,8 @@ tiktoken~=0.11.0
 sentencepiece~=0.2.1
 
 # --- Video Processing ---
-opencv-python-headless==4.12.0.88  # For video frame extraction
-timm==0.16.10                      # For ViT models
+# opencv-python-headless==4.12.0.88  # Optional: For video frame extraction (conflicts with numpy)
+# timm==1.0.22                       # Optional: For ViT models
 
 # --- Cache ---
 diskcache==5.6.3		# For caching expensive function calls (e.g., embeddings)

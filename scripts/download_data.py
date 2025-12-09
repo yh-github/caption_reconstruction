@@ -26,6 +26,8 @@ def load_state() -> dict:
     return {}
 
 def save_state(state: dict):
+    if not STATE_FILE.parent.exists():
+        STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(STATE_FILE, "w") as f:
         json.dump(state, f, indent=4)
 
@@ -143,7 +145,13 @@ def process_file_dir_merge(target_dir: Path, source_dir: Path):
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="Download and setup project data from remote cache.")
-    parser.parse_args()
+    parser.add_argument("--force", action="store_true", help="Ignore state file and force redownload/reprocess.")
+    args = parser.parse_args()
+
+    if args.force:
+        logger.info("Force flag set. ignoring download state.")
+        if STATE_FILE.exists():
+            STATE_FILE.unlink()
 
     # Load system config directly
     config_path = Path("config/system.yaml")
@@ -161,7 +169,8 @@ def main():
         return
 
     # 1. Download
-    temp_download_dir = Path("temp_downloads")
+    temp_download_dir = Path("local/temp_downloads")
+    temp_download_dir.mkdir(parents=True, exist_ok=True)
     if not is_done("download_complete"):
         logger.info("Starting Download...")
         download_folder(remote_url, temp_download_dir)
