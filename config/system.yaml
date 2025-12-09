@@ -7,6 +7,8 @@ paths:
   # The directory for MLflow to store its runs.
   # Use a file URI scheme for local paths.
   mlflow_tracking_uri: "file:./mlruns"
+  remote_cache_url: "https://drive.google.com/drive/folders/1mC4SYXbu2kuC9H23JcwZzJCfLGPCWuqc?usp=sharing"
+
 
   # The directory for our embedding and function call cache.
   disk_cache: "disk_cache/"

@@ -20,7 +20,17 @@ pip install -e .
 
 ## 2. Directory Structure Setup
 
-The project relies on specific directories for caching, local data, and results. You must create these manually if they do not exist:
+The project relies on specific directories for caching, local data, and results.
+
+### Automatic Setup (Recommended)
+You can automatically download and configure the necessary data dictionaries using the provided script. This will fetch the cache, local embeddings, and result history.
+
+```bash
+python scripts/download_data.py
+```
+
+### Manual Setup
+If you prefer to set up manually, you must create these directories:
 
 ```bash
 # Create core data and result directories

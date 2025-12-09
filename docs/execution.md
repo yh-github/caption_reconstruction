@@ -87,6 +87,13 @@ python scripts/parse_results.py ...
 ### `scripts/explore_wild.py`
 Analyze and download data from "wild" datasets (e.g., from Dropbox). This script seems to contain hardcoded paths and specific logic for a dataset.
 
+### `scripts/download_data.py`
+Downloads and sets up the project data/cache from a remote source (Google Drive).
+It handles downloading zip files, extracting them, and merging them with local data safely.
+```bash
+python scripts/download_data.py
+```
+
 ## Advanced Analysis & Utility Scripts
 
 ### `scripts/load_and_repl.py`
