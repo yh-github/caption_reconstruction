@@ -21,4 +21,4 @@ recon_strategy:
   - name: "baseline_repeat_last"
     type: "baseline_repeat_last"
   
-IMPORT masking_configs: masking_fill.yaml
+IMPORT masking_configs: masking_cont.yaml

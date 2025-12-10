@@ -14,5 +14,5 @@ recon_strategy:
   - type: "mean_closest"
   - type: "repeat_closest"
 
-IMPORT masking_configs: masking_fill.yaml
+IMPORT masking_configs: masking_cont.yaml
 
