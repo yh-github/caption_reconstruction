@@ -457,15 +457,17 @@ def plot_rank_vs_rank(
 def main(args: AnalysisArgs):
     bin_size = 0  # Set to None or 0 to disable binning
     tolerance = 10
-    tolerance_bins = tolerance/bin_size if bin_size else None
+    tolerance_bins = tolerance / bin_size if bin_size else None
 
-    df, df_z = load_dfs("results/upload/")
+
+    # Load CSVs from the experiments directory
+    df, df_z = load_dfs(args.experiments_csvs_dir)
     combined_df = df if not args.use_z_score else df_z
 
     # --- Generate data for both plots ---
     rank_df_by_num = calculate_rank_differences_by_num_masked(combined_df, args.method1, args.method2, args.metric)
 
-    print_rank_correlations(rank_df_by_num,  args.metric)
+    print_rank_correlations(rank_df_by_num, args.metric)
 
     # --- Get fixed video ID ordering and baseline ranks from num_masked=6 ---
     base_num_masked = 6
@@ -473,18 +475,18 @@ def main(args: AnalysisArgs):
 
     print(f"Fixed video ID ordering and baseline ranks established from num_masked={base_num_masked}")
 
-    results_dir = Path("results/plots/rank_stability_Nov")
-    results_dir.mkdir(exist_ok=True, parents=True)
+    # Output directory for plots
+    plot_dir = args.plot_output_dir
+    plot_dir.mkdir(exist_ok=True, parents=True)
 
     # --- Generate comparison plots for multiple num_masked values ---
     num_masked_values = sorted(rank_df_by_num['num_masked'].unique())
     print(f"\nGenerating comparison plots for num_masked values: {num_masked_values}")
 
-
     for num_masked in num_masked_values:
         plot_rank_vs_rank(
             rank_df_by_num,
-            results_dir / f"rank_vs_rank_at_{num_masked}_masked.png",
+            plot_dir / f"rank_vs_rank_at_{num_masked}_masked.png",
             num_masked=num_masked,
             metric=args.metric,
             method1=args.method1,
@@ -493,7 +495,7 @@ def main(args: AnalysisArgs):
 
         plot_rank_comparison(
             rank_df_by_num,
-            results_dir / f"rank_comparison_at_{num_masked}_masked.png",
+            plot_dir / f"rank_comparison_at_{num_masked}_masked.png",
             num_masked=num_masked,
             video_id_order=video_id_order,
             baseline_ranks=baseline_ranks,
@@ -504,8 +506,8 @@ def main(args: AnalysisArgs):
             tolerance=tolerance_bins or tolerance
         )
 
-    print(f"\nAll plots saved to {results_dir}")
-    print(f"You can now compare plots across different num_masked values with consistent x-axis ordering")
+    print(f"\nAll plots saved to {plot_dir}")
+    print("You can now compare plots across different num_masked values with consistent x-axis ordering")
     if bin_size and bin_size > 0:
         print(
             f"Ranks are binned by {bin_size}, tolerance band is ±{tolerance_bins} bins (±{tolerance_bins * bin_size} ranks)")

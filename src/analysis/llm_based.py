@@ -14,7 +14,8 @@ class AnalysisArgs(BaseModel):
     method2: str = 'video_embeddings__MeanClosestVectors'
     metric: str = 'cos_sim_mean'
     use_z_score: bool = False
-
+    experiments_csvs_dir: Path = Path('results/upload/')
+    plot_output_dir: Path = Path('results/plots/ranking_stability/')
 
 def create_bin_labels(bins: list[int], open_ended_last: bool = False) -> list[str]:
     """
