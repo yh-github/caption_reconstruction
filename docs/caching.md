@@ -58,14 +58,14 @@ Files stored in `local/` directories are treated as a form of "local cache" for 
 *   **Usage**: Scripts like `src/data/pooling.py` or specific dataloaders look for these local resources to avoid re-downloading or re-computing expensive processing steps.
 *   **Setup**: Users must ensure these directories exist and are populated with the necessary data (often downloaded from an external source or generated via a one-time script) before running dependent experiments.
 
-## Manual Results Staging: `results/upload/`
+## Manual Results Staging: `results/for_analysis/`
 
-The directory `results/upload/` serves as a **manual staging area** for aggregate analysis.
+The directory `results/for_analysis/` serves as a **manual staging area** for aggregate analysis.
 
 *   **Workflow:**
     1.  Experiments (via `src/main.py`) generate results in `results/<RUN_ID>/` (containing CSV files with metrics).
-    2.  To perform comparative analysis (e.g., ranking stability), the specific CSV files of interest must be **manually copied** from their respective run directories to `results/upload/`.
-    3.  Analysis scripts (e.g., `src/analysis/ranking.py`, `src/analysis/llm_based.py`) scan `results/upload/` to ingest all present results for plotting and reporting.
+    2.  To perform comparative analysis (e.g., ranking stability), the specific CSV files of interest must be **manually copied** from their respective run directories to `results/for_analysis/`.
+    3.  Analysis scripts (e.g., `src/analysis/ranking.py`, `src/analysis/llm_based.py`) scan `results/for_analysis/` to ingest all present results for plotting and reporting.
 *   **Purpose:** This decouples individual experiment runs from the aggregate analysis, allowing users to cureate exactly which runs to compare.
 
 ## Reproducibility

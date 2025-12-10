@@ -144,7 +144,7 @@ def plot_impact_trajectories(
 
 
 def main(args: AnalysisArgs):
-    df, df_z = load_dfs("results/upload/")
+    df, df_z = load_dfs(args.experiments_csvs_dir)
     combined_df = df if not args.use_z_score else df_z
 
     # --- Generate the detailed data ---

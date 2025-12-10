@@ -17,6 +17,7 @@ from common_utils.tracking import check_git_repository_is_clean, setup_logging, 
     setup_mlflow
 from common_utils.path_handling import add_suffix_to_path
 from common_utils.error_handling import ExceptionStr
+import shutil
 
 
 class ExecutionResult(BaseModel):
@@ -120,6 +121,12 @@ class Executor:
         pd.DataFrame([x.stats().to_flat_dict() for x in all_results]).to_csv(CSV_PATH)
         global_stats = ReconstructionEvaluator.global_stats(all_results)
         pd.DataFrame([x.stats_z_score(global_stats).to_flat_dict() for x in all_results]).to_csv(CSV_PATH2)
+
+        self.pipeline.for_analysis_path.mkdir(parents=True, exist_ok=True)
+
+        shutil.copy(CSV_PATH, self.pipeline.for_analysis_path)
+        shutil.copy(CSV_PATH2, self.pipeline.for_analysis_path)
+        
         return ExecutionResult(
             mlflow_run_path=self.mlflow_run_path,
             log_path=self.log_path,

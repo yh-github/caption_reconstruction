@@ -104,7 +104,11 @@ class ExperimentPipeline(ABC):
         self.experiment_name:str = get_datetime_str(self.config.get('tz'))
         self.parent_run_name:str = self.config["__parent_run_name__"]+f"__{self.experiment_name}"
         results_path = self.config["paths"].get("results", "results")
-        self.result_path = Path(f"{results_path}/" + self.parent_run_name)
+        self.result_path = Path(f"{results_path}/recon/" + self.parent_run_name)
+
+        for_analysis_path = Path(self.config["paths"].get("for_analysis", "results/for_analysis"))
+        for_analysis_path.mkdir(parents=True, exist_ok=True)
+        self.for_analysis_path = for_analysis_path
 
     def __str__(self):
         return (

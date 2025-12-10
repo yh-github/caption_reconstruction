@@ -14,7 +14,7 @@ class AnalysisArgs(BaseModel):
     method2: str = 'video_embeddings__MeanClosestVectors'
     metric: str = 'cos_sim_mean'
     use_z_score: bool = False
-    experiments_csvs_dir: Path = Path('results/upload/')
+    experiments_csvs_dir: Path = Path('results/for_analysis/')
     plot_output_dir: Path = Path('results/plots/ranking_stability/')
 
 def create_bin_labels(bins: list[int], open_ended_last: bool = False) -> list[str]:
@@ -77,7 +77,7 @@ def load_dfs(dir:Path|str):
     return prep(combined_df), prep(combined_df_z)
 
 def get_high_diff_ranks(args:AnalysisArgs) -> dict[str, list[str]]:
-    df_1, df_z = load_dfs("results/upload/")
+    df_1, df_z = load_dfs(args.experiments_csvs_dir)
     combined_df = df_1 if not args.use_z_score else df_z
 
     selected_methods = [args.method1, args.method2]

@@ -4,13 +4,11 @@
 # =================================================================
 
 paths:
-  # The directory for MLflow to store its runs.
-  # Use a file URI scheme for local paths.
+  # The directory for MLflow to store its runs. Use a file URI scheme for local paths.
   mlflow_tracking_uri: "file:./mlruns"
+  
+  # embedding and LLM call cache.
   remote_cache_url: "https://drive.google.com/drive/folders/1mC4SYXbu2kuC9H23JcwZzJCfLGPCWuqc?usp=sharing"
-
-
-  # The directory for our embedding and function call cache.
   disk_cache: "disk_cache/"
 
   # The location of the input data source.
@@ -19,4 +17,7 @@ paths:
   # experiment logs
   log_dir: "logs"
 
+  # experiment results
   results: "results"
+  for_analysis: "results/for_analysis"
+

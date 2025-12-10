@@ -36,7 +36,7 @@ If you prefer to set up manually, you must create these directories:
 # Create core data and result directories
 mkdir -p disk_cache
 mkdir -p local
-mkdir -p results/upload
+mkdir -p results
 ```
 
 ### Directory Roles
@@ -45,7 +45,7 @@ mkdir -p results/upload
 *   **`local/`**: Intended for large, local-only assets (e.g., video embeddings) that are not kept in git.
     *   **Action Required**: If you are planning to run analysis on the "Wild" dataset, create `local/wild_videos_embs` and populate it with the necessary `.npy` files.
 *   **`results/`**: The output destination for experiment runs.
-*   **`results/upload/`**: A staging area for aggregate analysis. You will manually copy result CSVs here to compare them.
+*   **`results/for_analysis/`**: A staging area for aggregate analysis. You may manually copy result CSVs here to compare them.
 
 ## 3. Configuration
 
