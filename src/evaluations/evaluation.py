@@ -193,6 +193,7 @@ class ReconstructionEvaluator_EmbSimilarity(TextReconstructionEvaluator):
         self._inner = VectorReconstructionEvaluator()
 
     def evaluate(self, reconstructed: Reconstructed, orig: CaptionedVideo) -> RAW_METRIC_OBJ:
+        from llm.embedder import CacheMissError
         logger.debug("Aligning clips for EmbSimilarity evaluation...")
 
         candidates, references = reconstructed.align(orig.clips)
@@ -203,13 +204,17 @@ class ReconstructionEvaluator_EmbSimilarity(TextReconstructionEvaluator):
 
         logger.debug(f"Calculating sim score for {len(candidates)} clip pairs.")
 
-        pred_vecs = self._embedder.get_embeddings(reconstructed.video_id + "(pred)", candidates)
-        true_vecs = self._embedder.get_embeddings(reconstructed.video_id + "(orig)", references)
+        try:
+            pred_vecs = self._embedder.get_embeddings(reconstructed.video_id + "(pred)", candidates)
+            true_vecs = self._embedder.get_embeddings(reconstructed.video_id + "(orig)", references)
 
-        ##
-        masked_inds = set(reconstructed.reconstructed_captions.keys())
-        unmaksed = [x.caption for x in orig.clips if x.index not in masked_inds]
-        context_vecs = self._embedder.get_embeddings(reconstructed.video_id + "(unmaksed)", unmaksed)
-        ##
+            ##
+            masked_inds = set(reconstructed.reconstructed_captions.keys())
+            unmaksed = [x.caption for x in orig.clips if x.index not in masked_inds]
+            context_vecs = self._embedder.get_embeddings(reconstructed.video_id + "(unmaksed)", unmaksed)
+            ##
 
-        return self._inner.evaluate_residual(pred_vecs=pred_vecs, true_vecs=true_vecs, context=context_vecs)
+            return self._inner.evaluate_residual(pred_vecs=pred_vecs, true_vecs=true_vecs, context=context_vecs)
+        except CacheMissError as e:
+            logger.warning(f"Cache miss during evaluation for {reconstructed.video_id}: {e}")
+            return {}

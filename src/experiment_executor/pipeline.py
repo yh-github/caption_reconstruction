@@ -19,6 +19,7 @@ from reconstruction.text_reconstruction import TextReconstructionStrategyBuilder
 from data.vector_dataloaders import VectorDataLoader
 from reconstruction.vector_reconstruction import VectorReconstructionStrategyBuilder
 from experiment_executor.vector_runner import VectorRunner
+from llm.embedder import CacheMissError
 
 
 class ConfigError(Exception):
@@ -124,21 +125,31 @@ class ExperimentPipeline(ABC):
         or method.
         """
         class BlockingClient:
-            def __init__(self, name="LLM_Client"):
+            def __init__(self, name="LLM_Client", max_misses=20):
                 self.name = name
+                self.miss_count = 0
+                self.max_misses = max_misses
             
+            def _check_limit(self):
+                self.miss_count += 1
+                if self.miss_count > self.max_misses:
+                    # Critical error: Raise RuntimeError to crash the pipeline
+                    raise RuntimeError(
+                        f"CRITICAL: Too many cache misses ({self.miss_count} > {self.max_misses}) "
+                        "in blocked mode! This indicates a severe mismatch between cache and experiment."
+                    )
+
             def __getattr__(self, name):
-                # Raise error immediately on attribute access (e.g., client.models)
-                raise RuntimeError(
-                    f"LLM Client Blocked: Attempted to access '{self.name}.{name}'. "
-                    "This indicates a CACHE MISS while running in --block-llm (cached execution only) mode. "
-                    "Please ensure you have all necessary data cached."
+                self._check_limit()
+                # Raise CacheMissError so callers can handle gracefully
+                raise CacheMissError(
+                    f"Cache miss: Attempted to access '{self.name}.{name}' in blocked mode."
                 )
             
             def __call__(self, *args, **kwargs):
-                raise RuntimeError(
-                    f"LLM Client Blocked: Attempted to call '{self.name}'. "
-                    "This indicates a CACHE MISS while running in --block-llm (cached execution only) mode."
+                self._check_limit()
+                raise CacheMissError(
+                    f"Cache miss: Attempted to call '{self.name}' in blocked mode."
                 )
 
         return BlockingClient()

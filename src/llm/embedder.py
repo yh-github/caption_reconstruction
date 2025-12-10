@@ -88,9 +88,9 @@ class Embedder:
                     logger.debug(f"  {i}. {t}")
             self._try_num = 0
             raw_res: EmbedContentResponse = self._invoke_llm(video_id, texts)
+        except CacheMissError:
+            raise
         except Exception as e:
-            if "LLM Client Blocked" in str(e):
-                raise CacheMissError(f"Missing embeddings for {video_id} in blocked mode.") from e
             logger.error(f"Embeddings failed for {video_id}, ** {e.__class__.__qualname__} ** {e}")
             return embeddings_dict
 

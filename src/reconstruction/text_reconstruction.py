@@ -9,6 +9,7 @@ from pydantic_core import PydanticSerializationError
 from data_models.captions_only import CaptionedClip, ReconstructedCaptions
 from data_models.captions_only import CaptionedVideo
 from llm.llm_interaction import LLM_Manager_Builder, LLM_Response, LLM_ResponseError
+from llm.embedder import CacheMissError
 from llm.parsers import parse_llm_response
 from llm.prompting import PromptBuilder, JSONPromptBuilder
 from common_utils.error_handling import UserFacingError, ExceptionStr
@@ -167,6 +168,9 @@ class LLMStrategy(ReconstructionStrategy):
 
             return self._process_reconstruction_results(masked_video, recon_caps, llm_res.text)
 
+        except CacheMissError as e:
+            logging.warning(f"Cache miss for {masked_video.video_id}: {e}")
+            return err("cache_miss", {"exception": str(e)})
         except Exception as e:
             logging.error(f"{e} for {masked_video.video_id=}", exc_info=True)
             return err(

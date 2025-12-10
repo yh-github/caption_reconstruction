@@ -177,23 +177,23 @@ def main():
             
             content_root = extract_path
             
-            # Heuristic: if one folder inside matches target name, use that.
-            subdirs = [d for d in extract_path.iterdir() if d.is_dir()]
-            if len(subdirs) == 1 and subdirs[0].name == target_path.name:
-                 content_root = subdirs[0]
-            elif len(subdirs) == 1 and subdirs[0].name == zip_name.replace(".zip", ""): # fallback
-                 content_root = subdirs[0]
+            # Improved logic: find the inner folder matching the target name
+            # This handles cases like zip containing 'local/wild_videos_embs/' vs just 'wild_videos_embs/'
+            candidates = [p for p in extract_path.rglob(target_path.name) if p.is_dir()]
             
-            # Specifically for disk_cache, we zipped 'disk_cache/' so it will create a folder 'disk_cache'
-            # For wild_videos_embs, we zipped 'local/wild_videos_embs/', creating that structure? 
-            # Wait, command was: cd .../local/ && zip ... wild_videos_embs/
-            # So it contains 'wild_videos_embs/...' 
-            # target is 'local/wild_videos_embs'
-            # So content_root should be extract_path / 'wild_videos_embs'
-            
-            potential_root = extract_path / target_path.name
-            if potential_root.exists():
-                content_root = potential_root
+            if candidates:
+                # Use the first match. Should be unique enough.
+                content_root = candidates[0]
+                logger.info(f"Found content root inside zip: {content_root}")
+            else:
+                # Fallback: check if the root folder matches zip name (e.g. disk_cache dir inside disk_cache.zip)
+                zip_stem = zip_name.replace(".zip", "")
+                candidates_stem = [p for p in extract_path.rglob(zip_stem) if p.is_dir()]
+                if candidates_stem:
+                    content_root = candidates_stem[0]
+                    logger.info(f"Found content root by zip name: {content_root}")
+                
+                 # Else remaining default is extract_path itself
             
             merge_func(target_path, content_root)
             update_state(task_key)
