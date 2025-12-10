@@ -11,6 +11,9 @@ logger = logging.getLogger(__name__)
 def get_cache_dir(model, output_dimensionality, task_type):
     return f"disk_cache/{model}__{output_dimensionality}__{task_type}" #TODO config
 
+class CacheMissError(Exception):
+    pass
+
 class Embedder:
     def __init__(self, model="gemini-embedding-001", output_dimensionality=512, task_type="SEMANTIC_SIMILARITY", client=None):
         """
@@ -86,6 +89,8 @@ class Embedder:
             self._try_num = 0
             raw_res: EmbedContentResponse = self._invoke_llm(video_id, texts)
         except Exception as e:
+            if "LLM Client Blocked" in str(e):
+                raise CacheMissError(f"Missing embeddings for {video_id} in blocked mode.") from e
             logger.error(f"Embeddings failed for {video_id}, ** {e.__class__.__qualname__} ** {e}")
             return embeddings_dict
 

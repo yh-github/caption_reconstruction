@@ -58,69 +58,32 @@ def backup_directory(path: Path):
 
 def merge_disk_caches(target_path: Path, source_path: Path):
     """
-    Smart merge of disk caches.
-    1. Determine baseline based on size (use larger as base).
-    2. Overwrite priority: LOCAL ALWAYS WINS.
+    Overwrite local cache with remote cache (safer for reproduction).
+    1. Backup existing local cache.
+    2. Replace with source.
     """
-    logger.info(f"Merging disk caches. Target: {target_path}, Source: {source_path}")
+    logger.info(f"Overwriting disk cache. Target: {target_path}, Source: {source_path}")
     
-    # Ensure source exists (it should, from unzip)
+    # Ensure source exists
     if not source_path.exists():
-        logger.warning(f"Source cache {source_path} does not exist. Skipping merge.")
+        logger.warning(f"Source cache {source_path} does not exist. Skipping overwrite.")
         return
 
-    # Scenario: Target (Local) does not exist -> Init from source
-    if not target_path.exists():
-        logger.info("Local cache not found. Moving source to target.")
-        shutil.move(str(source_path), str(target_path))
-        return
-
-    # Calculate sizes
-    size_target = sum(f.stat().st_size for f in target_path.glob('**/*') if f.is_file())
-    size_source = sum(f.stat().st_size for f in source_path.glob('**/*') if f.is_file())
-
-    logger.info(f"Size Local: {size_target/1024/1024:.2f}MB, Size Remote: {size_source/1024/1024:.2f}MB")
-
-    # Temporary merge directory
-    with tempfile.TemporaryDirectory() as temp_dir:
-        temp_merge_path = Path(temp_dir) / "merged_cache"
-        
-        # Decide Baseline
-        if size_target >= size_source:
-             logger.info("Local is larger. Using Local as baseline.")
-             # Copy Local to Temp
-             shutil.copytree(target_path, temp_merge_path)
-             baseline_cache = diskcache.Cache(str(temp_merge_path))
-             supplementary_cache = diskcache.Cache(str(source_path))
-             
-             # Iterate Remote (Source) and add ONLY new keys
-             count = 0
-             for key in supplementary_cache:
-                 if key not in baseline_cache:
-                     baseline_cache[key] = supplementary_cache[key]
-                     count += 1
-             logger.info(f"Added {count} new keys from remote cache.")
-             
-        else:
-             logger.info("Remote is larger. Using Remote as baseline.")
-             # Copy Remote to Temp
-             shutil.copytree(source_path, temp_merge_path)
-             baseline_cache = diskcache.Cache(str(temp_merge_path))
-             supplementary_cache = diskcache.Cache(str(target_path)) # Local is supplementary but PRIORITY
-
-             # Iterate Local (Target) and OVERWRITE/ADD all keys
-             count = 0
-             for key in supplementary_cache:
-                 baseline_cache[key] = supplementary_cache[key] # Overwrite ensures local wins
-                 count += 1
-             logger.info(f"Overwrote/Added {count} keys from local cache.")
-
-        baseline_cache.close()
-        supplementary_cache.close()
-        
-        # Deploy Merged Cache
+    # Backup and Remove Target if exists
+    if target_path.exists():
         backup_directory(target_path)
-        shutil.move(str(temp_merge_path), str(target_path))
+        if target_path.exists(): # precise check if backup moved it or copied
+             # If backup moved it, it's gone. If backup copied, we need to delete.
+             # backup_directory uses shutil.move, so it handles removal.
+             # But let's be safe.
+             pass
+    
+    # Move source to target
+    if not target_path.parent.exists():
+        target_path.parent.mkdir(parents=True)
+        
+    shutil.move(str(source_path), str(target_path))
+    logger.info("Cache overwrite complete.")
 
 def process_file_dir_merge(target_dir: Path, source_dir: Path):
     """
