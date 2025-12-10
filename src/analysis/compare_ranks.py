@@ -1,12 +1,10 @@
 import logging
-
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
 from pandas import DataFrame
 from pathlib import Path
 import numpy as np
-
 from analysis.llm_based import load_dfs, AnalysisArgs
 from data_models.exec_args import get_dargs
 
@@ -19,7 +17,6 @@ def calculate_rank_differences_by_num_masked(df: DataFrame, method1: str, method
     selected_methods = [method1, method2]
     filtered_df = df[df['method'].isin(selected_methods)].copy()
 
-    # --- New Filtering Logic ---
     # For each 'num_masked', count how many methods each 'video_id' appears in.
     video_counts = filtered_df.groupby(['num_masked', 'video_id'])['method'].nunique()
     # Identify the video_ids that appear in both methods (count == 2).
@@ -454,7 +451,7 @@ def plot_rank_vs_rank(
     print(f"Plot saved to {output_path}")
 
 
-def main(args: AnalysisArgs):
+def compare_rankings_and_plot(args: AnalysisArgs):
     bin_size = 0  # Set to None or 0 to disable binning
     tolerance = 10
     tolerance_bins = tolerance / bin_size if bin_size else None
@@ -517,4 +514,4 @@ def main(args: AnalysisArgs):
 
 if __name__ == "__main__":
     dargs = get_dargs()
-    main(AnalysisArgs(metric=dargs.get(1, 'cos_sim_mean')))
+    compare_rankings_and_plot(AnalysisArgs(metric=dargs.get(1, 'cos_sim_mean')))

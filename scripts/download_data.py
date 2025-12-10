@@ -146,8 +146,8 @@ def main():
     # Mapping: Zip Name -> (Target Dir, Merge Function)
     tasks = [
         ("disk_cache.zip", Path(config["paths"]["disk_cache"]), merge_disk_caches),
-        ("wild_videos_embs.zip", Path("local/wild_videos_embs"), process_file_dir_merge),
-        ("results.zip", Path(config["paths"]["results"]), process_file_dir_merge)
+        ("wild_videos_embs.zip", Path("local/wild_videos_embs"), process_file_dir_merge)
+        # ("results.zip", Path(config["paths"]["results"]), process_file_dir_merge)
     ]
 
     for zip_name, target_path, merge_func in tasks:
