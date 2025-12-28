@@ -5,6 +5,7 @@ import pandas as pd
 from pandas import DataFrame
 from pathlib import Path
 import numpy as np
+import matplotlib.colors as mcolors
 from analysis.llm_based import load_dfs, AnalysisArgs
 from data_models.exec_args import get_dargs
 
@@ -382,7 +383,8 @@ def plot_rank_vs_rank(
         num_masked: int,
         metric: str,
         method1: str,
-        method2: str
+        method2: str,
+        vmax: int = 25
 ):
     """
     Creates a scatter plot of rank_m1 vs rank_m2 to visualize agreement between methods.
@@ -404,13 +406,29 @@ def plot_rank_vs_rank(
     # Calculate distance from diagonal (rank difference) for color coding
     plot_df['rank_diff_abs'] = (plot_df['rank_m1'] - plot_df['rank_m2']).abs()
 
+    # Custom colormap for better visibility:
+    # 0-10: Greenish
+    # 10-20: Transition through Amber/Orange (avoiding light yellow)
+    # >30: Red
+    # Vmin=0, Vmax=argument
+    colors_list = [
+        (0.0, '#008000'),  # 0: Green
+        (0.33, '#8BC34A'), # 10: Light Green
+        (0.45, '#FFC107'), # ~13.5: Amber (avoiding pale yellow)
+        (0.66, '#FF9800'), # 20: Orange
+        (1.0, '#D32F2F')   # 30: Red
+    ]
+    custom_cmap = mcolors.LinearSegmentedColormap.from_list('custom_rank_diff', colors_list)
+
     # Create scatter plot with color based on agreement
     scatter = ax.scatter(
         plot_df['rank_m1'],
         plot_df['rank_m2'],
         c=plot_df['rank_diff_abs'],
-        cmap='RdYlGn_r',  # Red (high disagreement) to Green (high agreement)
-        alpha=0.7,
+        cmap=custom_cmap,
+        vmin=0,
+        vmax=vmax,  # Cap the color scale
+        alpha=0.8, # Slightly more opaque for visibility
         s=60,
         edgecolors='black',
         linewidth=0.5
@@ -451,7 +469,7 @@ def plot_rank_vs_rank(
     print(f"Plot saved to {output_path}")
 
 
-def compare_rankings_and_plot(args: AnalysisArgs):
+def compare_rankings_and_plot(args: AnalysisArgs, vmax: int = 25):
     bin_size = 0  # Set to None or 0 to disable binning
     tolerance = 10
     tolerance_bins = tolerance / bin_size if bin_size else None
@@ -487,7 +505,8 @@ def compare_rankings_and_plot(args: AnalysisArgs):
             num_masked=num_masked,
             metric=args.metric,
             method1=args.method1,
-            method2=args.method2
+            method2=args.method2,
+            vmax=vmax
         )
 
         plot_rank_comparison(
@@ -502,6 +521,8 @@ def compare_rankings_and_plot(args: AnalysisArgs):
             bin_size=bin_size,
             tolerance=tolerance_bins or tolerance
         )
+        if num_masked == 6: # XXX
+            break
 
     print(f"\nAll plots saved to {plot_dir}")
     print("You can now compare plots across different num_masked values with consistent x-axis ordering")
