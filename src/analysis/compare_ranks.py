@@ -6,6 +6,7 @@ from pandas import DataFrame
 from pathlib import Path
 import numpy as np
 import matplotlib.colors as mcolors
+from matplotlib.lines import Line2D
 from analysis.llm_based import load_dfs, AnalysisArgs
 from data_models.exec_args import get_dargs
 
@@ -420,21 +421,88 @@ def plot_rank_vs_rank(
     ]
     custom_cmap = mcolors.LinearSegmentedColormap.from_list('custom_rank_diff', colors_list)
 
-    # Create scatter plot with color based on agreement
-    scatter = ax.scatter(
-        plot_df['rank_m1'],
-        plot_df['rank_m2'],
-        c=plot_df['rank_diff_abs'],
+    # --- Split data by agreement condition for distinct markers ---
+    # Condition: Absolute Rank Diff <= 10  -> Agreement (Green zone) -> 'o' (Circle)
+    # Condition: Rank Diff > 10 (m1 > m2 + 10) -> Method 2 (Video/rank_m2) is better (rank 1 is best) if rank_m2 < rank_m1.
+    #            Wait, rank 1 is best.
+    #            If plot_df['rank_m1'] < plot_df['rank_m2'] -> m1 is smaller/better number.
+    #            rank_diff = m1 - m2.
+    #            If m1 (5) < m2 (50), diff = -45.
+    #            If m2 (5) < m1 (50), diff = 45.
+    #
+    #            User request:
+    #            "video-based ranked higher" -> "V" (Triangle Down). Video is usually method2.
+    #               If method2 is higher (better/smaller rank), m2 < m1.
+    #               This means m1 - m2 > 0. (Diff is positive).
+    #               So if diff > 10, method2 is better -> Marker 'v'.
+    #
+    #            "LLM ranked higher" -> Boxes (Square). LLM is method1.
+    #               If method1 is higher (better/smaller rank), m1 < m2.
+    #               This means m1 - m2 < 0. (Diff is negative).
+    #               So if diff < -10, method1 is better -> Marker 's'.
+    
+    threshold = 10
+    
+    # 1. Agreement (Green zone)
+    df_agree = plot_df[plot_df['rank_diff_abs'] <= threshold]
+    
+    # 2. Method 1 (LLM) Better clearly (diff < -threshold)
+    df_m1_better = plot_df[(plot_df['rank_m1'] - plot_df['rank_m2']) < -threshold]
+    
+    # 3. Method 2 (Video) Better clearly (diff > threshold)
+    df_m2_better = plot_df[(plot_df['rank_m1'] - plot_df['rank_m2']) > threshold]
+
+    common_scatter_kwargs = dict(
         cmap=custom_cmap,
         vmin=0,
-        vmax=vmax,  # Cap the color scale
-        alpha=0.8, # Slightly more opaque for visibility
+        vmax=vmax,
+        alpha=0.8,
         s=60,
         edgecolors='black',
         linewidth=0.5
     )
+    
+    # Plot Agreement (Circles)
+    if not df_agree.empty:
+        scatter = ax.scatter(
+            df_agree['rank_m1'],
+            df_agree['rank_m2'],
+            c=df_agree['rank_diff_abs'],
+            marker='o',
+            label='Agreement (diff ≤ 10)',
+            **common_scatter_kwargs
+        )
 
-    # Add colorbar
+    # Plot Method 1 Better (Squares)
+    if not df_m1_better.empty:
+        ax.scatter(
+            df_m1_better['rank_m1'],
+            df_m1_better['rank_m2'],
+            c=df_m1_better['rank_diff_abs'],
+            marker='s',
+            label=f'{short_m1} Ranked Higher',
+            **common_scatter_kwargs
+        )
+
+    # Plot Method 2 Better (Triangle Down "V")
+    if not df_m2_better.empty:
+        ax.scatter(
+            df_m2_better['rank_m1'],
+            df_m2_better['rank_m2'],
+            c=df_m2_better['rank_diff_abs'],
+            marker='v',
+            label=f'{short_m2} Ranked Higher',
+            **common_scatter_kwargs
+        )
+
+    # Add colorbar (using the mappable from the first scatter, or create one if empty)
+    # We need a mappable even if the first scatter didn't run.
+    if df_agree.empty and not df_m1_better.empty:
+        # Just grab the last used collection
+        scatter = ax.collections[-1]
+    
+    # If all empty, we might have an issue, but standard code handles empty plot_df earlier.
+    
     cbar = plt.colorbar(scatter, ax=ax)
     cbar.set_label('Absolute Rank Difference', rotation=270, labelpad=20)
 
@@ -461,7 +529,24 @@ def plot_rank_vs_rank(
     # Make it square and set equal aspect
     ax.set_aspect('equal', adjustable='box')
     ax.grid(True, linestyle='--', alpha=0.3)
-    ax.legend()
+    # Create custom legend handles
+    legend_elements = [
+        Line2D([0], [0], marker='o', color='w', label='Agreement (diff ≤ 10)',
+               markerfacecolor='#008000', markersize=9), # Green Circle
+        Line2D([0], [0], marker='s', color='w', label=f'{short_m1} Ranked Higher',
+               markerfacecolor='#D32F2F', markersize=9), # Red Square
+        Line2D([0], [0], marker='v', color='w', label=f'{short_m2} Ranked Higher',
+               markerfacecolor='#D32F2F', markersize=9),  # Red Triangle (Down)
+        Line2D([0], [0], linestyle='--', color='k', label='Perfect agreement', linewidth=2, alpha=0.5)
+    ]
+
+    ax.legend(
+        handles=legend_elements,
+        bbox_to_anchor=(0.5, 1.15),
+        loc='upper center',
+        borderaxespad=0.,
+        ncol=2
+    )
 
     plt.tight_layout()
     plt.savefig(output_path, dpi=150, bbox_inches='tight')

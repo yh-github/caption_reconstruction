@@ -1,6 +1,7 @@
 import pandas as pd
 import json
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
 from pathlib import Path
 
@@ -81,15 +82,19 @@ def run_conditional_analysis(
         comparison = comparison.dropna()
         comparison['category'] = comparison.index.map(get_cat)
         
-        # Delta: Rank_Video - Rank_LLM
-        comparison['delta'] = comparison['rank_vid'] - comparison['rank_llm']
+        # Delta: Rank_LLM - Rank_Vid
+        # Consistent with Rank Scatter Plot:
+        # Negative Delta (Rank_LLM < Rank_Vid) = LLM Better (Box)
+        # Positive Delta (Rank_LLM > Rank_Vid) = Video Better (V)
+        comparison['delta'] = comparison['rank_llm'] - comparison['rank_vid']
         
-        print("\nMean Rank Delta (Video - LLM) by Category (Positive = LLM Better):")
-        delta_summary = comparison.groupby('category')['delta'].mean().sort_values(ascending=False)
+        print("\nMean Rank Delta (LLM - Video) by Category (Negative = LLM Better):")
+        # Sort ascending (most negative / LLM best first)
+        delta_summary = comparison.groupby('category')['delta'].mean().sort_values(ascending=True)
         print(delta_summary)
         
         print("\nDetailed Statistics by Category:")
-        stats = comparison.groupby('category')['delta'].agg(['count', 'mean', 'median', 'std', 'min', 'max']).sort_values('mean', ascending=False)
+        stats = comparison.groupby('category')['delta'].agg(['count', 'mean', 'median', 'std', 'min', 'max']).sort_values('mean', ascending=True)
         print(stats)
         
         # Calculate counts
@@ -97,26 +102,105 @@ def run_conditional_analysis(
         new_labels = [f"{cat}\n(n={counts[cat]})\nmean={delta_summary[cat]:.1f}" for cat in delta_summary.index]
         
         # Plotting
-        plt.figure(figsize=(12, 7))
+        plt.figure(figsize=(14, 8))
         # Boxplot with Mean Marker
         sns.boxplot(
             data=comparison, 
             x='category', 
             y='delta', 
             order=delta_summary.index, 
-            palette='RdBu', 
+            palette='RdBu_r', # Reversed so Blue (cold) is negative (LLM better), Red (hot) is positive? Or just aesthetic.
             showfliers=False,
             showmeans=True,
-            meanprops={"marker":"D","markerfacecolor":"yellow", "markeredgecolor":"black", "markersize": "14", "markeredgewidth": 2}
+            meanprops={"marker":"D","markerfacecolor":"white", "markeredgecolor":"black", "markersize": "10", "markeredgewidth": 2},
+            boxprops=dict(alpha=.3) # Lighter boxplot to make points visible
         )
-        sns.stripplot(data=comparison, x='category', y='delta', order=delta_summary.index, color='black', alpha=0.6, jitter=0.2)
         
-        plt.axhline(0, color='red', linewidth=1.5, linestyle='--', label='Video Better (Neg)')
-        plt.title(f'Performance Rank Delta (Video - LLM) by Category\nMetric: {metric} (Higher = LLM Relatively Better)\nRanks computed per video (1 to N) at {target_masked} Masked Captions', fontsize=14)
-        plt.ylabel('Rank Difference (Rank_Vid - Rank_LLM)', fontsize=12)
+        # Custom Stripplot Logic for Markers
+        # Threshold for markers
+        threshold = 10
+        cat_map = {cat: i for i, cat in enumerate(delta_summary.index)}
+        
+        for cat in delta_summary.index:
+            x_center = cat_map[cat]
+            subset = comparison[comparison['category'] == cat]
+            
+            # Helper for jitter
+            def get_jittered_x(n): 
+                return np.random.normal(x_center, 0.08, n)
+
+            # 1. Agreement (Green Circle)
+            agree = subset[subset['delta'].abs() <= threshold]
+            if not agree.empty:
+                plt.scatter(
+                    get_jittered_x(len(agree)), 
+                    agree['delta'], 
+                    marker='o', 
+                    color='green', 
+                    edgecolor='black',
+                    linewidth=0.5,
+                    alpha=0.7, 
+                    s=40,
+                    label='Agreement' if x_center == 0 else ""
+                )
+            
+            # 2. LLM Better (Red Square "Box") -> Delta < -10
+            llm_better = subset[subset['delta'] < -threshold]
+            if not llm_better.empty:
+                plt.scatter(
+                    get_jittered_x(len(llm_better)), 
+                    llm_better['delta'], 
+                    marker='s', 
+                    color='red', 
+                    edgecolor='black',
+                    linewidth=0.5,
+                    alpha=0.7, 
+                    s=40,
+                     label='LLM ranked higher' if x_center == 0 else ""
+                )
+            
+            # 3. Video Better (Red V) -> Delta > 10
+            vid_better = subset[subset['delta'] > threshold]
+            if not vid_better.empty:
+                plt.scatter(
+                    get_jittered_x(len(vid_better)), 
+                    vid_better['delta'], 
+                    marker='v', 
+                    color='red', 
+                    edgecolor='black',
+                    linewidth=0.5,
+                    alpha=0.7, 
+                    s=40,
+                    label='Video ranked higher' if x_center == 0 else ""
+                )
+        
+        plt.axhline(0, color='gray', linewidth=1.5, linestyle='--', label='Zero Diff')
+        
+        # Adjust Title and Labels
+        plt.title(
+            f'Rank Difference by Category (LLM Rank - Video Rank)\n'
+            f'Metric: {metric} | Negative values = %s Ranked Higher (Better)' % "LLM", 
+            fontsize=14
+        )
+        plt.ylabel(f'Rank Difference ({metric})\n(Negative = LLM Better, Positive = Video Better)', fontsize=12)
         plt.xlabel('Category', fontsize=12)
         plt.gca().set_xticklabels(new_labels)
         plt.xticks(rotation=45)
+        
+        # Legend construction - tricky with manually added scatters. 
+        # But we added labels to the first iteration. However, duplicates might appear or not.
+        # Let's create custom legend elements to be safe.
+        from matplotlib.lines import Line2D
+        legend_elements = [
+            Line2D([0], [0], marker='o', color='w', label='Agreement (diff ≤ 10)',
+                   markerfacecolor='green', markersize=8),
+            Line2D([0], [0], marker='s', color='w', label='LLM Ranked Higher',
+                   markerfacecolor='red', markersize=8),
+            Line2D([0], [0], marker='v', color='w', label='Video Ranked Higher',
+                   markerfacecolor='red', markersize=8)
+        ]
+        # plt.legend(handles=legend_elements, loc='best')
+
         plt.tight_layout()
         
         output_plot_path = output_dir / f'rank_delta_combined_masked_{target_masked}_{metric}.png'
