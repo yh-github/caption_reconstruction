@@ -1,106 +1,45 @@
-import json
-from pathlib import Path
-from collections import defaultdict
+import numpy as np
 
-def categorize_videos(captions_dir: str):
+def get_video_complexity(gt_vectors: np.ndarray) -> float:
     """
-    Categorizes videos based on their filename prefixes (e.g., 'AiirSource-Military').
+    Calculates how dynamic a video's narrative is.
+    Returns 0.0 (Static/Repetitive) to 1.0 (Chaotic/Unique).
     """
-    captions_path = Path(captions_dir)
-    categories = defaultdict(list)
+    if len(gt_vectors) < 2:
+        return 0.0
+        
+    # 1. Normalize vectors just in case
+    norms = np.linalg.norm(gt_vectors, axis=1, keepdims=True)
+    gt_norm = gt_vectors / (norms + 1e-8)
     
-    # Metadata map for higher-level categories
-    # Based on inspection of filenames
-    high_level_map = {
-        'AiirSource-Military': 'Military',
-        'Army-military': 'Military',
-        'MilitaryNotes': 'Military',
-        'Sandboxx': 'Military',
-        'USA-Military-Channel': 'Military',
-        'WarLeaks-Military-Blog': 'Military',
-        
-        'How-Farms-Work': 'Farming',
-        'Hamiltonville-Farm': 'Farming',
-        'John-Suscovich': 'Farming', # Chicken farming
-        'Millennial-Farmer': 'Farming',
-        'Olly\'s-Farm': 'Farming',
-        'Peterson-Farm-Bros': 'Farming',
-        'Welker-Farms-Inc': 'Farming',
-        'RealAgriculture': 'Farming',
-        
-        'BC-Bushcraft': 'Survival',
-        'Bertram-Craft': 'Survival',
-        'Joe-Robinet': 'Survival',
-        'Primitive-Technology': 'Survival',
-        'Survival-Instinct': 'Survival',
-        'Survival-Skills-Primitive': 'Survival',
-        'Chad-Zuber': 'Survival',
-        'Primal-Earth-Sounds': 'Survival', # Often bushcraft sounds/building
-        
-        'Climate-Change': 'Nature/Doc',
-        'Natural-Disaster': 'Nature/Doc',
-        'Tornado-Trackers': 'Nature/Doc',
-        'Weathershot': 'Nature/Doc',
-        'King-Kong-Amazon': 'Nature/Doc',
-        
-        'TreadmillTV': 'Scenery',
-        '4k-Relaxation': 'Scenery',
-        
-        'Gung-Ho-Vids': 'Action/Vehicle',
-        'Ultimate-Chase': 'Action/Vehicle', # Storm chasing usually? Or police?
-        'Nick-Gaillard': 'Action/Vehicle', # Often skiing/gopro
-        'Dan-Robinson': 'Action/Vehicle',
-        
-        'TK-Hinshaw': 'Farming', # Heavy equipment/farming
-        'Army-military-2018': 'Military',
-    }
+    # 2. Compute Cosine Sim between t and t+1
+    # Shape: (T-1,)
+    adjacent_sims = np.sum(gt_norm[:-1] * gt_norm[1:], axis=1)
     
-    # Process files
-    video_categories = {}
+    # 3. Complexity is the inverse of similarity
+    # If frames are identical (sim=1.0), complexity is 0.
+    mean_similarity = np.mean(adjacent_sims)
     
-    files = list(captions_path.glob('*.json'))
-    print(f"Found {len(files)} caption files.")
-    
-    for f in files:
-        # distinct name is usually the part before the first underscore
-        # But some have hyphens. The "Series" name is usually the prefix.
-        # e.g. "AiirSource-Military_1-clip-0.json" -> "AiirSource-Military"
-        
-        filename = f.stem
-        # Heuristic: split by '_' and take the first part as the series name
-        series_name = filename.split('_')[0]
-        
-        category = high_level_map.get(series_name, 'Other')
-        video_categories[filename] = {
-            'series': series_name,
-            'category': category
-        }
-        categories[category].append(filename)
-        
-    # Print stats
-    print("\nCategory Counts:")
-    for cat, items in categories.items():
-        print(f"  {cat}: {len(items)}")
-        
-    # Save to file
-    output_path = Path("results/video_categories.json")
-    output_path.parent.mkdir(exist_ok=True, parents=True)
-    with open(output_path, 'w') as f:
-        json.dump(video_categories, f, indent=2)
-    print(f"\nSaved categorization to {output_path}")
-        
-    return video_categories
+    return 1.0 - mean_similarity
 
-if __name__ == "__main__":
-    # Assuming run from project root
-    base_path = Path("datasets/wildQA/captions__wild2/")
-    if not base_path.exists():
-        print(f"Error: Path {base_path} does not exist.")
-    else:
-        cats = categorize_videos(base_path)
-        # Verify we classified most things
-        others = [k for k, v in cats.items() if v['category'] == 'Other']
-        if others:
-            print(f"\nUncategorized videos ({len(others)}):")
-            for o in others[:10]:
-                print(f"  {o} (Series: {cats[o]['series']})")
+def get_narrative_complexity(captions: list[str]) -> float:
+    """
+    Calculates Type-Token Ratio (TTR) as a proxy for 
+    Semantic Volatility, independent of embedding models.
+    """
+    all_words = " ".join(captions).lower().split()
+    if not all_words:
+        return 0.0
+    
+    # Structural Volatility: How unique is the vocabulary?
+    unique_words = set(all_words)
+    ttr = len(unique_words) / len(all_words)
+    
+    return ttr
+
+def get_temporal_density(captions: list[str], duration_seconds: float) -> float:
+    """
+    Calculates events per second.
+    """
+    if duration_seconds <= 0: return 0.0
+    return len(set(captions)) / duration_seconds
