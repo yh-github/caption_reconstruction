@@ -174,6 +174,54 @@ class WildLoader(BaseDataLoader):
         ]
         return CaptionedVideo(video_id=j['video_id'], clips=clips)
 
+class CachedDataLoader(BaseDataLoader):
+    """
+    A wrapper around any BaseDataLoader to cache the loaded data in memory.
+    This prevents re-reading/re-parsing data when running multiple experiments (e.g. different maskers)
+    on the same dataset.
+    """
+    def __init__(self, loader: BaseDataLoader):
+        self.loader = loader
+        self._cache: list[CaptionedVideo] | None = None
+        self._cached_limit: int | None = -1
+
+    def load(self, limit: int | None = None) -> list[CaptionedVideo]:
+        # If explicitly requested limit differs from cached limit, invalidate cache
+        # Note: limit=None means "use loader default", so we strictly check if we have a cache for this request.
+        
+        # Simple caching strategy: 
+        # If we have a cache and the request matches what we cached, return it.
+        # We handle the 'None' case by checking if we have cached *anything* (assuming None=default).
+        # A more robust check might be needed if limit changes dynamically, but typically it doesn't.
+        
+        if self._cache is not None:
+             if limit == self._cached_limit:
+                 return self._cache
+             # If limit is None, and we previously cached strictly with None, return it.
+             if limit is None and self._cached_limit is None:
+                 return self._cache
+
+        logging.info(f"Cache miss or limit mismatch (req={limit}, cached={self._cached_limit}). Loading data...")
+        data = self.loader.load(limit)
+        self._cache = data
+        self._cached_limit = limit
+        return data
+
+    def get_data_type_name(self) -> str:
+        return self.loader.get_data_type_name()
+
+    def find(self, video_id):
+        # We can optimize find using cache
+        if self._cache:
+            return next((v for v in self._cache if v.video_id == video_id), None)
+        return self.loader.find(video_id)
+
+    def count(self) -> int:
+        if self._cache is not None:
+            return len(self._cache)
+        return self.loader.count()
+
+
 def get_data_loader(data_config: dict) -> BaseDataLoader:
     """
     Factory function that reads the config and returns the appropriate
@@ -186,13 +234,16 @@ def get_data_loader(data_config: dict) -> BaseDataLoader:
     if not dataset_name or not data_path:
         raise ValueError("Dataset 'name' and 'path' must be specified in the config.")
 
+    loader = None
     if dataset_name == "vatex":
-        return VatexLoader(data_path, limit)
+        loader = VatexLoader(data_path, limit)
     elif dataset_name == "video_storytelling":
-        return VideoStorytellingLoader(data_path, limit)
+        loader = VideoStorytellingLoader(data_path, limit)
     elif dataset_name == "toy_data":
-        return ToyDataLoader(data_path, limit)
+        loader = ToyDataLoader(data_path, limit)
     elif dataset_name == "wild_captions":
-        return WildLoader(data_path, limit)
+        loader = WildLoader(data_path, limit)
     else:
         raise NotImplementedError(f"No data loader found for dataset: '{dataset_name}'")
+    
+    return CachedDataLoader(loader)
