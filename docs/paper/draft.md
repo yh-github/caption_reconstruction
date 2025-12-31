@@ -12,7 +12,7 @@ In this paper, we propose a **Comparative Reconstruction Framework** to quantify
 1.  **The Blind Planner:** A pure text-based Large Language Model (LLM) that infers missing events based solely on temporal context and world knowledge.
 2.  **The Silent Observer:** A pure video-based model that interpolates missing content using only visual embedding similarity.
 
-By comparing their performance on a masked reconstruction task across diverse video domains, we operationalize the concept of **Multimodal Redundancy**. We find that video content effectively clusters along a **Predictability Spectrum**. On the "Procedural" end vs the "Stochastic" end... [EXPAND].
+By comparing their performance on a masked reconstruction task across diverse video domains, we operationalize the concept of **Multimodal Redundancy**. We find that video content effectively clusters along a **Predictability Spectrum**. On the "Procedural" end (e.g., *Farming*, *Military*), actions follow strict protocols that are logically deducible. On the "Stochastic" end (e.g., *Nature*, *Scenery*), events are driven by chaotic physical dynamics where visual observation is irreplaceable.
 
 ## 2. Methodology: The Comparative Framework
 
@@ -71,8 +71,8 @@ Our primary finding is that **no single modality dominates universally**. Instea
 
 **Robustness Check**: To confirm these are not random noisy fluctuations, we performed a consistency analysis across all four masking levels. We identified **13 videos (13% of the dataset)** that remained in the top quintile of $\Delta$ across *every* condition ($k=6,9,12,15$). This stability confirms that for certain content types, the "modality advantage" is a persistent intrinsic property, not an artifact of specific sampling.
 
-![Figure 2: Null Hypothesis Check showing Real vs Random distribution.](../../results/plots/null_hypothesis_check.png)
-*Figure 2: Robustness Check. The distribution of Rank Deltas (Red) compared to a Null Hypothesis of random rankers (Black/Grey). The "Fan-out" at the tails (Log Scale) indicates that the extreme differences are statistically significant and not merely random noise.*
+![Figure 2: Consistency Analysis showing Persistent Signal vs Random Noise.](../../results/plots/null_hypothesis_consistency.png)
+*Figure 2: Robustness Check. Comparison of the **Average Rank Delta** across all four masking levels ($k=6,9,12,15$). The "Real Data" (Red) distribution is significantly wider ($\sigma=28.8$) than the "Random Chance" baseline ($\sigma=19.0$), proving that the observed modality advantages are persistent intrinsic properties of the videos, not random fluctuations which would average out to zero.*
 
 ### 4.3 Qualitative Case Studies ("The When")
 We highlight two examples that define the extremes of the spectrum:

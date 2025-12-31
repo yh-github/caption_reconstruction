@@ -8,6 +8,8 @@ from pathlib import Path
 
 NPY_FILE_PATTERN = "*.npy"
 
+Matrix = list[list[float]]|NDArray[np.float64]
+
 def find_numpy_files(directory: Path, file_pattern: str = NPY_FILE_PATTERN) -> list[Path]:
     return list(directory.rglob(file_pattern))
 
@@ -270,5 +272,48 @@ def monolith(directory:Path):
     print(len(data), len(get_indices()), len(list(load_numpy_files(npy_files))))
     df.to_csv('results/eval_sim_'+directory.name+'.csv')
 
-Matrix = list[list[float]]|NDArray[np.float64]
 
+def calculate_retrieval_metrics(
+    reconstructed_vectors: np.ndarray,  # Shape: (M, Dim)
+    ground_truth_vectors: np.ndarray,   # Shape: (M, Dim)
+    distractor_pool: np.ndarray,        # Shape: (N, Dim) - Global distractors
+    top_k: int = 5
+) -> dict:
+    
+    # 1. Combine GT and Distractors for each query
+    # Note: For efficiency, usually we just compute sim against ALL distractors once
+    
+    # Sim(Recon, GT) -> Shape (M,)
+    sim_gt = np.sum(reconstructed_vectors * ground_truth_vectors, axis=1)
+    
+    # Sim(Recon, Distractors) -> Shape (M, N)
+    sim_dist = np.dot(reconstructed_vectors, distractor_pool.T)
+    
+    # 2. Count how many distractors have higher score than GT
+    # This gives us the rank without needing a full sort (faster)
+    # (M, N) boolean matrix
+    better_than_gt = sim_dist > sim_gt[:, None]
+    
+    # Rank = (count of distractors better than GT) + 1
+    ranks = np.sum(better_than_gt, axis=1) + 1
+    
+    return {
+        "mean_rank": np.mean(ranks),
+        "mrr": np.mean(1.0 / ranks),  # Mean Reciprocal Rank
+        "recall_at_1": np.mean(ranks == 1),
+        "recall_at_5": np.mean(ranks <= 5)
+    }
+
+def calculate_mask_difficulty(target_vector: np.ndarray, context_vectors: np.ndarray) -> float:
+    """
+    How 'surprising' is this target given the context?
+    Returns 0.0 (Already seen in context) to 1.0 (Completely new concept).
+    """
+    if len(context_vectors) == 0:
+        return 1.0 # Maximum difficulty (no context)
+        
+    # Find best match in context
+    similarities = np.dot(context_vectors, target_vector)
+    max_sim = np.max(similarities)
+    
+    return 1.0 - max_sim
