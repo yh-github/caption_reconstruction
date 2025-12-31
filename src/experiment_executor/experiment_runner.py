@@ -51,51 +51,55 @@ class ExperimentRunner:
         all_metrics:list[MetricsRecordRaw] = []
 
         for video in all_videos:
-            if (self._save_path / self._filename(video.video_id)).exists():
-                logging.info(f"Video {video.video_id} already processed, skipping")
-                continue
+            if metric := self._process_single_video(video):
+                all_metrics.append(metric)
 
-            logging.debug(f"--- Processing Video: {video.video_id} ---")
+        # TODO: keep only the sums (NA as 0)
 
-            def err(message:str, extra:dict|None=None):
-                return ReconstructionStrategy.create_error_result(
-                    video_id=video.video_id,
-                    error_message=message,
-                    extra_debug_data=extra
-                )
+        return all_metrics
 
+    def _process_single_video(self, video: CaptionedVideo) -> MetricsRecordRaw | None:
+        """
+        Orchestrates processing for a single video:
+        - Helper to `run`
+        - Checks for existing results (Resumption)
+        - Runs new experiment if needed
+        """
+        result_file = self._save_path / self._filename(video.video_id)
+
+        if result_file.exists():
+            return self._load_existing_result(video, result_file)
+
+        return self._run_new_experiment(video)
+
+    def _load_existing_result(self, video: CaptionedVideo, result_file: Path) -> MetricsRecordRaw | None:
+        """
+        Loads an existing result from disk.
+        CRITICAL: We must still run the masking strategy to advance the PRN state
+        to ensure determinism for subsequent videos.
+        """
+        try:
+            with open(result_file, "r") as f:
+                content = f.read()
+
+            reconstructed = Reconstructed.model_validate_json(content)
+            logging.info(f"Video {video.video_id} result found, loading...")
+
+            # Advance PRN state and get mask info
             masked_video, masked_indices = self._masking_strategy.mask_video(video)
-            if not masked_video:
-                logging.warning(f"Not masking video {video.video_id} size={len(video.clips)} with {self._masking_strategy}")
-                self._save_result(err("NOT_MASKING"))
-                continue
 
-            reconstructed:Reconstructed = self._reconstruction_strategy.reconstruct(masked_video)
-            # if not reconstructed or not reconstructed.reconstructed_captions:
-            #     logging.error(f"Reconstruction failed for video: {video.video_id}")
-            #     self._save_result(err("RECONSTRUCTION_FAILED"))
-            #     continue
+            if not reconstructed.metrics:
+                logging.warning(f"Found result for {video.video_id} but no metrics in it. Skipping inclusion.")
+                return None
+            
+            # If masking failed during this "dry run" but we have a result file,
+            # it implies a configuration change or non-determinism issue.
+            if masked_indices is None:
+                logging.warning(f"Masking strategy returned None for {video.video_id} during resumption, but result file exists.")
+                return None
 
-            if not reconstructed.debug_data and reconstructed.reconstructed_captions.keys() != masked_indices:
-                crit_msg = f"Reconstruction failed for video: {video.video_id}, {reconstructed.reconstructed_captions.keys()=} != {masked_indices=}"
-                logging.critical(crit_msg)
-                raise Exception(crit_msg)
-
-            if reconstructed.debug_data and reconstructed.debug_data.get('failed',0):
-                logging.warning(f'Masked data found in reconstructed_video {video.video_id}, skipping')
-                self._save_result(reconstructed.skip('failed>0'))
-                continue
-            elif reconstructed.reconstructed_captions.keys() != masked_indices:
-                logging.warning(f'Bad indices found in reconstructed_video {video.video_id}, {reconstructed.reconstructed_captions.keys()=}, {masked_indices=}, skipping')
-                self._save_result(reconstructed.skip(f"mismatch with {masked_indices=}"))
-                continue
-            elif reconstructed.debug_data:
-                logging.warning(f'Problems found in reconstructed_video {video.video_id}, proceeding anyway')
-
-            video_metrics = self.evaluator.evaluate(reconstructed, video)
-
-            raw_record = MetricsRecordRaw(
-                raw_metrics=video_metrics,
+            return MetricsRecordRaw(
+                raw_metrics=reconstructed.metrics,
                 metadata=MetricsMetadata(
                     video_id=video.video_id,
                     size=len(video.clips),
@@ -105,14 +109,64 @@ class ExperimentRunner:
                 )
             )
 
-            all_metrics.append(raw_record)
-            rounded = round_metrics(video_metrics)
-            self._save_result(reconstructed.with_metrics(rounded))
+        except Exception as e:
+            logging.warning(f"Failed to load existing result for {video.video_id}: {e}")
+            return None
 
-            logging.info(f"Evaluation metrics {metrics_to_json(rounded)}")
+    def _run_new_experiment(self, video: CaptionedVideo) -> MetricsRecordRaw | None:
+        """
+        Runs the actual experiment logic for a new video.
+        """
+        logging.debug(f"--- Processing Video: {video.video_id} ---")
 
-            logging.debug(f"Successfully processed video: {video.video_id}")
+        def err(message:str, extra:dict|None=None):
+            return ReconstructionStrategy.create_error_result(
+                video_id=video.video_id,
+                error_message=message,
+                extra_debug_data=extra
+            )
 
-        # TODO: keep only the sums (NA as 0)
+        masked_video, masked_indices = self._masking_strategy.mask_video(video)
+        if not masked_video:
+            logging.warning(f"Not masking video {video.video_id} size={len(video.clips)} with {self._masking_strategy}")
+            self._save_result(err("NOT_MASKING"))
+            return None
 
-        return all_metrics
+        reconstructed:Reconstructed = self._reconstruction_strategy.reconstruct(masked_video)
+
+        if not reconstructed.debug_data and reconstructed.reconstructed_captions.keys() != masked_indices:
+            crit_msg = f"Reconstruction failed for video: {video.video_id}, {reconstructed.reconstructed_captions.keys()=} != {masked_indices=}"
+            logging.critical(crit_msg)
+            raise Exception(crit_msg)
+
+        if reconstructed.debug_data and reconstructed.debug_data.get('failed',0):
+            logging.warning(f'Masked data found in reconstructed_video {video.video_id}, skipping')
+            self._save_result(reconstructed.skip('failed>0'))
+            return None
+        elif reconstructed.reconstructed_captions.keys() != masked_indices:
+            logging.warning(f'Bad indices found in reconstructed_video {video.video_id}, {reconstructed.reconstructed_captions.keys()=}, {masked_indices=}, skipping')
+            self._save_result(reconstructed.skip(f"mismatch with {masked_indices=}"))
+            return None
+        elif reconstructed.debug_data:
+            logging.warning(f'Problems found in reconstructed_video {video.video_id}, proceeding anyway')
+
+        video_metrics = self.evaluator.evaluate(reconstructed, video)
+
+        raw_record = MetricsRecordRaw(
+            raw_metrics=video_metrics,
+            metadata=MetricsMetadata(
+                video_id=video.video_id,
+                size=len(video.clips),
+                masked=list(masked_indices),
+                recon_strategy=str(self._reconstruction_strategy),
+                data_type=self.data_loader.get_data_type_name()
+            )
+        )
+
+        rounded = round_metrics(video_metrics)
+        self._save_result(reconstructed.with_metrics(rounded))
+
+        logging.info(f"Evaluation metrics {metrics_to_json(rounded)}")
+        logging.debug(f"Successfully processed video: {video.video_id}")
+
+        return raw_record
