@@ -11,7 +11,7 @@ from google import genai
 from google.genai import types
 from pydantic import BaseModel
 
-from config_loader import load_config, get_llm_config
+from experiment_executor.config_loader import load_config, get_llm_config
 from data_models.video_link import VideoLinkData
 from llm.llm_interaction import LLM_Response, LLM_Manager_Builder
 from llm.parsers import parse_llm_response_list, T_BaseModel
@@ -111,31 +111,74 @@ def read_prompt(path:str|Path) -> str:
     with open(path, 'r') as f:
         return f.read()
 
-def main(config):
+import argparse
+from google.api_core import exceptions
+
+def main(args):
+    config = load_config(args.config_path)
+    dry_run = args.dry_run
+
+    llm_loader = None 
+    # Only verify LLM config validness in dry-run, don't build client yet unless needed? 
+    # actually getting config is safe.
     llm_config = get_llm_config(config)
 
     prompt_text = read_prompt(llm_config['prompt_template'])
     run_id = Path(__file__).stem +"__"+ get_datetime_str()
+    
+    # In dry-run, maybe use console logging only? kept same for consistency
     log_path, notification_logger = setup_logging(
         run_id=run_id,
         log_dir=config["paths"]["log_dir"],
         base_level=logging.INFO,
         console_level=logging.WARNING
     )
-    duration_limit = config["data_config"].get("duration_limit")
-
+    
+    data_conf = config["data_config"]
+    duration_limit = data_conf.get("duration_limit")
     links = load_wild_links(
-        path=config["data_config"]["path"],
+        path=data_conf["path"],
         duration_limit=duration_limit,
-        max_size=config["data_config"]["limit"]
+        max_size=data_conf["limit"]
     )
-    print(f'{len(links) = }')
+    
+    out_path = Path(data_conf["out_path"])
+    out_path = out_path.with_name(out_path.name+f"__{config['__parent_run_name__']}")
+    
+    print(f"--- Configuration Summary ---")
+    print(f"Dataset: {data_conf['name']}")
+    print(f"Input Path: {data_conf['path']}")
+    print(f"Total Links Found: {len(links)}")
+    print(f"Output Directory: {out_path}")
+    print(f"Model: {llm_config['model_name']}")
+    print(f"Dry Run: {dry_run}")
+    print(f"-----------------------------")
 
+    if dry_run:
+        # Check how many would be skipped
+        skipped_count = 0
+        to_process = []
+        for x in links:
+            if x.duration() < duration_limit:
+                 continue
+            
+            OUT_FILE = out_path/f'{x.video_id}.json'
+            if os.path.exists(OUT_FILE) and os.path.getsize(OUT_FILE) > 0:
+                skipped_count += 1
+            else:
+                to_process.append(x.video_id)
+        
+        print(f"Dry Run Analysis:")
+        print(f"  Total Valid Links: {len(links)}")
+        print(f"  Already Processed: {skipped_count}")
+        print(f"  Would Process: {len(to_process)}")
+        if to_process:
+            print(f"  First 5 to process: {to_process[:5]}")
+        return
+
+    out_path.mkdir(parents=True, exist_ok=True)
     cache_dir = config["paths"]["disk_cache"]
     logging.info(f"Cache dir: {cache_dir}")
-    out_path = Path(config["data_config"]["out_path"])
-    out_path = out_path.with_name(out_path.name+f"__{config['__parent_run_name__']}")
-    out_path.mkdir(parents=True, exist_ok=True)
 
     with diskcache.Cache(cache_dir) as llm_cache:
         llm_builder = LLM_Manager_Builder(genai.Client(), llm_cache)
@@ -161,6 +204,8 @@ def main(config):
 
         llm = llm_builder.from_config(llm_config)
 
+        consecutive_errors = 0
+        
         for x in links:
             if x.duration() < duration_limit:
                 logging.warning(f"Skipping {x.video_id} - too short, duration={x.duration()} < {duration_limit=}")
@@ -169,6 +214,7 @@ def main(config):
 
             OUT_FILE = out_path/f'{x.video_id}.json'
             ERR_FILE = out_path/f'error__{x.video_id}__{get_datetime_str()}.yaml'
+            
             if os.path.exists(OUT_FILE) and os.path.getsize(OUT_FILE) > 0:
                 logging.info(f"Skipping {x.video_id} - output file already exists")
                 continue
@@ -181,7 +227,15 @@ def main(config):
             res = None
             try:
                 res = llm.call(llm_input)
+                
+                # Check for Blocked/Error response that might contain the exception
+                if hasattr(res, 'exception') and res.exception:
+                    # If it's a Quota issue that surfaced here
+                    if "429" in str(res.exception) or "ResourceExhausted" in str(res.exception):
+                         raise exceptions.ResourceExhausted(str(res.exception))
+
                 assert res and res.text, f"Bad LLM Response for {x.video_id}"
+                
                 save_to_file(
                     OUT_FILE,
                     x.video_id,
@@ -189,10 +243,26 @@ def main(config):
                     res.thoughts
                 )
                 ok += 1
+                consecutive_errors = 0 # Reset on success
+            except exceptions.ResourceExhausted as re:
+                logging.critical(f"QUOTA EXCEEDED for {x.video_id}: {re}")
+                save_error(ERR_FILE, x.video_id, res, re)
+                print(f"\nCRITICAL: Quota Limit Reached. Stopping execution to prevent further errors.")
+                break
             except Exception as e:
                 logging.error(f"Error with {x.video_id}, {e=}, saving to {ERR_FILE=}")
                 save_error(ERR_FILE, x.video_id, res, e)
+                consecutive_errors += 1
+                if consecutive_errors >= 5:
+                     logging.critical(f"Too many consecutive errors ({consecutive_errors}). Stopping.")
+                     break
+                
     print(f'{log_path = }')
 
 if __name__ == "__main__":
-    main(load_config(sys.argv[1]))
+    parser = argparse.ArgumentParser(description="Process YT videos to generate captions.")
+    parser.add_argument("config_path", help="Path to the yaml configuration file")
+    parser.add_argument("--dry-run", action="store_true", help="Run without calling LLMs to check inputs/outputs")
+    
+    args = parser.parse_args()
+    main(args)
