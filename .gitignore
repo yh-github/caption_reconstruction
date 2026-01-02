@@ -30,3 +30,4 @@ results/
 test_logs/
 test_results/
 .test_lock
+.coverage
