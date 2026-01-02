@@ -15,6 +15,7 @@ from llm.llm_interaction import LLM_Response
 class TestYTVideoProcessing(unittest.TestCase):
     def setUp(self):
         self.mock_config = {
+            "base_params": {"master_seed": 1234},
             "paths": {"log_dir": "/tmp/logs", "disk_cache": "/tmp/cache"},
             "data_config": {
                 "name": "test_dataset",
@@ -55,7 +56,7 @@ class TestYTVideoProcessing(unittest.TestCase):
         # Mock Video Links
         mock_video = MagicMock(spec=VideoLinkData)
         mock_video.video_id = "test_vid_1"
-        mock_video.duration.return_value = 50.0 # Valid duration
+        mock_video.duration.return_value = 70.0 # Valid duration > 60
         mock_video.start_offset = 0
         mock_video.end_offset = 50
         mock_video.uri = "gs://video.uri"
