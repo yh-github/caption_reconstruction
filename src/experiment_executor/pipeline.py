@@ -85,10 +85,12 @@ class ExperimentPipeline(ABC):
         if self.experiment_type == 'RECON':
             self.data_loader = get_data_loader(data_config)
             self.experiment_runner_factory = ExperimentRunner
+            block_llm = self.exec_args.dry_run or self.exec_args.validate_cache or self.exec_args.cached_execution_only
             self.rs_builder = TextReconstructionStrategyBuilder(
                 llm_cache=self.cache,
                 master_seed=self.config["base_params"]["master_seed"],
-                llm_client=self.llm_client
+                llm_client=self.llm_client,
+                block_llm=block_llm
             )
         elif self.experiment_type == 'RECON_VECTORS':
             self.data_loader = VectorDataLoader.from_config(data_config, llm_client=self.llm_client)

@@ -9,6 +9,7 @@ from pydantic_core import PydanticSerializationError
 from data_models.captions_only import CaptionedClip, ReconstructedCaptions
 from data_models.captions_only import CaptionedVideo
 from llm.llm_interaction import LLM_Manager_Builder, LLM_Response, LLM_ResponseError
+from llm.local_llm import ClozeInfiller
 from llm.embedder import CacheMissError
 from llm.parsers import parse_llm_response
 from llm.prompting import PromptBuilder, JSONPromptBuilder
@@ -238,13 +239,98 @@ class LLMStrategy(ReconstructionStrategy):
 
         return ok, failed, changed_unmasked, reconstructed_dict
 
+class LocalLLMStrategy(ReconstructionStrategy):
+    """
+    Strategy using a local LLM (e.g., Phi-3, Mistral) to fill gaps iteratively.
+    """
+    def __init__(self, name: str, infiller: ClozeInfiller, config: dict):
+        super().__init__(name)
+        self.infiller = infiller
+        self.config = config
+        self.temperature = config.get("temperature", 0.2)
+        self.repetition_penalty = config.get("repetition_penalty", 1.2)
+        # If max_new_tokens is not set, we'll calculate it, but having a default/upper bound is good
+        self.default_max_new_tokens = config.get("max_new_tokens", 60) 
+
+    def reconstruct(self, masked_video: CaptionedVideo) -> Reconstructed:
+        reconstructed_captions = {}
+        # We work on a copy of clips to update context as we go
+        working_clips = [c.model_copy() for c in masked_video.clips]
+
+        for i, clip in enumerate(working_clips):
+            if clip.is_masked():
+                # 1. Build Context
+                # Context Before: All prior captions (or a window)
+                # Context After: All future captions (or a window)
+                # To be efficient and match prompt style, let's take a reasonable window.
+                # The prototype used the full log. Let's try use 3-5 lines before and after.
+                WINDOW_SIZE = 5
+                
+                def format_ts(ts) -> str:
+                    # timestamps are floats (seconds). Convert to [SS] or [MM:SS]
+                    m, s = divmod(ts.start, 60)
+                    return f"[{int(m):02d}:{int(s):02d}]"
+
+                start_before = max(0, i - WINDOW_SIZE)
+                context_before_clips = working_clips[start_before:i]
+                context_before_str = "\n".join(
+                    f"{format_ts(c.timestamp)} {c.caption}" for c in context_before_clips if c.caption
+                )
+
+                end_after = min(len(working_clips), i + 1 + WINDOW_SIZE)
+                context_after_clips = working_clips[i+1:end_after]
+                context_after_str = "\n".join(
+                    f"{format_ts(c.timestamp)} {c.caption}" for c in context_after_clips if c.caption
+                )
+                
+                target_timestamp = format_ts(clip.timestamp)
+                
+                # Dynamic max_new_tokens calculation
+                # Heuristic: Average length of surrounding captions + buffer?
+                # Or just use the configured default. User said "we will automatically compute".
+                # Let's try to compute based on average length of visible captions in window.
+                lengths = [len(str(c.caption).split()) for c in context_before_clips + context_after_clips if c.caption]
+                if lengths:
+                    avg_len = sum(lengths) / len(lengths)
+                    # Estimating 1.3 tokens per word approx? allow 2x for safety
+                    computed_max_tokens = int(avg_len * 2.5) 
+                    max_new_tokens = max(20, min(computed_max_tokens, 100)) # Clamp reasonable limits
+                else:
+                    max_new_tokens = self.default_max_new_tokens
+
+                try:
+                    generated_text = self.infiller.fill_gap(
+                        context_before=context_before_str,
+                        context_after=context_after_str,
+                        target_timestamp=target_timestamp,
+                        temperature=self.temperature,
+                        repetition_penalty=self.repetition_penalty,
+                        max_new_tokens=max_new_tokens
+                    )
+                    
+                    reconstructed_captions[clip.index] = generated_text
+                    
+                    # Update the working clip so it serves as context for subsequent gaps
+                    working_clips[i] = clip.model_copy(update={'caption': generated_text})
+
+                except Exception as e:
+                    logging.error(f"Local LLM failed for {masked_video.video_id} index {i}: {e}")
+                    reconstructed_captions[clip.index] = "" # Failed
+
+        return Reconstructed(
+            video_id=masked_video.video_id,
+            reconstructed_captions=reconstructed_captions
+        )
+
 class TextReconstructionStrategyBuilder:
     """
     A builder class responsible for creating reconstruction strategy objects.
     """
-    def __init__(self, llm_cache, master_seed:int, llm_client:genai.Client):
+    def __init__(self, llm_cache, master_seed:int, llm_client:genai.Client, block_llm: bool = False):
         self.master_seed = master_seed
+        self.block_llm = block_llm
         self.llm_manager_builder = LLM_Manager_Builder(llm_client, llm_cache)
+        self._local_model_cache: dict[str, ClozeInfiller] = {}
 
     def get_strategy(self, strategy_config: dict) -> ReconstructionStrategy:
         """
@@ -261,6 +347,20 @@ class TextReconstructionStrategyBuilder:
                 name=strategy_config["name"],
                 llm_model=self.llm_manager_builder.from_config(llm_conf),
                 prompt_builder=JSONPromptBuilder.from_config(llm_conf)
+            )
+
+        elif strategy_type == "local_llm":
+            # Assuming 'local_llm' key exists in strategy_config with model params
+            model_key = strategy_config.get("model_key", "phi-3")
+            
+            # Check cache/singletons to avoid reloading 7GB models
+            if model_key not in self._local_model_cache:
+                self._local_model_cache[model_key] = ClozeInfiller(model_key=model_key, block_llm=self.block_llm)
+            
+            return LocalLLMStrategy(
+                name=strategy_config.get("name", "LocalLLM"),
+                infiller=self._local_model_cache[model_key],
+                config=strategy_config
             )
 
         elif strategy_type == "baseline_repeat_last":
