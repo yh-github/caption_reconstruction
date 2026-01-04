@@ -264,7 +264,7 @@ class LocalLLMStrategy(ReconstructionStrategy):
                 # Context After: All future captions (or a window)
                 # To be efficient and match prompt style, let's take a reasonable window.
                 # The prototype used the full log. Let's try use 3-5 lines before and after.
-                WINDOW_SIZE = 5
+                WINDOW_SIZE = 500 # Effectively unlimited context (video length is usually ~60 clips)
                 
                 def format_ts(ts) -> str:
                     # timestamps are floats (seconds). Convert to [SS] or [MM:SS]

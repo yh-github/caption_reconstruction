@@ -73,10 +73,12 @@ class PriorSurpriseScorer:
         # 3. The "Matrix" Forward Pass
         # We run the model once on the huge sequence
         with torch.no_grad():
-            outputs = self.model(input_ids)
+            outputs = self.model(input_ids, output_attentions=True)
             logits = outputs.logits
+            # Attentions: Tuple of len(layers), each (batch, headers, seq_len, seq_len)
+            attentions = outputs.attentions 
 
-        # 4. Calculate Loss Per Token
+        # 4a. Calculate Loss Per Token
         # Shift: Logits at [i] predict label at [i+1]
         shift_logits = logits[..., :-1, :].contiguous()
         shift_labels = input_ids[..., 1:].contiguous()
@@ -88,13 +90,48 @@ class PriorSurpriseScorer:
             shift_labels.view(-1)
         )
         
+        # 4b. Calculate Attention Distance Per Token
+        # We want to know for token at index i (prediction target), how far back did it look?
+        # Note: The model predicts token i using states up to i-1. 
+        # So for prediction of token at generic index 'pos', we look at attention row 'pos-1'.
+        # Let's simplify: We consider the attention emitted from the position *generating* the prediction.
+        # Input: [A, B, C]. Target: [B, C, D].
+        # To predict B (pos 1), we use hidden state at A (pos 0). 
+        # Attention at pos 0 looks at pos 0 (self). Distance = 0.
+        # To predict C (pos 2), we use hidden state at B (pos 1).
+        # Attention at pos 1 looks at 0 and 1. If it looks at 0, Dist=1.
+        
+        # Let's aggregate attention across all layers and heads to get a single matrix (seq, seq)
+        # We take the mean across layers and heads.
+        # Stack layers: (num_layers, batch, heads, seq, seq) -> Mean -> (seq, seq)
+        # This is memory heavy. Let's do it iteratively or keep on GPU carefully.
+        avg_attn = torch.stack(attentions).mean(dim=(0, 1, 2)) # (seq, seq)
+        
+        # Create a distance matrix
+        seq_len = input_ids.size(1)
+        indices = torch.arange(seq_len, device="cuda")
+        # Row i, Col j. Distance = i - j. 
+        # We only care about j <= i (causal).
+        dist_matrix = indices.unsqueeze(1) - indices.unsqueeze(0) # (seq, seq)
+        
+        # Multiply attention weights by distance
+        # weighted_dist[i] = sum(attn[i, j] * (i-j))
+        # Mask out future (should be 0 anyway due to causal mask, but explicit safety)
+        # attn sums to 1.
+        
+        token_avg_dist = (avg_attn * dist_matrix).sum(dim=1) # (seq,)
+        
+        # Now we have token_avg_dist[i], which is the avg distance looked back from position i.
+        # Position i corresponds to the generating state for input_ids[i+1].
+        # So we align it similar to loss.
+        # token_avg_dist[i] is effectively the "Memory usage" to predict token[i+1].
+        
         # 5. Map Tokens back to Sentences
         # We iterate through our original captions and find which tokens belong to them
         results = []
         current_char_pos = 0
         
         # token_losses has length N-1 compared to input_ids
-        # So token_loss[i] corresponds to the prediction of input_ids[i+1]
         
         for i, caption in enumerate(captions):
             start_char = current_char_pos
@@ -104,6 +141,10 @@ class PriorSurpriseScorer:
             # We look at the offsets. Note: offsets are usually [start, end)
             
             caption_token_indices = []
+            # We also need the indices for attention. 
+            # Loss at index `k` corresponds to prediction of token `k+1`.
+            # This prediction was made by the state at index `k`. 
+            # So token_avg_dist[k] matches token_losses[k].
             
             for idx, (tok_start, tok_end) in enumerate(offsets):
                 # We skip the first token (BOS) for alignment with shift_labels
@@ -117,18 +158,27 @@ class PriorSurpriseScorer:
             
             if caption_token_indices:
                 # Extract the losses for this specific sentence
-                # token_losses is on GPU, we take mean slice
                 segment_loss = token_losses[caption_token_indices].mean().item()
+                
+                # Extract attention distance
+                segment_att_dist = token_avg_dist[caption_token_indices].mean().item()
                 
                 results.append({
                     "index": i,
                     "caption": caption,
                     "loss": segment_loss,
-                    "perplexity": torch.exp(torch.tensor(segment_loss)).item()
+                    "perplexity": torch.exp(torch.tensor(segment_loss)).item(),
+                    "avg_attn_distance": segment_att_dist
                 })
             else:
                 # Handle edge case (empty lines or tokenizer weirdness)
-                results.append({"index": i, "caption": caption, "loss": 0.0, "perplexity": 0.0})
+                results.append({
+                    "index": i, 
+                    "caption": caption, 
+                    "loss": 0.0, 
+                    "perplexity": 0.0,
+                    "avg_attn_distance": 0.0
+                })
 
             # Update char pos (+1 for the newline we added)
             current_char_pos = end_char + 1
@@ -150,7 +200,7 @@ if __name__ == "__main__":
         "[00:05] He drinks the water."
     ]
     
-    scorer = FastScorer(model_key="mistral-v0.3")
+    scorer = PriorSurpriseScorer(model_key="mistral-v0.3")
     
     print("Calculating scores (One Pass)...")
     scores = scorer.calculate_whole_log_surprisal(captions)

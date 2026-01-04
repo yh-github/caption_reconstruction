@@ -86,39 +86,67 @@ def main():
         # We iterate through all masking strategies to find coverage
         labels_processed = set()
         
-        for masker in masking_strategies:
-            _, masked_indices = masker.mask_video(video)
-            if not masked_indices:
-                continue
-                
-            for idx in masked_indices:
-                # Avoid duplicate work if multiple masks cover the same index (unlikely but possible)
-                if idx in labels_processed:
-                    continue
-                
-                # Context Window: Let's use 5 before/after
-                # Same logic as LocalLLMStrategy
-                WINDOW_SIZE = 5
-                start_before = max(0, idx - WINDOW_SIZE)
-                # end_after = min(len(video.clips), idx + 1 + WINDOW_SIZE)
-                
-                # We need simple text
-                context_before_clips = video.clips[start_before:idx]
-                context_after_clips = video.clips[idx+1 : idx+1+WINDOW_SIZE] # Slice handles OOB
-                
-                def fmt(cl): return f"[{cl.timestamp.start:.0f}s] {cl.caption}"
-                
-                ctx_before = "\n".join(fmt(c) for c in context_before_clips if c.caption)
-                ctx_after = "\n".join(fmt(c) for c in context_after_clips if c.caption)
-                target_line = fmt(video.clips[idx])
-                
-                try:
-                    pmi_res = pmi_scorer.calculate_informativeness(ctx_before, ctx_after, target_line)
-                    pmi_res['clip_index'] = idx
-                    video_result['segments_pmi'].append(pmi_res)
-                    labels_processed.add(idx)
-                except Exception as e:
-                    logging.error(f"Failed PMI for {video.video_id} idx {idx}: {e}")
+        # Check command line for --score-all arg (primitive arg parsing for now)
+        score_all = "--score-all" in sys.argv
+        
+        indices_to_score = []
+        if score_all:
+             indices_to_score = [c.index for c in video.clips if c.caption]
+        else:
+            for masker in masking_strategies:
+                _, masked_indices = masker.mask_video(video)
+                if masked_indices:
+                    indices_to_score.extend(list(masked_indices))
+        
+        # Deduplicate
+        indices_to_score = sorted(list(set(indices_to_score)))
+
+        # BATC PREPARATION
+        batch_indices = []
+        batch_ctx_before = []
+        batch_ctx_after = []
+        batch_targets = []
+
+        for idx in indices_to_score:
+            # Context Window: Effectively unlimited
+            WINDOW_SIZE = 500
+            start_before = max(0, idx - WINDOW_SIZE)
+            
+            # We need simple text
+            context_before_clips = video.clips[start_before:idx]
+            context_after_clips = video.clips[idx+1 : idx+1+WINDOW_SIZE] # Slice handles OOB
+            
+            def fmt(cl): return f"[{cl.timestamp.start:.0f}s] {cl.caption}"
+            
+            ctx_before = "\n".join(fmt(c) for c in context_before_clips if c.caption)
+            ctx_after = "\n".join(fmt(c) for c in context_after_clips if c.caption)
+            target_line = fmt(video.clips[idx])
+            
+            batch_indices.append(idx)
+            batch_ctx_before.append(ctx_before)
+            batch_ctx_after.append(ctx_after)
+            batch_targets.append(target_line)
+
+        # BATCH EXECUTION
+        if batch_indices:
+            try:
+                # Process in chunks of 16 to avoid OOM even with batching
+                CHUNK_SIZE = 16
+                for i in range(0, len(batch_indices), CHUNK_SIZE):
+                    chunk_slice = slice(i, i + CHUNK_SIZE)
+                    
+                    chunk_res = pmi_scorer.calculate_informativeness_batch(
+                        batch_ctx_before[chunk_slice], 
+                        batch_ctx_after[chunk_slice], 
+                        batch_targets[chunk_slice]
+                    )
+                    
+                    for j, res in enumerate(chunk_res):
+                        res['clip_index'] = batch_indices[i+j]
+                        video_result['segments_pmi'].append(res)
+                        
+            except Exception as e:
+                logging.error(f"Failed Batch PMI for {video.video_id}: {e}")
 
         results[video.video_id] = video_result
         
@@ -130,9 +158,19 @@ def main():
     timestamp = get_datetime_str()
     filename = f"scores_{run_name}_{model_key}_{timestamp}.json"
     
+    final_output = {
+        "metadata": {
+            "run_name": run_name,
+            "model_key": model_key,
+            "timestamp": timestamp,
+            "config": config  # Saving the exact config used
+        },
+        "scores": results
+    }
+    
     output_path = output_dir / filename
     with open(output_path, "w") as f:
-        json.dump(results, f, indent=2)
+        json.dump(final_output, f, indent=2)
         
     logging.info(f"Saved scores to {output_path}")
 
