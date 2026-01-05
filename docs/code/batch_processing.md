@@ -8,7 +8,7 @@ Instead of running the pipeline $N$ times for $N$ different `(temp, penalty)` co
 
 ## Required Components
 
-### 1. `HeterogeneousLogitsProcessor` (Already implemented in `src/new_code/logits_processor.py`)
+### 1. `HeterogeneousLogitsProcessor` (Already implemented in `src/llm/logits_processor.py`)
 This custom HuggingFace `LogitsProcessor` allows applying a vector of temperatures and penalties to a batch of logits.
 *   Input: `temperatures: [B, 1]`, `penalties: [B]`
 *   Logic: Applies $Temp_i$ and $Penalty_i$ to row $i$ of the logits tensor.
