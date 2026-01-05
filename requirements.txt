@@ -21,6 +21,9 @@ pytz~=2025.2
 # --- BertScore ---
 bert-score>=0.3.13		# For semantic similarity evaluation
 # torch  # Rely on environment-provided Torch (especially in Colab)
+transformers>=4.42.0        # Required for Mistral-v0.3
+accelerate>=0.26.0          # Required for device_map="auto"
+bitsandbytes>=0.41.0        # Required for 4-bit quantization
 tiktoken~=0.11.0
 sentencepiece~=0.2.1
 
