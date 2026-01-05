@@ -61,5 +61,22 @@ def test_local_embedder_logic():
     assert args[0] == ["c_unique_1"]
     print("Test 3 (Mixed) Passed")
 
+    # Test 4: Duplicates
+    # Reset mock
+    mock_model_instance.encode.reset_mock()
+    dup_texts = ["d_dup", "d_dup", "e_unique"]
+    
+    # We expect 3 embeddings back
+    embs4 = embedder.get_embeddings("vid1", dup_texts)
+    assert len(embs4) == 3
+    
+    # But the model should only compute 2 (d_dup and e_unique)
+    args, _ = mock_model_instance.encode.call_args
+    # The set of new texts order is not guaranteed, so we check length or set equality
+    computed_texts = args[0]
+    assert len(computed_texts) == 2
+    assert set(computed_texts) == {"d_dup", "e_unique"}
+    print("Test 4 (Duplicates) Passed")
+
 if __name__ == "__main__":
     test_local_embedder_logic()
