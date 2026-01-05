@@ -20,6 +20,12 @@ import torch
 from data.hf_sync import HFResultsSync
 from common_utils.tracking import get_datetime_str
 
+def log_gpu_stats(context=""):
+    if torch.cuda.is_available():
+        allocated = torch.cuda.memory_allocated() / 1024**3
+        reserved = torch.cuda.memory_reserved() / 1024**3
+        logging.info(f"[GPU {context}] Allocated: {allocated:.2f}GB | Reserved: {reserved:.2f}GB")
+
 @dataclass
 class ScoringResources:
     config: dict[str, Any]
@@ -219,6 +225,8 @@ def run_scoring_loop(resources: ScoringResources, args):
     try:
         for i, video in enumerate(videos_to_process):
             logging.info(f"[{i+1}/{len(videos_to_process)}] Scoring {video.video_id}...")
+            if torch.cuda.is_available():
+                log_gpu_stats("Start Video")
             
             video_result = {
                 "video_id": video.video_id,
@@ -247,8 +255,11 @@ def run_scoring_loop(resources: ScoringResources, args):
                         "measurements": [asdict(s) for s in surprisal_scores]
                     }
             except torch.cuda.OutOfMemoryError:
-                logging.error(f"FATAL: CUDA OOM during Surprisal for video {video.video_id}. Halting execution to prevent unstable state.")
-                # We don't continue to PMI if we already OOM'd
+                logging.error(f"FATAL: CUDA OOM during Surprisal for video {video.video_id}.")
+                log_gpu_stats("OOM State")
+                torch.cuda.empty_cache()
+                log_gpu_stats("Post-EmptyCache")
+                logging.error("Halting execution to prevent unstable state.")
                 raise
             except Exception as e:
                 logging.error(f"Failed Surprisal for {video.video_id}: {e}")
