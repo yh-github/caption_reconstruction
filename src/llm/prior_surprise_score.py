@@ -13,6 +13,10 @@ class SurprisalResult:
     perplexity: float
     avg_attn_distance: float
     sink_allocation: float = 0.0
+    n_tokens: int = 0
+    n_words: int = 0
+    n_chars: int = 0
+    caption_affinity: list[float] | None = None # Attention mass distribution over all captions
 
 """
 Intended to be used as a a priori assessment of how hard it is to reconstruct a caption,
@@ -136,81 +140,118 @@ class PriorSurpriseScorer:
             # ------------------------------
 
             # Multiply attention weights by distance
-            token_avg_dist = (avg_attn * dist_matrix).sum(dim=1) # (seq,)
-            
-            del attentions
-            del avg_attn
-            del dist_matrix
+        # 5. Map Tokens back to Sentences & Pre-compute Stats
+        # We need to know which tokens belong to which caption to aggregate attention
+        caption_token_map = {} # caption_idx -> list[token_indices]
         
-        # Now we have token_avg_dist[i], which is the avg distance looked back from position i.
-        # Position i corresponds to the generating state for input_ids[i+1].
-        # So we align it similar to loss.
-        # token_avg_dist[i] is effectively the "Memory usage" to predict token[i+1].
-        
-        # 5. Map Tokens back to Sentences
-        # We iterate through our original captions and find which tokens belong to them
-        results = []
         current_char_pos = 0
-        
-        # token_losses has length N-1 compared to input_ids
-        
         for i, caption in enumerate(captions):
             start_char = current_char_pos
             end_char = start_char + len(caption)
             
-            # Find tokens that fall within this character range
-            # We look at the offsets. Note: offsets are usually [start, end)
-            
-            caption_token_indices = []
-            # We also need the indices for attention. 
-            # Loss at index `k` corresponds to prediction of token `k+1`.
-            # This prediction was made by the state at index `k`. 
-            # So token_avg_dist[k] matches token_losses[k].
-            
+            indices = []
             for idx, (tok_start, tok_end) in enumerate(offsets):
-                # We skip the first token (BOS) for alignment with shift_labels
                 if idx == 0: continue
-                
-                # Check if this token is largely inside our caption
-                # We use overlap logic
+                # Overlap logic
                 if tok_end > start_char and tok_start < end_char:
-                    # The loss for this token is at index idx-1 because of the shift
-                    caption_token_indices.append(idx - 1)
+                    indices.append(idx - 1) # Shifted
             
-            if caption_token_indices:
-                # Extract the losses for this specific sentence
-                segment_loss = token_losses[caption_token_indices].mean().item()
+            caption_token_map[i] = indices
+            current_char_pos = end_char + 1
+
+        # 6. Compute Caption Affinity (if available)
+        caption_affinities = None # Dict[cap_idx, List[float]] - mass per target caption
+        
+        if calc_attn_dist and attentions:
+            # avg_attn is (seq, seq) [renormalized, no sink]
+            # We want to know for Source Caption S, how much mass falls on Target Caption T?
+            caption_affinities = {}
+            
+            # Pre-compute target masks to avoid N^2 inner loop overhead on GPU?
+            # Actually simpler: For each source, get the mean attention row.
+            # Then sum up columns belonging to each target.
+            
+            # We can do this efficiently on CPU since N_caps is small (~100)
+            avg_attn_cpu = avg_attn.float().cpu() # Move to CPU for complex reduction
+            
+            for s_idx in range(len(captions)):
+                s_tokens = caption_token_map[s_idx]
+                if not s_tokens:
+                    caption_affinities[s_idx] = [0.0] * len(captions)
+                    continue
+                    
+                # Get average attention profile for this caption's tokens
+                # Shape: (len(s_tokens), seq_len) -> mean(0) -> (seq_len,)
+                # Note: These are rows in the matrix
+                source_profile = avg_attn_cpu[s_tokens, :].mean(dim=0)
                 
-                # Extract attention distance
-                segment_att_dist = -1.0 
+                # Now bucket this profile into target captions
+                row_distribution = []
+                for t_idx in range(len(captions)):
+                    t_tokens = caption_token_map[t_idx]
+                    if not t_tokens:
+                        row_distribution.append(0.0)
+                    else:
+                        # Sum mass falling on target tokens
+                        mass = source_profile[t_tokens].sum().item()
+                        row_distribution.append(mass)
+                
+                caption_affinities[s_idx] = row_distribution
+
+            del avg_attn_cpu # Explicit cleanup of CPU copy
+            
+            # Cleanup GPU tensors
+            del attentions
+            del avg_attn
+            del dist_matrix
+
+        # 7. Build Results
+        results = []
+        for i, caption in enumerate(captions):
+            indices = caption_token_map[i]
+            
+            if indices:
+                segment_loss = token_losses[indices].mean().item()
+                
+                # Default Metrics
+                segment_att_dist = -1.0
                 segment_sink_alloc = 0.0
+                segment_affinity = None
                 
                 if token_avg_dist is not None:
-                     segment_att_dist = token_avg_dist[caption_token_indices].mean().item()
-                     if token_sink_fraction is not None:
-                         segment_sink_alloc = token_sink_fraction[caption_token_indices].mean().item()
-                
+                    segment_att_dist = token_avg_dist[indices].mean().item()
+                    
+                if token_sink_fraction is not None:
+                    segment_sink_alloc = token_sink_fraction[indices].mean().item()
+                    
+                if caption_affinities:
+                    segment_affinity = caption_affinities.get(i)
+
                 results.append(SurprisalResult(
                     index=i,
                     caption=caption,
                     loss=segment_loss,
                     perplexity=torch.exp(torch.tensor(segment_loss)).item(),
                     avg_attn_distance=segment_att_dist,
-                    sink_allocation=segment_sink_alloc
+                    sink_allocation=segment_sink_alloc,
+                    n_tokens=len(indices),
+                    n_words=len(caption.split()),
+                    n_chars=len(caption),
+                    caption_affinity=segment_affinity
                 ))
             else:
-                # Handle edge case (empty lines or tokenizer weirdness)
                 results.append(SurprisalResult(
                     index=i, 
                     caption=caption, 
                     loss=0.0, 
                     perplexity=0.0,
-                    avg_attn_distance=0.0
+                    avg_attn_distance=0.0,
+                    n_tokens=0,
+                    n_words=len(caption.split()),
+                    n_chars=len(caption),
+                    caption_affinity=None
                 ))
 
-            # Update char pos (+1 for the newline we added)
-            current_char_pos = end_char + 1
-            
         torch.cuda.empty_cache()
         return results
 
