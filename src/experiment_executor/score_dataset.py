@@ -232,7 +232,10 @@ def run_scoring_loop(resources: ScoringResources, args):
             # The scorer expects list of strings.
             
             try:
-                surprisal_scores = prior_scorer.calculate_whole_log_surprisal(captions_text)
+                surprisal_scores = prior_scorer.calculate_whole_log_surprisal(
+                    captions_text,
+                    calc_attn_dist=args.calc_attn_distance
+                )
                 # We aggregate for the whole video
 
                 if surprisal_scores:
