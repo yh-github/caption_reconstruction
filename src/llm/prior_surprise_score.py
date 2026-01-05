@@ -76,11 +76,11 @@ class PriorSurpriseScorer:
         
         # 3. The "Matrix" Forward Pass
         # We run the model once on the huge sequence
+        # Note: We disable output_attentions to save significant memory (OOM avoidance)
         with torch.no_grad():
-            outputs = self.model(input_ids, output_attentions=True)
+            outputs = self.model(input_ids, output_attentions=False)
             logits = outputs.logits
-            # Attentions: Tuple of len(layers), each (batch, headers, seq_len, seq_len)
-            attentions = outputs.attentions 
+            # attentions = outputs.attentions (Not available)
 
         # 4a. Calculate Loss Per Token
         # Shift: Logits at [i] predict label at [i+1]
@@ -94,32 +94,11 @@ class PriorSurpriseScorer:
             shift_labels.view(-1)
         )
         
-        # 4b. Calculate Attention Distance Per Token
-        # We aggregate attention across all layers and heads to get a single matrix (seq, seq)
-        # To avoid OOM, we do this iteratively (Accumulator Mean)
-        # attentions is a tuple of (batch, heads, seq, seq)
-        
-        num_layers = len(attentions)
-        seq_len = input_ids.size(1)
-        indices = torch.arange(seq_len, device="cuda")
-        dist_matrix = indices.unsqueeze(1) - indices.unsqueeze(0) # (seq, seq)
-
-        # Iterative mean to avoid holding all layers in VRAM
-        avg_attn = torch.zeros((seq_len, seq_len), device="cuda")
-        for layer_attn in attentions:
-            # Mean across batch and heads
-            avg_attn += layer_attn.squeeze(0).mean(dim=0)
-        
-        avg_attn /= num_layers
-        
-        # Multiply attention weights by distance
-        token_avg_dist = (avg_attn * dist_matrix).sum(dim=1) # (seq,)
-        
         # Cleanup large model outputs immediately
         del logits
-        del attentions
-        del avg_attn
-        del dist_matrix
+        
+        # Attention Distance Calculation DISABLED to prevent OOM
+        # 4b. Skip Attention Distance
         
         # Now we have token_avg_dist[i], which is the avg distance looked back from position i.
         # Position i corresponds to the generating state for input_ids[i+1].
@@ -161,7 +140,7 @@ class PriorSurpriseScorer:
                 segment_loss = token_losses[caption_token_indices].mean().item()
                 
                 # Extract attention distance
-                segment_att_dist = token_avg_dist[caption_token_indices].mean().item()
+                segment_att_dist = -1.0 # Disabled
                 
                 results.append(SurprisalResult(
                     index=i,

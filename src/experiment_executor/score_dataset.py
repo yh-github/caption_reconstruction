@@ -46,6 +46,7 @@ def parse_scoring_args(arg_list: list[str] | None = None):
     # Script-specific flags
     parser.add_argument("--calc-pmi", action="store_true", help="Calculate PMI (slow, logic heavy)")
     parser.add_argument("--score-all", action="store_true", help="Score all clips instead of masked ones")
+    parser.add_argument("--calc-attn-distance", action="store_true", help="Calculate Attention Distance (Memory heavy!)")
     parser.add_argument("--ignore-gpu", action="store_true", help="Allow running on CPU (checking logic only)")
     parser.add_argument("--hf-repo-id", type=str, default="Y3/dense_video_captions", help="HF Repo ID for sync")
     parser.add_argument("--upload-interval", type=int, default=10, help="Upload results every N videos")
