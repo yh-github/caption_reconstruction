@@ -56,6 +56,7 @@ class PriorSurpriseScorer:
             trust_remote_code=self.config["trust_remote_code"],
             attn_implementation="eager"
         )
+        self.model.eval()
 
     def calculate_whole_log_surprisal(self, captions: list[str], calc_attn_dist: bool = False) -> list[SurprisalResult]:
         """
