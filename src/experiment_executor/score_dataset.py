@@ -146,7 +146,8 @@ def setup_scoring_resources(args, force_pull: bool = False) -> ScoringResources:
         syncer=syncer,
         existing_data=existing_data,
         model_key=model_key,
-        )
+        videos_to_process=videos_to_process
+    )
 
 def refresh_resources(resources: ScoringResources, args, force_pull: bool = False):
     """
