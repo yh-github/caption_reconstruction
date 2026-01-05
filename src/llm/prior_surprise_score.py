@@ -12,6 +12,7 @@ class SurprisalResult:
     loss: float
     perplexity: float
     avg_attn_distance: float
+    sink_allocation: float = 0.0
 
 """
 Intended to be used as a a priori assessment of how hard it is to reconstruct a caption,
@@ -119,6 +120,21 @@ class PriorSurpriseScorer:
             
             avg_attn /= num_layers
             
+            # --- HANDLE ATTENTION SINKS ---
+            # Most LLMs use the 0-th token (BOS) as a sink for "unneeded" attention.
+            token_sink_fraction = None
+            
+            if seq_len > 1:
+                # Capture how much was allocated to BOS before we zero it
+                token_sink_fraction = avg_attn[:, 0].clone() # (seq,)
+                
+                avg_attn[:, 0] = 0.0
+                row_sums = avg_attn.sum(dim=1, keepdim=True)
+                # Avoid division by zero
+                row_sums[row_sums == 0] = 1.0 
+                avg_attn /= row_sums
+            # ------------------------------
+
             # Multiply attention weights by distance
             token_avg_dist = (avg_attn * dist_matrix).sum(dim=1) # (seq,)
             
@@ -166,16 +182,21 @@ class PriorSurpriseScorer:
                 segment_loss = token_losses[caption_token_indices].mean().item()
                 
                 # Extract attention distance
-                segment_att_dist = -1.0 # Default if disabled
+                segment_att_dist = -1.0 
+                segment_sink_alloc = 0.0
+                
                 if token_avg_dist is not None:
                      segment_att_dist = token_avg_dist[caption_token_indices].mean().item()
+                     if token_sink_fraction is not None:
+                         segment_sink_alloc = token_sink_fraction[caption_token_indices].mean().item()
                 
                 results.append(SurprisalResult(
                     index=i,
                     caption=caption,
                     loss=segment_loss,
                     perplexity=torch.exp(torch.tensor(segment_loss)).item(),
-                    avg_attn_distance=segment_att_dist
+                    avg_attn_distance=segment_att_dist,
+                    sink_allocation=segment_sink_alloc
                 ))
             else:
                 # Handle edge case (empty lines or tokenizer weirdness)
