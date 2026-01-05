@@ -98,7 +98,24 @@ def main():
     # Logic: If video_id in existing_scores, skip it.
     # Note: If we want to re-process partially done stuff, we'd need more logic. 
     # For now, simplistic "done is done".
-    videos_to_process = [v for v in all_videos if v.video_id not in existing_scores]
+    # Filter videos that are already fully processed
+    videos_to_process = []
+    
+    for v in all_videos:
+        # Case 1: Video is completely new
+        if v.video_id not in existing_scores:
+            videos_to_process.append(v)
+            continue
+            
+        # Case 2: Video exists, but maybe we need to add PMI data?
+        if args.calc_pmi:
+            existing_entry = existing_scores[v.video_id]
+            # Check if PMI data is missing
+            if not existing_entry.get("segments_pmi"):
+                logging.info(f"Video {v.video_id} exists but missing PMI. Re-queueing.")
+                videos_to_process.append(v)
+    
+    # videos_to_process = [v for v in all_videos if v.video_id not in existing_scores]
     
     logging.info(f"Loaded {len(all_videos)} videos. Found {len(existing_scores)} existing scores. Processing {len(videos_to_process)} new videos.")
     
