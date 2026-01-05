@@ -9,7 +9,7 @@ from common_utils.error_handling import UserFacingError
 from data_models.captions_only import CaptionedVideo
 from evaluations.eval_vectors import VectorStats, Matrix, calculate_elementwise_cosine, context_projection
 from evaluations.metrics import MetricsRecordRaw, RAW_METRIC_OBJ
-from llm.embedder import Embedder
+from llm.embedder import GeminiEmbedder
 from reconstruction.text_reconstruction import Reconstructed
 
 logger = logging.getLogger(__name__)
@@ -74,7 +74,20 @@ class ReconstructionEvaluator(ABC, Generic[T_RECON, T_ORIG]):
                     idf=eval_conf.get('idf', True)
                 )
             elif eval_type == 'emb_sim':
-                return ReconstructionEvaluator_EmbSimilarity(Embedder(client=llm_client))
+                emb_model_name = eval_conf.get('embedding_model', 'gemini')
+                
+                # Check for Local Embedder
+                if emb_model_name.startswith('local:'):
+                    from llm.local_embedder import LocalEmbedder
+                    # Format: local:all-MiniLM-L6-v2
+                    model_id = emb_model_name.split('local:', 1)[1]
+                    if not model_id: model_id = "all-MiniLM-L6-v2" # Default
+                    
+                    return ReconstructionEvaluator_EmbSimilarity(LocalEmbedder(model_name=model_id))
+                
+                else:
+                    return ReconstructionEvaluator_EmbSimilarity(GeminiEmbedder(client=llm_client))
+
             elif eval_type == 'nop':
                 return EvaluatorNOP()
             else:
@@ -188,7 +201,7 @@ class ReconstructionEvaluator_EmbSimilarity(TextReconstructionEvaluator):
     Encapsulates the logic for evaluating caption reconstruction using BERTScore.
     """
 
-    def __init__(self, embedder: Embedder):
+    def __init__(self, embedder: Any):
         self._embedder = embedder
         self._inner = VectorReconstructionEvaluator()
 
