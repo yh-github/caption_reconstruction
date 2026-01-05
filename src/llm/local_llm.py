@@ -32,6 +32,16 @@ MODELS: dict[str, ModelConfig] = {
         "id": "meta-llama/Meta-Llama-3-8B-Instruct",
         "load_in_4bit": True,
         "trust_remote_code": False
+    },
+    "smollm2-1.7b": {
+        "id": "HuggingFaceTB/SmolLM2-1.7B-Instruct",
+        "load_in_4bit": False,
+        "trust_remote_code": True
+    },
+    "smollm2-135m": {
+        "id": "HuggingFaceTB/SmolLM2-135M-Instruct",
+        "load_in_4bit": False,
+        "trust_remote_code": True
     }
 }
 

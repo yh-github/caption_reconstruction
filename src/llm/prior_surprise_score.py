@@ -19,7 +19,7 @@ Intended to be used as a a priori assessment of how hard it is to reconstruct a 
  We could bin by video surprisal, or by the surprisal score of the masked segment.
 """
 class PriorSurpriseScorer:
-    def __init__(self, model_key: str = "mistral-v0.3") -> None:
+    def __init__(self, model_key: str = "phi-3") -> None:
         if model_key not in MODELS:
             raise ValueError(f"Model {model_key} not found in registry.")
         
@@ -101,35 +101,31 @@ class PriorSurpriseScorer:
         )
         
         # 4b. Calculate Attention Distance Per Token
-        # We want to know for token at index i (prediction target), how far back did it look?
-        # Note: The model predicts token i using states up to i-1. 
-        # So for prediction of token at generic index 'pos', we look at attention row 'pos-1'.
-        # Let's simplify: We consider the attention emitted from the position *generating* the prediction.
-        # Input: [A, B, C]. Target: [B, C, D].
-        # To predict B (pos 1), we use hidden state at A (pos 0). 
-        # Attention at pos 0 looks at pos 0 (self). Distance = 0.
-        # To predict C (pos 2), we use hidden state at B (pos 1).
-        # Attention at pos 1 looks at 0 and 1. If it looks at 0, Dist=1.
+        # We aggregate attention across all layers and heads to get a single matrix (seq, seq)
+        # To avoid OOM, we do this iteratively (Accumulator Mean)
+        # attentions is a tuple of (batch, heads, seq, seq)
         
-        # Let's aggregate attention across all layers and heads to get a single matrix (seq, seq)
-        # We take the mean across layers and heads.
-        # Stack layers: (num_layers, batch, heads, seq, seq) -> Mean -> (seq, seq)
-        # This is memory heavy. Let's do it iteratively or keep on GPU carefully.
-        avg_attn = torch.stack(attentions).mean(dim=(0, 1, 2)) # (seq, seq)
-        
-        # Create a distance matrix
+        num_layers = len(attentions)
         seq_len = input_ids.size(1)
         indices = torch.arange(seq_len, device="cuda")
-        # Row i, Col j. Distance = i - j. 
-        # We only care about j <= i (causal).
         dist_matrix = indices.unsqueeze(1) - indices.unsqueeze(0) # (seq, seq)
+
+        # Iterative mean to avoid holding all layers in VRAM
+        avg_attn = torch.zeros((seq_len, seq_len), device="cuda")
+        for layer_attn in attentions:
+            # Mean across batch and heads
+            avg_attn += layer_attn.squeeze(0).mean(dim=0)
+        
+        avg_attn /= num_layers
         
         # Multiply attention weights by distance
-        # weighted_dist[i] = sum(attn[i, j] * (i-j))
-        # Mask out future (should be 0 anyway due to causal mask, but explicit safety)
-        # attn sums to 1.
-        
         token_avg_dist = (avg_attn * dist_matrix).sum(dim=1) # (seq,)
+        
+        # Cleanup large model outputs immediately
+        del logits
+        del attentions
+        del avg_attn
+        del dist_matrix
         
         # Now we have token_avg_dist[i], which is the avg distance looked back from position i.
         # Position i corresponds to the generating state for input_ids[i+1].
@@ -193,6 +189,7 @@ class PriorSurpriseScorer:
             # Update char pos (+1 for the newline we added)
             current_char_pos = end_char + 1
             
+        torch.cuda.empty_cache()
         return results
 
 # --------------------------------------------------------------------------------

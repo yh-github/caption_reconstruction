@@ -52,7 +52,7 @@ def parse_scoring_args(arg_list: list[str] | None = None):
     
     return parser.parse_args(arg_list)
 
-def setup_scoring_resources(args) -> ScoringResources:
+def setup_scoring_resources(args, force_pull: bool = False) -> ScoringResources:
     """
     Initializes all resources (models, config, data, sync) needed for scoring.
     Useful for interactive use in Colab.
@@ -65,8 +65,8 @@ def setup_scoring_resources(args) -> ScoringResources:
     
     config = config_from_args(exec_args)
     
-    # extract model key from override or config, default to mistral
-    model_key = config.get('scoring_model_key', 'mistral-v0.3')
+    # extract model key from override or config, default to phi-3
+    model_key = config.get('scoring_model_key', 'phi-3')
     
     logging.info(f"Starting Difficulty Scoring with model: {model_key}")
     
@@ -92,10 +92,14 @@ def setup_scoring_resources(args) -> ScoringResources:
         output_dir=Path("results/scores")
     )
     
-    existing_data = syncer.pull()
+    if syncer.local_path.exists():
+        logging.info(f"Found existing local results file: {syncer.local_path}")
+    
+    existing_data = syncer.pull(force_download=force_pull)
     existing_scores = existing_data.get("scores", {})
     
     # 4. Initialize Scorers
+    logging.info(f"Initializing models for {model_key}. This may take a minute...")
     prior_scorer = PriorSurpriseScorer(model_key=model_key)
     
     # Check for PMI flag
@@ -125,7 +129,7 @@ def setup_scoring_resources(args) -> ScoringResources:
                 logging.info(f"Video {v.video_id} exists but missing PMI. Re-queueing.")
                 videos_to_process.append(v)
 
-    logging.info(f"Loaded {len(all_videos)} videos. Found {len(existing_scores)} existing scores. Processing {len(videos_to_process)} new videos.")
+    logging.info(f"Loaded {len(all_videos)} videos. Found {len(existing_scores)} existing scores. Video re-queueing determined {len(videos_to_process)} videos to process.")
     
     # 4. Initialize Masking Strategies (to identify what to score)
     masking_strategies = get_masking_strategies(
@@ -142,8 +146,40 @@ def setup_scoring_resources(args) -> ScoringResources:
         syncer=syncer,
         existing_data=existing_data,
         model_key=model_key,
-        videos_to_process=videos_to_process
-    )
+        )
+
+def refresh_resources(resources: ScoringResources, args, force_pull: bool = False):
+    """
+    Refreshes the sync state and video queue without re-initializing models or scorers.
+    Useful if you've deleted files on HF or want to pick up new work without a reload.
+    """
+    logging.info("Refreshing scoring state (re-syncing with HF and re-loading data)...")
+    
+    # 1. Re-pull from sync (forces a fresh check of the remote/disk)
+    existing_data = resources.syncer.pull(force_download=force_pull)
+    existing_scores = existing_data.get("scores", {})
+    
+    # 2. Re-load data and re-filter
+    # Note: We use the existing data_loader
+    all_videos = resources.data_loader.load()
+    videos_to_process = []
+    
+    for v in all_videos:
+        if v.video_id not in existing_scores:
+            videos_to_process.append(v)
+            continue
+            
+        if args.calc_pmi:
+            existing_entry = existing_scores[v.video_id]
+            if not existing_entry.get("segments_pmi"):
+                videos_to_process.append(v)
+
+    # 3. Update the resources object in-place
+    resources.existing_data = existing_data
+    resources.videos_to_process = videos_to_process
+    
+    logging.info(f"Refresh complete. Found {len(existing_scores)} existing scores. Queue now has {len(videos_to_process)} videos.")
+
 
 def upload_checkpoint(syncer_ref, existing, current_results, curr_config, count):
     """Helper to run upload in background"""
@@ -165,6 +201,12 @@ def run_scoring_loop(resources: ScoringResources, args):
 
     # 5. Process Videos
     videos_to_process = resources.videos_to_process
+    logging.info(f"run_scoring_loop: received {len(videos_to_process)} videos to process.")
+    
+    if not videos_to_process:
+        logging.info("Nothing to process. Returning.")
+        return
+
     prior_scorer = resources.prior_scorer
     pmi_scorer = resources.pmi_scorer
     masking_strategies = resources.masking_strategies
@@ -172,118 +214,129 @@ def run_scoring_loop(resources: ScoringResources, args):
     existing_data = resources.existing_data
     config = resources.config
     
-    for i, video in enumerate(videos_to_process):
-        logging.info(f"[{i+1}/{len(videos_to_process)}] Scoring {video.video_id}...")
-        
-        video_result = {
-            "video_id": video.video_id,
-            "segments_pmi": [],
-            "whole_video_surprisal": None
-        }
-        
-        # A. Whole Video Surprisal (Constraint: Model context length. Captions are usually short enough)
-        captions_text = [f"[{c.timestamp.start:02.0f}:{int((c.timestamp.start%60)*100)%100}] {c.caption}" for c in video.clips if c.caption]
-        # Rough format approximation matching the scorer's expectation
-        # The scorer expects list of strings.
-        
-        try:
-            surprisal_scores = prior_scorer.calculate_whole_log_surprisal(captions_text)
-            # We aggregate for the whole video
-
-            if surprisal_scores:
-                avg_nll = sum(s.loss for s in surprisal_scores) / len(surprisal_scores)
-                avg_ppl = sum(s.perplexity for s in surprisal_scores) / len(surprisal_scores)
-                video_result['whole_video_surprisal'] = {
-                    "avg_surprisal_nll": avg_nll,
-                    "avg_perplexity": avg_ppl,
-                    "measurements": [asdict(s) for s in surprisal_scores]
-                }
-        except Exception as e:
-            logging.error(f"Failed Surprisal for {video.video_id}: {e}")
+    try:
+        for i, video in enumerate(videos_to_process):
+            logging.info(f"[{i+1}/{len(videos_to_process)}] Scoring {video.video_id}...")
             
-        # B. PMI for Masked Segments
-        if args.calc_pmi and pmi_scorer:
-            # We iterate through all masking strategies to find coverage
-            labels_processed = set()
+            video_result = {
+                "video_id": video.video_id,
+                "segments_pmi": [],
+                "whole_video_surprisal": None
+            }
             
-            # Check command line for --score-all arg
-            indices_to_score = []
-            if args.score_all:
-                 indices_to_score = [c.index for c in video.clips if c.caption]
-            else:
-                for masker in masking_strategies:
-                    _, masked_indices = masker.mask_video(video)
-                    if masked_indices:
-                        indices_to_score.extend(list(masked_indices))
+            # A. Whole Video Surprisal (Constraint: Model context length. Captions are usually short enough)
+            captions_text = [f"[{c.timestamp.start:02.0f}:{int((c.timestamp.start%60)*100)%100}] {c.caption}" for c in video.clips if c.caption]
+            # Rough format approximation matching the scorer's expectation
+            # The scorer expects list of strings.
             
-            # Deduplicate
-            indices_to_score = sorted(list(set(indices_to_score)))
+            try:
+                surprisal_scores = prior_scorer.calculate_whole_log_surprisal(captions_text)
+                # We aggregate for the whole video
 
-            # BATC PREPARATION
-            batch_indices = []
-            batch_ctx_before = []
-            batch_ctx_after = []
-            batch_targets = []
+                if surprisal_scores:
+                    avg_nll = sum(s.loss for s in surprisal_scores) / len(surprisal_scores)
+                    avg_ppl = sum(s.perplexity for s in surprisal_scores) / len(surprisal_scores)
+                    video_result['whole_video_surprisal'] = {
+                        "avg_surprisal_nll": avg_nll,
+                        "avg_perplexity": avg_ppl,
+                        "measurements": [asdict(s) for s in surprisal_scores]
+                    }
+            except torch.cuda.OutOfMemoryError:
+                logging.error(f"FATAL: CUDA OOM during Surprisal for video {video.video_id}. Halting execution to prevent unstable state.")
+                # We don't continue to PMI if we already OOM'd
+                raise
+            except Exception as e:
+                logging.error(f"Failed Surprisal for {video.video_id}: {e}")
+                
+            # B. PMI for Masked Segments
+            if args.calc_pmi and pmi_scorer:
+                # We iterate through all masking strategies to find coverage
+                labels_processed = set()
+                
+                # Check command line for --score-all arg
+                indices_to_score = []
+                if args.score_all:
+                     indices_to_score = [c.index for c in video.clips if c.caption]
+                else:
+                    for masker in masking_strategies:
+                        _, masked_indices = masker.mask_video(video)
+                        if masked_indices:
+                            indices_to_score.extend(list(masked_indices))
+                
+                # Deduplicate
+                indices_to_score = sorted(list(set(indices_to_score)))
 
-            for idx in indices_to_score:
-                # Context Window: Effectively unlimited
-                WINDOW_SIZE = 500
-                start_before = max(0, idx - WINDOW_SIZE)
-                
-                # We need simple text
-                context_before_clips = video.clips[start_before:idx]
-                context_after_clips = video.clips[idx+1 : idx+1+WINDOW_SIZE] # Slice handles OOB
-                
-                def fmt(cl): return f"[{cl.timestamp.start:.0f}s] {cl.caption}"
-                
-                ctx_before = "\n".join(fmt(c) for c in context_before_clips if c.caption)
-                ctx_after = "\n".join(fmt(c) for c in context_after_clips if c.caption)
-                target_line = fmt(video.clips[idx])
-                
-                batch_indices.append(idx)
-                batch_ctx_before.append(ctx_before)
-                batch_ctx_after.append(ctx_after)
-                batch_targets.append(target_line)
+                # BATC PREPARATION
+                batch_indices = []
+                batch_ctx_before = []
+                batch_ctx_after = []
+                batch_targets = []
 
-            # BATCH EXECUTION
-            if batch_indices:
-                try:
-                    # Process in chunks of 16 to avoid OOM even with batching
-                    CHUNK_SIZE = 16
-                    for i in range(0, len(batch_indices), CHUNK_SIZE):
-                        chunk_slice = slice(i, i + CHUNK_SIZE)
-                        
-                        chunk_res = pmi_scorer.calculate_informativeness_batch(
-                            batch_ctx_before[chunk_slice], 
-                            batch_ctx_after[chunk_slice], 
-                            batch_targets[chunk_slice]
-                        )
-                        
-                        for j, res in enumerate(chunk_res):
-                            res['clip_index'] = batch_indices[i+j]
-                            video_result['segments_pmi'].append(res)
+                for idx in indices_to_score:
+                    # Context Window: Effectively unlimited
+                    WINDOW_SIZE = 500
+                    start_before = max(0, idx - WINDOW_SIZE)
+                    
+                    # We need simple text
+                    context_before_clips = video.clips[start_before:idx]
+                    context_after_clips = video.clips[idx+1 : idx+1+WINDOW_SIZE] # Slice handles OOB
+                    
+                    def fmt(cl): return f"[{cl.timestamp.start:.0f}s] {cl.caption}"
+                    
+                    ctx_before = "\n".join(fmt(c) for c in context_before_clips if c.caption)
+                    ctx_after = "\n".join(fmt(c) for c in context_after_clips if c.caption)
+                    target_line = fmt(video.clips[idx])
+                    
+                    batch_indices.append(idx)
+                    batch_ctx_before.append(ctx_before)
+                    batch_ctx_after.append(ctx_after)
+                    batch_targets.append(target_line)
+
+                # BATCH EXECUTION
+                if batch_indices:
+                    try:
+                        # Process in chunks of 16 to avoid OOM even with batching
+                        CHUNK_SIZE = 16
+                        for i in range(0, len(batch_indices), CHUNK_SIZE):
+                            chunk_slice = slice(i, i + CHUNK_SIZE)
                             
-                except Exception as e:
-                    logging.error(f"Failed Batch PMI for {video.video_id}: {e}")
+                            chunk_res = pmi_scorer.calculate_informativeness_batch(
+                                batch_ctx_before[chunk_slice], 
+                                batch_ctx_after[chunk_slice], 
+                                batch_targets[chunk_slice]
+                            )
+                            
+                            for j, res in enumerate(chunk_res):
+                                res['clip_index'] = batch_indices[i+j]
+                                video_result['segments_pmi'].append(res)
+                                
+                    except torch.cuda.OutOfMemoryError:
+                        logging.error(f"FATAL: CUDA OOM during PMI for video {video.video_id}. Halting execution.")
+                        raise
+                    except Exception as e:
+                        logging.error(f"Failed Batch PMI for {video.video_id}: {e}")
 
-        results[video.video_id] = video_result
-        
-        # Checkpoint Upload
-        if (i + 1) % args.upload_interval == 0:
-            logging.info(f"Checkpoint: triggering background upload for {len(results)} videos...")
-            # We copy results to ensure thread safety while main loop continues
-            upload_executor.submit(
-                upload_checkpoint, 
-                syncer, 
-                existing_data, 
-                results.copy(), 
-                config, 
-                len(results)
-            )
-        
-    # 6. Merge & Push Results
-    logging.info("Processing complete. Waiting for background uploads to finish...")
-    upload_executor.shutdown(wait=True)
+            results[video.video_id] = video_result
+            
+            # Checkpoint Upload
+            if (i + 1) % args.upload_interval == 0:
+                logging.info(f"Checkpoint: triggering background upload for {len(results)} videos...")
+                # We copy results to ensure thread safety while main loop continues
+                upload_executor.submit(
+                    upload_checkpoint, 
+                    syncer, 
+                    existing_data, 
+                    results.copy(), 
+                    config, 
+                    len(results)
+                )
+            
+            # Free up memory after each video
+            torch.cuda.empty_cache()
+    finally:
+        # 6. Merge & Push Results
+        logging.info("Shutting down scoring loop. Waiting for background uploads to finish...")
+        upload_executor.shutdown(wait=True)
     
     if results:
         merged_data = syncer.merge_results(existing_data, results, config)
