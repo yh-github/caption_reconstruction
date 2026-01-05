@@ -16,7 +16,7 @@ MODELS: dict[str, ModelConfig] = {
     "phi-3": {
         "id": "microsoft/Phi-3-mini-128k-instruct",
         "load_in_4bit": False, 
-        "trust_remote_code": True
+        "trust_remote_code": False
     },
     "mistral-v0.3": {
         "id": "mistralai/Mistral-7B-Instruct-v0.3",

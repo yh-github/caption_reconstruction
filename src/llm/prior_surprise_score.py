@@ -56,12 +56,6 @@ class PriorSurpriseScorer:
         """
         Calculates the surprisal (loss) for every caption in the list 
         using a SINGLE forward pass (The Matrix Trick).
-        
-        Args:
-            captions: A list of strings, e.g., ["[00:01] Cat", "[00:02] Dog"]
-            
-        Returns:
-            List of SurprisalResult containing the caption and its specific loss score.
         """
         
         # 1. Prepare the full document
