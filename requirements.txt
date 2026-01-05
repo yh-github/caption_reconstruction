@@ -9,8 +9,8 @@
 google-genai==1.30.0        # For interacting with the Gemini API
 google-api-core==2.25.1     # Required for error handling (retry)
 google==3.0.0
-pydantic~=2.11.7		    # For robust data modeling and validation
-PyYAML~=6.0.2			    # For parsing our .yaml configuration files
+pydantic>=2.0
+PyYAML>=6.0
 
 # --- Experiment Management & Reproducibility ---
 mlflow~=3.1.1			# For tracking experiments, logging metrics, and managing results
@@ -19,8 +19,8 @@ filelock~=3.19.1
 pytz~=2025.2
 
 # --- BertScore ---
-bert-score~=0.3.13		# For semantic similarity evaluation
-torch~=2.8.0			# A required backend for bert-score
+bert-score>=0.3.13		# For semantic similarity evaluation
+# torch  # Rely on environment-provided Torch (especially in Colab)
 tiktoken~=0.11.0
 sentencepiece~=0.2.1
 
@@ -32,8 +32,8 @@ sentencepiece~=0.2.1
 diskcache==5.6.3		# For caching expensive function calls (e.g., embeddings)
 
 # --- Analysis ---
-numpy~=2.3.2
-pandas~=2.3.1
+numpy>=1.26
+pandas>=2.0
 sklearn-compat~=0.1.4
 sklearn-pandas~=2.2.0
 rich~=14.1.0
