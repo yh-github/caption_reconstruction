@@ -8,19 +8,19 @@ import sys
 # Add src to path if needed (it usually is in current pytest env)
 # sys.path.append("src")
 
-from score_dataset import main
+from experiment_executor.score_dataset import main
 from data_models.captions_only import CaptionedVideo, CaptionedClip, TimestampRange
 from data.hf_sync import HFResultsSync
 
 @pytest.fixture
 def mock_dependencies():
-    with patch("score_dataset.get_data_loader") as mock_loader, \
-         patch("score_dataset.PriorSurpriseScorer") as mock_prior, \
-         patch("score_dataset.PMIScorer") as mock_pmi, \
-         patch("score_dataset.HFResultsSync") as mock_sync_cls, \
-         patch("score_dataset.config_from_args") as mock_config, \
-         patch("score_dataset.parse_scoring_args") as mock_args, \
-         patch("score_dataset.ExecArgs") as mock_exec_args, \
+    with patch("experiment_executor.score_dataset.get_data_loader") as mock_loader, \
+         patch("experiment_executor.score_dataset.PriorSurpriseScorer") as mock_prior, \
+         patch("experiment_executor.score_dataset.PMIScorer") as mock_pmi, \
+         patch("experiment_executor.score_dataset.HFResultsSync") as mock_sync_cls, \
+         patch("experiment_executor.score_dataset.config_from_args") as mock_config, \
+         patch("experiment_executor.score_dataset.parse_scoring_args") as mock_args, \
+         patch("experiment_executor.score_dataset.ExecArgs") as mock_exec_args, \
          patch("torch.cuda.is_available", return_value=True):
          
         # Setup Data
