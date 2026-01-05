@@ -25,7 +25,7 @@ class HFResultsSync:
 
         self.api = HfApi()
 
-    def pull(self) -> dict[str, Any]:
+    def pull(self, force_download: bool = False) -> dict[str, Any]:
         """
         Attempts to download the existing file from HF.
         Returns the data if found, else returns empty dict.
@@ -37,6 +37,7 @@ class HFResultsSync:
                 filename=self.remote_path,
                 repo_type=self.repo_type,
                 local_dir=self.output_dir, # Download directly to our working dir
+                force_download=force_download
                 # local_dir_use_symlinks=False # Get the actual file
             )
             # hf_hub_download might create a subfolder structure if we don't be careful, 

@@ -2,6 +2,7 @@ import logging
 import json
 import hashlib
 import argparse
+import concurrent.futures
 
 from pathlib import Path
 
@@ -34,6 +35,7 @@ def parse_scoring_args():
     parser.add_argument("--score-all", action="store_true", help="Score all clips instead of masked ones")
     parser.add_argument("--ignore-gpu", action="store_true", help="Allow running on CPU (checking logic only)")
     parser.add_argument("--hf-repo-id", type=str, default="Y3/dense_video_captions", help="HF Repo ID for sync")
+    parser.add_argument("--upload-interval", type=int, default=10, help="Upload results every N videos")
     
     return parser.parse_args()
 
@@ -108,6 +110,18 @@ def main():
     
     results = {}
     
+    # Thread pool for background uploads
+    upload_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+
+    def upload_checkpoint(syncer_ref, existing, current_results, curr_config, count):
+        """Helper to run upload in background"""
+        try:
+            # Reconstruct the full data object to save
+            merged = syncer_ref.merge_results(existing, current_results, curr_config)
+            syncer_ref.push(merged, commit_message=f"Checkpoint {count} videos")
+        except Exception as e:
+            logging.warning(f"Background upload failed: {e}")
+
     # 5. Process Videos
     # 5. Process Videos
     for i, video in enumerate(videos_to_process):
@@ -206,10 +220,42 @@ def main():
 
         results[video.video_id] = video_result
         
+        # Checkpoint Upload
+        if (i + 1) % args.upload_interval == 0:
+            logging.info(f"Checkpoint: triggering background upload for {len(results)} videos...")
+            # We copy results to ensure thread safety while main loop continues
+            upload_executor.submit(
+                upload_checkpoint, 
+                syncer, 
+                existing_data, 
+                results.copy(), 
+                config, 
+                len(results)
+            )
+        
     # 6. Merge & Push Results
+    logging.info("Processing complete. Waiting for background uploads to finish...")
+    upload_executor.shutdown(wait=True)
+    
     if results:
         merged_data = syncer.merge_results(existing_data, results, config)
         syncer.push(merged_data)
+        
+        # 7. Verification / Sanity Check
+        logging.info("Verifying upload integrity via forced pull...")
+        try:
+            remote_data = syncer.pull(force_download=True)
+            local_count = len(merged_data.get("scores", {}))
+            remote_count = len(remote_data.get("scores", {}))
+            
+            if local_count == remote_count:
+                logging.info(f"VERIFICATION SUCCESS: Remote has {remote_count} videos (Matches local).")
+            else:
+                logging.error(f"VERIFICATION FAILED: Remote has {remote_count} videos, expected {local_count}.")
+                # Don't raise crash exception to ensure we don't hide the fact we finished, but log error loudly.
+        except Exception as e:
+            logging.error(f"Verification process failed: {e}")
+
     else:
         logging.info("No new results to save.")
 
