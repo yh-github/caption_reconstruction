@@ -1,0 +1,48 @@
+# requirements_colab.txt
+# usage: !pip install -r requirements_colab.txt
+
+# --- Core Libraries ---
+# Note: Google-genai might warn about version, but usually works with upgrades
+google-genai>=1.30.0   
+google-api-core>=2.25.1
+pydantic>=2.0
+PyYAML>=6.0
+
+# --- Experiment Management ---
+mlflow>=3.1.1
+GitPython>=3.1.45
+filelock>=3.13.0
+pytz>=2024.0
+
+# --- BertScore & Metrics ---
+bert-score>=0.3.13
+# Torch is usually pre-installed on Colab or installed via specific command
+# tiktoken/sentencepiece required for robust tokenizer loading
+tiktoken>=0.7.0
+sentencepiece>=0.1.99
+
+# --- LLM Support ---
+transformers>=4.42.0          # Required for Mistral-v0.3
+accelerate>=0.26.0            # Required for device_map="auto"
+bitsandbytes>=0.41.0          # Required for 4-bit quantization
+
+# --- Cache ---
+diskcache>=5.6.0
+
+# --- Analysis ---
+# Numpy/Pandas are pre-installed. We avoid pinning them to prevent
+# "pip dependency resolver" conflicts with system packages.
+sklearn-compat>=0.1.0
+sklearn-pandas>=2.2.0
+rich>=13.0.0
+
+# --- CLI ---
+argcomplete>=3.0.0
+gdown>=4.0.0
+dict-path>=1.0.0
+
+# --- Testing ---
+pytest>=7.0.0
+pytest-mock>=3.0.0
+mlflow-skinny>=2.0.0
+protobuf>=4.0.0
