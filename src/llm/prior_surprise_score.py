@@ -48,7 +48,8 @@ class PriorSurpriseScorer:
             quantization_config=bnb_config,
             torch_dtype=torch.float16 if not self.config["load_in_4bit"] else None,
             device_map="auto",
-            trust_remote_code=self.config["trust_remote_code"]
+            trust_remote_code=self.config["trust_remote_code"],
+            attn_implementation="eager"
         )
 
     def calculate_whole_log_surprisal(self, captions: list[str]) -> list[SurprisalResult]:
