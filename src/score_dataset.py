@@ -1,3 +1,4 @@
+
 import logging
 import json
 import hashlib
@@ -5,8 +6,8 @@ import argparse
 import concurrent.futures
 
 from pathlib import Path
-
-from dataclasses import asdict
+from dataclasses import dataclass, asdict
+from typing import Any
 
 from experiment_executor.config_loader import config_from_args
 
@@ -19,7 +20,19 @@ import torch
 from data.hf_sync import HFResultsSync
 from common_utils.tracking import get_datetime_str
 
-def parse_scoring_args():
+@dataclass
+class ScoringResources:
+    config: dict[str, Any]
+    prior_scorer: PriorSurpriseScorer
+    pmi_scorer: PMIScorer | None
+    data_loader: Any 
+    masking_strategies: list
+    syncer: HFResultsSync
+    existing_data: dict[str, Any]
+    model_key: str
+    videos_to_process: list
+
+def parse_scoring_args(arg_list: list[str] | None = None):
     parser = argparse.ArgumentParser(description="Scoring dataset wrapper")
     
     # Standard arguments required for ExecArgs/ConfigLoader
@@ -37,14 +50,15 @@ def parse_scoring_args():
     parser.add_argument("--hf-repo-id", type=str, default="Y3/dense_video_captions", help="HF Repo ID for sync")
     parser.add_argument("--upload-interval", type=int, default=10, help="Upload results every N videos")
     
-    return parser.parse_args()
+    return parser.parse_args(arg_list)
 
-def main():
-    # 1. Parse Args
-    args = parse_scoring_args()
-    
+def setup_scoring_resources(args) -> ScoringResources:
+    """
+    Initializes all resources (models, config, data, sync) needed for scoring.
+    Useful for interactive use in Colab.
+    """
     # Create ExecArgs for config loader, excluding script-specific args
-    exec_args_dict = {k: v for k, v in vars(args).items() if k not in ['calc_pmi', 'score_all']}
+    exec_args_dict = {k: v for k, v in vars(args).items() if k not in ['calc_pmi', 'score_all', 'ignore_gpu', 'hf_repo_id', 'upload_interval']}
     exec_args = ExecArgs.model_validate(exec_args_dict)
 
     logging.basicConfig(level=exec_args.log_level(logging.INFO), format='%(asctime)s - %(levelname)s - %(message)s')
@@ -95,10 +109,6 @@ def main():
     all_videos = data_loader.load()
     
     # Filter videos that are already fully processed
-    # Logic: If video_id in existing_scores, skip it.
-    # Note: If we want to re-process partially done stuff, we'd need more logic. 
-    # For now, simplistic "done is done".
-    # Filter videos that are already fully processed
     videos_to_process = []
     
     for v in all_videos:
@@ -114,9 +124,7 @@ def main():
             if not existing_entry.get("segments_pmi"):
                 logging.info(f"Video {v.video_id} exists but missing PMI. Re-queueing.")
                 videos_to_process.append(v)
-    
-    # videos_to_process = [v for v in all_videos if v.video_id not in existing_scores]
-    
+
     logging.info(f"Loaded {len(all_videos)} videos. Found {len(existing_scores)} existing scores. Processing {len(videos_to_process)} new videos.")
     
     # 4. Initialize Masking Strategies (to identify what to score)
@@ -125,22 +133,45 @@ def main():
         master_seed=config["base_params"]["master_seed"]
     )
     
+    return ScoringResources(
+        config=config,
+        prior_scorer=prior_scorer,
+        pmi_scorer=pmi_scorer,
+        data_loader=data_loader,
+        masking_strategies=masking_strategies,
+        syncer=syncer,
+        existing_data=existing_data,
+        model_key=model_key,
+        videos_to_process=videos_to_process
+    )
+
+def upload_checkpoint(syncer_ref, existing, current_results, curr_config, count):
+    """Helper to run upload in background"""
+    try:
+        # Reconstruct the full data object to save
+        merged = syncer_ref.merge_results(existing, current_results, curr_config)
+        syncer_ref.push(merged, commit_message=f"Checkpoint {count} videos")
+    except Exception as e:
+        logging.warning(f"Background upload failed: {e}")
+
+def run_scoring_loop(resources: ScoringResources, args):
+    """
+    Executes the main scoring loop. using resources prepared by setup_scoring_resources.
+    """
     results = {}
     
     # Thread pool for background uploads
     upload_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
-    def upload_checkpoint(syncer_ref, existing, current_results, curr_config, count):
-        """Helper to run upload in background"""
-        try:
-            # Reconstruct the full data object to save
-            merged = syncer_ref.merge_results(existing, current_results, curr_config)
-            syncer_ref.push(merged, commit_message=f"Checkpoint {count} videos")
-        except Exception as e:
-            logging.warning(f"Background upload failed: {e}")
-
     # 5. Process Videos
-    # 5. Process Videos
+    videos_to_process = resources.videos_to_process
+    prior_scorer = resources.prior_scorer
+    pmi_scorer = resources.pmi_scorer
+    masking_strategies = resources.masking_strategies
+    syncer = resources.syncer
+    existing_data = resources.existing_data
+    config = resources.config
+    
     for i, video in enumerate(videos_to_process):
         logging.info(f"[{i+1}/{len(videos_to_process)}] Scoring {video.video_id}...")
         
@@ -171,7 +202,7 @@ def main():
             logging.error(f"Failed Surprisal for {video.video_id}: {e}")
             
         # B. PMI for Masked Segments
-        if args.calc_pmi:
+        if args.calc_pmi and pmi_scorer:
             # We iterate through all masking strategies to find coverage
             labels_processed = set()
             
@@ -275,6 +306,16 @@ def main():
 
     else:
         logging.info("No new results to save.")
+
+def main():
+    args = parse_scoring_args()
+    try:
+        resources = setup_scoring_resources(args)
+        run_scoring_loop(resources, args)
+    except Exception as e:
+        logging.exception(f"Fatal error in main loop: {e}")
+        # We don't want to swallow errors, but we might want to ensure logs are flushed
+        raise e
 
 if __name__ == "__main__":
     main()
