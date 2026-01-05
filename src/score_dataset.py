@@ -3,6 +3,7 @@ import json
 import argparse
 from pathlib import Path
 from typing import Any
+from dataclasses import asdict
 
 from experiment_executor.config_loader import config_from_args
 from data_models.exec_args import args_parser
@@ -74,10 +75,10 @@ def main():
             surprisal_scores = prior_scorer.calculate_whole_log_surprisal(captions_text)
             # We aggregate for the whole video
             if surprisal_scores:
-                avg_loss = sum(s['loss'] for s in surprisal_scores) / len(surprisal_scores)
+                avg_loss = sum(s.loss for s in surprisal_scores) / len(surprisal_scores)
                 video_result['whole_video_surprisal'] = {
                     "avg_loss": avg_loss,
-                    "measurements": surprisal_scores
+                    "measurements": [asdict(s) for s in surprisal_scores]
                 }
         except Exception as e:
             logging.error(f"Failed Surprisal for {video.video_id}: {e}")

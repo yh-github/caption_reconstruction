@@ -2,7 +2,16 @@ import torch
 from torch.nn import CrossEntropyLoss
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig # type: ignore
 from typing import TypedDict, Any
+from dataclasses import dataclass
 from llm.local_llm import MODELS, ModelConfig
+
+@dataclass
+class SurprisalResult:
+    index: int
+    caption: str
+    loss: float
+    perplexity: float
+    avg_attn_distance: float
 
 """
 Intended to be used as a a priori assessment of how hard it is to reconstruct a caption,
@@ -42,7 +51,7 @@ class PriorSurpriseScorer:
             trust_remote_code=self.config["trust_remote_code"]
         )
 
-    def calculate_whole_log_surprisal(self, captions: list[str]) -> list[dict[str, Any]]:
+    def calculate_whole_log_surprisal(self, captions: list[str]) -> list[SurprisalResult]:
         """
         Calculates the surprisal (loss) for every caption in the list 
         using a SINGLE forward pass (The Matrix Trick).
@@ -51,7 +60,7 @@ class PriorSurpriseScorer:
             captions: A list of strings, e.g., ["[00:01] Cat", "[00:02] Dog"]
             
         Returns:
-            List of dicts containing the caption and its specific loss score.
+            List of SurprisalResult containing the caption and its specific loss score.
         """
         
         # 1. Prepare the full document
@@ -163,22 +172,22 @@ class PriorSurpriseScorer:
                 # Extract attention distance
                 segment_att_dist = token_avg_dist[caption_token_indices].mean().item()
                 
-                results.append({
-                    "index": i,
-                    "caption": caption,
-                    "loss": segment_loss,
-                    "perplexity": torch.exp(torch.tensor(segment_loss)).item(),
-                    "avg_attn_distance": segment_att_dist
-                })
+                results.append(SurprisalResult(
+                    index=i,
+                    caption=caption,
+                    loss=segment_loss,
+                    perplexity=torch.exp(torch.tensor(segment_loss)).item(),
+                    avg_attn_distance=segment_att_dist
+                ))
             else:
                 # Handle edge case (empty lines or tokenizer weirdness)
-                results.append({
-                    "index": i, 
-                    "caption": caption, 
-                    "loss": 0.0, 
-                    "perplexity": 0.0,
-                    "avg_attn_distance": 0.0
-                })
+                results.append(SurprisalResult(
+                    index=i, 
+                    caption=caption, 
+                    loss=0.0, 
+                    perplexity=0.0,
+                    avg_attn_distance=0.0
+                ))
 
             # Update char pos (+1 for the newline we added)
             current_char_pos = end_char + 1
@@ -208,7 +217,7 @@ if __name__ == "__main__":
     print("\n--- Outlier Detection Report ---")
     for item in scores:
         status = "OK"
-        if item['loss'] > 4.0: status = "WEIRD/OUTLIER" # Threshold depends on model
+        if item.loss > 4.0: status = "WEIRD/OUTLIER" # Threshold depends on model
         
-        print(f"Time {item['caption'][:7]} | Loss: {item['loss']:.2f} | Status: {status}")
-        print(f"   -> Text: {item['caption'][8:]}")
+        print(f"Time {item.caption[:7]} | Loss: {item.loss:.2f} | Status: {status}")
+        print(f"   -> Text: {item.caption[8:]}")
