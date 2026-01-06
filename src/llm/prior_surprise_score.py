@@ -79,14 +79,53 @@ class PriorSurpriseScorer:
         
         input_ids = inputs.input_ids.to("cuda")
         offsets = inputs.offset_mapping[0] # Move to CPU list for processing
-        
-        # 3. The "Matrix" Forward Pass
-        # We run the model once on the huge sequence
-        # Note: output_attentions is memory heavy, so we gate it.
+        seq_len = input_ids.size(1)
+
+        # 3. Memory-Optimized Manual Forward Pass
+        # We process layers one by one to avoid OOM by keeping only the last layer's attention
         with torch.no_grad():
-            outputs = self.model(input_ids, output_attentions=calc_attn_dist)
-            logits = outputs.logits
-            attentions = outputs.attentions if calc_attn_dist else None
+            if not calc_attn_dist:
+                # Fast Path: Standard forward (no attentions)
+                outputs = self.model(input_ids, output_attentions=False)
+                logits = outputs.logits
+                attentions = None
+            else:
+                # Manual Path: Iterate layers
+                # A. Create Causal Mask (Triangular -inf)
+                # Shape: (1, 1, seq_len, seq_len)
+                attention_mask = torch.full(
+                    (1, 1, seq_len, seq_len), 
+                    float("-inf"), 
+                    device=input_ids.device, 
+                    dtype=self.model.dtype
+                )
+                attention_mask = torch.triu(attention_mask, diagonal=1)
+                
+                # B. Embeddings
+                hidden_states = self.model.model.embed_tokens(input_ids)
+                
+                # C. Layers
+                attentions = None
+                for i, layer in enumerate(self.model.model.layers):
+                    is_last = (i == len(self.model.model.layers) - 1)
+                    
+                    # Pass mask and position_ids (None usually infers seq_len)
+                    layer_out = layer(
+                        hidden_states, 
+                        attention_mask=attention_mask,
+                        position_ids=None,
+                        output_attentions=is_last
+                    )
+                    
+                    hidden_states = layer_out[0]
+                    if is_last:
+                        # Capture Last Layer Attention
+                        # shape: (1, heads, seq, seq)
+                        attentions = layer_out[1] 
+                
+                # D. Final Norm & Head
+                hidden_states = self.model.model.norm(hidden_states)
+                logits = self.model.lm_head(hidden_states)
 
         # 4a. Calculate Loss Per Token
         # Shift: Logits at [i] predict label at [i+1]
@@ -101,34 +140,25 @@ class PriorSurpriseScorer:
         )
         
         # Cleanup large model outputs immediately
-        # Cleanup large model outputs immediately
         del logits
+        if calc_attn_dist:
+             del attention_mask
+             del hidden_states
         
         # 4b. Calculate Attention Distance Per Token (Optional)
         token_avg_dist = None
+        token_sink_fraction = None
         
-        if calc_attn_dist and attentions:
-            # We aggregate attention across all layers and heads to get a single matrix (seq, seq)
-            # To avoid OOM, we do this iteratively (Accumulator Mean)
-            # attentions is a tuple of (batch, heads, seq, seq)
+        if calc_attn_dist and attentions is not None:
+            # attentions is (1, heads, seq, seq) from Last Layer
+            # Collapse heads -> (seq, seq)
+            avg_attn = attentions.squeeze(0).mean(dim=0) # (seq, seq)
             
-            num_layers = len(attentions)
-            seq_len = input_ids.size(1)
             indices = torch.arange(seq_len, device="cuda")
             dist_matrix = indices.unsqueeze(1) - indices.unsqueeze(0) # (seq, seq)
 
-            # Iterative mean to avoid holding all layers in VRAM
-            avg_attn = torch.zeros((seq_len, seq_len), device="cuda")
-            for layer_attn in attentions:
-                # Mean across batch and heads
-                avg_attn += layer_attn.squeeze(0).mean(dim=0)
-            
-            avg_attn /= num_layers
-            
             # --- HANDLE ATTENTION SINKS ---
             # Most LLMs use the 0-th token (BOS) as a sink for "unneeded" attention.
-            token_sink_fraction = None
-            
             if seq_len > 1:
                 # Capture how much was allocated to BOS before we zero it
                 token_sink_fraction = avg_attn[:, 0].clone() # (seq,)
