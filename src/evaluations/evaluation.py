@@ -64,6 +64,8 @@ class ReconstructionEvaluator(ABC, Generic[T_RECON, T_ORIG]):
             eval_type = eval_conf.get('type', 'emb_sim').lower()
             if eval_type == 'emb_sim':
                 return VectorReconstructionEvaluator()
+            elif eval_type == 'emb_retrieval':
+                return VectorReconstructionEvaluator_Retrieval()
             elif eval_type == 'nop':
                 return VectorEvaluatorNOP()
             raise UserFacingError(f"VectorReconstructionEvaluator: Unknown evaluation type '{eval_type}'")
@@ -73,7 +75,7 @@ class ReconstructionEvaluator(ABC, Generic[T_RECON, T_ORIG]):
                     model_type=eval_conf.get('model_type', 'microsoft/deberta-large-mnli'),
                     idf=eval_conf.get('idf', True)
                 )
-            elif eval_type == 'emb_sim':
+            elif eval_type in ('emb_sim', 'emb_retrieval', 'retrieval'):
                 emb_model_name = eval_conf.get('embedding_model', 'gemini')
                 
                 if emb_model_name.startswith('local:'):
@@ -115,6 +117,24 @@ class VectorReconstructionEvaluator(ReconstructionEvaluator[Matrix, Matrix]):
             "cos_sim_residual": calculate_elementwise_cosine(pred_proj, true_proj)
         }
 
+
+
+class VectorReconstructionEvaluator_Retrieval(VectorReconstructionEvaluator):
+    def evaluate(self, pred_vecs: Matrix, true_vecs: Matrix) -> RAW_METRIC_OBJ:
+        # Base cosine similarity
+        base_metrics = super().evaluate(pred_vecs, true_vecs)
+        
+        # Retrieval metrics
+        # For pure vector evaluation, we assume true_vecs represents the "ground truth" pool 
+        # from which we want to retrieve the correct concept.
+        # This matches the logic: each reconstructed vector should map to its corresponding ground truth vector
+        # while treating all other ground truth vectors as distractors.
+        ranking_metrics = calculate_retrieval_metrics(
+            reconstructed_vectors=pred_vecs,
+            ground_truth_vectors=true_vecs,
+            distractor_pool=true_vecs
+        )
+        return {**base_metrics, **ranking_metrics}
 
 class VectorEvaluatorNOP(VectorReconstructionEvaluator):
     def evaluate(self, pred_vecs: Matrix, true_vecs: Matrix) -> RAW_METRIC_OBJ:
