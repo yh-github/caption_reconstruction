@@ -365,14 +365,8 @@ class TextReconstructionStrategyBuilder:
         self.master_seed = master_seed
         self.block_llm = block_llm
         self.llm_manager_builder = LLM_Manager_Builder(llm_client, llm_cache)
-        self._local_model_cache: dict[str, HuggingFaceModelAdapter] = {}
-        
-        # Determine prompt path relative to this file
-        # src/reconstruction/text_reconstruction.py -> .../prompts/iterative_cloze_v1.txt
-        # Root is 2 levels up from src/reconstruction? No, src is one level below root usually.
-        # Layout: /reporoot/src/reconstruction/text_reconstruction.py
-        # Prompts: /reporoot/prompts/
-        self.prompts_dir = Path(__file__).resolve().parent.parent.parent / "prompts"
+        self._local_model_cache: dict[str, HuggingFaceModelAdapter] = {}       
+        self.prompts_dir = Path("prompts").resolve()
 
     def get_strategy(self, strategy_config: dict) -> ReconstructionStrategy:
         """
@@ -406,10 +400,7 @@ class TextReconstructionStrategyBuilder:
             if prompt_path.is_dir():
                 prompt_builder = ClozePromptBuilder.from_directory(prompt_path)
             else:
-                 # Fallback for single file config
-                 if not prompt_path.exists() and (self.prompts_dir / "iterative_cloze_v1.txt").exists():
-                      prompt_path = self.prompts_dir / "iterative_cloze_v1.txt"
-                 prompt_builder = ClozePromptBuilder.from_file(str(prompt_path))
+                raise UserFacingError(f"Prompt directory '{prompt_path}' does not exist.")
 
             return IterativeReconstructionStrategy(
                 name=strategy_config.get("name", "LocalLLM"),
