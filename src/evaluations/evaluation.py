@@ -246,9 +246,15 @@ class ReconstructionEvaluator_EmbSimilarity(TextReconstructionEvaluator):
 
             ##
             masked_inds = set(reconstructed.reconstructed_captions.keys())
-            unmaksed = [x.caption for x in orig.clips if x.index not in masked_inds]
-            context_vecs = self._embedder.get_embeddings(reconstructed.video_id + "(unmaksed)", unmaksed)
+            unmasked = [x.caption for x in orig.clips if x.index not in masked_inds]
+            context_vecs = self._embedder.get_embeddings(reconstructed.video_id + "(unmasked)", unmasked)
             ##
+
+            if len(context_vecs) == 0:
+                 # No context to project out. Residual is identity.
+                 res = self._inner.evaluate(pred_vecs, true_vecs)
+                 res["cos_sim_residual"] = res["cos_sim"]
+                 return res
 
             return self._inner.evaluate_residual(pred_vecs=pred_vecs, true_vecs=true_vecs, context=context_vecs)
         except CacheMissError as e:

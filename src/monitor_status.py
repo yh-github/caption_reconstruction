@@ -207,45 +207,76 @@ def calculate_eta(start_time: float, completed: int, total: int) -> str:
     elif seconds_left < 3600:
         return f"{seconds_left/60:.1f}m"
     else:
-    # Format nicely
-    if seconds_left < 60:
-        return f"{seconds_left:.0f}s"
-    elif seconds_left < 3600:
-        return f"{seconds_left/60:.1f}m"
-    else:
         return f"{seconds_left/3600:.1f}h"
 
-def check_hf_status(repo_id: str, sub_exp_names: list[str]) -> dict[str, int]:
+def verify_hf_integrity(api, repo_id: str, sub_exp_name: str, files_in_sub: list[str]) -> str:
     """
-    Checks the HF dataset for the number of files uploaded for each sub-experiment.
-    Returns a dict mapping sub-experiment name -> upload count.
+    Downloads the latest file in the sub-experiment and checks for valid data.
+    """
+    if not files_in_sub:
+        return "Empty"
+        
+    try:
+        from huggingface_hub import hf_hub_download
+        import json
+        
+        # Pick latest file based on something? 
+        # api.list_repo_files doesn't give metadata like time directly in the simple list_repo_files list of strings.
+        # BUT, we can just pick the last one alphabetically or a random one? 
+        # Typically timestamps are in filenames? No, video IDs.
+        # Let's just pick one at random to verify *something* is good.
+        # Or better: pick the one that appears last in list (often latest added).
+        
+        target_file = files_in_sub[-1]
+        
+        # Download to memory (using local_dir=None returns path to cache)
+        local_path = hf_hub_download(repo_id=repo_id, filename=target_file, repo_type="dataset")
+        
+        with open(local_path, 'r') as f:
+            data = json.load(f)
+            
+        # Check keys
+        if "video_id" not in data: return "Badfmt(no_vid)"
+        if "metrics" not in data: return "Badfmt(no_met)"
+        
+        # Check metrics content
+        metrics = data["metrics"]
+        if not metrics:
+            return "EmptyMetrics"
+            
+        return "OK"
+        
+    except Exception as e:
+        return f"Err({str(e)[:10]}..)"
+
+def check_hf_status(repo_id: str, sub_exp_names: list[str]) -> dict[str, dict]:
+    """
+    Returns dict: name -> {'count': int, 'status': str}
     """
     try:
         from huggingface_hub import HfApi
         api = HfApi()
         
-        # We don't know the exact path structure (reconstruction/{config}/{run_name})
-        # So we fetch all files and filter. Ideally we'd narrow this down if it gets too slow.
-        # But for now, listing the repo tree or files is okay for moderate sizes.
-        
-        # Optimization: Just list files. The API is usually fast enough for metadata.
-        # If the repo is huge, this might lag.
         files = api.list_repo_files(repo_id=repo_id, repo_type="dataset")
         
-        counts = {name: 0 for name in sub_exp_names}
+        results = {name: {'count': 0, 'status': 'Unknown'} for name in sub_exp_names}
+        
+        # Group files by sub-exp
+        files_by_exp = {name: [] for name in sub_exp_names}
         
         for f in files:
-            # Check if this file belongs to any of our known sub-experiments
-            # The sub-experiment name (run_name) should be a directory component in the path
             for name in sub_exp_names:
                 if f"/{name}/" in f and f.endswith(".json"):
-                     counts[name] += 1
-                     
-        return counts
+                    results[name]['count'] += 1
+                    files_by_exp[name].append(f)
+        
+        # Verify integrity for each
+        for name in sub_exp_names:
+            results[name]['status'] = verify_hf_integrity(api, repo_id, name, files_by_exp[name])
+            
+        return results
     except Exception as e:
         return {"error": str(e)}
-
-
 
 def main():
     parser = argparse.ArgumentParser(description="Monitor Caption Reconstruction Experiments")
@@ -275,36 +306,45 @@ def main():
     # Analyze Progress
     sub_stats = analyze_progress(target_run, args.total)
     
-    print("-" * 85)
+    print("-" * 95)
     
     # HF Status
-    hf_counts = {}
+    hf_data = {}
     if args.hf_repo:
-        print("Checking Hugging Face Status...", end="\r")
+        print("Checking Hugging Face Status (listing & verifying)...", end="\r")
         sub_names = [s['name'] for s in sub_stats]
-        hf_counts = check_hf_status(args.hf_repo, sub_names)
-        print(" " * 40, end="\r") # Clear loading message
+        hf_data = check_hf_status(args.hf_repo, sub_names)
+        print(" " * 60, end="\r") # Clear loading message
 
-    print(f"{'Sub-Experiment':<50} | {'Progress':<15} | {'HF Uploads':<10} | {'Last Activity'}")
-    print("-" * 100)
+    print(f"{'Sub-Experiment':<50} | {'Progress':<15} | {'HF Uploads':<10} | {'Remote Status':<15} | {'Last Activity'}")
+    print("-" * 115)
     
     total_completed = 0
     for s in sub_stats:
         pct = (s['count'] / args.total) * 100
         
-        hf_str = "N/A"
-        if args.hf_repo:
-            if "error" in hf_counts:
-                 hf_str = "Err"
-            else:
-                 c = hf_counts.get(s['name'], 0)
-                 hf_str = f"{c}"
+        hf_count_str = "N/A"
+        hf_status_str = "-"
         
-        print(f"{s['name'][:47]+'...':<50} | {s['count']}/{args.total} ({pct:.0f}%)   | {hf_str:<10} | {s['last_activity']}")
+        if args.hf_repo:
+            if "error" in hf_data:
+                 hf_count_str = "Err"
+                 hf_status_str = "Err"
+            else:
+                 info = hf_data.get(s['name'], {'count': 0, 'status': '?'})
+                 hf_count_str = f"{info['count']}"
+                 hf_status_str = info['status']
+                 
+                 # Colorize status if possible (using simple indicators)
+                 if info['status'] == "OK": hf_status_str = "✅ OK"
+                 elif info['status'] == "Empty": hf_status_str = "⚪ Empty"
+                 else: hf_status_str = f"❌ {info['status']}"
+        
+        print(f"{s['name'][:47]+'...':<50} | {s['count']}/{args.total} ({pct:.0f}%)   | {hf_count_str:<10} | {hf_status_str:<15} | {s['last_activity']}")
         total_completed += s['count']
         
-    print("-" * 100)
-    print("-" * 100)
+    print("-" * 115)
+    print("-" * 115)
     print(f"Total Videos Completed: {total_completed}")
     
     # Total Experiments & ETA
