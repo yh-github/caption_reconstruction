@@ -24,7 +24,8 @@ class ExperimentRunner:
         save_path: Path,
         conf_for_log:dict[str, Any],
         hf_manager: Any = None, # Optional HFFileManager
-        config_stem: str = ""
+        config_stem: str = "",
+        eval_only: bool = False
     ):
         self.run_name = run_name
         self.data_loader = data_loader
@@ -34,6 +35,7 @@ class ExperimentRunner:
         self._save_path = save_path/run_name
         self.conf_for_log = conf_for_log
         self.hf_manager = hf_manager
+        self.eval_only = eval_only
         
         # Determine remote path
         # storage/reconstruction/{config_stem}/{run_name}/
@@ -105,19 +107,57 @@ class ExperimentRunner:
             else:
                  logging.warning(f"Failed to download {video.video_id} from HF despite listing. Re-computing.")
 
+
+
+        if self.eval_only:
+             logging.warning(f"Eval-only mode: Skipping new experiment for {video.video_id} (not found).")
+             return None
+
         return self._run_new_experiment(video)
 
     def _load_existing_result(self, video: CaptionedVideo, result_file: Path) -> MetricsRecordRaw | None:
         """
         Loads an existing result from disk.
-        CRITICAL: We must still run the masking strategy to advance the PRN state
-        to ensure determinism for subsequent videos.
+        If eval_only is True, force re-evaluation of the loaded result.
         """
         try:
             with open(result_file, "r") as f:
                 content = f.read()
 
             reconstructed = Reconstructed.model_validate_json(content)
+            logging.info(f"Video {video.video_id} result found.")
+
+            if self.eval_only:
+                 logging.info(f"Eval-only: Re-evaluating {video.video_id}...")
+                 # Force re-evaluation
+                 # We need to make sure we have the proper ground truth (video)
+                 # Note: evaluator.evaluate expects (reconstructed, orig_video)
+                 
+                 # Re-run evaluation
+                 video_metrics = self.evaluator.evaluate(reconstructed, video)
+
+                 # Update metrics in result
+                 rounded = round_metrics(video_metrics)
+                 reconstructed_with_metrics = reconstructed.with_metrics(rounded)
+                 
+                 # Save
+                 self._save_result(reconstructed_with_metrics)
+                 
+                 # Return new record
+                 # Advance PRN state just in case (e.g. for masking consistency if checked)
+                 _, masked_indices = self._masking_strategy.mask_video(video)
+                 
+                 return MetricsRecordRaw(
+                    raw_metrics=video_metrics,
+                    metadata=MetricsMetadata(
+                        video_id=video.video_id,
+                        size=len(video.clips),
+                        masked=list(masked_indices) if masked_indices else [],
+                        recon_strategy=str(self._reconstruction_strategy),
+                        data_type=self.data_loader.get_data_type_name()
+                    )
+                )
+
             logging.info(f"Video {video.video_id} result found, loading...")
 
             # Advance PRN state and get mask info

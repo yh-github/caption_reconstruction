@@ -4,6 +4,7 @@ from typing import Iterator, Self
 import numpy as np
 from numpy.typing import NDArray
 from pathlib import Path
+from common_utils.matrix_utils import matrix_to_b64
 
 
 NPY_FILE_PATTERN = "*.npy"
@@ -294,14 +295,20 @@ def calculate_retrieval_metrics(
     # (M, N) boolean matrix
     better_than_gt = sim_dist > sim_gt[:, None]
     
-    # Rank = (count of distractors better than GT) + 1
+    # Rank = (count better) + 1
     ranks = np.sum(better_than_gt, axis=1) + 1
     
     return {
-        "mean_rank": np.mean(ranks),
-        "mrr": np.mean(1.0 / ranks),  # Mean Reciprocal Rank
-        "recall_at_1": np.mean(ranks == 1),
-        "recall_at_5": np.mean(ranks <= 5)
+        "mean_rank": float(np.mean(ranks)),
+        "mrr": float(np.mean(1.0 / ranks)),
+        "recall_at_1": float(np.mean(ranks == 1)),
+        "recall_at_5": float(np.mean(ranks <= 5)),
+        
+        "retrieval_count_at_1": int(np.sum(ranks == 1)),
+        "retrieval_count_at_5": int(np.sum(ranks <= 5)),
+        "retrieval_total_queries": int(len(ranks)),
+        
+        "similarity_matrix_b64": matrix_to_b64(sim_pool)
     }
 
 def calculate_mask_difficulty(target_vector: np.ndarray, context_vectors: np.ndarray) -> float:

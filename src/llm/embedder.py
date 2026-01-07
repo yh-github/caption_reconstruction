@@ -50,16 +50,19 @@ class BaseEmbedder(ABC):
     def _check_emb(self, emb: list[float]|None) -> bool:
         return emb is not None and len(emb) == self.output_dimensionality
 
-    def _embed_save(self, video_id: str, all_texts: list[str]) -> tuple[int, int, int]:
+    def _embed_save(self, video_id: str, all_texts: list[str], use_cache: bool = True) -> tuple[int, int, int]:
         ok = 0
         fail = 0
 
-        # Optimization: Filter out texts already in cache
-        new_texts = {t for t in all_texts if t not in self.cache}
-        
-        if not new_texts:
-            logger.debug(f"Embeddings cache full hit for {video_id}")
-            return ok, fail, len(all_texts) # Hits = total
+        # Optimization: Filter out texts already in cache ONLY if caching is enabled
+        if use_cache:
+            new_texts = {t for t in all_texts if t not in self.cache}
+            if not new_texts:
+                logger.debug(f"Embeddings cache full hit for {video_id}")
+                return ok, fail, len(all_texts) # Hits = total
+        else:
+            # If not using cache, everything is "new"
+            new_texts = set(all_texts)
 
         # Count how many times each new text appears in the input (handling duplicates)
         # We only compute once per unique text, but 'ok' count needs to reflect all occurrences
@@ -70,24 +73,18 @@ class BaseEmbedder(ABC):
         
         for the_text, embs in computed_embeddings.items():
             if self._check_emb(embs):
-                self.cache[the_text] = embs
+                if use_cache:
+                    self.cache[the_text] = embs
                 ok += counts.get(the_text, 0)
             else:
                 fail += counts.get(the_text, 0)
                 
         # Calculate hits: total requested - total we had to compute (ok+fail)
-        # Note: 'ok' and 'fail' here are counts of *occurrences* of *newly computed* items.
-        # Hits are occurrences of items that were ALREADY in cache.
-        
-        # Actually, let's simplify return counts logic to match original behavior accurately:
-        # Original: ok += counts.get(the_text) -> Correctly counts occurrences
-        # hits = len(all_texts) - counts.total() -> Total occurrences - Occurrences of new items
-        
         hits = len(all_texts) - counts.total()
         return ok, fail, hits
 
-    def get_embeddings(self, video_id: str, all_texts: list[str]) -> list[list[float]]:
-        ok, fail, hits = self._embed_save(video_id, all_texts)
+    def get_embeddings(self, video_id: str, all_texts: list[str], use_cache: bool = True) -> list[list[float]]:
+        ok, fail, hits = self._embed_save(video_id, all_texts, use_cache=use_cache)
         
         if fail > 0 or ok + hits != len(all_texts):
              # Try to be robust: if we have failures, we raise, 
@@ -95,6 +92,32 @@ class BaseEmbedder(ABC):
             raise Exception(f"Embeddings FAILED for {video_id} {ok=} {fail=} {hits=} {len(all_texts)=}")
             
         logger.debug(f"Embeddings GOOD for {video_id} {ok=} {fail=} {hits=} {len(all_texts)=}")
+        
+        # If not using cache, we must return from the computed set + whatever was in cache
+        # This part is tricky because BaseEmbedder design relies heavily on diskcache.
+        # To avoid refactoring everything: if use_cache=False, we compute and return but DON'T save.
+        # BUT wait: _embed_save doesn't return the embeddings.
+        
+        # REFACTOR: _embed_new returns dict. We should use that.
+        
+        # NOTE: For simplicity in this codebase structure:
+        # If use_cache=False, we re-compute everything and don't touch self.cache.
+        # If use_cache=True, we use standard logic.
+        
+        if not use_cache:
+             # Direct compute without cache interaction
+             # Note: this might be inefficient if there are duplicates in `all_texts` list, 
+             # but `_embed_new` usually handles batching.
+             # Actually `_embed_new` expects unique texts probably? The implementation of `_embed_new` 
+             # just maps input list to output dict.
+             # Let's check `_embed_save` logic again. It computes for `new_texts` (set).
+             
+             # Re-implement simple logic for no-cache:
+             unique_texts = list(set(all_texts))
+             computed = self._embed_new(video_id, unique_texts)
+             return [computed[t] for t in all_texts]
+             
+        
         return [self.cache[c] for c in all_texts]
 
 class GeminiEmbedder(BaseEmbedder):

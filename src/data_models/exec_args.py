@@ -18,6 +18,7 @@ class ExecArgs(BaseModel):
     dry_run: bool = False
     validate_cache: bool = False
     cached_execution_only: bool = Field(default=False, alias='block_llm')  # New flag
+    eval_only: bool = False
     debug: bool = False
     ignore_unsafe: bool = False
 
@@ -86,6 +87,13 @@ def args_parser() -> ExecArgs:
         action="store_true",
         help="Run without calling the LLM API (fails if not cached)."
     )
+
+    parser.add_argument(
+        "--eval-only",
+        action="store_true",
+        help="Skip generation and only run evaluation on existing results."
+    )
+
 
     # Add argcomplete support
     argcomplete.autocomplete(parser)

@@ -82,7 +82,7 @@ class ExperimentPipeline(ABC):
         
         # Initialize HF Sync Manager if repo ID is provided
         self.hf_manager = None
-        hf_repo_id = config.get['paths'].get('hf_repo_id') 
+        hf_repo_id = config['paths'].get('hf_repo_id') 
         if hf_repo_id:
              from data.hf_sync import HFFileManager
              logging.info(f"Initializing HF Sync Manager for repo: {hf_repo_id}")
@@ -245,7 +245,8 @@ class ExperimentPipeline_Reconstruction(ExperimentPipeline):
                             save_path=self.result_path,
                             conf_for_log=run_conf,
                             hf_manager=self.hf_manager,
-                            config_stem=config.get("__parent_run_name__", "default")
+                            config_stem=config.get("__parent_run_name__", "default"),
+                            eval_only=self.exec_args.eval_only
                         )
                         yield runner
                     except TypeError:
