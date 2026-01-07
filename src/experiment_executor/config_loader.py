@@ -4,6 +4,8 @@ from typing import Any
 import yaml
 from data_models.exec_args import DEFAULT_SYSTEM_CONFIG_PATH, ExecArgs
 
+logger = logging.getLogger(__name__)
+
 
 def load_yaml(path:Path|str) -> dict[str, Any]:
     with open(path, 'r') as f:
@@ -62,6 +64,7 @@ def config_from_args(exec_args:ExecArgs) -> dict[str, Any]:
         for x in exec_args.override:
             k, v = x.split('=', 1)
             old_v = con.get(k)
+            logger.info(f"Overriding {k} from {old_v} to {v}, type: {type(old_v)}")
             if old_v is not None and type(old_v) != type(v):
                 con.set(k,type(old_v)(v)) # TODO use eval instead of cast? Support lists?
             else:

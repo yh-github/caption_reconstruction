@@ -82,7 +82,7 @@ class ExperimentPipeline(ABC):
         
         # Initialize HF Sync Manager if repo ID is provided
         self.hf_manager = None
-        hf_repo_id = self.exec_args.hf_repo_id if hasattr(self.exec_args, 'hf_repo_id') else config.get('hf_repo_id')
+        hf_repo_id = config.get['paths'].get('hf_repo_id') 
         if hf_repo_id:
              from data.hf_sync import HFFileManager
              logging.info(f"Initializing HF Sync Manager for repo: {hf_repo_id}")

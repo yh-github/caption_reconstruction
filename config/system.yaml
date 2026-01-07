@@ -10,6 +10,7 @@ paths:
   # embedding and LLM call cache.
   remote_cache_url: "https://drive.google.com/drive/folders/1mC4SYXbu2kuC9H23JcwZzJCfLGPCWuqc?usp=sharing"
   disk_cache: "disk_cache/"
+  hf_repo_id: "Y3/dense_video_captions"
 
   # The location of the input data source.
   datasets_root: "datasets/"

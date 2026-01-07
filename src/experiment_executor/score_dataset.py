@@ -96,7 +96,7 @@ def setup_scoring_resources(args: argparse.Namespace, force_pull: bool = False) 
     run_name = "prior_scoring" 
 
     syncer = HFResultsSync(
-        repo_id=args.hf_repo_id,
+        repo_id=config["paths"].get("hf_repo_id", args.hf_repo_id),
         run_name=run_name, 
         hyperparams_hash=hyperparams_hash,
         output_dir=Path("results/scores")
