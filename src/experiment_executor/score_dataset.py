@@ -73,7 +73,9 @@ def setup_scoring_resources(args: argparse.Namespace, force_pull: bool = False) 
     config = config_from_args(exec_args)
     
     # extract model key from override or config, default to phi-3
-    model_key = config.get('scoring_model_key', 'phi-3')
+    # FIXME 'scoring_model_key' isn't in the config,
+    # we need to either extract it from the recon_startegies or get it as an explicit argument
+    model_key = config.get('scoring_model_key', 'phi-3') 
     
     logging.info(f"Starting Difficulty Scoring with model: {model_key}")
     
