@@ -1,110 +1,160 @@
 import json
 import logging
 import time
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
+import yaml
 from huggingface_hub import HfApi, hf_hub_download
 from huggingface_hub.utils import EntryNotFoundError
 
 logger = logging.getLogger(__name__)
 
-class HFResultsSync:
-    def __init__(self, repo_id: str, run_name: str, hyperparams_hash: str, output_dir: Path):
+class HFFileManager:
+    """
+    Manages synchronization of experiment results with a HuggingFace Dataset.
+    Acts as a 'Shared Cache' source of truth.
+    """
+    def __init__(self, repo_id: str, repo_type: str = "dataset"):
         self.repo_id = repo_id
-        self.repo_type = "dataset"
-        self.output_dir = output_dir
-        self.output_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Consistent filename without timestamp for sync
-        self.filename = f"scores_{run_name}_{hyperparams_hash}.json"
-        self.local_path = self.output_dir / self.filename
-        
-        # Remote path can be used to organize files
-        self.remote_path = self.filename 
-
+        self.repo_type = repo_type
         self.api = HfApi()
-
-    def pull(self, force_download: bool = False) -> dict[str, Any]:
+        
+        # Background uploader setup
+        self._upload_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="hf_upload")
+        self._pending_uploads = 0
+        self._lock = threading.Lock() # For pending count
+        
+    def ensure_config_match(self, remote_dir: str, local_config: dict[str, Any]) -> None:
         """
-        Attempts to download the existing file from HF.
-        Returns the data if found, else returns empty dict.
+        Checks if a metadata.yaml exists in the remote directory.
+        If YES: Validates that it matches `local_config`. Raises error if mismatch.
+        If NO: Uploads `local_config` as metadata.yaml.
         """
-        logger.info(f"Attempting to pull existing results from {self.repo_id}/{self.remote_path}...")
+        metadata_filename = "metadata.yaml"
+        remote_path = f"{remote_dir}/{metadata_filename}"
+        
+        logger.info(f"Checking config compatibility at {self.repo_id}/{remote_path}...")
+        
         try:
-            downloaded_path = hf_hub_download(
+            # 1. Try to download existing metadata
+            cached_path = hf_hub_download(
                 repo_id=self.repo_id,
-                filename=self.remote_path,
-                repo_type=self.repo_type,
-                local_dir=self.output_dir, # Download directly to our working dir
-                force_download=force_download
-                # local_dir_use_symlinks=False # Get the actual file
+                filename=remote_path,
+                repo_type=self.repo_type
             )
-            # hf_hub_download might create a subfolder structure if we don't be careful, 
-            # but usually it puts it in local_dir/filename if it's flat.
-            # actually hf_hub_download with local_dir preserves directory structure.
-            # If self.remote_path is just a filename, it will be at local_dir/filename.
             
-            # Note: hf_hub_download creates a cache structure if local_dir is not used in a specific way,
-            # but here we want to modify it. Reading from the returned path is safest.
+            with open(cached_path, 'r') as f:
+                remote_config = yaml.safe_load(f)
             
-            with open(downloaded_path, 'r') as f:
-                data = json.load(f)
+            # Compare critical fields (you might want to allow some drift, but strict is safer)
+            # For now, let's assume strict equality on the dumped dicts or key params.
+            # A simple comparison:
+            if remote_config != local_config:
+                # TODO: Implement smarter diff visibility if needed
+                raise RuntimeError(
+                    f"Configuration MISMATCH! The remote folder '{remote_path}' already exists "
+                    "with a DIFFERENT configuration. \n"
+                    "Aborting to prevent dataset corruption. Please change your run name/config or fix the config."
+                )
+            logger.info("Remote config matches local. Proceeding.")
             
-            logger.info(f"Successfully pulled existing data ({len(data.get('scores', {}))} videos scored).")
-            return data
-
         except EntryNotFoundError:
-            logger.info("No existing result file found on remote. Starting fresh.")
-            return {}
+            # 2. Upload our config if it doesn't exist
+            logger.info("No existing metadata found. Claiming this folder.")
+            self._upload_bytes_async(
+                data=yaml.dump(local_config).encode('utf-8'),
+                remote_path=remote_path
+            )
+
+    def list_files(self, folder_path: str) -> set[str]:
+        """
+        Returns a set of filenames (not full paths) present in the remote folder.
+        Uses the HF API to list files efficiently.
+        """
+        try:
+            # list_repo_files returns ALL files. We filter by prefix.
+            all_files = self.api.list_repo_files(repo_id=self.repo_id, repo_type=self.repo_type)
+            
+            folder_prefix = folder_path.rstrip('/') + '/'
+            files_in_folder = set()
+            
+            for f in all_files:
+                if f.startswith(folder_prefix):
+                    # Extract just the filename (e.g. "video_id.json")
+                    rel_name = f[len(folder_prefix):]
+                    if '/' not in rel_name: # Ensure we are not picking up sub-sub-folders
+                        files_in_folder.add(rel_name)
+                        
+            return files_in_folder
         except Exception as e:
-            logger.warning(f"Could not pull from HF (might be auth or connection): {e}")
-            logger.info("Continuing with empty base.")
-            return {}
+            logger.warning(f"Failed to list files from HF: {e}")
+            return set()
 
-    def push(self, data: dict[str, Any], commit_message: str = "Update scores"):
+    def download_file(self, remote_path: str, local_path: Path) -> bool:
         """
-        Saves data locally and uploads to HF.
+        Downloads a specific file to local_path. Returns True if successful.
         """
-        # 1. Save locally
-        with open(self.local_path, 'w') as f:
-            json.dump(data, f, indent=2)
-        logger.info(f"Saved locally to {self.local_path}")
+        try:
+            hf_hub_download(
+                repo_id=self.repo_id,
+                filename=remote_path,
+                repo_type=self.repo_type,
+                local_dir=str(local_path.parent), # hf_hub_download expects dir
+                local_dir_use_symlinks=False,
+                force_filename=local_path.name # Ensure it maps to exact local filename
+            )
+            return True
+        except Exception as e:
+            logger.error(f"Failed to download {remote_path}: {e}")
+            return False
 
-        # 2. Upload
-        logger.info(f"Uploading to {self.repo_id}...")
+    def upload_file_async(self, local_path: Path, remote_path: str):
+        """
+        Queues a file upload to run in the background.
+        """
+        with self._lock:
+            self._pending_uploads += 1
+            
+        self._upload_executor.submit(self._do_upload, local_path, remote_path)
+
+    def _do_upload(self, local_path: Path, remote_path: str):
         try:
             self.api.upload_file(
-                path_or_fileobj=self.local_path,
-                path_in_repo=self.remote_path,
+                path_or_fileobj=local_path,
+                path_in_repo=remote_path,
                 repo_id=self.repo_id,
                 repo_type=self.repo_type,
-                commit_message=commit_message
+                commit_message=f"Upload {Path(remote_path).name}"
             )
-            logger.info("Upload successful.")
         except Exception as e:
-            logger.error(f"Failed to upload to HF: {e}")
+            logger.error(f"Background upload failed for {remote_path}: {e}")
+        finally:
+            with self._lock:
+                self._pending_uploads -= 1
 
-    def merge_results(self, existing_data: dict[str, Any], new_results: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
-        """
-        Merges new results into existing data. 
-        Updates metadata if needed.
-        """
-        merged = existing_data.copy()
+    def _upload_bytes_async(self, data: bytes, remote_path: str):
+        """Internal helper for in-memory uploads"""
+        self._upload_executor.submit(self._do_upload_bytes, data, remote_path)
         
-        # Ensure structure
-        if "scores" not in merged:
-            merged["scores"] = {}
-        if "metadata" not in merged:
-            merged["metadata"] = {}
+    def _do_upload_bytes(self, data: bytes, remote_path: str):
+        try:
+            self.api.upload_file(
+                path_or_fileobj=data,
+                path_in_repo=remote_path,
+                repo_id=self.repo_id,
+                repo_type=self.repo_type,
+                commit_message=f"Upload metadata {Path(remote_path).name}"
+            )
+        except Exception as e:
+            logger.error(f"Background upload bytes failed for {remote_path}: {e}")
 
-        # Merge scores
-        for video_id, result in new_results.items():
-            merged["scores"][video_id] = result
-            
-        # Update metadata
-        merged["metadata"]["last_updated"] = time.time()
-        merged["metadata"]["config"] = config # Always keep latest config
-        # We could merge other metadata like run_name, etc if they differ (shouldn't if hash matched)
-        
-        return merged
+    def shutdown(self, wait: bool = True):
+        """
+        Waits for pending uploads to finish and shuts down the executor.
+        """
+        logger.info("Shutting down HF background uploader...")
+        self._upload_executor.shutdown(wait=wait)
+        logger.info("HF uploader shutdown complete.")

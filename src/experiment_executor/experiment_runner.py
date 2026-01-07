@@ -22,7 +22,9 @@ class ExperimentRunner:
         reconstruction_strategy: ReconstructionStrategy,
         evaluator: ReconstructionEvaluator,
         save_path: Path,
-        conf_for_log:dict[str, Any]
+        conf_for_log:dict[str, Any],
+        hf_manager: Any = None, # Optional HFFileManager
+        config_stem: str = ""
     ):
         self.run_name = run_name
         self.data_loader = data_loader
@@ -31,6 +33,21 @@ class ExperimentRunner:
         self.evaluator = evaluator
         self._save_path = save_path/run_name
         self.conf_for_log = conf_for_log
+        self.hf_manager = hf_manager
+        
+        # Determine remote path
+        # storage/reconstruction/{config_stem}/{run_name}/
+        self.remote_run_path = f"reconstruction/{config_stem}/{run_name}"
+        
+        self.remote_files: set[str] = set()
+        
+        # Pre-fetch remote state
+        if self.hf_manager:
+            # 1. Ensure config matches
+            self.hf_manager.ensure_config_match(self.remote_run_path, conf_for_log)
+            # 2. Get list of already done files
+            self.remote_files = self.hf_manager.list_files(self.remote_run_path)
+            logging.info(f"HF Sync: Found {len(self.remote_files)} existing result files remotely.")
 
     @staticmethod
     def _filename(video_id:str) -> str:
@@ -40,9 +57,16 @@ class ExperimentRunner:
         filename = self._filename(r.video_id)
         if r.skip_reason:
             filename = f"skip__{filename}"
+            
+        local_file_path = self._save_path / filename
 
-        with open(self._save_path / filename, "w") as f:
+        with open(local_file_path, "w") as f:
             f.write(r.json_str())
+            
+        # Trigger background upload
+        if self.hf_manager:
+            remote_file_path = f"{self.remote_run_path}/{filename}"
+            self.hf_manager.upload_file_async(local_file_path, remote_file_path)
 
     def run(self) -> list[MetricsRecordRaw]:
         """Runs the full experiment from data loading to evaluation."""
@@ -65,10 +89,21 @@ class ExperimentRunner:
         - Checks for existing results (Resumption)
         - Runs new experiment if needed
         """
-        result_file = self._save_path / self._filename(video.video_id)
+        filename = self._filename(video.video_id)
+        result_file = self._save_path / filename
 
+        # 1. Check Local
         if result_file.exists():
             return self._load_existing_result(video, result_file)
+            
+        # 2. Check Remote (HF)
+        if self.hf_manager and filename in self.remote_files:
+            logging.info(f"Video {video.video_id} found in HF Cache. Downloading...")
+            remote_path = f"{self.remote_run_path}/{filename}"
+            if self.hf_manager.download_file(remote_path, result_file):
+                 return self._load_existing_result(video, result_file)
+            else:
+                 logging.warning(f"Failed to download {video.video_id} from HF despite listing. Re-computing.")
 
         return self._run_new_experiment(video)
 

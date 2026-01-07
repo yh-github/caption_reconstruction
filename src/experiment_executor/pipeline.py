@@ -79,6 +79,14 @@ class ExperimentPipeline(ABC):
         self.experiment_type = self._init_experiment_type()
         self.cache = self._init_cache()
         self.llm_client = self._init_llm_client()
+        
+        # Initialize HF Sync Manager if repo ID is provided
+        self.hf_manager = None
+        hf_repo_id = self.exec_args.hf_repo_id if hasattr(self.exec_args, 'hf_repo_id') else config.get('hf_repo_id')
+        if hf_repo_id:
+             from data.hf_sync import HFFileManager
+             logging.info(f"Initializing HF Sync Manager for repo: {hf_repo_id}")
+             self.hf_manager = HFFileManager(repo_id=hf_repo_id)
 
         data_config = self.config["data_config"]
 
@@ -111,6 +119,10 @@ class ExperimentPipeline(ABC):
         for_analysis_path = Path(self.config["paths"].get("for_analysis", "results/for_analysis"))
         for_analysis_path.mkdir(parents=True, exist_ok=True)
         self.for_analysis_path = for_analysis_path
+        
+    def shutdown(self):
+        if self.hf_manager:
+            self.hf_manager.shutdown()
 
     def __str__(self):
         return (
@@ -161,7 +173,10 @@ class ExperimentPipeline(ABC):
         return BlockingClient()
 
     def dry_run(self):
-        return list(self.build_experiments()), self.data_loader.count()
+        try:
+            return list(self.build_experiments()), self.data_loader.count()
+        finally:
+            self.shutdown()
 
 
 # class ExperimentPipeline_QA(ExperimentPipeline):
@@ -186,6 +201,7 @@ class ExperimentPipeline(ABC):
 #             conf_for_log=conf_for_log
 #         )
 #         yield runner
+# 
 
 
 class ExperimentPipeline_Reconstruction(ExperimentPipeline):
@@ -194,36 +210,56 @@ class ExperimentPipeline_Reconstruction(ExperimentPipeline):
         super().__init__(exec_args, config)
 
     def build_experiments(self):
-        config = self.config
+        try:
+            config = self.config
 
-        # --- Loop 1: Reconstruction Strategy ---
-        for strategy_params in config.get("recon_strategy", []):
+            # --- Loop 1: Reconstruction Strategy ---
+            for strategy_params in config.get("recon_strategy", []):
 
-            # Build the strategy object once for this block
-            recon_strategy = self.rs_builder.get_strategy(strategy_params)
+                # Build the strategy object once for this block
+                recon_strategy = self.rs_builder.get_strategy(strategy_params)
 
-            masking_strategies = get_masking_strategies(
-                masking_configs=config["masking_configs"],
-                master_seed=config["base_params"]["master_seed"]
-            )
-
-            # --- Loop 2: Iterate over the generated masking strategies ---
-            for masker in masking_strategies:
-                # Build the final runner object with all components
-                run_conf:dict[str,Any] = flat_dict({
-                    '':config.get('base_params'),
-                    'data_config': config["data_config"],
-                    'masking': masker.get_params_for_repr(),
-                    'recon_strategy': strategy_params
-                })
-                runner = self.experiment_runner_factory(
-                    run_name=f"{recon_strategy}__{masker}",
-                    data_loader=self.data_loader,
-                    masking_strategy=masker,
-                    reconstruction_strategy=recon_strategy,
-                    evaluator=self.evaluator,
-                    #TODO add result path to config
-                    save_path=self.result_path,
-                    conf_for_log=run_conf
+                masking_strategies = get_masking_strategies(
+                    masking_configs=config["masking_configs"],
+                    master_seed=config["base_params"]["master_seed"]
                 )
-                yield runner
+
+                # --- Loop 2: Iterate over the generated masking strategies ---
+                for masker in masking_strategies:
+                    # Build the final runner object with all components
+                    run_conf:dict[str,Any] = flat_dict({
+                        '':config.get('base_params'),
+                        'data_config': config["data_config"],
+                        'masking': masker.get_params_for_repr(),
+                        'recon_strategy': strategy_params
+                    })
+                    
+                    try: 
+                        runner = self.experiment_runner_factory(
+                            run_name=f"{recon_strategy}__{masker}",
+                            data_loader=self.data_loader,
+                            masking_strategy=masker,
+                            reconstruction_strategy=recon_strategy,
+                            evaluator=self.evaluator,
+                            #TODO add result path to config
+                            save_path=self.result_path,
+                            conf_for_log=run_conf,
+                            hf_manager=self.hf_manager,
+                            config_stem=config.get("__parent_run_name__", "default")
+                        )
+                        yield runner
+                    except TypeError:
+                         # Fallback for VectorRunner which doesn't support hf_manager yet
+                         runner = self.experiment_runner_factory(
+                            run_name=f"{recon_strategy}__{masker}",
+                            data_loader=self.data_loader,
+                            masking_strategy=masker,
+                            reconstruction_strategy=recon_strategy,
+                            evaluator=self.evaluator,
+                            save_path=self.result_path,
+                            conf_for_log=run_conf
+                        )
+                         yield runner
+        finally:
+             if not self.exec_args.dry_run:
+                 self.shutdown()
