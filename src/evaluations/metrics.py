@@ -8,7 +8,7 @@ from evaluations.eval_vectors import VectorStats
 
 logger = logging.getLogger(__name__)
 
-RAW_METRIC_OBJ=dict[str, NDArray[np.float64]]
+RAW_METRIC_OBJ = dict[str, Any]
 
 def round_metrics(metrics, ndigits=6) -> dict:
     m = {}
@@ -63,14 +63,37 @@ class MetricsRecordRaw(BaseModel):
     raw_metrics: RAW_METRIC_OBJ
 
     def stats(self) -> MetricsRecord:
+        stats_dict = {}
+        for k, v in self.raw_metrics.items():
+            if isinstance(v, (np.ndarray, list)):
+                # Standard vector metric
+                 stats_dict[k] = VectorStats.from_vector(v)
+            elif isinstance(v, (float, int)):
+                # Scalar metric (treat as constant stat)
+                stats_dict[k] = VectorStats(mean=float(v), std=0.0, min=float(v), max=float(v))
+            # Ignore strings (Base64 matrix) or other types
+            
         return MetricsRecord(
             metadata=self.metadata,
-            metrics={k:VectorStats.from_vector(v) for k,v in self.raw_metrics.items()}
+            metrics=stats_dict
         )
 
     def stats_z_score(self, global_stats:dict[str, VectorStats]) -> MetricsRecord:
+        metrics = {}
+        for k, v in self.raw_metrics.items():
+            if k not in global_stats:
+                continue
+            
+            # Z-score only meaningful for vectors/scalars where we have stats
+            if isinstance(v, (np.ndarray, list)):
+                 metrics[k] = VectorStats.from_vector((v-global_stats[k].mean)/global_stats[k].std)
+            elif isinstance(v, (float, int)):
+                 # Z-score of a scalar against global dist
+                 z = (v - global_stats[k].mean) / global_stats[k].std if global_stats[k].std else 0.0
+                 metrics[k] = VectorStats(mean=z, std=0.0, min=z, max=z)
+                 
         return MetricsRecord(
             metadata=self.metadata,
-            metrics={k:VectorStats.from_vector((v-global_stats[k].mean)/global_stats[k].std) for k,v in self.raw_metrics.items()}
+            metrics=metrics
         )
 

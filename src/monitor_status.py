@@ -207,7 +207,44 @@ def calculate_eta(start_time: float, completed: int, total: int) -> str:
     elif seconds_left < 3600:
         return f"{seconds_left/60:.1f}m"
     else:
+    # Format nicely
+    if seconds_left < 60:
+        return f"{seconds_left:.0f}s"
+    elif seconds_left < 3600:
+        return f"{seconds_left/60:.1f}m"
+    else:
         return f"{seconds_left/3600:.1f}h"
+
+def check_hf_status(repo_id: str, sub_exp_names: list[str]) -> dict[str, int]:
+    """
+    Checks the HF dataset for the number of files uploaded for each sub-experiment.
+    Returns a dict mapping sub-experiment name -> upload count.
+    """
+    try:
+        from huggingface_hub import HfApi
+        api = HfApi()
+        
+        # We don't know the exact path structure (reconstruction/{config}/{run_name})
+        # So we fetch all files and filter. Ideally we'd narrow this down if it gets too slow.
+        # But for now, listing the repo tree or files is okay for moderate sizes.
+        
+        # Optimization: Just list files. The API is usually fast enough for metadata.
+        # If the repo is huge, this might lag.
+        files = api.list_repo_files(repo_id=repo_id, repo_type="dataset")
+        
+        counts = {name: 0 for name in sub_exp_names}
+        
+        for f in files:
+            # Check if this file belongs to any of our known sub-experiments
+            # The sub-experiment name (run_name) should be a directory component in the path
+            for name in sub_exp_names:
+                if f"/{name}/" in f and f.endswith(".json"):
+                     counts[name] += 1
+                     
+        return counts
+    except Exception as e:
+        return {"error": str(e)}
+
 
 
 def main():
@@ -216,6 +253,7 @@ def main():
     parser.add_argument("--log-file", type=Path, help="Path to the running log file")
     parser.add_argument("-n", type=int, default=10, help="Number of log lines to show")
     parser.add_argument("--total", type=int, default=100, help="Total expected videos per experiment")
+    parser.add_argument("--hf-repo", type=str, help="Hugging Face Dataset Repo ID (e.g. Y3/dense_video_captions)")
     args = parser.parse_args()
 
     # Clear screen (optional, maybe distracting in notebook)
@@ -237,17 +275,36 @@ def main():
     # Analyze Progress
     sub_stats = analyze_progress(target_run, args.total)
     
-    print(f"{'Sub-Experiment':<50} | {'Progress':<15} | {'Last Activity'}")
     print("-" * 85)
+    
+    # HF Status
+    hf_counts = {}
+    if args.hf_repo:
+        print("Checking Hugging Face Status...", end="\r")
+        sub_names = [s['name'] for s in sub_stats]
+        hf_counts = check_hf_status(args.hf_repo, sub_names)
+        print(" " * 40, end="\r") # Clear loading message
+
+    print(f"{'Sub-Experiment':<50} | {'Progress':<15} | {'HF Uploads':<10} | {'Last Activity'}")
+    print("-" * 100)
     
     total_completed = 0
     for s in sub_stats:
         pct = (s['count'] / args.total) * 100
-        print(f"{s['name'][:47]+'...':<50} | {s['count']}/{args.total} ({pct:.0f}%)   | {s['last_activity']}")
+        
+        hf_str = "N/A"
+        if args.hf_repo:
+            if "error" in hf_counts:
+                 hf_str = "Err"
+            else:
+                 c = hf_counts.get(s['name'], 0)
+                 hf_str = f"{c}"
+        
+        print(f"{s['name'][:47]+'...':<50} | {s['count']}/{args.total} ({pct:.0f}%)   | {hf_str:<10} | {s['last_activity']}")
         total_completed += s['count']
         
-    print("-" * 85)
-    print("-" * 85)
+    print("-" * 100)
+    print("-" * 100)
     print(f"Total Videos Completed: {total_completed}")
     
     # Total Experiments & ETA
