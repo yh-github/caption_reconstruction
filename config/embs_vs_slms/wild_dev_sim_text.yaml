@@ -3,7 +3,8 @@ base_params:
   experiment_type: "recon"
 
 evaluation:
-  type: "emb_sim"
+  type: "emb_retrieval"
+  embedding_model: "local:all-mpnet-base-v2"
 
 data_config:
   name: "wild_captions"

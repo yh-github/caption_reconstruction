@@ -3,7 +3,8 @@ base_params:
   experiment_type: "RECON_VECTORS"
 
 evaluation:
-  type: "emb_sim"
+  type: "emb_retrieval"
+  # embedding_model: "local:all-mpnet-base-v2" # Not used for vector recon, but kept for consistency if needed by loader
 
 data_config:
   name: "np_files"

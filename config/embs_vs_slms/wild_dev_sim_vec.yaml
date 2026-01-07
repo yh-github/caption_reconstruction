@@ -3,12 +3,14 @@ base_params:
   experiment_type: "RECON_VECTORS"
 
 evaluation:
-  type: "emb_sim"
+  type: "emb_retrieval"
+  embedding_model: "local:all-mpnet-base-v2"
 
 data_config:
   name: "wild_captions"
   path: "datasets/wildQA/captions__wild2/"
   limit: 100
+  embedding_model: "local:all-mpnet-base-v2"
 
 recon_strategy:
   - type: "mean_closest"

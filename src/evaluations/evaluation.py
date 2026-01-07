@@ -7,7 +7,7 @@ from bert_score import BERTScorer
 from torch import Tensor
 from common_utils.error_handling import UserFacingError
 from data_models.captions_only import CaptionedVideo
-from evaluations.eval_vectors import VectorStats, Matrix, calculate_elementwise_cosine, context_projection
+from evaluations.eval_vectors import VectorStats, Matrix, calculate_elementwise_cosine, context_projection, calculate_retrieval_metrics
 from evaluations.metrics import MetricsRecordRaw, RAW_METRIC_OBJ
 from llm.embedder import GeminiEmbedder
 from reconstruction.text_reconstruction import Reconstructed
@@ -76,17 +76,20 @@ class ReconstructionEvaluator(ABC, Generic[T_RECON, T_ORIG]):
             elif eval_type == 'emb_sim':
                 emb_model_name = eval_conf.get('embedding_model', 'gemini')
                 
-                # Check for Local Embedder
                 if emb_model_name.startswith('local:'):
                     from llm.local_embedder import LocalEmbedder
                     # Format: local:all-MiniLM-L6-v2
                     model_id = emb_model_name.split('local:', 1)[1]
                     if not model_id: model_id = "all-MiniLM-L6-v2" # Default
                     
-                    return ReconstructionEvaluator_EmbSimilarity(LocalEmbedder(model_name=model_id))
-                
+                    embedder = LocalEmbedder(model_name=model_id)
                 else:
-                    return ReconstructionEvaluator_EmbSimilarity(GeminiEmbedder(client=llm_client))
+                    embedder = GeminiEmbedder(client=llm_client)
+
+                if eval_type == 'emb_sim':
+                    return ReconstructionEvaluator_EmbSimilarity(embedder)
+                elif eval_type == 'emb_retrieval' or eval_type == 'retrieval':
+                    return ReconstructionEvaluator_Retrieval(embedder)
 
             elif eval_type == 'nop':
                 return EvaluatorNOP()
@@ -231,3 +234,44 @@ class ReconstructionEvaluator_EmbSimilarity(TextReconstructionEvaluator):
         except CacheMissError as e:
             logger.warning(f"Cache miss during evaluation for {reconstructed.video_id}: {e}")
             return {}
+
+
+class ReconstructionEvaluator_Retrieval(ReconstructionEvaluator_EmbSimilarity):
+    """
+    Evaluates reconstruction as a retrieval task.
+    In addition to cosine similarity, it ranks each reconstructed caption against
+    the pool of all original captions in the video (distractors).
+    """
+    def evaluate(self, reconstructed: Reconstructed, orig: CaptionedVideo) -> RAW_METRIC_OBJ:
+        # Get the basic sim metrics first
+        base_metrics = super().evaluate(reconstructed, orig)
+        if not base_metrics:
+            return {}
+
+        try:
+            # We need the vectors again.
+            # Optimization: ReconstructionEvaluator_EmbSimilarity doesn't expose them easily
+            # without refactoring, so we might re-fetch.
+            # However, since they are cached/local, it should be cheap.
+            
+            # Align again to be sure we match the super() logic
+            candidates, references = reconstructed.align(orig.clips)
+            if not candidates: return base_metrics
+
+            pred_vecs = self._embedder.get_embeddings(reconstructed.video_id + "(pred)", candidates)
+            true_vecs = self._embedder.get_embeddings(reconstructed.video_id + "(orig)", references)
+
+            # For retrieval, the distractor pool constitutes all TRUE concepts in this video.
+            # We strictly want to find the MATCHING true vec among all TRUE vecs.
+            ranking_metrics = calculate_retrieval_metrics(
+                reconstructed_vectors=np.array(pred_vecs),
+                ground_truth_vectors=np.array(true_vecs),
+                distractor_pool=np.array(true_vecs)
+            )
+            
+            # Merge dictionary
+            return {**base_metrics, **ranking_metrics}
+
+        except Exception as e:
+            logger.error(f"Error calculating retrieval metrics: {e}")
+            return base_metrics

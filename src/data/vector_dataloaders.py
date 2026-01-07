@@ -46,9 +46,17 @@ class VectorDataLoader(ABC):
                 seed=42
             )
         else:
+            emb_model_name = data_config.get('embedding_model', 'gemini')
+            if emb_model_name.startswith('local:'):
+                from llm.local_embedder import LocalEmbedder
+                model_id = emb_model_name.split('local:', 1)[1] or "all-MiniLM-L6-v2"
+                embedder = LocalEmbedder(model_name=model_id)
+            else:
+                 embedder = Embedder(client=llm_client)
+
             return VectorConvertorLoader(
                 get_data_loader(data_config),
-                Embedder(client=llm_client) #TODO extern
+                embedder
             )
 
 class ToyVectorsLoader(VectorDataLoader):
