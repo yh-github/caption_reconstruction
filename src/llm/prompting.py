@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Iterator
+from pathlib import Path
 
 from data_models.captions_only import CaptionedVideo
 import re
@@ -125,5 +126,92 @@ class JSONPromptBuilder(PromptBuilder):
         return JSONPromptBuilder(instruction_template=template_string)
 
 
+
 def numbered_list(xs:Iterator[str]) -> str:
     return "".join(f"{i}. {x}\n" for i, x in enumerate(xs, start=1))
+
+
+class ClozePromptBuilder(PromptBuilder):
+    """
+    Builds prompts for iterative cloze tasks, supporting conditional selection of templates.
+    """
+    def __init__(self, templates: dict[str, tuple[str, str]]):
+        """
+        Args:
+            templates: Dict mapping 'condition' -> (system_template, user_template)
+                       Expected keys: 'default', 'start', 'end'
+        """
+        self.templates = templates
+
+    def build_prompt(self, video_context: dict) -> list[dict[str, str]]:
+        """
+        Builds the messages list for a chat model.
+        """
+        # Determine condition
+        context_before = video_context.get("CONTEXT_BEFORE", "")
+        context_after = video_context.get("CONTEXT_AFTER", "")
+
+        condition = "default"
+        if not context_before.strip():
+            condition = "start"
+        elif not context_after.strip():
+            condition = "end"
+        
+        # Fallback to default if specific condition template is missing
+        if condition not in self.templates:
+            condition = "default"
+            
+        system_tmpl, user_tmpl = self.templates[condition]
+
+        user_content, missing = simple_safe_format(user_tmpl, video_context)
+        if missing:
+             # Logic to handle missing keys in strict templates could go here
+             pass
+
+        return [
+            {"role": "system", "content": system_tmpl},
+            {"role": "user", "content": user_content}
+        ]
+
+    @staticmethod
+    def _parse_file(path: str) -> tuple[str, str]:
+        with open(path, 'r') as f:
+            content = f.read()
+        parts = content.split("# USER")
+        if len(parts) != 2:
+            raise ValueError(f"Prompt file {path} must contain '# SYSTEM' and '# USER' sections.")
+        return parts[0].replace("# SYSTEM", "").strip(), parts[1].strip()
+
+    @staticmethod
+    def from_file(path: str):
+        # Legacy support for single file
+        sys_t, user_t = ClozePromptBuilder._parse_file(path)
+        return ClozePromptBuilder({"default": (sys_t, user_t)})
+        
+    @staticmethod
+    def from_directory(path: Path):
+        """
+        Loads 'default.txt', 'start.txt', 'end.txt' from directory.
+        """
+        templates = {}
+        
+        # Load default (required)
+        default_path = path / "default.txt"
+        if not default_path.exists():
+             # Fallback: try loading the single file if directory path was actually a file path?
+             # Or just error.
+             if path.is_file():
+                 return ClozePromptBuilder.from_file(str(path))
+             raise FileNotFoundError(f"default.txt not found in {path}")
+             
+        templates["default"] = ClozePromptBuilder._parse_file(str(default_path))
+        
+        # Load optionals
+        if (path / "start.txt").exists():
+            templates["start"] = ClozePromptBuilder._parse_file(str(path / "start.txt"))
+            
+        if (path / "end.txt").exists():
+            templates["end"] = ClozePromptBuilder._parse_file(str(path / "end.txt"))
+            
+        return ClozePromptBuilder(templates)
+

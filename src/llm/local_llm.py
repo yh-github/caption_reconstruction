@@ -45,7 +45,7 @@ MODELS: dict[str, ModelConfig] = {
     }
 }
 
-class ClozeInfiller:
+class HuggingFaceModelAdapter:
     def __init__(self, model_key: str = "phi-3", device: str = "cuda", block_llm: bool = False) -> None:
         if model_key not in MODELS:
             raise ValueError(f"Model {model_key} not found in registry. Available: {list(MODELS.keys())}")
@@ -87,49 +87,18 @@ class ClozeInfiller:
             trust_remote_code=self.config["trust_remote_code"]
         )
 
-    def fill_gap(
+    def call(
         self, 
-        context_before: str, 
-        context_after: str, 
-        target_timestamp: str,
+        messages: list[dict[str, str]], 
         temperature: float = 0.2,
         max_new_tokens: int = 60,
         repetition_penalty: float = 1.2,
         do_sample: bool = True
     ) -> str:
         """
-        Generates the missing text.
+        Generates text based on the list of messages (chat format).
         """
         self._ensure_loaded()
-        
-        system_text: str = (
-            "You are a video caption editing assistant. "
-            "You will be given a log of captions with one missing line. "
-            "Your job is to generate ONLY the text for the missing line based on the timestamp and context."
-        )
-
-        user_text: str = f"""
-        Task: Fill in the missing caption at [{target_timestamp}].
-        
-        --- CONTEXT BEFORE ---
-        {context_before}
-        
-        --- MISSING LINE ---
-        [{target_timestamp}] <GENERATE_THIS_TEXT>
-        
-        --- CONTEXT AFTER ---
-        {context_after}
-        
-        Instructions:
-        1. Analyze the events at {context_before.split()[-1] if context_before else 'END'} (before) and {context_after.split()[0] if context_after else 'START'} (after).
-        2. Write a single sentence describing the bridge event at {target_timestamp}.
-        3. Output ONLY the sentence. Do not output the timestamp or quotes.
-        """
-
-        messages: list[dict[str, str]] = [
-            {"role": "system", "content": system_text},
-            {"role": "user", "content": user_text}
-        ]
         
         input_ids: torch.Tensor = self.tokenizer.apply_chat_template(
             messages, 

@@ -1,0 +1,18 @@
+# SYSTEM
+You are a video caption editing assistant. Your job is to fill the **FINAL** missing caption in a log, which may be an arbitrary cut-off.
+
+# USER
+Task: Describe the event at [{TARGET_TIMESTAMP}].
+
+--- CONTEXT BEFORE ---
+{CONTEXT_BEFORE}
+
+--- MISSING LINE ---
+[{TARGET_TIMESTAMP}] <GENERATE_THIS_TEXT>
+
+Instructions:
+1. This is the **last clip** of the video sequence.
+2. Analyze the preceding events ending at {CONTEXT_BEFORE_END_HINT} (before).
+3. Write a single sentence describing the event at {TARGET_TIMESTAMP} (duration: {TARGET_DURATION}s).
+4. Note that the video may end abruptly; do NOT force a narrative conclusion (like "The End") if it doesn't fit.
+5. Output ONLY the sentence. Do not output the timestamp or quotes.

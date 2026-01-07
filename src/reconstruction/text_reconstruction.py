@@ -1,6 +1,8 @@
 import logging
 from abc import ABC, abstractmethod
 from typing import Any
+from pathlib import Path
+import re
 
 from google import genai
 from pydantic import BaseModel
@@ -9,10 +11,10 @@ from pydantic_core import PydanticSerializationError
 from data_models.captions_only import CaptionedClip, ReconstructedCaptions
 from data_models.captions_only import CaptionedVideo
 from llm.llm_interaction import LLM_Manager_Builder, LLM_Response, LLM_ResponseError
-from llm.local_llm import ClozeInfiller
+from llm.local_llm import HuggingFaceModelAdapter
 from llm.embedder import CacheMissError
 from llm.parsers import parse_llm_response
-from llm.prompting import PromptBuilder, JSONPromptBuilder
+from llm.prompting import PromptBuilder, JSONPromptBuilder, ClozePromptBuilder
 from common_utils.error_handling import UserFacingError, ExceptionStr
 
 
@@ -239,18 +241,34 @@ class LLMStrategy(ReconstructionStrategy):
 
         return ok, failed, changed_unmasked, reconstructed_dict
 
-class LocalLLMStrategy(ReconstructionStrategy):
+class IterativeReconstructionStrategy(ReconstructionStrategy):
     """
-    Strategy using a local LLM (e.g., Phi-3, Mistral) to fill gaps iteratively.
+    Strategy using an iterative/autoregressive approach to fill gaps.
+    Commonly used with smaller local models via HuggingFaceModelAdapter.
     """
-    def __init__(self, name: str, infiller: ClozeInfiller, config: dict):
+    def __init__(self, name: str, model_adapter: HuggingFaceModelAdapter, prompt_builder: ClozePromptBuilder, config: dict):
         super().__init__(name)
-        self.infiller = infiller
+        self.model_adapter = model_adapter
+        self.prompt_builder = prompt_builder
         self.config = config
         self.temperature = config.get("temperature", 0.2)
         self.repetition_penalty = config.get("repetition_penalty", 1.2)
-        # If max_new_tokens is not set, we'll calculate it, but having a default/upper bound is good
         self.default_max_new_tokens = config.get("max_new_tokens", 60) 
+
+    def _clean_output(self, text: str) -> str:
+        """
+        Cleans the model output by removing quotes, timestamps, and whitespace.
+        """
+        # Remove timestamps like [00:00] or [00:00:00]
+        text = re.sub(r'\[\d{2}:\d{2}(?::\d{2})?\]', '', text)
+        
+        # Remove surrounding quotes
+        text = text.strip().strip('"\'')
+        
+        # Remove double spaces
+        text = re.sub(r'\s+', ' ', text).strip()
+        
+        return text
 
     def reconstruct(self, masked_video: CaptionedVideo) -> Reconstructed:
         reconstructed_captions = {}
@@ -262,9 +280,7 @@ class LocalLLMStrategy(ReconstructionStrategy):
                 # 1. Build Context
                 # Context Before: All prior captions (or a window)
                 # Context After: All future captions (or a window)
-                # To be efficient and match prompt style, let's take a reasonable window.
-                # The prototype used the full log. Let's try use 3-5 lines before and after.
-                WINDOW_SIZE = 500 # Effectively unlimited context (video length is usually ~60 clips)
+                WINDOW_SIZE = 500 # Effectively unlimited context
                 
                 def format_ts(ts) -> str:
                     # timestamps are floats (seconds). Convert to [SS] or [MM:SS]
@@ -283,31 +299,50 @@ class LocalLLMStrategy(ReconstructionStrategy):
                     f"{format_ts(c.timestamp)} {c.caption}" for c in context_after_clips if c.caption
                 )
                 
+                # Context is passed as-is. Builder handles conditional prompts for empty context.
+                if not context_before_str.strip():
+                    context_before_end_hint = "START"
+                else:
+                    context_before_end_hint = context_before_str.split()[-1]
+
+                if not context_after_str.strip():
+                    context_after_start_hint = "END"
+                else:
+                    context_after_start_hint = context_after_str.split()[0]
+                
                 target_timestamp = format_ts(clip.timestamp)
+                target_duration = f"{clip.timestamp.duration:.1f}"
+
+                
+                prompt_context = {
+                    "TARGET_TIMESTAMP": target_timestamp,
+                    "TARGET_DURATION": target_duration,
+                    "CONTEXT_BEFORE": context_before_str,
+                    "CONTEXT_AFTER": context_after_str, 
+                    "CONTEXT_BEFORE_END_HINT": context_before_end_hint,
+                    "CONTEXT_AFTER_START_HINT": context_after_start_hint
+                }
                 
                 # Dynamic max_new_tokens calculation
-                # Heuristic: Average length of surrounding captions + buffer?
-                # Or just use the configured default. User said "we will automatically compute".
-                # Let's try to compute based on average length of visible captions in window.
                 lengths = [len(str(c.caption).split()) for c in context_before_clips + context_after_clips if c.caption]
                 if lengths:
                     avg_len = sum(lengths) / len(lengths)
-                    # Estimating 1.3 tokens per word approx? allow 2x for safety
                     computed_max_tokens = int(avg_len * 2.5) 
-                    max_new_tokens = max(20, min(computed_max_tokens, 100)) # Clamp reasonable limits
+                    max_new_tokens = max(20, min(computed_max_tokens, 100)) 
                 else:
                     max_new_tokens = self.default_max_new_tokens
 
                 try:
-                    generated_text = self.infiller.fill_gap(
-                        context_before=context_before_str,
-                        context_after=context_after_str,
-                        target_timestamp=target_timestamp,
+                    messages = self.prompt_builder.build_prompt(prompt_context)
+                    
+                    generated_text = self.model_adapter.call(
+                        messages=messages,
                         temperature=self.temperature,
                         repetition_penalty=self.repetition_penalty,
                         max_new_tokens=max_new_tokens
                     )
                     
+                    generated_text = self._clean_output(generated_text)
                     reconstructed_captions[clip.index] = generated_text
                     
                     # Update the working clip so it serves as context for subsequent gaps
@@ -330,7 +365,14 @@ class TextReconstructionStrategyBuilder:
         self.master_seed = master_seed
         self.block_llm = block_llm
         self.llm_manager_builder = LLM_Manager_Builder(llm_client, llm_cache)
-        self._local_model_cache: dict[str, ClozeInfiller] = {}
+        self._local_model_cache: dict[str, HuggingFaceModelAdapter] = {}
+        
+        # Determine prompt path relative to this file
+        # src/reconstruction/text_reconstruction.py -> .../prompts/iterative_cloze_v1.txt
+        # Root is 2 levels up from src/reconstruction? No, src is one level below root usually.
+        # Layout: /reporoot/src/reconstruction/text_reconstruction.py
+        # Prompts: /reporoot/prompts/
+        self.prompts_dir = Path(__file__).resolve().parent.parent.parent / "prompts"
 
     def get_strategy(self, strategy_config: dict) -> ReconstructionStrategy:
         """
@@ -355,11 +397,24 @@ class TextReconstructionStrategyBuilder:
             
             # Check cache/singletons to avoid reloading 7GB models
             if model_key not in self._local_model_cache:
-                self._local_model_cache[model_key] = ClozeInfiller(model_key=model_key, block_llm=self.block_llm)
+                self._local_model_cache[model_key] = HuggingFaceModelAdapter(model_key=model_key, block_llm=self.block_llm)
             
-            return LocalLLMStrategy(
+            prompt_filename = strategy_config.get("prompt_dir", "iterative_cloze") # Expecting directory now
+            prompt_path = self.prompts_dir / prompt_filename
+            
+            # Use from_directory if it's a directory, else fallback to file
+            if prompt_path.is_dir():
+                prompt_builder = ClozePromptBuilder.from_directory(prompt_path)
+            else:
+                 # Fallback for single file config
+                 if not prompt_path.exists() and (self.prompts_dir / "iterative_cloze_v1.txt").exists():
+                      prompt_path = self.prompts_dir / "iterative_cloze_v1.txt"
+                 prompt_builder = ClozePromptBuilder.from_file(str(prompt_path))
+
+            return IterativeReconstructionStrategy(
                 name=strategy_config.get("name", "LocalLLM"),
-                infiller=self._local_model_cache[model_key],
+                model_adapter=self._local_model_cache[model_key],
+                prompt_builder=prompt_builder,
                 config=strategy_config
             )
 
