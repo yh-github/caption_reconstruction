@@ -249,7 +249,7 @@ def verify_hf_integrity(api, repo_id: str, sub_exp_name: str, files_in_sub: list
     except Exception as e:
         return f"Err({str(e)[:10]}..)"
 
-def check_hf_status(repo_id: str, sub_exp_names: list[str]) -> dict[str, dict]:
+def check_hf_status(repo_id: str, sub_exp_names: list[str], prefix: str = "") -> dict[str, dict]:
     """
     Returns dict: name -> {'count': int, 'status': str}
     """
@@ -257,6 +257,9 @@ def check_hf_status(repo_id: str, sub_exp_names: list[str]) -> dict[str, dict]:
         from huggingface_hub import HfApi
         api = HfApi()
         
+        # Optimize if possible? 
+        # API doesn't strongly support folder filtering in list_repo_files without tree.
+        # But we can just filter locally.
         files = api.list_repo_files(repo_id=repo_id, repo_type="dataset")
         
         results = {name: {'count': 0, 'status': 'Unknown'} for name in sub_exp_names}
@@ -264,8 +267,15 @@ def check_hf_status(repo_id: str, sub_exp_names: list[str]) -> dict[str, dict]:
         # Group files by sub-exp
         files_by_exp = {name: [] for name in sub_exp_names}
         
+        target_prefix = f"reconstruction/{prefix}/" if prefix else ""
+        
         for f in files:
+            # If prefix is set, ensuring file starts with it
+            if target_prefix and not f.startswith(target_prefix):
+                continue
+                
             for name in sub_exp_names:
+                # The sub-experiment name should be a directory component
                 if f"/{name}/" in f and f.endswith(".json"):
                     results[name]['count'] += 1
                     files_by_exp[name].append(f)
@@ -281,10 +291,11 @@ def check_hf_status(repo_id: str, sub_exp_names: list[str]) -> dict[str, dict]:
 def main():
     parser = argparse.ArgumentParser(description="Monitor Caption Reconstruction Experiments")
     parser.add_argument("--results-dir", type=Path, default=Path("results/recon"))
-    parser.add_argument("--log-file", type=Path, help="Path to the running log file")
+    parser.add_argument("--log-file", type=Path, default=Path("logs/run.log"), help="Path to the running log file")
     parser.add_argument("-n", type=int, default=10, help="Number of log lines to show")
     parser.add_argument("--total", type=int, default=100, help="Total expected videos per experiment")
     parser.add_argument("--hf-repo", type=str, help="Hugging Face Dataset Repo ID (e.g. Y3/dense_video_captions)")
+    parser.add_argument("--config", type=Path, help="Path to the experiment config file (for scoping HF checks)")
     args = parser.parse_args()
 
     # Clear screen (optional, maybe distracting in notebook)
@@ -312,9 +323,14 @@ def main():
     hf_data = {}
     if args.hf_repo:
         print("Checking Hugging Face Status (listing & verifying)...", end="\r")
+        
+        config_stem = args.config.stem if args.config else ""
+        if config_stem:
+            print(f"Scoping HF check to: reconstruction/{config_stem}/" + " "*20, end="\r")
+            
         sub_names = [s['name'] for s in sub_stats]
-        hf_data = check_hf_status(args.hf_repo, sub_names)
-        print(" " * 60, end="\r") # Clear loading message
+        hf_data = check_hf_status(args.hf_repo, sub_names, prefix=config_stem)
+        print(" " * 80, end="\r") # Clear loading message
 
     print(f"{'Sub-Experiment':<50} | {'Progress':<15} | {'HF Uploads':<10} | {'Remote Status':<15} | {'Last Activity'}")
     print("-" * 115)
