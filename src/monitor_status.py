@@ -113,6 +113,10 @@ def analyze_progress(run_dir: Path, total_per_exp: int):
                 ts = latest_json.stat().st_mtime
                 mins_ago = (time.time() - ts) / 60
                 last_activity = f"{mins_ago:.1f}m ago"
+            else:
+                last_activity = "Initializing..."
+                # Use dir creation time as fallback for sorting
+                ts = sub.stat().st_ctime
             
             stats.append({
                 "name": sub.name,
@@ -163,6 +167,49 @@ def check_errors(log_file: Path):
         pass
     return list(set(alerts)) # Dedup
 
+def parse_total_experiments(log_file: Path) -> int | None:
+    """Parses the log file to find the total number of planned experiments."""
+    if not log_file or not log_file.exists():
+        return None
+    
+    try:
+        # Scan the first 100 lines (it usually appears early)
+        with open(log_file, 'r') as f:
+            for _ in range(100):
+                line = f.readline()
+                if not line: break
+                # Look for: "prepared X experiments, with Y videos. Total runs = Z"
+                if "Total runs =" in line:
+                    parts = line.split("Total runs =")
+                    if len(parts) > 1:
+                        return int(parts[1].strip())
+    except Exception:
+        pass
+    return None
+
+def calculate_eta(start_time: float, completed: int, total: int) -> str:
+    """Calculates ETA based on simple linear projection."""
+    if completed == 0:
+        return "TBD"
+    
+    elapsed = time.time() - start_time
+    rate = completed / elapsed # videos per second
+    
+    remaining = total - completed
+    if remaining <= 0:
+        return "0s (Done)"
+        
+    seconds_left = remaining / rate
+    
+    # Format nicely
+    if seconds_left < 60:
+        return f"{seconds_left:.0f}s"
+    elif seconds_left < 3600:
+        return f"{seconds_left/60:.1f}m"
+    else:
+        return f"{seconds_left/3600:.1f}h"
+
+
 def main():
     parser = argparse.ArgumentParser(description="Monitor Caption Reconstruction Experiments")
     parser.add_argument("--results-dir", type=Path, default=Path("results/recon"))
@@ -200,7 +247,27 @@ def main():
         total_completed += s['count']
         
     print("-" * 85)
+    print("-" * 85)
     print(f"Total Videos Completed: {total_completed}")
+    
+    # Total Experiments & ETA
+    total_runs_expected = None
+    if args.log_file:
+         total_runs_expected = parse_total_experiments(args.log_file)
+    
+    if total_runs_expected:
+        # Global ETA
+        # We need a start time. Use the modification time of the results directory 
+        # (created at start of run) or the oldest file found.
+        start_time = target_run.stat().st_ctime
+        eta = calculate_eta(start_time, total_completed, total_runs_expected)
+        
+        progress_bar = f"[{'#' * int(total_completed/total_runs_expected*20):<20}]"
+        
+        print(f"Overall Progress:       {total_completed}/{total_runs_expected} {progress_bar} ({total_completed/total_runs_expected*100:.1f}%)")
+        print(f"Estimated Time Left:    {eta}")
+    else:
+        print("(Total runs unknown - logs not parsed or line missing)")
 
     # Errors
     if args.log_file:

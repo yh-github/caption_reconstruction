@@ -50,6 +50,9 @@ class ExperimentRunner:
             # 2. Get list of already done files
             self.remote_files = self.hf_manager.list_files(self.remote_run_path)
             logging.info(f"HF Sync: Found {len(self.remote_files)} existing result files remotely.")
+            
+        # Ensure directory exists immediately for monitoring
+        self._save_path.mkdir(parents=True, exist_ok=True)
 
     @staticmethod
     def _filename(video_id:str) -> str:

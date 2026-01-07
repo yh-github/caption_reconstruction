@@ -308,7 +308,7 @@ def calculate_retrieval_metrics(
         "retrieval_count_at_5": int(np.sum(ranks <= 5)),
         "retrieval_total_queries": int(len(ranks)),
         
-        "similarity_matrix_b64": matrix_to_b64(sim_pool)
+        "similarity_matrix_b64": matrix_to_b64(sim_dist)
     }
 
 def calculate_mask_difficulty(target_vector: np.ndarray, context_vectors: np.ndarray) -> float:
