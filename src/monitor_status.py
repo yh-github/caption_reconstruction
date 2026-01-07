@@ -8,6 +8,15 @@ from datetime import datetime
 import subprocess
 import shutil
 
+# Add src to path if needed (for imports when running from root)
+if "src" not in sys.path:
+    sys.path.append("src")
+
+try:
+    from experiment_executor.config_loader import load_config
+except ImportError:
+    load_config = None
+
 # Try to import psutil, handle if missing
 try:
     import psutil
@@ -314,8 +323,39 @@ def main():
 
     print(f"Latest Experiment: {target_run.name}")
     
+    # Smart Config Loading
+    expected_total_videos = args.total
+    expected_sub_exps = 1
+    
+    if args.config and load_config:
+        try:
+            print(f"Loading config from {args.config}...", end="\r")
+            conf = load_config(args.config)
+            
+            # 1. Total Videos
+            if 'data_config' in conf:
+                expected_total_videos = conf['data_config'].get('limit', args.total)
+            
+            # 2. Total Sub-Experiments
+            # Run name structure: {recon_strategy}__{masking}
+            # Total = len(recon) * len(masking)
+            recon_strats = conf.get('recon_strategy', [])
+            # Masking configs are merged into 'masking_configs' by the loader if IMPORT is used
+            masking_confs = conf.get('masking_configs', [])
+            
+            n_recon = len(recon_strats) if isinstance(recon_strats, list) else 1
+            n_mask = len(masking_confs) if isinstance(masking_confs, list) else 1
+            
+            # If lists are empty but keys exist? usually implies at least 1 or strict config validation
+            expected_sub_exps = max(n_recon, 1) * max(n_mask, 1)
+            
+            print(f"Config Loaded: {expected_total_videos} videos x {expected_sub_exps} sub-experiments = {expected_total_videos*expected_sub_exps} total ops")
+            
+        except Exception as e:
+            print(f"\nExample config load failed: {e}. using defaults.")
+
     # Analyze Progress
-    sub_stats = analyze_progress(target_run, args.total)
+    sub_stats = analyze_progress(target_run, expected_total_videos)
     
     print("-" * 95)
     
@@ -337,7 +377,7 @@ def main():
     
     total_completed = 0
     for s in sub_stats:
-        pct = (s['count'] / args.total) * 100
+        pct = (s['count'] / expected_total_videos) * 100
         
         hf_count_str = "N/A"
         hf_status_str = "-"
@@ -356,7 +396,7 @@ def main():
                  elif info['status'] == "Empty": hf_status_str = "⚪ Empty"
                  else: hf_status_str = f"❌ {info['status']}"
         
-        print(f"{s['name'][:47]+'...':<50} | {s['count']}/{args.total} ({pct:.0f}%)   | {hf_count_str:<10} | {hf_status_str:<15} | {s['last_activity']}")
+        print(f"{s['name'][:47]+'...':<50} | {s['count']}/{expected_total_videos} ({pct:.0f}%)   | {hf_count_str:<10} | {hf_status_str:<15} | {s['last_activity']}")
         total_completed += s['count']
         
     print("-" * 115)
@@ -365,7 +405,11 @@ def main():
     
     # Total Experiments & ETA
     total_runs_expected = None
-    if args.log_file:
+    
+    if args.config and load_config:
+        total_runs_expected = expected_total_videos * expected_sub_exps
+    
+    if total_runs_expected is None and args.log_file:
          total_runs_expected = parse_total_experiments(args.log_file)
     
     if total_runs_expected:
