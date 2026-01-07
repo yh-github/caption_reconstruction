@@ -138,26 +138,64 @@ def analyze_progress(run_dir: Path, total_per_exp: int):
     stats.sort(key=lambda x: x['ts'], reverse=True)
     return stats
 
-def get_log_tail(log_file: Path, n: int = 10):
-    if not log_file or not log_file.exists():
-        return []
-    
-    # Simple tail implementation
+def find_real_log_path(pointer_log: Path) -> Path:
+
+
+    """
+    Reads the pointer log (e.g., run.log) to find the actual hash-based log file path.
+    Looks for line: log_path = 'logs/d50...log'
+    """
+    if not pointer_log.exists():
+        return pointer_log
+
     try:
-        # Use existing 'tail' command if on linux/mac for efficiency
-        result = subprocess.run(['tail', '-n', str(n), str(log_file)], capture_output=True, text=True)
-        if result.returncode == 0:
-            return result.stdout.strip().split('\n')
-    except:
-        pass
-        
-    # Fallback python implementation
-    try:
-        with open(log_file, 'r') as f:
-            lines = f.readlines()
-            return [l.strip() for l in lines[-n:]]
+        # Read the first few lines or the whole file if small
+        # The log_path line is usually printed very early by Executor/Pipeline
+        with open(pointer_log, 'r') as f:
+            for _ in range(50): # Check first 50 lines
+                line = f.readline()
+                if not line: break
+                
+                # Regex or simple string parsing
+                if "log_path = '" in line:
+                    # Extract content between quotes
+                    start = line.find("'") + 1
+                    end = line.find("'", start)
+                    if start > 0 and end > start:
+                        rel_path = line[start:end]
+                        real_path = Path(rel_path).resolve()
+                        if real_path.exists():
+                            return real_path
+                        # Fallback: maybe relative to cwd
+                        local_path = Path(rel_path)
+                        if local_path.exists():
+                            return local_path
     except Exception:
-        return ["<Error reading log file>"]
+        pass # Fallback to original
+    
+    return pointer_log
+
+
+def tail_log(log_path: Path, n: int = 10):
+    print("\n--- Log Tail ---")
+    
+    # Resolve the real log path just in case we are pointing at run.log
+    real_log = find_real_log_path(log_path)
+    if real_log != log_path:
+        print(f"(Redirected from {log_path.name} to {real_log.name})")
+    
+    if not real_log.exists():
+        print(f"Log file not found: {real_log}")
+        return
+
+    try:
+        # Simple tail implementation
+        with open(real_log, "r") as f:
+            lines = f.readlines()
+            for line in lines[-n:]:
+                print(line.strip())
+    except Exception as e:
+        print(f"Error reading log: {e}")
 
 def check_errors(log_file: Path):
     """Scans the end of the log file for critical errors."""
@@ -351,6 +389,12 @@ def main():
             
             print(f"Config Loaded: {expected_total_videos} videos x {expected_sub_exps} sub-experiments = {expected_total_videos*expected_sub_exps} total ops")
             
+            # Auto-detect HF Repo if not provided
+            if not args.hf_repo:
+                if repo_id := conf.get('paths', {}).get('hf_repo_id'):
+                    args.hf_repo = repo_id
+                    print(f"HF Repo detected from config: {args.hf_repo}")
+
         except Exception as e:
             print(f"\nExample config load failed: {e}. using defaults.")
 
@@ -436,10 +480,7 @@ def main():
 
     # Log Tail
     if args.log_file:
-        print("\n--- Log Tail ---")
-        tail = get_log_tail(args.log_file, args.n)
-        for line in tail:
-            print(line)
+        tail_log(args.log_file, args.n)
     else:
         print("\n(No log file specified. Use --log-file to see tail)")
 
