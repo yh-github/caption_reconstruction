@@ -2,8 +2,14 @@ import argparse
 import logging
 from pathlib import Path
 
-import argcomplete
-from argcomplete import FilesCompleter
+try:
+    import argcomplete
+    from argcomplete import FilesCompleter
+except ImportError:
+    argcomplete = None
+    # Dummy FilesCompleter
+    def FilesCompleter(allowednames=()):
+        return None
 from pydantic import BaseModel, Field
 
 
@@ -96,7 +102,8 @@ def args_parser() -> ExecArgs:
 
 
     # Add argcomplete support
-    argcomplete.autocomplete(parser)
+    if argcomplete:
+        argcomplete.autocomplete(parser)
 
     # Parse arguments
     args = parser.parse_args()

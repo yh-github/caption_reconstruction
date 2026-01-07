@@ -61,7 +61,14 @@ class ExperimentPipeline(ABC):
         if self.exec_args.dry_run or self.exec_args.validate_cache or self.exec_args.cached_execution_only:
             logging.info("Blocking LLM client (Mock Mode).")
             return self._create_mock_llm_client()
-        return genai.Client()
+        try:
+            return genai.Client()
+        except ValueError as e:
+            # If API key is missing, we might still be running a local-only experiment.
+            # Return None, so we fail later ONLY if the client is actually used.
+            logging.warning("Failed to initialize Google GenAI Client (missing API key?). Proceeding with client=None. "
+                            "Local experiments will behave normally; Gemini-based ones will fail on use.")
+            return None
 
     def _get_eval_conf(self):
         eval_conf = self.config.get("evaluation", {}).copy()
