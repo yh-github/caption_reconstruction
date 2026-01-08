@@ -136,8 +136,12 @@ class GeminiEmbedder(BaseEmbedder):
         super().__init__(cache_dir, output_dimensionality)
 
         if client is None:
-            logger.warning("Embedder initialized with client=None. Creating default genai.Client()!")
-            self.client = genai.Client()
+            try:
+                logger.warning("Embedder initialized with client=None. Attempting to create default genai.Client()!")
+                self.client = genai.Client()
+            except ValueError as e:
+                 logger.error(f"Failed to create default genai.Client (missing API key?): {e}")
+                 self.client = None
         else:
             logger.info(f"Embedder initialized with provided client: {type(client)}")
             self.client = client
@@ -167,6 +171,9 @@ class GeminiEmbedder(BaseEmbedder):
         timeout=600.0,
     )
     def _invoke_llm(self, video_id: str, texts: list[str]) -> EmbedContentResponse:
+        if self.client is None:
+             raise RuntimeError("GeminiEmbedder has no valid 'genai.Client'. Check your API key or environment variables.")
+
         try:
             self._try_num += 1
             return self.client.models.embed_content(
