@@ -152,6 +152,9 @@ def check_status_from_pipeline(pipeline, verbose=False):
         
         if count >= expected_count: # loosely "completed"
              grouped_stats[group_key]["completed_runners"] += 1
+             if "completed_names" not in grouped_stats[group_key]:
+                 grouped_stats[group_key]["completed_names"] = []
+             grouped_stats[group_key]["completed_names"].append(runner.run_name)
 
     # Print Summary
     for key, stats in grouped_stats.items():
@@ -166,6 +169,10 @@ def check_status_from_pipeline(pipeline, verbose=False):
         
         print(f"{key[:47]+'...':<50} | {file_status:<10} | {run_status:<15} | {len(stats['paths'])} paths")
         
+        if "completed_names" in stats and stats["completed_names"]:
+            for name in stats["completed_names"]:
+                 print(f"      ✅ {name}")
+
         if verbose:
              for p in stats['paths']:
                  print(f"  - {p}")
