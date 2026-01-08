@@ -9,6 +9,7 @@ from common_utils.error_handling import UserFacingError, handle_ctrl_c
 from experiment_executor.experiment_runner import ExperimentRunner
 from experiment_executor.pipeline import ExperimentPipeline
 from experiment_executor.pipeline_executor import Executor
+from experiment_executor.sanity_check import run_sanity_check
 
 
 def dry_run(xs:list[ExperimentRunner], count:int, verbose=False):
@@ -30,6 +31,10 @@ def main(exec_args:ExecArgs):
     executor = None
     try:
         handle_ctrl_c()
+        
+        # Run hardware sanity check early
+        run_sanity_check()
+        
         pipeline = ExperimentPipeline.build(exec_args)
         
         executor = Executor(pipeline)
