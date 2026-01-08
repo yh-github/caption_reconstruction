@@ -15,16 +15,23 @@ logger = logging.getLogger(__name__)
 class HFFileManager:
     """
     Manages synchronization of experiment results with a HuggingFace Dataset.
-    Uses Batched Uploads to respect rate limits.
     """
+    DISABLE_SSL_VERIFY = False # Set to True for debug only
+    
     BATCH_SIZE = 50
     FLUSH_INTERVAL = 300 # 5 minutes
 
-    def __init__(self, repo_id: str, repo_type: str = "dataset"):
+    def __init__(self, repo_id: str, read_only: bool = False):
         self.repo_id = repo_id
-        self.repo_type = repo_type
-        self.api = HfApi()
+        self.repo_type = "dataset"
+        self.read_only = read_only
         
+        self.api = HfApi()
+
+        if self.DISABLE_SSL_VERIFY:
+             import ssl
+             ssl._create_default_https_context = ssl._create_unverified_context
+             
         # Batching state
         self._queue: List[tuple[Path, str]] = [] # list of (local_path, remote_path)
         self._lock = threading.Lock()
@@ -33,8 +40,12 @@ class HFFileManager:
         self._watched_folders: set[tuple[Path, str]] = set() # (local_parent, remote_parent)
         
         self._stop_event = threading.Event()
-        self._worker_thread = threading.Thread(target=self._worker_loop, daemon=True, name="hf_batch_uploader")
-        self._worker_thread.start()
+        
+        if not self.read_only:
+            self._worker_thread = threading.Thread(target=self._worker_loop, daemon=True, name="hf_batch_uploader")
+            self._worker_thread.start()
+        else:
+            self._worker_thread = None
         
         self._last_flush_time = time.time()
         
@@ -70,7 +81,13 @@ class HFFileManager:
             
         except EntryNotFoundError:
             # 2. Upload our config if it doesn't exist
-            logger.info("No existing metadata found. Claiming this folder.")
+            logger.info("No existing metadata found.")
+            
+            if self.read_only:
+                 logger.info("Read-only mode: Skipping metadata upload (simulated claim).")
+                 return
+
+            logger.info("Claiming this folder.")
             # Immediate upload for metadata to claim the lock/folder
             try:
                 self.api.upload_file(
@@ -130,6 +147,9 @@ class HFFileManager:
         Queues a file upload to be committed in batch.
         Also tracks the parent folder for final sync.
         """
+        if self.read_only:
+            return
+
         with self._lock:
             self._queue.append((local_path, remote_path))
             
@@ -170,6 +190,8 @@ class HFFileManager:
 
     def _flush_batch(self, batch: List[tuple[Path, str]]):
         """Executes the batch commit."""
+        if self.read_only: return
+
         count = len(batch)
         logger.info(f"HF Sync: Flushing batch of {count} files...")
         
@@ -209,6 +231,10 @@ class HFFileManager:
         This ensures that any files missed by the batch queue or lost errors 
         are caught and uploaded.
         """
+        if self.read_only:
+             logger.info("HF Sync: Read-only mode, skipping final sync.")
+             return
+
         logger.info(f"HF Sync: Starting final consistency check for {len(self._watched_folders)} folders...")
         
         for local_dir, remote_dir in self._watched_folders:
@@ -234,8 +260,10 @@ class HFFileManager:
         """
         logger.info("Shutting down HF background uploader...")
         self._stop_event.set()
-        if wait:
-            self._worker_thread.join()
+        
+        if self._worker_thread:
+             if wait:
+                 self._worker_thread.join()
         
         # After worker finishes final flush, do folder sync
         self.sync_folders()
