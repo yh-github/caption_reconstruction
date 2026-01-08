@@ -91,9 +91,12 @@ class ExperimentPipeline(ABC):
         self.hf_manager = None
         hf_repo_id = config['paths'].get('hf_repo_id') 
         if hf_repo_id:
-             from data.hf_sync import HFFileManager
-             logging.info(f"Initializing HF Sync Manager for repo: {hf_repo_id}")
-             self.hf_manager = HFFileManager(repo_id=hf_repo_id)
+             if self.exec_args.dry_run:
+                 logging.info("Dry-run mode: Skipping HF Sync Manager initialization.")
+             else:
+                 from data.hf_sync import HFFileManager
+                 logging.info(f"Initializing HF Sync Manager for repo: {hf_repo_id}")
+                 self.hf_manager = HFFileManager(repo_id=hf_repo_id)
 
         data_config = self.config["data_config"]
 
