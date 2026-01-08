@@ -163,6 +163,9 @@ class Executor:
             if exception:
                 print(ExceptionStr(exception).model_dump_json(indent=4, exclude_none=True))
 
+        if self.pipeline:
+             self.pipeline.shutdown()
+
         if self.exec_status.mlflow_run_path:
             print(f"\nRun `mlflow ui` in your terminal to view the full results.")
             print(f"\nRun `python scripts/mlflow_runs.py {self.exec_status.mlflow_run_path}` for command-line access.")

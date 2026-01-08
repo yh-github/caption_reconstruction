@@ -29,6 +29,9 @@ class HFFileManager:
         self._queue: List[tuple[Path, str]] = [] # list of (local_path, remote_path)
         self._lock = threading.Lock()
         
+        # Consistency state
+        self._watched_folders: set[tuple[Path, str]] = set() # (local_parent, remote_parent)
+        
         self._stop_event = threading.Event()
         self._worker_thread = threading.Thread(target=self._worker_loop, daemon=True, name="hf_batch_uploader")
         self._worker_thread.start()
@@ -125,9 +128,20 @@ class HFFileManager:
     def upload_file_async(self, local_path: Path, remote_path: str):
         """
         Queues a file upload to be committed in batch.
+        Also tracks the parent folder for final sync.
         """
         with self._lock:
             self._queue.append((local_path, remote_path))
+            
+            # Track folder for final consistency check
+            # We assume remote_path structure matches local_path parent structure in intent
+            # remote_path is full path like "reconstruction/X/Y/file.json"
+            # local_path is full path like "/.../results/X/Y/file.json"
+            
+            # We want to sync the folder /.../results/X/Y to remote reconstruction/X/Y
+            remote_parent = str(Path(remote_path).parent)
+            local_parent = local_path.parent
+            self._watched_folders.add((local_parent, remote_parent))
 
     def _worker_loop(self):
         """Background daemon polling the queue."""
@@ -189,12 +203,41 @@ class HFFileManager:
             # But for now, we log error. 
             # Re-queueing is risky if it's a persistent error (blocks queue forever).
 
+    def sync_folders(self):
+        """
+        Performs a final folder synchronization for all tracked folders.
+        This ensures that any files missed by the batch queue or lost errors 
+        are caught and uploaded.
+        """
+        logger.info(f"HF Sync: Starting final consistency check for {len(self._watched_folders)} folders...")
+        
+        for local_dir, remote_dir in self._watched_folders:
+            if not local_dir.exists():
+                continue
+                
+            try:
+                # upload_folder is smart: it checks hashes and only uploads changes/missing files.
+                self.api.upload_folder(
+                    folder_path=str(local_dir),
+                    path_in_repo=remote_dir,
+                    repo_id=self.repo_id,
+                    repo_type=self.repo_type,
+                    commit_message=f"Final sync: {remote_dir}"
+                )
+                logger.info(f"HF Sync: Final sync complete for {remote_dir}")
+            except Exception as e:
+                logger.error(f"HF Sync: Final sync failed for {remote_dir}: {e}")
+
     def shutdown(self, wait: bool = True):
         """
-        Signals worker to stop and waits for it to finish flushing.
+        Signals worker to stop, waits for flush, and then performs final folder sync.
         """
         logger.info("Shutting down HF background uploader...")
         self._stop_event.set()
         if wait:
             self._worker_thread.join()
+        
+        # After worker finishes final flush, do folder sync
+        self.sync_folders()
+            
         logger.info("HF uploader shutdown complete.")
