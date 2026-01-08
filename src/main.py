@@ -26,41 +26,6 @@ def validate_cache(xs):
 
 
 
-def check_remote_status(pipeline: ExperimentPipeline):
-    if not pipeline.hf_manager:
-        print("\n❌ No Hugging Face repo configured (hf_repo_id missing in system config).")
-        return
-
-    print(f"\n📡 Checking remote status for repo: {pipeline.hf_manager.repo_id}")
-    
-    # We need to know what folders to look for. 
-    # The pipeline builds runners, each has a remote path.
-    # We can iterate over runners to find unique remote paths.
-    
-    remote_paths = set()
-    for runner in pipeline.build_experiments():
-        if hasattr(runner, 'remote_run_path'):
-            remote_paths.add(runner.remote_run_path)
-
-    print(f"Found {len(remote_paths)} unique experiment paths in configuration.")
-    
-    total_files = 0
-    for path in sorted(remote_paths):
-        print(f"\n📂 Scanning: {path}")
-        files = pipeline.hf_manager.list_files(path)
-        if files:
-            print(f"   ✅ Found {len(files)} files.")
-            # Optional: Print first few files?
-            # for f in list(files)[:3]:
-            #    print(f"      - {f}")
-            # if len(files) > 3: print("      ...")
-            total_files += len(files)
-        else:
-            print("   ⚠️  No files found (or path doesn't exist yet).")
-
-    print(f"\nTotal remote files found matching current config: {total_files}")
-
-
 def main(exec_args:ExecArgs):
     executor = None
     try:
@@ -68,7 +33,8 @@ def main(exec_args:ExecArgs):
         pipeline = ExperimentPipeline.build(exec_args)
         
         if exec_args.check_remote:
-            check_remote_status(pipeline)
+            from monitor_status import check_status_from_pipeline
+            check_status_from_pipeline(pipeline, verbose=exec_args.verbose)
             pipeline.shutdown()
             return
 

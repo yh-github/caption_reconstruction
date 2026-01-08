@@ -63,6 +63,114 @@ def get_system_stats():
         ram_info = f"{used_gb:.1f}/{total_gb:.1f} GB ({mem.percent}%)"
     
     return f"CPU: {cpu_percent} | RAM: {ram_info}"
+    return f"CPU: {cpu_percent} | RAM: {ram_info}"
+
+def check_status_from_pipeline(pipeline, verbose=False):
+    """
+    Called by main.py's --check-remote to show a summary of remote status.
+    Uses the pipeline to access config and HF manager.
+    """
+    if not pipeline.hf_manager:
+        print("\n❌ No Hugging Face repo configured.")
+        return
+
+    print(f"\n📡 Checking remote status for repo: {pipeline.hf_manager.repo_id}")
+    
+    # 1. Inspect Experiments
+    # Group by recon_strategy (or the first part of the run name)
+    experiments_by_group = {}
+    
+    runners = list(pipeline.build_experiments())
+    if not runners:
+        print("No experiments found in config.")
+        return
+
+    print(f"Plan: {len(runners)} sub-experiments defined.")
+    
+    expected_count = pipeline.data_loader.count()
+    print(f"Dataset Size: {expected_count} videos.")
+    print("-" * 100)
+    print(f"{'Experiment Group (Recon Strategy)':<50} | {'Completed':<10} | {'Status':<15} | {'Paths'}")
+    print("-" * 100)
+
+    # We want to group by "recon_strategy". 
+    # Runner name is typically "{recon_strategy}__{masking}"
+    # BUT recon_strategy description might be long.
+    
+    # Let's group by the remote path's parent folder if possible, or just parse the name.
+    
+    # Actually, we can fetch all files first to minimize API calls?
+    # No, lazy sync in runner means we just use hf_manager directly on the paths.
+    
+    # Optimization: List files RECURSIVELY from the config stem once?
+    # pipeline.config["__parent_run_name__"] is the config stem but includes timestamp?
+    # No, typically "reconstruction/{config_stem}" contains all runs.
+    
+    # Let's try to list the parent directory of the first runner's remote path
+    # and then match locally.
+    
+    # Example remote path: reconstruction/wild_dev_sim_text/phi-3__...
+    # We can list "reconstruction/wild_dev_sim_text" recursively?
+    # listing recursively might be huge.
+    
+    # User asked for "Summary grouped by recon_start".
+    
+    # Let's collect stats per runner first
+    
+    # We need to preserve the grouping logic.
+    # Group by: runner.run_name.split('__')[0] maybe?
+    
+    grouped_stats = {} # key -> {total_files: 0, runners: 0, fully_completed_runners: 0}
+
+    for runner in runners:
+        # Group key
+        parts = runner.run_name.split('__')
+        group_key = parts[0]
+        if len(parts) > 1:
+            # Maybe include part of masking if relevant?
+            # User said "recon_start", likely meaning the strats.
+            pass
+            
+        if group_key not in grouped_stats:
+            grouped_stats[group_key] = {"files": 0, "runners": 0, "completed_runners": 0, "paths": []}
+            
+        # Check files
+        # We use the raw HF manager to list files in that specific folder
+        # runner.remote_run_path
+        
+        # NOTE: This might still be slow if we have 150 runners and do 150 API calls sequentially.
+        # But we validated it takes ~1s for 150 paths? 
+        # Wait, the previous verification showed "Found 150 unique... Scanning..." and then printed them.
+        # It was checking one by one. If it was fast, fine.
+        
+        flist = pipeline.hf_manager.list_files(runner.remote_run_path)
+        count = len(flist)
+        
+        grouped_stats[group_key]["files"] += count
+        grouped_stats[group_key]["runners"] += 1
+        grouped_stats[group_key]["paths"].append(runner.remote_run_path)
+        
+        if count >= expected_count: # loosely "completed"
+             grouped_stats[group_key]["completed_runners"] += 1
+
+    # Print Summary
+    for key, stats in grouped_stats.items():
+        # Status string
+        # e.g. "12/12 runs done"
+        
+        run_status = f"{stats['completed_runners']}/{stats['runners']} runs"
+        
+        # Calculate total expected files for this group
+        total_expected = stats['runners'] * expected_count
+        file_status = f"{stats['files']}/{total_expected}"
+        
+        print(f"{key[:47]+'...':<50} | {file_status:<10} | {run_status:<15} | {len(stats['paths'])} paths")
+        
+        if verbose:
+             for p in stats['paths']:
+                 print(f"  - {p}")
+
+    print("-" * 100)
 
 def find_latest_run(results_dir: Path) -> Path | None:
     """Finds the most recently modified subdirectory in results_dir."""
