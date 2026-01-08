@@ -65,6 +65,55 @@ def get_system_stats():
     return f"CPU: {cpu_percent} | RAM: {ram_info}"
     return f"CPU: {cpu_percent} | RAM: {ram_info}"
 
+    return f"CPU: {cpu_percent} | RAM: {ram_info}"
+
+def summarize_completed_runs(run_names: list[str]) -> list[str]:
+    """
+    Summarizes a list of run names into a concise format.
+    Expected format: ...fixed_fill(w=3, i=0)...
+    Groups by 'i' and lists 'w'.
+    """
+    import re
+    from collections import defaultdict
+
+    # Group by index, collect widths
+    groups = defaultdict(list)
+    others = []
+
+    regex = re.compile(r"w=(\d+),\s*i=(\d+)")
+
+    for name in run_names:
+        match = regex.search(name)
+        if match:
+            w = int(match.group(1))
+            i = int(match.group(2))
+            groups[i].append(w)
+        else:
+            others.append(name)
+
+    summary = []
+    
+    # Sort groups by index
+    for i in sorted(groups.keys()):
+        widths = sorted(groups[i])
+        
+        # Ranges? e.g. 3-12. If consecutive logic is needed, it's complex.
+        # Simple list is fine: w=[3,6,9,12]
+        # Or "w=3..12" if they are steps?
+        # Let's check for simple range: 
+        if len(widths) > 2 and widths[-1] - widths[0] == (len(widths)-1) * (widths[1]-widths[0]):
+             # likely arithmetic progression
+             wd_str = f"{widths[0]}..{widths[-1]}"
+        else:
+             wd_str = str(widths)
+             
+        summary.append(f"i={i}, w={wd_str}")
+
+    if others:
+        summary.append(f"Others: {len(others)}")
+
+    return summary
+
 def check_status_from_pipeline(pipeline, verbose=False):
     """
     Called by main.py's --check-remote to show a summary of remote status.
@@ -170,8 +219,9 @@ def check_status_from_pipeline(pipeline, verbose=False):
         print(f"{key[:47]+'...':<50} | {file_status:<10} | {run_status:<15} | {len(stats['paths'])} paths")
         
         if "completed_names" in stats and stats["completed_names"]:
-            for name in stats["completed_names"]:
-                 print(f"      ✅ {name}")
+            summaries = summarize_completed_runs(stats["completed_names"])
+            for s in summaries:
+                 print(f"      ✅ {s}")
 
         if verbose:
              for p in stats['paths']:
