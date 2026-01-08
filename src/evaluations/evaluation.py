@@ -35,16 +35,28 @@ class ReconstructionEvaluator(ABC, Generic[T_RECON, T_ORIG]):
     def agg_metrics(all_metrics:list[MetricsRecordRaw], *filter_stat:str) -> dict[str, Any]:
         if not filter_stat:
             filter_stat = ("min", "mean")
-        sums:dict[str, float] = defaultdict(float)
-        counts:dict[str, int] = defaultdict(int)
+            
+        # Collect all values for each metric key to compute global stats
+        metric_values:dict[str, list[float]] = defaultdict(list)
+        
         for m in all_metrics:
-            for f,v in m.stats().flat_metrics(*filter_stat).items(): # XXX PARAM? INIT_PARAM? INIT_CONST?
-                sums[f] += v
-                counts[f] += 1
+            # Flatten per-video metrics (e.g. "ranks_mean", "ranks_min")
+            for f, v in m.stats().flat_metrics(*filter_stat).items():
+                if isinstance(v, (int, float)):
+                    metric_values[f].append(float(v))
 
         d:dict[str, Any] = {"num_of_instances": len(all_metrics)}
-        for f in sums.keys():
-            d[f"mean_{f}"] = sums[f]/counts[f]
+        
+        # Compute stats across videos
+        for key, values in metric_values.items():
+            if not values: continue
+            
+            arr = np.array(values)
+            d[f"mean_{key}"] = float(np.mean(arr))
+            d[f"min_{key}"] = float(np.min(arr))
+            d[f"max_{key}"] = float(np.max(arr))
+            d[f"std_{key}"] = float(np.std(arr))
+            
         return d
 
     @staticmethod
