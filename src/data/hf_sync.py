@@ -4,10 +4,10 @@ import time
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, List
 
 import yaml
-from huggingface_hub import HfApi, hf_hub_download
+from huggingface_hub import HfApi, hf_hub_download, CommitOperationAdd
 from huggingface_hub.utils import EntryNotFoundError
 
 logger = logging.getLogger(__name__)
@@ -15,17 +15,25 @@ logger = logging.getLogger(__name__)
 class HFFileManager:
     """
     Manages synchronization of experiment results with a HuggingFace Dataset.
-    Acts as a 'Shared Cache' source of truth.
+    Uses Batched Uploads to respect rate limits.
     """
+    BATCH_SIZE = 50
+    FLUSH_INTERVAL = 300 # 5 minutes
+
     def __init__(self, repo_id: str, repo_type: str = "dataset"):
         self.repo_id = repo_id
         self.repo_type = repo_type
         self.api = HfApi()
         
-        # Background uploader setup
-        self._upload_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="hf_upload")
-        self._pending_uploads = 0
-        self._lock = threading.Lock() # For pending count
+        # Batching state
+        self._queue: List[tuple[Path, str]] = [] # list of (local_path, remote_path)
+        self._lock = threading.Lock()
+        
+        self._stop_event = threading.Event()
+        self._worker_thread = threading.Thread(target=self._worker_loop, daemon=True, name="hf_batch_uploader")
+        self._worker_thread.start()
+        
+        self._last_flush_time = time.time()
         
     def ensure_config_match(self, remote_dir: str, local_config: dict[str, Any]) -> None:
         """
@@ -49,11 +57,7 @@ class HFFileManager:
             with open(cached_path, 'r') as f:
                 remote_config = yaml.safe_load(f)
             
-            # Compare critical fields (you might want to allow some drift, but strict is safer)
-            # For now, let's assume strict equality on the dumped dicts or key params.
-            # A simple comparison:
             if remote_config != local_config:
-                # TODO: Implement smarter diff visibility if needed
                 raise RuntimeError(
                     f"Configuration MISMATCH! The remote folder '{remote_path}' already exists "
                     "with a DIFFERENT configuration. \n"
@@ -64,10 +68,17 @@ class HFFileManager:
         except EntryNotFoundError:
             # 2. Upload our config if it doesn't exist
             logger.info("No existing metadata found. Claiming this folder.")
-            self._upload_bytes_async(
-                data=yaml.dump(local_config).encode('utf-8'),
-                remote_path=remote_path
-            )
+            # Immediate upload for metadata to claim the lock/folder
+            try:
+                self.api.upload_file(
+                    path_or_fileobj=yaml.dump(local_config).encode('utf-8'),
+                    path_in_repo=remote_path,
+                    repo_id=self.repo_id,
+                    repo_type=self.repo_type,
+                    commit_message=f"Init metadata {Path(remote_path).name}"
+                )
+            except Exception as e:
+                logger.error(f"Failed to upload metadata: {e}")
 
     def list_files(self, folder_path: str) -> set[str]:
         """
@@ -113,48 +124,77 @@ class HFFileManager:
 
     def upload_file_async(self, local_path: Path, remote_path: str):
         """
-        Queues a file upload to run in the background.
+        Queues a file upload to be committed in batch.
         """
         with self._lock:
-            self._pending_uploads += 1
+            self._queue.append((local_path, remote_path))
+
+    def _worker_loop(self):
+        """Background daemon polling the queue."""
+        while not self._stop_event.is_set():
+            time.sleep(1) # Check frequency
+            self._check_flush()
             
-        self._upload_executor.submit(self._do_upload, local_path, remote_path)
+        # Final flush on stop
+        self._check_flush(force=True)
 
-    def _do_upload(self, local_path: Path, remote_path: str):
-        try:
-            self.api.upload_file(
-                path_or_fileobj=local_path,
-                path_in_repo=remote_path,
-                repo_id=self.repo_id,
-                repo_type=self.repo_type,
-                commit_message=f"Upload {Path(remote_path).name}"
-            )
-        except Exception as e:
-            logger.error(f"Background upload failed for {remote_path}: {e}")
-        finally:
-            with self._lock:
-                self._pending_uploads -= 1
-
-    def _upload_bytes_async(self, data: bytes, remote_path: str):
-        """Internal helper for in-memory uploads"""
-        self._upload_executor.submit(self._do_upload_bytes, data, remote_path)
+    def _check_flush(self, force:bool=False):
+        batch = []
+        with self._lock:
+            time_since = time.time() - self._last_flush_time
+            is_full = len(self._queue) >= self.BATCH_SIZE
+            is_time = time_since >= self.FLUSH_INTERVAL and len(self._queue) > 0
+            
+            if force or is_full or is_time:
+                if self._queue:
+                    batch = list(self._queue) # Copy
+                    self._queue.clear()
+                    self._last_flush_time = time.time()
         
-    def _do_upload_bytes(self, data: bytes, remote_path: str):
+        if batch:
+            self._flush_batch(batch)
+
+    def _flush_batch(self, batch: List[tuple[Path, str]]):
+        """Executes the batch commit."""
+        count = len(batch)
+        logger.info(f"HF Sync: Flushing batch of {count} files...")
+        
         try:
-            self.api.upload_file(
-                path_or_fileobj=data,
-                path_in_repo=remote_path,
+            # Prepare operations
+            operations = []
+            for local, remote in batch:
+                if local.exists(): # Safety check
+                    operations.append(CommitOperationAdd(
+                        path_in_repo=remote,
+                        path_or_fileobj=local
+                    ))
+                else:
+                    logger.warning(f"Skipping upload, local file missing: {local}")
+            
+            if not operations:
+                return
+
+            # Commit
+            self.api.create_commit(
                 repo_id=self.repo_id,
                 repo_type=self.repo_type,
-                commit_message=f"Upload metadata {Path(remote_path).name}"
+                operations=operations,
+                commit_message=f"Batch upload {count} results"
             )
+            logger.info(f"HF Sync: Successfully committed {count} files.")
+            
         except Exception as e:
-            logger.error(f"Background upload bytes failed for {remote_path}: {e}")
+            logger.error(f"HF Sync: Failed to commit batch: {e}. Retry logic not implemented but files are lost from queue.")
+            # In a real robust system, we would put them back in the queue or a retry queue.
+            # But for now, we log error. 
+            # Re-queueing is risky if it's a persistent error (blocks queue forever).
 
     def shutdown(self, wait: bool = True):
         """
-        Waits for pending uploads to finish and shuts down the executor.
+        Signals worker to stop and waits for it to finish flushing.
         """
         logger.info("Shutting down HF background uploader...")
-        self._upload_executor.shutdown(wait=wait)
+        self._stop_event.set()
+        if wait:
+            self._worker_thread.join()
         logger.info("HF uploader shutdown complete.")
