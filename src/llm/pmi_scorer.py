@@ -7,6 +7,7 @@ from typing import TypedDict, Any
 # CONFIGURATION
 # --------------------------------------------------------------------------------
 from llm.local_llm import MODELS, ModelConfig
+from common_utils import device_setup
 
 class PMIScorer:
     def __init__(self, model_key: str = "mistral-v0.3") -> None:
@@ -16,9 +17,19 @@ class PMIScorer:
         self.config: ModelConfig = MODELS[model_key]
         print(f"Loading {model_key} ({self.config['id']})...")
         
-        # Load 4-bit to fit on T4
+        # TPU / Device Handling
         bnb_config: BitsAndBytesConfig | None = None
-        if self.config["load_in_4bit"]:
+        torch_dtype = torch.float16 if not self.config["load_in_4bit"] else None
+        device_map: str | None = "auto"
+        
+        if device_setup.is_tpu():
+            # TPU: No quantization, force BFloat16, manual device placement
+            bnb_config = None
+            torch_dtype = torch.bfloat16
+            device_map = None
+            print(f"TPU detected. Disabling 4-bit quantization and using bfloat16 for {model_key}.")
+        
+        elif self.config["load_in_4bit"]:
             bnb_config = BitsAndBytesConfig(
                 load_in_4bit=True,
                 bnb_4bit_compute_dtype=torch.float16,
@@ -29,18 +40,21 @@ class PMIScorer:
         self.model: Any = AutoModelForCausalLM.from_pretrained(
             self.config["id"],
             quantization_config=bnb_config,
-            torch_dtype=torch.float16 if not self.config["load_in_4bit"] else None,
-            device_map="auto",
+            torch_dtype=torch_dtype,
+            device_map=device_map,
             trust_remote_code=self.config["trust_remote_code"]
         )
+        
+        if device_setup.is_tpu():
+            self.model = self.model.to(device_setup.get_device())
 
     def _get_loss(self, prompt_text: str, target_text: str) -> float:
         """
         Helper to calculate the loss of the target_text given the prompt_text.
         """
         # Tokenize separately to find boundaries
-        prompt_ids = self.tokenizer(prompt_text, return_tensors="pt", add_special_tokens=True).input_ids.to("cuda")
-        target_ids = self.tokenizer(target_text, return_tensors="pt", add_special_tokens=False).input_ids.to("cuda")
+        prompt_ids = self.tokenizer(prompt_text, return_tensors="pt", add_special_tokens=True).input_ids.to(device_setup.get_device())
+        target_ids = self.tokenizer(target_text, return_tensors="pt", add_special_tokens=False).input_ids.to(device_setup.get_device())
         
         # Concatenate
         input_ids = torch.cat([prompt_ids, target_ids], dim=1)
@@ -91,7 +105,7 @@ class PMIScorer:
             padding=True, 
             truncation=True, # Safety
             add_special_tokens=True
-        ).to("cuda")
+        ).to(device_setup.get_device())
         
         # We also need to know where the target starts to mask the labels
         # This is tricky in batch because lengths differ.

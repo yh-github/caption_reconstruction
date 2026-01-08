@@ -2,6 +2,7 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig # type: ignore
 from typing import TypedDict, Any
 import logging
+from common_utils import device_setup
 
 # --------------------------------------------------------------------------------
 # MODEL REGISTRY
@@ -46,13 +47,19 @@ MODELS: dict[str, ModelConfig] = {
 }
 
 class HuggingFaceModelAdapter:
-    def __init__(self, model_key: str = "phi-3", device: str = "cuda", block_llm: bool = False) -> None:
+    def __init__(self, model_key: str = "phi-3", device: str | Any = None, block_llm: bool = False) -> None:
         if model_key not in MODELS:
             raise ValueError(f"Model {model_key} not found in registry. Available: {list(MODELS.keys())}")
         
         self.config: ModelConfig = MODELS[model_key]
         self.model_key: str = model_key
-        self.device = device
+        
+        # device might be passed as "cuda" string or None
+        if device is None or (isinstance(device, str) and device == "cuda" and not device_setup.is_cuda()):
+             self.device = device_setup.get_device()
+        else:
+             self.device = device
+            
         self.block_llm = block_llm
         self.tokenizer: Any = None
         self.model: Any = None
@@ -67,12 +74,23 @@ class HuggingFaceModelAdapter:
         logging.info(f"Loading {self.model_key} ({self.config['id']})...")
 
         bnb_config: BitsAndBytesConfig | None = None
-        if self.config["load_in_4bit"]:
+        torch_dtype = torch.float16 if not self.config["load_in_4bit"] else None
+        device_map = self.device if isinstance(self.device, str) else "auto"
+
+        if device_setup.is_tpu():
+            # TPU: No quantization, force BFloat16
+            bnb_config = None
+            torch_dtype = torch.bfloat16
+            device_map = None # Manual placement
+            if self.config["load_in_4bit"]:
+                 logging.info(f"TPU detected. Disabling 4-bit quantization for {self.model_key}.")
+        elif self.config["load_in_4bit"]:
             bnb_config = BitsAndBytesConfig(
                 load_in_4bit=True,
                 bnb_4bit_compute_dtype=torch.float16,
                 bnb_4bit_quant_type="nf4",
             )
+            device_map = self.device 
 
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.config["id"], 
@@ -82,10 +100,13 @@ class HuggingFaceModelAdapter:
         self.model = AutoModelForCausalLM.from_pretrained(
             self.config["id"],
             quantization_config=bnb_config,
-            dtype=torch.float16 if not self.config["load_in_4bit"] else None,
-            device_map=self.device,
+            torch_dtype=torch_dtype,
+            device_map=device_map,
             trust_remote_code=self.config["trust_remote_code"]
         )
+
+        if device_setup.is_tpu() or device_map is None:
+             self.model = self.model.to(self.device)
 
     def call(
         self, 

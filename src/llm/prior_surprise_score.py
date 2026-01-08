@@ -4,6 +4,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from typing import TypedDict, Any
 from dataclasses import dataclass
 from llm.local_llm import MODELS, ModelConfig
+from common_utils import device_setup
 
 @dataclass
 class SurprisalResult:
@@ -31,8 +32,19 @@ class PriorSurpriseScorer:
         self.config: ModelConfig = MODELS[model_key]
         print(f"Loading {model_key} ({self.config['id']})...")
 
+        # TPU / Device Handling
         bnb_config: BitsAndBytesConfig | None = None
-        if self.config["load_in_4bit"]:
+        torch_dtype = torch.float16 if not self.config["load_in_4bit"] else None
+        device_map: str | None = "auto"
+        
+        if device_setup.is_tpu():
+             # TPU: No quantization, force BFloat16, manual device placement
+             bnb_config = None
+             torch_dtype = torch.bfloat16
+             device_map = None 
+             print(f"TPU detected. Disabling 4-bit quantization and using bfloat16 for {model_key}.")
+        
+        elif self.config["load_in_4bit"]:
             bnb_config = BitsAndBytesConfig(
                 load_in_4bit=True,
                 bnb_4bit_compute_dtype=torch.float16,
@@ -51,11 +63,15 @@ class PriorSurpriseScorer:
         self.model: Any = AutoModelForCausalLM.from_pretrained(
             self.config["id"],
             quantization_config=bnb_config,
-            dtype=torch.float16 if not self.config["load_in_4bit"] else None,
-            device_map="auto",
+            torch_dtype=torch_dtype,
+            device_map=device_map,
             trust_remote_code=self.config["trust_remote_code"],
             attn_implementation="eager"
         )
+        
+        if device_setup.is_tpu():
+            self.model = self.model.to(device_setup.get_device())
+            
         self.model.eval()
 
     def calculate_whole_log_surprisal(self, captions: list[str], calc_attn_dist: bool = False) -> list[SurprisalResult]:
@@ -77,7 +93,7 @@ class PriorSurpriseScorer:
             add_special_tokens=True 
         )
         
-        input_ids = inputs.input_ids.to("cuda")
+        input_ids = inputs.input_ids.to(device_setup.get_device())
         offsets = inputs.offset_mapping[0] # Move to CPU list for processing
         seq_len = input_ids.size(1)
 
@@ -154,7 +170,7 @@ class PriorSurpriseScorer:
             # Collapse heads -> (seq, seq)
             avg_attn = attentions.squeeze(0).mean(dim=0) # (seq, seq)
             
-            indices = torch.arange(seq_len, device="cuda")
+            indices = torch.arange(seq_len, device=device_setup.get_device())
             dist_matrix = indices.unsqueeze(1) - indices.unsqueeze(0) # (seq, seq)
 
             # --- HANDLE ATTENTION SINKS ---
@@ -283,7 +299,7 @@ class PriorSurpriseScorer:
                     caption_affinity=None
                 ))
 
-        torch.cuda.empty_cache()
+        device_setup.clear_cache()
         return results
 
 # --------------------------------------------------------------------------------

@@ -3,6 +3,7 @@ import diskcache
 import torch
 import transformers
 from sentence_transformers import SentenceTransformer
+from common_utils import device_setup
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ class LocalEmbedder(BaseEmbedder):
         model_name: Name of the sentence-transformer model
         """
         self.model_name = model_name
-        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = device or device_setup.get_device()
         
         logger.info(f"Initializing LocalEmbedder with {model_name} on {self.device}")
         self.model = SentenceTransformer(model_name, device=self.device)
