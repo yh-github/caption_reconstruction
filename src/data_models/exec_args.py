@@ -25,6 +25,7 @@ class ExecArgs(BaseModel):
     validate_cache: bool = False
     cached_execution_only: bool = Field(default=False, alias='block_llm')  # New flag
     eval_only: bool = False
+    check_remote: bool = False
     debug: bool = False
     ignore_unsafe: bool = False
 
@@ -98,6 +99,12 @@ def args_parser() -> ExecArgs:
         "--eval-only",
         action="store_true",
         help="Skip generation and only run evaluation on existing results."
+    )
+
+    parser.add_argument(
+        "--check-remote",
+        action="store_true",
+        help="Check and print the status of the remote Hugging Face repository without running experiments."
     )
 
 

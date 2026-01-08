@@ -37,22 +37,21 @@ class ExperimentRunner:
         self.hf_manager = hf_manager
         self.eval_only = eval_only
         
-        # Determine remote path
-        # storage/reconstruction/{config_stem}/{run_name}/
         self.remote_run_path = f"reconstruction/{config_stem}/{run_name}"
         
         self.remote_files: set[str] = set()
         
-        # Pre-fetch remote state
+        # Ensure directory exists immediately for monitoring
+        self._save_path.mkdir(parents=True, exist_ok=True)
+
+    def _sync_hf_state(self):
+        """Lazy initialization of remote state."""
         if self.hf_manager:
             # 1. Ensure config matches
-            self.hf_manager.ensure_config_match(self.remote_run_path, conf_for_log)
+            self.hf_manager.ensure_config_match(self.remote_run_path, self.conf_for_log)
             # 2. Get list of already done files
             self.remote_files = self.hf_manager.list_files(self.remote_run_path)
             logging.info(f"HF Sync: Found {len(self.remote_files)} existing result files remotely.")
-            
-        # Ensure directory exists immediately for monitoring
-        self._save_path.mkdir(parents=True, exist_ok=True)
 
     @staticmethod
     def _filename(video_id:str) -> str:
@@ -75,6 +74,8 @@ class ExperimentRunner:
 
     def run(self) -> list[MetricsRecordRaw]:
         """Runs the full experiment from data loading to evaluation."""
+        self._sync_hf_state()
+        
         self._save_path.mkdir(parents=True, exist_ok=True)
         all_videos:list[CaptionedVideo] = self.data_loader.load()
         all_metrics:list[MetricsRecordRaw] = []
