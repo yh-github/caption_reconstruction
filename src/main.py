@@ -32,12 +32,6 @@ def main(exec_args:ExecArgs):
         handle_ctrl_c()
         pipeline = ExperimentPipeline.build(exec_args)
         
-        if exec_args.check_remote:
-            from monitor_status import check_status_from_pipeline
-            check_status_from_pipeline(pipeline, verbose=exec_args.verbose)
-            pipeline.shutdown()
-            return
-
         executor = Executor(pipeline)
         if exec_args.dry_run:
             dry_run(*pipeline.dry_run(), verbose=exec_args.verbose)

@@ -444,6 +444,13 @@ def check_hf_status(repo_id: str, sub_exp_names: list[str], prefix: str = "") ->
         return {"error": str(e)}
 
 def main():
+    # Add src to path if needed (for imports when running from root)
+    if "src" not in sys.path:
+        sys.path.append("src")
+        
+    from experiment_executor.pipeline import ExperimentPipeline
+    from data_models.exec_args import ExecArgs
+
     parser = argparse.ArgumentParser(description="Monitor Caption Reconstruction Experiments")
     parser.add_argument("--results-dir", type=Path, default=Path("results/recon"))
     parser.add_argument("--log-file", type=Path, default=Path("logs/run.log"), help="Path to the running log file")
@@ -451,10 +458,34 @@ def main():
     parser.add_argument("--total", type=int, default=100, help="Total expected videos per experiment")
     parser.add_argument("--hf-repo", type=str, help="Hugging Face Dataset Repo ID (e.g. Y3/dense_video_captions)")
     parser.add_argument("--config", type=Path, help="Path to the experiment config file (for scoping HF checks)")
+    parser.add_argument("--check-remote", action="store_true", help="Active Check: Load config and check HF status using pipeline")
     args = parser.parse_args()
 
     # Clear screen (optional, maybe distracting in notebook)
     # os.system('cls' if os.name == 'nt' else 'clear')
+
+    if args.check_remote:
+        if not args.config:
+            print("❌ --config is required for --check-remote")
+            sys.exit(1)
+        
+        print(f"--- Status Monitor: Active Remote Check ---")
+        # Build safe exec args
+        exec_args = ExecArgs(
+            config_path=args.config,
+            dry_run=True, # Safety check
+            eval_only=True, # Extra safety
+            verbose=False # Keep it clean or use arg?
+        )
+        
+        try:
+            print("Building Pipeline...", end="\r")
+            pipeline = ExperimentPipeline.build(exec_args)
+            print("Pipeline Built.      ")
+            check_status_from_pipeline(pipeline, verbose=False)
+        except Exception as e:
+            print(f"\n❌ Setup failed: {e}")
+        return
 
     print(f"--- Status Monitor: {datetime.now().strftime('%H:%M:%S')} ---")
     print(f"System: {get_system_stats()}")
