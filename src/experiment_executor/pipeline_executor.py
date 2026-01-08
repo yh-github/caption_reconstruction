@@ -95,6 +95,9 @@ class Executor:
             base_level=self.pipeline.exec_args.log_level(logging.INFO)
         )
         self.log_path = log_path
+        
+        if self.pipeline.hf_manager:
+            self.pipeline.hf_manager.register_log_file(Path(log_path))
 
         print(f'{log_path = }')
         start_msg = (

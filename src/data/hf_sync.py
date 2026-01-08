@@ -47,7 +47,38 @@ class HFFileManager:
         else:
             self._worker_thread = None
         
+        
         self._last_flush_time = time.time()
+        self._last_log_sync_time = time.time()
+        self._log_file: Optional[Path] = None
+        
+    def register_log_file(self, log_path: Path):
+        """Registers the active log file to be periodically synced."""
+        self._log_file = log_path
+        logger.info(f"Registered log file for sync: {log_path}")
+
+    def _sync_log_file(self):
+        """Uploads the current log file to HF."""
+        if not self._log_file or not self._log_file.exists():
+            return
+            
+        try:
+            remote_path = f"logs/{self._log_file.name}"
+            
+            if self.read_only:
+                 # Debug log for dry-run verification
+                 logger.info(f"Read-only mode: Skipping log upload for {remote_path}")
+                 return
+
+            self.api.upload_file(
+                path_or_fileobj=self._log_file,
+                path_in_repo=remote_path,
+                repo_id=self.repo_id,
+                repo_type=self.repo_type,
+                commit_message=f"Sync log {self._log_file.name}"
+            )
+        except Exception as e:
+            logger.warning(f"Failed to sync log file: {e}")
         
     def ensure_config_match(self, remote_dir: str, local_config: dict[str, Any]) -> None:
         """
@@ -169,8 +200,15 @@ class HFFileManager:
             time.sleep(1) # Check frequency
             self._check_flush()
             
+            # Log sync check
+            if time.time() - self._last_log_sync_time > self.FLUSH_INTERVAL:
+                self._sync_log_file()
+                self._last_log_sync_time = time.time()
+            
         # Final flush on stop
         self._check_flush(force=True)
+        # Final log sync on stop
+        self._sync_log_file()
 
     def _check_flush(self, force:bool=False):
         batch = []
