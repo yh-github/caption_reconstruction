@@ -46,3 +46,13 @@ pytest>=7.0.0
 pytest-mock>=3.0.0
 mlflow-skinny>=2.0.0
 protobuf>=4.0.0
+
+# --- KerasNLP / JAX / TPU Integration ---
+# These are optional dependencies for running the Keras backend on TPU
+keras>=3.0.0
+keras-nlp>=0.12.0
+# tensorflow>=2.16.1 
+# For TPU, users typically install a specific jax[tpu] wheel manually, 
+# but we can list base jax here.
+jax>=0.4.28
+jaxlib>=0.4.28
