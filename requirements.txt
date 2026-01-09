@@ -20,7 +20,7 @@ pytz~=2025.2
 
 # --- BertScore ---
 bert-score~=0.3.13		# For semantic similarity evaluation
-torch~=2.8.0			# A required backend for bert-score
+torch>=2.4.0			# A required backend for bert-score, compatible with modern torchvision
 tiktoken~=0.11.0
 sentencepiece~=0.2.1
 
