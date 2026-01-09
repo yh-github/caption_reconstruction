@@ -84,6 +84,13 @@ class HuggingFaceModelAdapter:
             device_map = None # Manual placement
             if self.config["load_in_4bit"]:
                  logging.info(f"TPU detected. Disabling 4-bit quantization for {self.model_key}.")
+        elif self.device.type == "cpu":
+            # CPU: No quantization (bitsandbytes usually needs CUDA), force float32 for safety
+            bnb_config = None
+            torch_dtype = torch.float32
+            device_map = None # Manual placement or "cpu"
+            logging.warning(f"CPU detected. Disabling 4-bit quantization for {self.model_key}. "
+                            "Performance will be SIGNIFICANTLY slower and RAM usage higher.")
         elif self.config["load_in_4bit"]:
             bnb_config = BitsAndBytesConfig(
                 load_in_4bit=True,
