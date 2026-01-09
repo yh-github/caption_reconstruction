@@ -304,40 +304,47 @@ def analyze_progress(run_dir: Path, total_per_exp: int):
     return stats
 
 def find_real_log_path(pointer_log: Path) -> Path:
-
-
     """
     Reads the pointer log (e.g., run.log) to find the actual hash-based log file path.
     Looks for line: log_path = 'logs/d50...log'
+    Scans the file (preferring recent entries) to find the redirect.
     """
     if not pointer_log.exists():
         return pointer_log
 
+    found_path = None
     try:
-        # Read the first few lines or the whole file if small
-        # The log_path line is usually printed very early by Executor/Pipeline
-        with open(pointer_log, 'r') as f:
-            for _ in range(50): # Check first 50 lines
-                line = f.readline()
-                if not line: break
-                
-                # Regex or simple string parsing
+        # Read lines - if file is huge, this might be slow, but logs are usually text.
+        # We want the LAST occurrence if the user restarted.
+        with open(pointer_log, 'r', errors='ignore') as f:
+            # Check reasonably large chunk? Or all? 10MB limit?
+            # Let's read line by line.
+            for line in f:
                 if "log_path = '" in line:
-                    # Extract content between quotes
-                    start = line.find("'") + 1
-                    end = line.find("'", start)
-                    if start > 0 and end > start:
-                        rel_path = line[start:end]
-                        real_path = Path(rel_path).resolve()
-                        if real_path.exists():
-                            return real_path
-                        # Fallback: maybe relative to cwd
-                        local_path = Path(rel_path)
-                        if local_path.exists():
-                            return local_path
+                    found_path = line
     except Exception:
-        pass # Fallback to original
+        pass
     
+    if found_path:
+         # Extract content between quotes
+        start = found_path.find("'") + 1
+        end = found_path.find("'", start)
+        if start > 0 and end > start:
+            rel_path = found_path[start:end]
+            
+            # Allow absolute paths
+            p = Path(rel_path)
+            if p.is_absolute():
+                 if p.exists(): return p
+            else:
+                 # Check relative to cwd
+                 cwd_p = Path(rel_path).resolve()
+                 if cwd_p.exists(): return cwd_p
+                 
+                 # Check relative to pointer_log directory
+                 sibling_p = (pointer_log.parent / rel_path).resolve()
+                 if sibling_p.exists(): return sibling_p
+
     return pointer_log
 
 
