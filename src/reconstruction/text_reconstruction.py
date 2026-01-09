@@ -11,10 +11,16 @@ from pydantic_core import PydanticSerializationError
 from data_models.captions_only import CaptionedClip, ReconstructedCaptions
 from data_models.captions_only import CaptionedVideo
 from llm.llm_interaction import LLM_Manager_Builder, LLM_Response, LLM_ResponseError
+from llm.llm_interaction import LLM_Manager_Builder, LLM_Response, LLM_ResponseError
 from llm.local_llm import HuggingFaceModelAdapter
+try:
+    from llm.keras_llm import KerasLLM
+except ImportError:
+    KerasLLM = None
 from llm.embedder import CacheMissError
 from llm.parsers import parse_llm_response
 from llm.prompting import PromptBuilder, JSONPromptBuilder, ClozePromptBuilder
+from common_utils import device_setup
 from common_utils.error_handling import UserFacingError, ExceptionStr
 
 
@@ -365,7 +371,7 @@ class TextReconstructionStrategyBuilder:
         self.master_seed = master_seed
         self.block_llm = block_llm
         self.llm_manager_builder = LLM_Manager_Builder(llm_client, llm_cache)
-        self._local_model_cache: dict[str, HuggingFaceModelAdapter] = {}       
+        self._local_model_cache: dict[str, HuggingFaceModelAdapter | Any] = {}       
         self.prompts_dir = Path("prompts").resolve()
 
     def get_strategy(self, strategy_config: dict) -> ReconstructionStrategy:
@@ -389,9 +395,22 @@ class TextReconstructionStrategyBuilder:
             # Assuming 'local_llm' key exists in strategy_config with model params
             model_key = strategy_config.get("model_key", "phi-3")
             
+            # System-level decision for backend
+            backend = device_setup.get_llm_backend()
+            
+            # Use tuple key for cache to distinguish backends
+            cache_key = f"{model_key}_{backend}"
+            
             # Check cache/singletons to avoid reloading 7GB models
-            if model_key not in self._local_model_cache:
-                self._local_model_cache[model_key] = HuggingFaceModelAdapter(model_key=model_key, block_llm=self.block_llm)
+            if cache_key not in self._local_model_cache:
+                if backend == "keras_llm":
+                    if KerasLLM is None:
+                        raise UserFacingError("KerasLLM backend selected (via system config or auto-detect) but dependencies not found. "
+                                              "Please install keras, keras-nlp, and jax.")
+                    logging.info(f"Initializing KerasLLM for {model_key}...")
+                    self._local_model_cache[cache_key] = KerasLLM(model_key=model_key, block_llm=self.block_llm)
+                else:
+                    self._local_model_cache[cache_key] = HuggingFaceModelAdapter(model_key=model_key, block_llm=self.block_llm)
             
             prompt_filename = strategy_config.get("prompt_dir", "iterative_cloze") # Expecting directory now
             prompt_path = self.prompts_dir / prompt_filename
@@ -404,7 +423,7 @@ class TextReconstructionStrategyBuilder:
 
             return IterativeReconstructionStrategy(
                 name=strategy_config.get("name", "LocalLLM"),
-                model_adapter=self._local_model_cache[model_key],
+                model_adapter=self._local_model_cache[cache_key],
                 prompt_builder=prompt_builder,
                 config=strategy_config
             )

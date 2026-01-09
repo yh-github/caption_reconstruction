@@ -2,11 +2,14 @@
 import logging
 import torch
 import os
+import yaml
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 _DEVICE = None
 _IS_TPU = False
+_LLM_BACKEND = None
 
 def _init_device():
     global _DEVICE, _IS_TPU
@@ -36,7 +39,7 @@ def _init_device():
         logger.info("MPS (Mac) detected. Using device: mps")
     else:
         _DEVICE = torch.device("cpu")
-        logger.info("No accelerator detected. Using device: cpu")
+        logger.info("No accelerator detected. Using device: cpu")    
 
 def get_device() -> torch.device:
     if _DEVICE is None:
@@ -47,6 +50,47 @@ def is_tpu() -> bool:
     if _DEVICE is None:
         _init_device()
     return _IS_TPU
+
+def get_llm_backend() -> str:
+    """
+    Determines the system-wide LLM backend to use.
+    Returns: 'keras_llm' or 'pytorch'
+    """
+    global _LLM_BACKEND
+    if _LLM_BACKEND is not None:
+        return _LLM_BACKEND
+
+    # 1. Check system.yaml for override
+    try:
+        if Path("config/system.yaml").exists():
+            with open("config/system.yaml", "r") as f:
+                sys_conf = yaml.safe_load(f) or {}
+                # Look for top-level key 'llm_backend'
+                if "llm_backend" in sys_conf:
+                    requested = sys_conf["llm_backend"]
+                    logger.info(f"System config overrides LLM backend to: {requested}")
+                    _LLM_BACKEND = requested
+                    return _LLM_BACKEND
+    except Exception as e:
+        logger.warning(f"Failed to read system.yaml for backend override: {e}")
+
+    # 2. Auto-Detect
+    # If TPU is present AND Keras/JAX libraries are importable, prefer KerasLLM
+    # (assuming Keras 3 + JAX is the optimized path for TPU v5e)
+    if is_tpu():
+        try:
+            import keras
+            import keras_nlp
+            import jax
+            logger.info("TPU detected and Keras/JAX installed. Defaulting to 'keras_llm' backend.")
+            _LLM_BACKEND = "keras_llm"
+            return _LLM_BACKEND
+        except ImportError:
+            logger.info("TPU detected but Keras/JAX missing. Falling back to 'pytorch' backend.")
+    
+    # Default fallback
+    _LLM_BACKEND = "pytorch"
+    return _LLM_BACKEND
 
 def get_compute_dtype() -> torch.dtype:
     """
