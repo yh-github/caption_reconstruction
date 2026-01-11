@@ -44,5 +44,20 @@ def test_global_stats():
     except Exception as e:
         print("Failed:", e)
 
+    # string metrics (should be ignored or handled gracefully)
+    records_str = [
+        create_mock_metric_record(0.5),
+        MetricsRecordRaw(
+            metadata=records[0].metadata,
+            raw_metrics={"my_score": 0.6, "ignored_str": "some_string"}
+        )
+    ]
+    print("\nTesting string metrics inclusion...")
+    try:
+        stats = ReconstructionEvaluator.global_stats(records_str)
+        print("Success:", stats)
+    except Exception as e:
+        print("Failed:", e)
+
 if __name__ == "__main__":
     test_global_stats()

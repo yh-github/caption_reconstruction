@@ -65,7 +65,11 @@ class ReconstructionEvaluator(ABC, Generic[T_RECON, T_ORIG]):
         for m in all_metrics:
             for f,v in m.raw_metrics.items():
                 d[f].append(v)
-        return {k:VectorStats.from_vector(np.concatenate([np.atleast_1d(v) for v in vs])) for k,vs in d.items()}
+        return {
+            k: VectorStats.from_vector(np.concatenate([np.atleast_1d(v) for v in vs]))
+            for k, vs in d.items()
+            if vs and isinstance(vs[0], (int, float, list, np.ndarray, np.number)) and not isinstance(vs[0], str)
+        }
 
     @staticmethod
     def from_config(eval_conf:dict, llm_client=None):
