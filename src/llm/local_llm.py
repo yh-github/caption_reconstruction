@@ -156,3 +156,67 @@ class HuggingFaceModelAdapter:
         generated_ids = outputs[0][input_ids.shape[1]:]
         response: str = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
         return response.strip()
+
+    def generate_batch(
+        self,
+        messages_list: list[list[dict[str, str]]],
+        temperatures: list[float],
+        penalties: list[float],
+        max_new_tokens: int = 60,
+        do_sample: bool = True
+    ) -> list[str]:
+        """
+        Generates text for a batch of inputs, each with its own temperature and penalty.
+        """
+        self._ensure_loaded()
+        
+        # 1. Tokenize Batch
+        # We need left padding for generation
+        self.tokenizer.padding_side = "left"
+        if self.tokenizer.pad_token is None:
+            self.tokenizer.pad_token = self.tokenizer.eos_token
+            
+        # Apply chat template to each
+        texts = [
+            self.tokenizer.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True)
+            for msgs in messages_list
+        ]
+        
+        inputs = self.tokenizer(texts, return_tensors="pt", padding=True).to(self.device)
+        
+        # 2. Setup Heterogeneous Logits Processor
+        from llm.logits_processor import HeterogeneousLogitsProcessor
+        from transformers import LogitsProcessorList
+        
+        logits_processor = LogitsProcessorList([
+            HeterogeneousLogitsProcessor(temperatures, penalties, device=self.device)
+        ])
+        
+        # 3. Generate
+        gen_kwargs = {
+            "max_new_tokens": max_new_tokens,
+            "pad_token_id": self.tokenizer.pad_token_id,
+            "eos_token_id": self.tokenizer.eos_token_id,
+            "do_sample": do_sample,
+            "logits_processor": logits_processor
+        }
+        
+        # Note: We pass do_sample=True but we don't pass 'temperature' or 'repetition_penalty' 
+        # to generate() because our custom processor handles them per-row.
+        # However, to enable sampling logic in generation loop, do_sample must be True.
+        
+        outputs = self.model.generate(
+            **inputs,
+            **gen_kwargs
+        )
+        
+        # 4. Decode
+        responses = []
+        input_len = inputs.input_ids.shape[1]
+        
+        for i in range(len(messages_list)):
+            generated_ids = outputs[i][input_len:]
+            response = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
+            responses.append(response.strip())
+            
+        return responses

@@ -433,3 +433,193 @@ class TextReconstructionStrategyBuilder:
 
         else:
             raise NotImplementedError(f"Strategy type '{strategy_type}' is not implemented.")
+
+
+class BatchGridSearchStrategy(ReconstructionStrategy):
+    """
+    Simulates running N independent experiments (search grid) in parallel for one video.
+    Each configuration in the grid maintains its own context/state.
+    """
+    def __init__(self, name: str, model_adapter: HuggingFaceModelAdapter, prompt_builder: ClozePromptBuilder, configs: list[dict]):
+        super().__init__(name)
+        self.model_adapter = model_adapter
+        self.prompt_builder = prompt_builder
+        self.configs = configs
+        
+        # Extract vectorized params
+        # Fallback defaults if missing in config
+        self.temperatures = [c.get("temperature", 0.2) for c in configs]
+        self.penalties = [c.get("repetition_penalty", 1.2) for c in configs]
+        
+        # We assume max_new_tokens logic is similar or we pick the max requested?
+        # For simplicity, we'll calculate per-batch-item but we must pass a single scalar to generate() 
+        # as the 'cutoff'. The model adapter can stop earlier if EOS is generated, 
+        # OR we pick a reasonable safe max.
+        self.default_max_new_tokens = configs[0].get("max_new_tokens", 60)
+
+    def reconstruct(self, masked_video: CaptionedVideo, active_indices: list[int] | None = None) -> list[Reconstructed]:
+        """
+        Returns a LIST of Reconstructed objects, one for each configuration.
+        
+        Args:
+            masked_video: The source video
+            active_indices: Optional list of indices in `self.configs` to actually run. 
+                            If provided, others will be skip/None.
+        """
+        num_configs = len(self.configs)
+        # 1. Initialize N copies of video state
+        # We need independent mutable "working clips" for each config to maintain context divergence.
+        # Structure: batch_states[config_idx][clip_idx]
+        batch_states = [[c.model_copy() for c in masked_video.clips] for _ in range(num_configs)]
+        
+        # We also need a place to store results
+        results_captions = [{} for _ in range(num_configs)]
+        
+        # If active_indices is None, run all
+        if active_indices is None:
+            active_indices = list(range(num_configs))
+            
+        active_set = set(active_indices)
+        
+        # 2. Iterate through clips (time-step)
+        # All states have same number of clips
+        num_clips = len(masked_video.clips)
+        
+        for clip_idx in range(num_clips):
+            # Check if this clip needs filling (it is masked in the original)
+            # Since all states start as copies of 'masked_video', we check the first one
+            if not batch_states[0][clip_idx].is_masked():
+                continue
+                
+            # 3. Prepare Batch Inputs (Only for active configs)
+            prompts = []
+            valid_batch_indices = [] # Map local batch idx -> global config idx
+            
+            for config_idx in active_indices:
+                # Build context for this specific state
+                current_clips = batch_states[config_idx]
+                prompt_messages, computed_max = self._build_prompt_for_state(current_clips, clip_idx)
+                prompts.append(prompt_messages)
+                valid_batch_indices.append(config_idx)
+                
+            if not prompts:
+                continue
+                
+            # 4. Run Batch Inference
+            # Gather params for the active batch
+            active_temps = [self.temperatures[i] for i in valid_batch_indices]
+            active_pens = [self.penalties[i] for i in valid_batch_indices]
+            
+            # Simple max token heuristic: use default
+            # A more complex one would be max(computed_max for all)
+            
+            try:
+                responses = self.model_adapter.generate_batch(
+                    messages_list=prompts,
+                    temperatures=active_temps,
+                    penalties=active_pens,
+                    max_new_tokens=self.default_max_new_tokens
+                )
+                
+                # 5. Update States
+                for local_i, global_i in enumerate(valid_batch_indices):
+                    text = self._clean_output(responses[local_i])
+                    
+                    # Save result
+                    results_captions[global_i][batch_states[global_i][clip_idx].index] = text
+                    
+                    # Update context
+                    old_clip = batch_states[global_i][clip_idx]
+                    batch_states[global_i][clip_idx] = old_clip.model_copy(update={'caption': text})
+            
+            except Exception as e:
+                logging.error(f"Batch generation failed at clip {clip_idx}: {e}")
+                # Fail gracefully for this step? or crash?
+                # For now, we record empty strings for this step to keep states valid-ish
+                for global_i in valid_batch_indices:
+                     results_captions[global_i][batch_states[global_i][clip_idx].index] = ""
+
+        # 6. Return List of Results
+        # For inactive indices, we return None or a 'skipped' result?
+        # The runner expects one result per config.
+        final_results = []
+        for i in range(num_configs):
+            if i in active_set:
+                final_results.append(Reconstructed(
+                    video_id=masked_video.video_id,
+                    reconstructed_captions=results_captions[i]
+                ))
+            else:
+                # Return a dummy skip result for bookkeeping
+                final_results.append(Reconstructed(
+                     video_id=masked_video.video_id,
+                     reconstructed_captions={},
+                     skip_reason="batch_inactive"
+                ))
+                
+        return final_results
+
+    def _build_prompt_for_state(self, clips: list[CaptionedClip], target_idx: int):
+        # reuse logic from IterativeReconstructionStrategy
+        # Ideally refactor `IterativeReconstructionStrategy` to extract `build_context`
+        # But for now, I'll duplicate/adapt logic to avoid massive refactor risk.
+        
+        WINDOW_SIZE = 500
+        i = target_idx
+        
+        def format_ts(ts) -> str:
+            m, s = divmod(ts.start, 60)
+            return f"[{int(m):02d}:{int(s):02d}]"
+
+        start_before = max(0, i - WINDOW_SIZE)
+        context_before_clips = clips[start_before:i]
+        context_before_str = "\n".join(
+            f"{format_ts(c.timestamp)} {c.caption}" for c in context_before_clips if c.caption
+        )
+
+        end_after = min(len(clips), i + 1 + WINDOW_SIZE)
+        context_after_clips = clips[i+1:end_after]
+        context_after_str = "\n".join(
+            f"{format_ts(c.timestamp)} {c.caption}" for c in context_after_clips if c.caption
+        )
+        
+        if not context_before_str.strip():
+            context_before_end_hint = "START"
+        else:
+            context_before_end_hint = context_before_str.split()[-1]
+
+        if not context_after_str.strip():
+            context_after_start_hint = "END"
+        else:
+            context_after_start_hint = context_after_str.split()[0]
+        
+        target_clip = clips[i]
+        target_timestamp = format_ts(target_clip.timestamp)
+        target_duration = f"{target_clip.timestamp.duration:.1f}"
+
+        prompt_context = {
+            "TARGET_TIMESTAMP": target_timestamp,
+            "TARGET_DURATION": target_duration,
+            "CONTEXT_BEFORE": context_before_str,
+            "CONTEXT_AFTER": context_after_str, 
+            "CONTEXT_BEFORE_END_HINT": context_before_end_hint,
+            "CONTEXT_AFTER_START_HINT": context_after_start_hint
+        }
+        
+        # Max tokens
+        lengths = [len(str(c.caption).split()) for c in context_before_clips + context_after_clips if c.caption]
+        if lengths:
+            avg_len = sum(lengths) / len(lengths)
+            computed_max = int(avg_len * 2.5) 
+            max_new = max(20, min(computed_max, 100)) 
+        else:
+            max_new = self.default_max_new_tokens
+            
+        return self.prompt_builder.build_prompt(prompt_context), max_new
+
+    def _clean_output(self, text: str) -> str:
+        # Duplicated from IterativeReconstructionStrategy
+        text = re.sub(r'\[\d{2}:\d{2}(?::\d{2})?\]', '', text)
+        text = text.strip().strip('"\'')
+        text = re.sub(r'\s+', ' ', text).strip()
+        return text

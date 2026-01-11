@@ -226,53 +226,148 @@ class ExperimentPipeline_Reconstruction(ExperimentPipeline):
             config = self.config
 
             # --- Loop 1: Reconstruction Strategy ---
+            # Group strategies by (model_key, prompt_dir) to enable batching
+            # We assume strategy_params has 'model_key' etc.
+            
+            # Map: (ModelKey, PromptDir) -> List[StrategyParams]
+            strategies_by_model: dict[tuple, list[dict]] = {}
+            
             for strategy_params in config.get("recon_strategy", []):
+                stype = strategy_params.get("type")
+                if stype == "local_llm":
+                    key = (strategy_params.get("model_key", "phi-3"), strategy_params.get("prompt_dir", "iterative_cloze"))
+                    strategies_by_model.setdefault(key, []).append(strategy_params)
+                else:
+                    # Non-batchable strategies go to a "mixed" bucket or handled individually
+                    strategies_by_model.setdefault(("__n/a__", "__n/a__"), []).append(strategy_params)
 
-                # Build the strategy object once for this block
-                recon_strategy = self.rs_builder.get_strategy(strategy_params)
+            
+            masking_strategies = get_masking_strategies(
+                masking_configs=config["masking_configs"],
+                master_seed=config["base_params"]["master_seed"]
+            )
 
-                masking_strategies = get_masking_strategies(
-                    masking_configs=config["masking_configs"],
-                    master_seed=config["base_params"]["master_seed"]
-                )
+            # --- Process Groups ---
+            from reconstruction.text_reconstruction import BatchGridSearchStrategy
+            from experiment_executor.batch_runner import BatchExperimentRunner
 
-                # --- Loop 2: Iterate over the generated masking strategies ---
+            for (m_key, p_dir), group_configs in strategies_by_model.items():
+                
+                # --- Loop 2: Illuminate/Iterate over masking strategies ---
                 for masker in masking_strategies:
-                    # Build the final runner object with all components
-                    run_conf:dict[str,Any] = flat_dict({
-                        '':config.get('base_params'),
-                        'data_config': config["data_config"],
-                        'masking': masker.get_params_for_repr(),
-                        'recon_strategy': strategy_params
-                    })
                     
-                    try: 
-                        runner = self.experiment_runner_factory(
-                            run_name=f"{recon_strategy}__{masker}",
+                    # Can we batch this group?
+                    # Only if > 1 config and valid local_llm key
+                    if m_key != "__n/a__" and len(group_configs) > 1:
+                        logging.info(f"Using Batch Processing for {m_key} with {len(group_configs)} configs.")
+                        
+                        # 1. Build Shared Components (Model, PromptBuilder)
+                        # We need to access the internal adapter from builder to create the BatchStrategy
+                        # This is a bit hacky, but consistent with the factory pattern usage here.
+                        
+                        # We instantiate the first strategy just to trigger caching/loading in rs_builder
+                        _ = self.rs_builder.get_strategy(group_configs[0])
+                        
+                        # Retrieve cached adapter
+                        # Builder cache key logic: f"{model_key}_{backend}"
+                        # We assume default backend for now or check system component
+                        # A better way: expose a get_adapter method in builder? 
+                        # Or just rely on the fact we know how builder works.
+                        from common_utils import device_setup
+                        backend = device_setup.get_llm_backend()
+                        adapter_key = f"{m_key}_{backend}"
+                        adapter = self.rs_builder._local_model_cache.get(adapter_key)
+                        
+                        # Retrieve prompt builder (re-create finding path logic or cache it?)
+                        # Re-creating is cheap
+                        prompt_path = self.rs_builder.prompts_dir / p_dir
+                        from llm.prompting import ClozePromptBuilder
+                        if prompt_path.is_dir():
+                            prompt_builder = ClozePromptBuilder.from_directory(prompt_path)
+                        else:
+                             raise UserFacingError(f"Prompt directory '{prompt_path}' does not exist.")
+                             
+                        # 2. Create Batch Strategy
+                        batch_strategy = BatchGridSearchStrategy(
+                            name=f"Batch_{m_key}_{len(group_configs)}",
+                            model_adapter=adapter,
+                            prompt_builder=prompt_builder,
+                            configs=group_configs
+                        )
+                        
+                        # 3. Create Individual Runners (Container-only, stripped of heavy logic)
+                        runners = []
+                        for strategy_params in group_configs:
+                            recon_strategy = self.rs_builder.get_strategy(strategy_params)
+                            run_conf = flat_dict({
+                                '':config.get('base_params'),
+                                'data_config': config["data_config"],
+                                'masking': masker.get_params_for_repr(),
+                                'recon_strategy': strategy_params
+                            })
+                            
+                            runner = self.experiment_runner_factory(
+                                run_name=f"{recon_strategy}__{masker}",
+                                data_loader=self.data_loader,
+                                masking_strategy=masker,
+                                reconstruction_strategy=recon_strategy,
+                                evaluator=self.evaluator,
+                                save_path=self.result_path,
+                                conf_for_log=run_conf,
+                                hf_manager=self.hf_manager,
+                                config_stem=config.get("__parent_run_name__", "default"),
+                                eval_only=self.exec_args.eval_only
+                            )
+                            runners.append(runner)
+                            
+                        # 4. Yield BatchRunner
+                        yield BatchExperimentRunner(
+                            base_run_name=f"Batch_{m_key}",
+                            runners=runners,
+                            batch_strategy=batch_strategy,
                             data_loader=self.data_loader,
                             masking_strategy=masker,
-                            reconstruction_strategy=recon_strategy,
-                            evaluator=self.evaluator,
-                            #TODO add result path to config
-                            save_path=self.result_path,
-                            conf_for_log=run_conf,
-                            hf_manager=self.hf_manager,
-                            config_stem=config.get("__parent_run_name__", "default"),
-                            eval_only=self.exec_args.eval_only
+                            evaluator=self.evaluator
                         )
-                        yield runner
-                    except TypeError:
-                         # Fallback for VectorRunner which doesn't support hf_manager yet
-                         runner = self.experiment_runner_factory(
-                            run_name=f"{recon_strategy}__{masker}",
-                            data_loader=self.data_loader,
-                            masking_strategy=masker,
-                            reconstruction_strategy=recon_strategy,
-                            evaluator=self.evaluator,
-                            save_path=self.result_path,
-                            conf_for_log=run_conf
-                        )
-                         yield runner
+
+                    else:
+                        # Fallback to standard sequential processing
+                        for strategy_params in group_configs:
+                            recon_strategy = self.rs_builder.get_strategy(strategy_params)
+                            run_conf:dict[str,Any] = flat_dict({
+                                '':config.get('base_params'),
+                                'data_config': config["data_config"],
+                                'masking': masker.get_params_for_repr(),
+                                'recon_strategy': strategy_params
+                            })
+                            
+                            try: 
+                                runner = self.experiment_runner_factory(
+                                    run_name=f"{recon_strategy}__{masker}",
+                                    data_loader=self.data_loader,
+                                    masking_strategy=masker,
+                                    reconstruction_strategy=recon_strategy,
+                                    evaluator=self.evaluator,
+                                    #TODO add result path to config
+                                    save_path=self.result_path,
+                                    conf_for_log=run_conf,
+                                    hf_manager=self.hf_manager,
+                                    config_stem=config.get("__parent_run_name__", "default"),
+                                    eval_only=self.exec_args.eval_only
+                                )
+                                yield runner
+                            except TypeError:
+                                 # Fallback for VectorRunner which doesn't support hf_manager yet
+                                 runner = self.experiment_runner_factory(
+                                    run_name=f"{recon_strategy}__{masker}",
+                                    data_loader=self.data_loader,
+                                    masking_strategy=masker,
+                                    reconstruction_strategy=recon_strategy,
+                                    evaluator=self.evaluator,
+                                    save_path=self.result_path,
+                                    conf_for_log=run_conf
+                                )
+                                 yield runner
         finally:
              if not self.exec_args.dry_run:
                  self.shutdown()
