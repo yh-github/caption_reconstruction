@@ -30,7 +30,17 @@ class BatchExperimentRunner:
         self.data_loader = data_loader
         self._masking_strategy = masking_strategy
         self.evaluator = evaluator
+        self.evaluator = evaluator
         self.conf_for_log = {'batch_size': len(runners), 'runners': [r.run_name for r in runners]}
+        
+        # Batch runner doesn't have a single remote path, as it manages multiple runners.
+        # However, for logging/monitoring purposes that might inspect this property,
+        # we can point to a common parent or the first runner's path.
+        # Assuming all runners in a batch share the exact same config_stem:
+        if runners:
+            self.remote_run_path = runners[0].remote_run_path
+        else:
+            self.remote_run_path = f"reconstruction/batch_empty/{base_run_name}"
 
     def run(self) -> list[MetricsRecordRaw]:
         # Initialize all sub-runners (create dirs, sync HF, etc)
