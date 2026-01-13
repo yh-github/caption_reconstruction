@@ -17,8 +17,49 @@ from data.data_loaders import get_data_loader
 from llm.prior_surprise_score import PriorSurpriseScorer
 # from llm.pmi_scorer import PMIScorer # Removed
 import torch
-from data.hf_sync import HFResultsSync
+from data.hf_sync import HFFileManager
 from common_utils.tracking import get_datetime_str
+
+# Compatibility Wrapper
+class HFResultsSync:
+    def __init__(self, repo_id: str, run_name: str, hyperparams_hash: str, output_dir: Path):
+        self.manager = HFFileManager(repo_id=repo_id)
+        self.filename = f"{run_name}_{hyperparams_hash}.json"
+        self.remote_path = f"scores/{self.filename}"
+        self.local_path = output_dir / self.filename
+        self.local_path.parent.mkdir(parents=True, exist_ok=True)
+        
+    def pull(self, force_download: bool = False) -> dict[str, Any]:
+        if force_download or not self.local_path.exists():
+            success = self.manager.download_file(self.remote_path, self.local_path)
+            if not success:
+               return {}
+        
+        try:
+            with open(self.local_path, 'r') as f:
+                return json.load(f)
+        except:
+            return {}
+            
+    def merge_results(self, existing: dict[str, Any], new_results: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
+        # Basic merge: "scores" key holds video_id -> result
+        scores = existing.get("scores", {})
+        scores.update(new_results)
+        
+        return {
+            "config": config,
+            "scores": scores,
+            "last_updated": get_datetime_str()
+        }
+        
+    def push(self, data: dict[str, Any], commit_message: str = "Update scores") -> None:
+        # Write to local
+        with open(self.local_path, 'w') as f:
+            json.dump(data, f, indent=2)
+            
+        # Upload
+        self.manager.upload_file_async(self.local_path, self.remote_path)
+        self.manager.sync_folders() # Force sync now for simplicity
 
 def log_gpu_stats(context: str = ""):
     if torch.cuda.is_available():
