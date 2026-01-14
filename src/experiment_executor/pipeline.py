@@ -124,7 +124,9 @@ class ExperimentPipeline(ABC):
             self.evaluator.calc_idf(self.data_loader.load_all_sentences())
 
         self.experiment_name:str = get_datetime_str(self.config.get('tz'))
-        self.parent_run_name:str = self.config["__parent_run_name__"]+f"__{self.experiment_name}"
+        # We remove the timestamp from the directory name to ensure persistent caching across runs.
+        # This allows resuming without re-downloading or re-computing existing results.
+        self.parent_run_name:str = self.config["__parent_run_name__"]
         results_path = self.config["paths"].get("results", "results")
         self.result_path = Path(f"{results_path}/recon/" + self.parent_run_name)
 
@@ -133,13 +135,20 @@ class ExperimentPipeline(ABC):
         self.for_analysis_path = for_analysis_path
 
             # check if we need to prefetch
-        if self.hf_manager and not self.result_path.exists():
-            # If the result path does not exist, we try to download it from HF
+        if self.hf_manager:
+            # We always attempt to sync/prefetch to ensure we have the latest/complete set of files from HF.
+            # This handles cases where the local folder exists but is partial (e.g. previous run crashed).
+            
             # We download the ENTIRE parent run folder to ensure we have everything (masking variations, etc.)
             base_run_name = self.config.get("__parent_run_name__", "default")
             
             # Match everything under reconstruction/base_run_name
             patterns = [f"reconstruction/{base_run_name}/**"]
+            
+            if patterns:
+                import shutil
+                import tempfile
+                logging.info(f"Checking for remote results to sync at {self.result_path}...")
             
             if patterns:
                 import shutil
