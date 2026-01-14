@@ -150,18 +150,13 @@ class ExperimentPipeline(ABC):
                 patterns = [f"reconstruction/{base_run_name}/**"]
                 
                 if patterns:
-                import shutil
-                import tempfile
-                logging.info(f"Checking for remote results to sync at {self.result_path}...")
-            
-            if patterns:
-                import shutil
-                import tempfile
-                logging.info(f"Local results not found at {self.result_path}. Attempting to prefetch from HF...")
-                
-                with tempfile.TemporaryDirectory() as tmp_dir:
-                    tmp_path = Path(tmp_dir)
-                    downloaded_root = self.hf_manager.prefetch_folder(tmp_path, patterns)
+                    import shutil
+                    import tempfile
+                    logging.info(f"Checking for remote results to sync at {self.result_path}...")
+                    
+                    with tempfile.TemporaryDirectory() as tmp_dir:
+                        tmp_path = Path(tmp_dir)
+                        downloaded_root = self.hf_manager.prefetch_folder(tmp_path, patterns)
                     
                     if downloaded_root:
                         # Remote structure is reconstruction/base_run_name
