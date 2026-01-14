@@ -150,6 +150,7 @@ class ExperimentPipeline(ABC):
                 patterns = [f"reconstruction/{base_run_name}/**"]
                 
                 if patterns:
+                    # Move temp file usage inside the block to avoid premature cleanup
                     import shutil
                     import tempfile
                     logging.info(f"Checking for remote results to sync at {self.result_path}...")
@@ -170,6 +171,29 @@ class ExperimentPipeline(ABC):
                             else:
                                 root_content = list(downloaded_root.iterdir()) if downloaded_root.exists() else "DIR_GONE"
                                 logging.warning(f"Prefetch completed but expected source dir {source_dir} not found. (Downloaded root: {root_content} )")
+
+        # Warmup models to ensure they are downloaded/cached before starting the loop
+        if not self.exec_args.dry_run: # Skip in dry-run as it might block/OOM
+            self._warmup_models()
+    
+    def _warmup_models(self):
+        """Forces loading of local LLM models to fail fast if cache/connection is missing."""
+        from reconstruction.text_reconstruction import IterativeReconstructionStrategy, BatchGridSearchStrategy
+        
+        strategies = self.strategies if isinstance(self.strategies, list) else [self.strategies]
+        
+        for strat in strategies:
+            # Check for IterativeReconstructionStrategy
+            if isinstance(strat, IterativeReconstructionStrategy):
+                if hasattr(strat, 'model_adapter'):
+                    logging.info(f"Warming up model for strategy {strat.name}...")
+                    strat.model_adapter._ensure_loaded()
+            
+            # Check for BatchGridSearchStrategy
+            elif isinstance(strat, BatchGridSearchStrategy):
+                 if hasattr(strat, 'model_adapter'):
+                    logging.info(f"Warming up model for batch strategy {strat.name}...")
+                    strat.model_adapter._ensure_loaded()
         
     def shutdown(self):
         if self.hf_manager:
