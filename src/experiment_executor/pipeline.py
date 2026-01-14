@@ -178,22 +178,37 @@ class ExperimentPipeline(ABC):
     
     def _warmup_models(self):
         """Forces loading of local LLM models to fail fast if cache/connection is missing."""
-        from reconstruction.text_reconstruction import IterativeReconstructionStrategy, BatchGridSearchStrategy
+        from reconstruction.text_reconstruction import TextReconstructionStrategyBuilder
         
-        strategies = self.strategies if isinstance(self.strategies, list) else [self.strategies]
+        strategies_config = self.config.get("recon_strategy", [])
+        if not strategies_config:
+            return
+
+        logging.info("Warming up models...")
         
-        for strat in strategies:
-            # Check for IterativeReconstructionStrategy
-            if isinstance(strat, IterativeReconstructionStrategy):
-                if hasattr(strat, 'model_adapter'):
-                    logging.info(f"Warming up model for strategy {strat.name}...")
-                    strat.model_adapter._ensure_loaded()
-            
-            # Check for BatchGridSearchStrategy
-            elif isinstance(strat, BatchGridSearchStrategy):
-                 if hasattr(strat, 'model_adapter'):
-                    logging.info(f"Warming up model for batch strategy {strat.name}...")
-                    strat.model_adapter._ensure_loaded()
+        # We need a temporary builder to leverage its cache/init logic
+        # We reuse the pipeline's cache and client
+        builder = TextReconstructionStrategyBuilder(
+            llm_cache=self.cache,
+            master_seed=self.config["base_params"]["master_seed"],
+            llm_client=self._llm_client,
+            block_llm=self.exec_args.block_llm
+        )
+
+        for strat_conf in strategies_config:
+            if strat_conf.get("type") == "local_llm":
+                model_key = strat_conf.get("model_key", "phi-3")
+                logging.info(f"Pre-loading model {model_key} for strategy {strat_conf.get('name')}...")
+                
+                # The builder manages the adapter cache internally. 
+                # Calling get_strategy will instantiate the adapter and put it in builder._local_model_cache
+                # But get_strategy returns a strategy object, which we can then check.
+                try:
+                    strategy = builder.get_strategy(strat_conf)
+                    if hasattr(strategy, 'model_adapter'):
+                        strategy.model_adapter._ensure_loaded()
+                except Exception as e:
+                    logging.warning(f"Failed to warmup model {model_key}: {e}")
         
     def shutdown(self):
         if self.hf_manager:
