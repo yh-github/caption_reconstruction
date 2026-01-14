@@ -131,6 +131,41 @@ class ExperimentPipeline(ABC):
         for_analysis_path = Path(self.config["paths"].get("for_analysis", "results/for_analysis"))
         for_analysis_path.mkdir(parents=True, exist_ok=True)
         self.for_analysis_path = for_analysis_path
+
+            # check if we need to prefetch
+        if self.hf_manager and not self.result_path.exists():
+            # If the result path does not exist, we try to download it from HF
+            # We construct patterns for the current strategies
+            base_run_name = self.config.get("__parent_run_name__", "default")
+            patterns = []
+            recon_strategies = self.config.get('recon_strategy', [])
+            for strat in recon_strategies:
+                s_name = strat.get('name')
+                if s_name:
+                    # Match reconstruction/base_run_name/*strategy_name*/*.json
+                    # Note: We use base_run_name (from config stem) because HF likely stores cannonical results without timestamp
+                    patterns.append(f"reconstruction/{base_run_name}/*{s_name}*/*.json")
+            
+            if patterns:
+                import shutil
+                import tempfile
+                logging.info(f"Local results not found at {self.result_path}. Attempting to prefetch from HF...")
+                
+                with tempfile.TemporaryDirectory() as tmp_dir:
+                    tmp_path = Path(tmp_dir)
+                    downloaded_root = self.hf_manager.prefetch_folder(tmp_path, patterns)
+                    
+                    if downloaded_root:
+                        # Remote structure is reconstruction/base_run_name
+                        source_dir = downloaded_root / "reconstruction" / base_run_name
+                        if source_dir.exists():
+                            # Move/Copy to self.result_path
+                            self.result_path.parent.mkdir(parents=True, exist_ok=True)
+                            
+                            logging.info(f"Moving downloaded results from {source_dir} to {self.result_path}")
+                            shutil.copytree(source_dir, self.result_path, dirs_exist_ok=True)
+                        else:
+                            logging.warning(f"Prefetch completed but expected source dir {source_dir} not found. (Downloaded root: {list(downloaded_root.iterdir())} )")
         
     def shutdown(self):
         if self.hf_manager:

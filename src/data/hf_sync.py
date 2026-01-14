@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Optional, List
 
 import yaml
-from huggingface_hub import HfApi, hf_hub_download, CommitOperationAdd
+from huggingface_hub import HfApi, hf_hub_download, CommitOperationAdd, snapshot_download
 from huggingface_hub.utils import EntryNotFoundError
 
 logger = logging.getLogger(__name__)
@@ -172,6 +172,25 @@ class HFFileManager:
         except Exception as e:
             logger.error(f"Failed to download {remote_path}: {e}")
             return False
+
+    def prefetch_folder(self, download_dir: Path, allow_patterns: List[str]) -> Optional[Path]:
+        """
+        Downloads files matching the patterns to the specified directory using snapshot_download.
+        Returns the path to the downloaded folder if successful, None otherwise.
+        """
+        try:
+            logger.info(f"Prefetching files with patterns: {allow_patterns}")
+            local_path = snapshot_download(
+                repo_id=self.repo_id,
+                repo_type=self.repo_type,
+                local_dir=download_dir,
+                allow_patterns=allow_patterns,
+                tqdm_class=None
+            )
+            return Path(local_path)
+        except Exception as e:
+            logger.error(f"Failed to prefetch folder: {e}")
+            return None
 
     def upload_file_async(self, local_path: Path, remote_path: str):
         """
