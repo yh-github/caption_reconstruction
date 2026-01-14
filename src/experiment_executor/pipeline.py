@@ -157,18 +157,19 @@ class ExperimentPipeline(ABC):
                     with tempfile.TemporaryDirectory() as tmp_dir:
                         tmp_path = Path(tmp_dir)
                         downloaded_root = self.hf_manager.prefetch_folder(tmp_path, patterns)
-                    
-                    if downloaded_root:
-                        # Remote structure is reconstruction/base_run_name
-                        source_dir = downloaded_root / "reconstruction" / base_run_name
-                        if source_dir.exists():
-                            # Move/Copy to self.result_path
-                            self.result_path.parent.mkdir(parents=True, exist_ok=True)
-                            
-                            logging.info(f"Moving downloaded results from {source_dir} to {self.result_path}")
-                            shutil.copytree(source_dir, self.result_path, dirs_exist_ok=True)
-                        else:
-                            logging.warning(f"Prefetch completed but expected source dir {source_dir} not found. (Downloaded root: {list(downloaded_root.iterdir())} )")
+                        
+                        if downloaded_root:
+                            # Remote structure is reconstruction/base_run_name
+                            source_dir = downloaded_root / "reconstruction" / base_run_name
+                            if source_dir.exists():
+                                # Move/Copy to self.result_path
+                                self.result_path.parent.mkdir(parents=True, exist_ok=True)
+                                
+                                logging.info(f"Moving downloaded results from {source_dir} to {self.result_path}")
+                                shutil.copytree(source_dir, self.result_path, dirs_exist_ok=True)
+                            else:
+                                root_content = list(downloaded_root.iterdir()) if downloaded_root.exists() else "DIR_GONE"
+                                logging.warning(f"Prefetch completed but expected source dir {source_dir} not found. (Downloaded root: {root_content} )")
         
     def shutdown(self):
         if self.hf_manager:
