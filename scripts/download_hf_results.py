@@ -41,22 +41,9 @@ def main():
             target_dir = str(Path(results_base) / "recon" / parent_run_name)
             
             # 3. Patterns
-            # match: reconstruction/PARENT_RUN_NAME/**/*STRATEGY_NAME*/*.json
-            # We accumulate patterns for all strategies
-            patterns = []
-            
-            strategies = config.get('recon_strategy', [])
-            for strat in strategies:
-                s_name = strat.get('name')
-                if s_name:
-                    # e.g. reconstruction/wild_dev_sim_text/**/*phi-3__t=0.1_rp=1.2*/*.json
-                    # Note: The run name on HF is usually {strategy_name}__{masking_strategy}
-                    # checking wild_dev_sim_text.yaml, names are like "phi-3__t=0.1_rp=1.2"
-                    # We want to match any folder containing this string.
-                    patterns.append(f"reconstruction/{parent_run_name}/**/*{s_name}*/*.json")
-            
-            if patterns:
-                allow_patterns = patterns
+            # We default to downloading the entire experiment run folder to avoid missing files.
+            # reconstruction/PARENT_RUN_NAME/**
+            patterns = [f"reconstruction/{parent_run_name}/**"]
             
             print(f"Config loaded.")
             print(f" - Repo: {repo_id}")

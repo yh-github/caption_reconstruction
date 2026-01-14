@@ -135,16 +135,11 @@ class ExperimentPipeline(ABC):
             # check if we need to prefetch
         if self.hf_manager and not self.result_path.exists():
             # If the result path does not exist, we try to download it from HF
-            # We construct patterns for the current strategies
+            # We download the ENTIRE parent run folder to ensure we have everything (masking variations, etc.)
             base_run_name = self.config.get("__parent_run_name__", "default")
-            patterns = []
-            recon_strategies = self.config.get('recon_strategy', [])
-            for strat in recon_strategies:
-                s_name = strat.get('name')
-                if s_name:
-                    # Match reconstruction/base_run_name/*strategy_name*/*.json
-                    # Note: We use base_run_name (from config stem) because HF likely stores cannonical results without timestamp
-                    patterns.append(f"reconstruction/{base_run_name}/*{s_name}*/*.json")
+            
+            # Match everything under reconstruction/base_run_name
+            patterns = [f"reconstruction/{base_run_name}/**"]
             
             if patterns:
                 import shutil
