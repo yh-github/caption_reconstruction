@@ -203,12 +203,10 @@ class ExperimentPipeline(ABC):
                 # The builder manages the adapter cache internally. 
                 # Calling get_strategy will instantiate the adapter and put it in builder._local_model_cache
                 # But get_strategy returns a strategy object, which we can then check.
-                try:
-                    strategy = builder.get_strategy(strat_conf)
-                    if hasattr(strategy, 'model_adapter'):
-                        strategy.model_adapter._ensure_loaded()
-                except Exception as e:
-                    logging.warning(f"Failed to warmup model {model_key}: {e}")
+                # Propagate exceptions here! If warmup fails, we MUST crash before starting the experiment loop.
+                strategy = builder.get_strategy(strat_conf)
+                if hasattr(strategy, 'model_adapter'):
+                    strategy.model_adapter._ensure_loaded()
         
     def shutdown(self):
         if self.hf_manager:
