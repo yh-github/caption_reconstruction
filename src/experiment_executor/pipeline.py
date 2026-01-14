@@ -135,17 +135,21 @@ class ExperimentPipeline(ABC):
         self.for_analysis_path = for_analysis_path
 
             # check if we need to prefetch
+        # check if we need to prefetch
         if self.hf_manager:
-            # We always attempt to sync/prefetch to ensure we have the latest/complete set of files from HF.
-            # This handles cases where the local folder exists but is partial (e.g. previous run crashed).
-            
-            # We download the ENTIRE parent run folder to ensure we have everything (masking variations, etc.)
-            base_run_name = self.config.get("__parent_run_name__", "default")
-            
-            # Match everything under reconstruction/base_run_name
-            patterns = [f"reconstruction/{base_run_name}/**"]
-            
-            if patterns:
+            if self.exec_args.dry_run:
+                logging.info("Dry-run mode: Skipping automatic HF prefetch/sync.")
+            else:
+                # We always attempt to sync/prefetch to ensure we have the latest/complete set of files from HF.
+                # This handles cases where the local folder exists but is partial (e.g. previous run crashed).
+                
+                # We download the ENTIRE parent run folder to ensure we have everything (masking variations, etc.)
+                base_run_name = self.config.get("__parent_run_name__", "default")
+                
+                # Match everything under reconstruction/base_run_name
+                patterns = [f"reconstruction/{base_run_name}/**"]
+                
+                if patterns:
                 import shutil
                 import tempfile
                 logging.info(f"Checking for remote results to sync at {self.result_path}...")
