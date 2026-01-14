@@ -191,8 +191,8 @@ class ExperimentPipeline(ABC):
         builder = TextReconstructionStrategyBuilder(
             llm_cache=self.cache,
             master_seed=self.config["base_params"]["master_seed"],
-            llm_client=self._llm_client,
-            block_llm=self.exec_args.block_llm
+            llm_client=self.llm_client,
+            block_llm=self.exec_args.cached_execution_only
         )
 
         for strat_conf in strategies_config:
