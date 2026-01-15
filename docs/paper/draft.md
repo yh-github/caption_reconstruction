@@ -1,9 +1,20 @@
-<script type="text/javascript" src="cdnjs.cloudflare.com"></script>
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$']]
+    }
+  };
+</script>
+
+<script type="text/javascript" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+
 
 # Dense caption reconstruction: video in-filling with language models
 
 ## Abstract
-Recent Video-LLMs typically treat video understanding as a continuous stream of visual encoding. However, real-world events often follow structured, semantic scripts that pre-trained language models can predict without immediate visual evidence. In this work, we investigate the boundary between **semantic inference** (what *must* happen) and **visual perception** (what *actually* happened) through a novel *Caption Reconstruction* comparative framework. We task two independent agents—a "Blind Planner" (Text-LLM) and a "Silent Observer" (Visual-Interpolation)—with reconstructing missing segments from masked videos. We created a new dense caption dataset, based on the WildQA dataset. Our analysis showcases a spectrum of predictability across video domains: while *stochastic* events (e.g., nature) require visual grounding, *procedural* events (e.g., farming, manufacturing) allow text-only models to in-fill accurate reconstructions, rendering visual processing redundant for significant durations. This framework serves as a diagnostic tool for measuring multimodal information density and suggests potential for temporal semantic compression.
+Recent Video-LLMs typically treat video understanding as a continuous stream of visual encoding. However, real-world events often follow structured, semantic scripts that pre-trained language models can predict without immediate visual evidence. In this work, we investigate the boundary between **semantic inference** (what *must* happen) and **visual perception** (what *actually* happened) through a novel *Caption Reconstruction* comparative framework. We use two independent methods—a text based LLM and a Visual-Interpolation baseline method—to reconstruct missing segments from masked videos. We created a new dense caption dataset, based on the WildQA dataset. Our analysis showcases a spectrum of narrative predictability across video domains: while *stochastic* events (e.g., nature) require visual grounding, *procedural* events (e.g., farming, manufacturing) allow text-only models to in-fill accurate reconstructions, rendering visual processing redundant for significant durations. This framework serves as a diagnostic tool for measuring multimodal information density and suggests potential for temporal semantic compression.
 
 ## 1. Introduction
 The promise of multimodal AI is the fusion of visual perception with semantic reasoning. Yet, in current Video-LLM architectures, this fusion is often brute-forced: models ingest massive sequences of visual tokens regardless of the information content. This approach ignores a fundamental property of the physical world: narrative predictability.
@@ -73,7 +84,7 @@ We showcase the per catergory analysis. Each method is ranked internally.
 - **Stochastic Dependence (The Right Tail)**: Categories like *Nature/Documentary* and *Scenery* show a heavy tail towards "Video high score, Text low score" ($\Delta > 50$). Low level weather or scenery changes are harder ro describe and reconstruct in short texts.
 **Robustness Check**: To confirm these are not random noisy fluctuations, we performed a consistency analysis across all four masking levels. We identified **13 videos (13% of the dataset)** that remained in the top quintile of $\Delta$ across *every* condition ($k=6,9,12,15$). This stability confirms that for certain content types, the "modality advantage" is a persistent intrinsic property, not an artifact of specific sampling.
 
-![Figure 2: Consistency Analysis showing Persistent Signal vs Random Noise.](../../results/plots/null_hypothesis_consistency.png)
+![Figure 2: Consistency Analysis showing Persistent Signal vs Random Noise.](../../results/plots/null/null_hypothesis_consistency.png)
 *Figure 2: Robustness Check. Comparison of the **Average Rank Delta** across all four masking levels ($k=6,9,12,15$). The "Real Data" (Red) distribution is significantly wider ($\sigma=28.8$) than the "Random Chance" baseline ($\sigma=19.0$), proving that the observed modality advantages are persistent intrinsic properties of the videos, not random fluctuations which would average out to zero.*
 
 ### 4.3 Qualitative Case Studies ("The When")
