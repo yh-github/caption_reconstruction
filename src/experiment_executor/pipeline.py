@@ -139,6 +139,8 @@ class ExperimentPipeline(ABC):
         if self.hf_manager:
             if self.exec_args.dry_run:
                 logging.info("Dry-run mode: Skipping automatic HF prefetch/sync.")
+            elif self.exec_args.no_download_existing:
+                logging.info("Skip Download Existing mode: Skipping automatic HF prefetch/sync.")
             else:
                 # We always attempt to sync/prefetch to ensure we have the latest/complete set of files from HF.
                 # This handles cases where the local folder exists but is partial (e.g. previous run crashed).
@@ -392,7 +394,8 @@ class ExperimentPipeline_Reconstruction(ExperimentPipeline):
                                 conf_for_log=run_conf,
                                 hf_manager=self.hf_manager,
                                 config_stem=config.get("__parent_run_name__", "default"),
-                                eval_only=self.exec_args.eval_only
+                                eval_only=self.exec_args.eval_only,
+                                no_download_existing=self.exec_args.no_download_existing
                             )
                             runners.append(runner)
                             
@@ -403,7 +406,8 @@ class ExperimentPipeline_Reconstruction(ExperimentPipeline):
                             batch_strategy=batch_strategy,
                             data_loader=self.data_loader,
                             masking_strategy=masker,
-                            evaluator=self.evaluator
+                            evaluator=self.evaluator,
+                            no_download_existing=self.exec_args.no_download_existing
                         )
 
                     else:
@@ -429,7 +433,8 @@ class ExperimentPipeline_Reconstruction(ExperimentPipeline):
                                     conf_for_log=run_conf,
                                     hf_manager=self.hf_manager,
                                     config_stem=config.get("__parent_run_name__", "default"),
-                                    eval_only=self.exec_args.eval_only
+                                    eval_only=self.exec_args.eval_only,
+                                    no_download_existing=self.exec_args.no_download_existing
                                 )
                                 yield runner
                             except TypeError:

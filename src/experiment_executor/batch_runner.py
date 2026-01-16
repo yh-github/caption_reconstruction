@@ -22,7 +22,8 @@ class BatchExperimentRunner:
         batch_strategy: BatchGridSearchStrategy,
         data_loader: BaseDataLoader,
         masking_strategy: MaskingStrategy,
-        evaluator: ReconstructionEvaluator
+        evaluator: ReconstructionEvaluator,
+        no_download_existing: bool = False
     ):
         self.run_name = base_run_name
         self.runners = runners
@@ -30,7 +31,7 @@ class BatchExperimentRunner:
         self.data_loader = data_loader
         self._masking_strategy = masking_strategy
         self.evaluator = evaluator
-        self.evaluator = evaluator
+        self.no_download_existing = no_download_existing
         self.conf_for_log = {'batch_size': len(runners), 'runners': [r.run_name for r in runners]}
         
         # Batch runner doesn't have a single remote path, as it manages multiple runners.
@@ -77,6 +78,10 @@ class BatchExperimentRunner:
              if not exists_locally and not exists_remotely:
                  active_indices.append(i)
              elif exists_remotely and not exists_locally:
+                 if self.no_download_existing:
+                     # Treat as "done/exists" without downloading
+                     continue
+                 
                  # Try download
                  # If download fails, add to active
                  logging.info(f"BatchRunner: Downloading {video.video_id} for {runner.run_name}...")

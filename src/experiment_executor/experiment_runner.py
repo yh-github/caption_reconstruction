@@ -25,7 +25,8 @@ class ExperimentRunner:
         conf_for_log:dict[str, Any],
         hf_manager: Any = None, # Optional HFFileManager
         config_stem: str = "",
-        eval_only: bool = False
+        eval_only: bool = False,
+        no_download_existing: bool = False
     ):
         self.run_name = run_name
         self.data_loader = data_loader
@@ -36,6 +37,7 @@ class ExperimentRunner:
         self.conf_for_log = conf_for_log
         self.hf_manager = hf_manager
         self.eval_only = eval_only
+        self.no_download_existing = no_download_existing
         
         self.remote_run_path = f"reconstruction/{config_stem}/{run_name}"
         
@@ -104,6 +106,10 @@ class ExperimentRunner:
             
         # 2. Check Remote (HF)
         if self.hf_manager and filename in self.remote_files:
+            if self.no_download_existing:
+                logging.info(f"Video {video.video_id} found in HF Cache (Remote). Skipping download (--no-download-existing).")
+                return None
+
             logging.info(f"Video {video.video_id} found in HF Cache. Downloading...")
             remote_path = f"{self.remote_run_path}/{filename}"
             if self.hf_manager.download_file(remote_path, result_file):

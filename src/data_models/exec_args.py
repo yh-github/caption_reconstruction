@@ -25,6 +25,7 @@ class ExecArgs(BaseModel):
     validate_cache: bool = False
     cached_execution_only: bool = Field(default=False, alias='block_llm')  # New flag
     eval_only: bool = False
+    no_download_existing: bool = Field(default=False, alias='skip_download_existing')
     debug: bool = False
     ignore_unsafe: bool = False
 
@@ -98,6 +99,14 @@ def args_parser() -> ExecArgs:
         "--eval-only",
         action="store_true",
         help="Skip generation and only run evaluation on existing results."
+    )
+    
+    parser.add_argument(
+        "--no-download-existing",
+        "--skip-download-existing",
+        dest="skip_download_existing",
+        action="store_true",
+        help="Skip downloading existing remote results. NOTE: This may result in incomplete CSV reports."
     )
 
 

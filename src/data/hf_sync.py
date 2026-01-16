@@ -51,6 +51,7 @@ class HFFileManager:
         self._last_flush_time = time.time()
         self._last_log_sync_time = time.time()
         self._log_file: Optional[Path] = None
+        self._cached_file_list: Optional[List[str]] = None
         
     def register_log_file(self, log_path: Path):
         """Registers the active log file to be periodically synced."""
@@ -138,7 +139,11 @@ class HFFileManager:
         """
         try:
             # list_repo_files returns ALL files. We filter by prefix.
-            all_files = self.api.list_repo_files(repo_id=self.repo_id, repo_type=self.repo_type)
+            if self._cached_file_list is None:
+                logger.info(f"Fetching file list from HF repo {self.repo_id}...")
+                self._cached_file_list = self.api.list_repo_files(repo_id=self.repo_id, repo_type=self.repo_type)
+            
+            all_files = self._cached_file_list
             
             folder_prefix = folder_path.rstrip('/') + '/'
             files_in_folder = set()
