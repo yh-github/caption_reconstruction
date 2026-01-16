@@ -1,0 +1,118 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+% --- UNIVERSAL PREAMBLE BLOCK ---
+\usepackage[letterpaper, top=2cm, bottom=2.5cm, left=1.75cm, right=1.75cm, columnsep=0.8cm]{geometry}
+\usepackage{fontspec}
+\usepackage[english, bidi=basic, provide=*]{babel}
+
+% Academic Font Setup - Using Noto for reliability
+\babelfont{rm}{Noto Serif}
+\babelfont{sf}{Noto Sans}
+
+% --- CORE PACKAGES ---
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage[hidelinks, colorlinks=true, allcolors=blue]{hyperref}
+
+% --- ACADEMIC STYLING ---
+\titleformat{\section}{\large\bfseries\uppercase}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection.}{0.5em}{}
+\titlespacing*{\section}{0pt}{12pt}{6pt}
+\titlespacing*{\subsection}{0pt}{8pt}{4pt}
+
+% --- CUSTOM COMMANDS ---
+\newcommand{\deltaMetric}{\Delta}
+\newcommand{\textSub}[1]{_{\text{#1}}}
+
+\begin{document}
+
+% --- TITLE BLOCK ---
+\twocolumn[
+  \begin{center}
+    {\Large \textbf{Dense Caption Reconstruction: Video In-filling with Language Models} \par}
+    \vspace{1.5em}
+    {Authors \par}
+    {Subtitle \par}
+    {\small \texttt{emails} \par}
+    \vspace{2em}
+    \begin{abstract}
+       Recent Video-LLMs typically treat video understanding as a continuous stream of visual encoding. However, real-world events often follow structured, semantic scripts that pre-trained language models can predict without immediate visual evidence. In this work, we investigate the boundary between \textbf{semantic inference} (what must happen) and \textbf{visual perception} (what actually happened) through a novel \textit{Caption Reconstruction} comparative framework. We use two independent methods---a text-based LLM and a Visual-Interpolation baseline method---to reconstruct missing segments from masked videos. Our analysis showcases a spectrum of narrative predictability across video domains: while stochastic events (e.g., nature) require visual grounding, procedural events (e.g., farming, manufacturing) allow text-only models to in-fill accurate reconstructions. This framework serves as a diagnostic tool for measuring multimodal information density and suggests potential for temporal semantic compression in next-generation video architectures.
+    \end{abstract}
+    \vspace{2em}
+  \end{center}
+]
+
+%%%%%%%%% BODY TEXT
+\section{Introduction}
+The promise of multimodal AI is the fusion of visual perception with semantic reasoning. Yet, in current Video-LLM architectures, this fusion is often brute-forced: models ingest massive sequences of visual tokens regardless of the information content. This approach ignores a fundamental property of the physical world: narrative predictability.
+
+Consider a video of a person chopping an onion. If the next scene is missing, a human (or an LLM) can predict with high confidence that the onion was fried, the peppers were added, and the dish was stirred. The exact visual details are \textit{stochastic residuals}, but the \textit{semantic action} is procedurally deterministic. We propose a \textbf{Comparative Reconstruction Framework} to quantify this ``Semantic Gap'' between text-based inference and visual-only interpolation.
+
+\section{Methodology}
+
+\subsection{Problem Formulation}
+We represent a video $V$ as a sequence of $T$ semantic units, where each unit $u_t$ consists of a visual embedding $v_t$ and a textual caption $c_t$. The task is to mask a subset of these units $M \subset \{1 \dots T\}$ and reconstruct the missing semantic content. Our target is the \textbf{semantic embedding} of the missing segment.
+
+\subsection{Comparative Pathways}
+\textbf{Text Logic:} Tests the limit of \textbf{Semantic Predictability}. It receives observed segments $C\textSub{obs} = \{(t, c_t) \mid t \notin M\}$ and employs an LLM to predict the text $\hat{c}_t$, which is then encoded: $\hat{e}\textSub{text} = \text{Encoder}(\hat{c}_t)$.
+
+\textbf{Visual Continuity:} Tests \textbf{Visual Fidelity}. It receives visual embeddings $V\textSub{obs} = \{v_t \mid t \notin M\}$ and reconstructs $\hat{e}\textSub{vis}$ via non-parametric weighted averaging of neighboring vectors.
+
+\subsection{Evaluation: Predictability Delta}
+To normalize across different embedding densities, we define the \textbf{Predictability Delta ($\deltaMetric$)}:
+\begin{equation}
+    \deltaMetric = \text{Rank}(\hat{e}\textSub{text}) - \text{Rank}(\hat{e}\textSub{vis})
+\end{equation}
+where $\deltaMetric \ll 0$ indicates \textbf{Semantic Dominance} (predictable logic) and $\deltaMetric \gg 0$ indicates \textbf{Visual Necessity} (stochastic change).
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\columnwidth]{figures/fig1_violin.png}
+  \caption{The Predictability Spectrum. Distributions of $\deltaMetric$ across video categories show clear shifts between Procedural and Stochastic domains.}
+  \label{fig:violin}
+\end{figure}
+
+\section{Experiments}
+We evaluate on a dataset derived from WildQA, spanning 100 diverse videos. 
+
+\subsection{Domain Analysis}
+\textbf{Procedural Resilience:} Categories like \textit{Farming} and \textit{Military} exhibit instances of extreme semantic dominance ($\deltaMetric < -50$). The LLM successfully reconstructs intermediate steps even when the visual jump is large.
+
+\textbf{Stochastic Dependence:} \textit{Nature} and \textit{Scenery} show a heavy tail toward visual necessity ($\deltaMetric > 50$), as low-level physical changes are hard to describe textually.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\columnwidth]{figures/fig2_consistency.png}
+  \caption{Robustness Check. Comparison of Average Rank Delta across masking levels ($k=6,9,12,15$). The distribution is significantly wider than random chance, indicating persistent modality advantages.}
+  \label{fig:consistency}
+\end{figure}
+
+\section{Discussion}
+Our findings support the view that VLMs suffer from information redundancy. For procedural content, the visual stream is often semantically redundant. Future work will investigate the ``Event Horizon''---the point at which even procedural scripts become chaotic and both models fail.
+
+\begin{thebibliography}{1}\small
+\itemsep=-1pt
+
+\bibitem{bian2025}
+Y.~Bian et al.
+\newblock VideoPainter: Any-length Video Inpainting and Editing.
+\newblock In {\em SIGGRAPH}, 2025.
+
+\bibitem{bosetti2024}
+M.~Bosetti et al.
+\newblock Text-Enhanced Zero-Shot Action Recognition.
+\newblock In {\em ICPR}, 2024.
+
+\bibitem{li2025}
+W.~Li et al.
+\newblock Lost in Embeddings: Information Loss in VLMs.
+\newblock In {\em EMNLP}, 2025.
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,24 @@
+# Fdb version 4
+["pdflatex"] 1768554019.76681 "/home/yoavh/code/antigravity/caption_reconstruction/docs/paper/LaTeX/workshop_short.tex" "workshop_short.pdf" "workshop_short" 1768554020.30423 2
+  "/etc/texmf/web2c/texmf.cnf" 1765639061.4047 475 c0e671620eb5563b2130f56340a5fde8 ""
+  "/home/yoavh/code/antigravity/caption_reconstruction/docs/paper/LaTeX/workshop_short.tex" 1768554018.79326 6646 3fbb84dbbfa605a65260aa0bace66bbb ""
+  "/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty" 1734129479 7984 7dbb9280f03c0a315425f1b4f35d43ee ""
+  "/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty" 1572645307 1057 525c2192b5febbd8c1f662c9468335bb ""
+  "/usr/share/texlive/texmf-dist/tex/latex/base/article.cls" 1738182759 20144 63d8bacaf52e5abf4db3bc322373e1d4 ""
+  "/usr/share/texlive/texmf-dist/tex/latex/base/size10.clo" 1738182759 8448 5cf247d4bd0c7d5d711bbbdf111fae2e ""
+  "/usr/share/texlive/texmf-dist/tex/latex/fontspec/fontspec.sty" 1715459803 3755 4872b99d810c024f9c09bb1c62ffee3b ""
+  "/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty" 1578002852 41601 9cf6c5257b1bc7af01a58859749dd37a ""
+  "/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty" 1717359999 2671 70891d50dac933918b827d326687c6e8 ""
+  "/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def" 1716410060 29785 9f93ab201fe5dd053afcc6c1bcf7d266 ""
+  "/usr/share/texlive/texmf-dist/tex/latex/l3kernel/expl3.sty" 1738271527 6565 f51d809db6193fae7b06c1bc26ca8f75 ""
+  "/usr/share/texlive/texmf-dist/tex/latex/l3packages/xparse/xparse.sty" 1724879202 9783 ab4bee47700c04aadedb8da27591b0ab ""
+  "/usr/share/texlive/texmf-dist/web2c/texmf.cnf" 1741904018 41538 c016915c1d51223b6dbbfe27341748a8 ""
+  "/usr/share/texmf/web2c/texmf.cnf" 1741904018 41538 c016915c1d51223b6dbbfe27341748a8 ""
+  "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1765639251 3347927 1362f200380f0e0eb36020a80a810291 ""
+  "workshop_short.aux" 1768554011.76566 32 3985256e7290058c681f74d7a3565a19 "pdflatex"
+  "workshop_short.tex" 1768554018.79326 6646 3fbb84dbbfa605a65260aa0bace66bbb ""
+  (generated)
+  "workshop_short.aux"
+  "workshop_short.log"
+  "workshop_short.pdf"
+  (rewritten before read)
