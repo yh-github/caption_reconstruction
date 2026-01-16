@@ -46,11 +46,11 @@ We employ a baseline non-parametric interpolation approach. The missing embeddin
 
 ### 2.3 Evaluation: Normalized Population Ranking
 Directly comparing raw cosine similarity scores between modalities is flawed because the embedding spaces or density distributions may differ. A score of 0.8 might be high for one model but average for another.
-To address this, we employ a **Population Ranking** strategy. For each experimental batch (e.g., $N=100$ videos at masking level $k$):
-1.  We rank all videos by their reconstruction score ($\text{cos\_sim\_mean}$) separately for each method.
+To address this, we employ a **Population Ranking** strategy. For each experimental batch (e.g., $`N=100`$ videos at masking level $`k`$):
+1.  We rank all videos by their reconstruction score ($`\text{cos\_sim\_mean}`$) separately for each method.
 2.  Rank 1 represents the "easiest" video for that model; Rank $N$ represents the "hardest."
 
-We then define the **Predictability Delta ($\Delta$)**:
+We then define the **Predictability Delta ($`\Delta`$)**:
 $$ \Delta = \text{Rank}(\hat{e}_{text}) - \text{Rank}(\hat{e}_{vis}) $$
 
 This effectively "grades on a curve." It normalizes for the inherent difficulty of the dataset. A strongly **Negative $\Delta$** means the video was relatively much easier for the LLM to reconstruct (Top-Tier) than it was for the Video model (Bottom-Tier), identifying a specific "Semantic Advantage."
