@@ -51,7 +51,9 @@ To address this, we employ a **Population Ranking** strategy. For each experimen
 2.  Rank 1 represents the "easiest" video for that model; Rank $N$ represents the "hardest."
 
 We then define the **Predictability Delta ($`\Delta`$)**:
-$$ \Delta = \text{Rank}(\hat{e}_{text}) - \text{Rank}(\hat{e}_{vis}) $$
+$$
+ \Delta = \text{Rank}(\hat{e}_{text}) - \text{Rank}(\hat{e}_{vis}) 
+$$
 
 This effectively "grades on a curve." It normalizes for the inherent difficulty of the dataset. A strongly **Negative $\Delta$** means the video was relatively much easier for the LLM to reconstruct (Top-Tier) than it was for the Video model (Bottom-Tier), identifying a specific "Semantic Advantage."
 
