@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Haimovitch"
+  given-names: "Yoav"
+  email: "yoav.haimovitch@post.runi.ac.il"
+title: "Caption Reconstruction: Dense caption reconstruction with language models"
+version: 0.1.2
+date-released: 2026-01-18
+url: "https://github.com/yourusername/caption_reconstruction"
+preferred-citation:
+  type: conference-paper
+  authors:
+  - family-names: "Haimovitch"
+    given-names: "Yoav"
+  title: "Dense caption reconstruction: video in-filling with language models"
+  year: 2026
+  # conference: "Conference Name" # Update when published

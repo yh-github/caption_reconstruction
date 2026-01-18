@@ -11,6 +11,16 @@ Our analysis showcases a spectrum of narrative predictability: while *stochastic
 
 For more details, see the [paper draft](docs/paper/draft.md).
 
+## 🔬 Reproduction
+
+For a fully interactive reproduction of the paper's results (without needing API keys or heavy computation), check out the **[End-to-End Reproduction Notebook](notebooks/end_to_end_reproduction.ipynb)**.
+
+This notebook allows you to:
+1. Download all cached data.
+2. Regenerate video embeddings.
+3. Run the experiments using cached LLM responses.
+4. Re-create the plots from the paper.
+
 ## 🛠️ Installation
 
 ### Prerequisites
@@ -90,3 +100,14 @@ For more detailed information, please refer to the documentation in `docs/code/`
 - **`scripts/`**: Utility scripts for data downloading, analysis, and plotting.
 - **`config/`**: Configuration files for experiments and system settings.
 - **`docs/`**: Documentation and paper drafts.
+## 🎓 Citation
+
+If you use this codebase or dataset in your research, please cite our work:
+
+```bibtex
+@inproceedings{haimovitch2026caption,
+  title={Dense caption reconstruction: video in-filling with language models},
+  author={Haimovitch, Yoav},
+  year={2026}
+}
+```
