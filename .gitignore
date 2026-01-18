@@ -31,3 +31,18 @@ test_logs/
 test_results/
 .test_lock
 .coverage
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.bbl
+*.blg
+*.brf
+*.out
+*.toc
+
+# Test reports
+coverage_report.txt
+
+# Temporary/Debug scripts
+debug_config_validation.py
