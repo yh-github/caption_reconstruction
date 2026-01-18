@@ -18,9 +18,7 @@ import types
 
 # 2. Now we can import the module under test
 # But it uses 'Self' from typing, which 3.9 lacks. We monkeypatch typing.
-if not hasattr(types, "Self"):
-    import typing
-    typing.Self = typing.Any
+# Monkeypatch removed as Python 3.13 has Self
 
 # 3. We load the file source manually and exec it, bypassing the 'Self' import error if it persists
 # Actually, let's just try importing after mocking.

@@ -1,5 +1,5 @@
 import pytest
-from data.data_loaders import ToyDataLoader, VatexLoader, VideoStorytellingLoader, get_data_loader
+from data.data_loaders import ToyDataLoader, VatexLoader, VideoStorytellingLoader, get_data_loader, CachedDataLoader
 from data_models.captions_only import CaptionedVideo
 
 def test_toy_data_loader_from_file():
@@ -87,8 +87,10 @@ def test_get_data_loader_factory():
     story_loader = get_data_loader(story_config)
 
     # Assert
-    assert isinstance(vatex_loader, VatexLoader)
-    assert isinstance(story_loader, VideoStorytellingLoader)
+    assert isinstance(vatex_loader, CachedDataLoader)
+    assert isinstance(vatex_loader.loader, VatexLoader)
+    assert isinstance(story_loader, CachedDataLoader)
+    assert isinstance(story_loader.loader, VideoStorytellingLoader)
     with pytest.raises(NotImplementedError):
         get_data_loader(bad_config)
 
