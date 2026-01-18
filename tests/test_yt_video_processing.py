@@ -68,7 +68,15 @@ class TestYTVideoProcessing(unittest.TestCase):
         
         # Mock LLM Builder and Manager
         mock_builder = mock_builder_cls.return_value
-        mock_builder.config_response_schema.return_value = list  # Just needs to be not None
+        
+        # FIX: define a proper Pydantic model for the list items
+        from pydantic import BaseModel
+        class MockItem(BaseModel):
+            start: str
+            end: str
+            caption: str
+            
+        mock_builder.config_response_schema.return_value = list[MockItem]  # Use paramterized list
         mock_llm = Mock()
         mock_builder.from_config.return_value = mock_llm
         

@@ -5,16 +5,16 @@ import types
 
 # 1. Mock the dependencies that don't exist in this environment
 # We mock 'numpy', 'bert_score', 'torch', etc. to avoid ImportError
-sys.modules['numpy'] = MagicMock()
-sys.modules['bert_score'] = MagicMock()
-sys.modules['torch'] = MagicMock()
-sys.modules['common_utils.error_handling'] = MagicMock()
-sys.modules['data_models.captions_only'] = MagicMock()
-sys.modules['evaluations.eval_vectors'] = MagicMock()
-sys.modules['evaluations.metrics'] = MagicMock()
-sys.modules['llm.embedder'] = MagicMock()
-sys.modules['reconstruction.text_reconstruction'] = MagicMock()
-sys.modules['llm.local_embedder'] = MagicMock()
+# sys.modules['numpy'] = MagicMock()
+# sys.modules['bert_score'] = MagicMock()
+# sys.modules['torch'] = MagicMock()
+# sys.modules['common_utils.error_handling'] = MagicMock()
+# sys.modules['data_models.captions_only'] = MagicMock()
+# sys.modules['evaluations.eval_vectors'] = MagicMock()
+# sys.modules['evaluations.metrics'] = MagicMock()
+# sys.modules['llm.embedder'] = MagicMock()
+# sys.modules['reconstruction.text_reconstruction'] = MagicMock()
+# sys.modules['llm.local_embedder'] = MagicMock()
 
 # 2. Now we can import the module under test
 # But it uses 'Self' from typing, which 3.9 lacks. We monkeypatch typing.

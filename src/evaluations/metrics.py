@@ -86,7 +86,8 @@ class MetricsRecordRaw(BaseModel):
             
             # Z-score only meaningful for vectors/scalars where we have stats
             if isinstance(v, (np.ndarray, list)):
-                 metrics[k] = VectorStats.from_vector((v-global_stats[k].mean)/global_stats[k].std)
+                 val = np.array(v) if isinstance(v, list) else v
+                 metrics[k] = VectorStats.from_vector((val-global_stats[k].mean)/global_stats[k].std)
             elif isinstance(v, (float, int)):
                  # Z-score of a scalar against global dist
                  z = (v - global_stats[k].mean) / global_stats[k].std if global_stats[k].std else 0.0

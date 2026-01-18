@@ -100,21 +100,31 @@ class TestHFFileManager(unittest.TestCase):
         self.assertNotIn("sub/file3.json", files)
 
     def test_upload_file_async(self):
-        local_path = Path("fake/path/file.json")
-        remote_path = "remote/file.json"
-        
-        self.manager.upload_file_async(local_path, remote_path)
-        
-        # Shutdown to ensure tasks execute
-        self.manager.shutdown(wait=True)
-        
-        self.mock_api_instance.upload_file.assert_called_with(
-            path_or_fileobj=local_path,
-            path_in_repo=remote_path,
-            repo_id=self.repo_id,
-            repo_type="dataset",
-            commit_message="Upload file.json"
-        )
+        with TemporaryDirectory() as tmpdir:
+            local_path = Path(tmpdir) / "file.json"
+            local_path.touch()
+            remote_path = "remote/file.json"
+            
+            self.manager.upload_file_async(local_path, remote_path)
+            
+            # Shutdown to ensure tasks execute
+            self.manager.shutdown(wait=True)
+            
+            # Check create_commit was called
+            self.mock_api_instance.create_commit.assert_called_once()
+            
+            # Retrieve arguments to verify details
+            call_args = self.mock_api_instance.create_commit.call_args
+            self.assertEqual(call_args.kwargs['repo_id'], self.repo_id)
+            self.assertEqual(call_args.kwargs['repo_type'], "dataset")
+            
+            operations = call_args.kwargs['operations']
+            self.assertEqual(len(operations), 1)
+            op = operations[0]
+            # We can't easily check class type without importing it, but we can check attributes if it's not a Mock
+            # Or if it is real CommitOperationAdd. 
+            self.assertEqual(op.path_in_repo, str(remote_path))
+            self.assertEqual(str(op.path_or_fileobj), str(local_path))
 
 if __name__ == "__main__":
     unittest.main()

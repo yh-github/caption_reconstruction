@@ -93,7 +93,7 @@ class FixedFillMasking(MaskingStrategy):
         offset = 1
 
         # Clamp the width to not exceed the total number of clips
-        target_width = min(self.width, num_clips - 1) # TODO assert?
+        target_width = min(self.width, num_clips) # Fixed off-by-one
 
         while len(indices) < target_width:
             right_idx = self.start_ind + offset

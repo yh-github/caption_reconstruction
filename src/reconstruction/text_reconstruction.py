@@ -208,26 +208,31 @@ class LLMStrategy(ReconstructionStrategy):
     def _process_reconstruction_results(self, masked_video: CaptionedVideo, recon_caps: dict[int, str],
                                         llm_response_text: str) -> Reconstructed:
         """Process reconstruction results and categorize clips."""
-        ok, failed, changed_unmasked, reconstructed_dict = self._categorize_clips(masked_video, recon_caps)
+        result = self._categorize_clips(masked_video, recon_caps)
 
         debug_data = None
-        if failed or changed_unmasked:
+        if result.failed or result.changed_unmasked:
             debug_data = {
-                "ok": ok,
-                "failed": failed,
-                "changed_unmasked": changed_unmasked,
+                "ok": result.ok,
+                "failed": result.failed,
+                "changed_unmasked": result.changed_unmasked,
                 "llm_response_text": llm_response_text
             }
 
         return Reconstructed(
             video_id=masked_video.video_id,
-            reconstructed_captions=reconstructed_dict,
+            reconstructed_captions=result.reconstructed_dict,
             debug_data=debug_data
         )
 
+    class CategorizationResult(BaseModel):
+        ok: list[int] = []
+        failed: list[int] = []
+        changed_unmasked: list[int] = []
+        reconstructed_dict: dict[int, str] = {}
+
     @staticmethod
-    def _categorize_clips(masked_video: CaptionedVideo, recon_caps: dict[int, str]) -> tuple[
-        list[int], list[int], list[int], dict[int, str]]:
+    def _categorize_clips(masked_video: CaptionedVideo, recon_caps: dict[int, str]) -> "LLMStrategy.CategorizationResult":
         """Categorize clips into successful, failed, and changed categories."""
         ok = []
         failed = []
@@ -241,11 +246,16 @@ class LLMStrategy(ReconstructionStrategy):
                     reconstructed_dict[c.index] = new_cap
                 else:
                     failed.append(c.index)
-                    reconstructed_dict[c.index] = ""  # TODO check if needed, check BertScore is 0
+                    reconstructed_dict[c.index] = ""
             elif c.index in recon_caps and c.caption != recon_caps.get(c.index):
                 changed_unmasked.append(c.index)
 
-        return ok, failed, changed_unmasked, reconstructed_dict
+        return LLMStrategy.CategorizationResult(
+            ok=ok,
+            failed=failed,
+            changed_unmasked=changed_unmasked,
+            reconstructed_dict=reconstructed_dict
+        )
 
 class IterativeReconstructionStrategy(ReconstructionStrategy):
     """
@@ -378,61 +388,66 @@ class TextReconstructionStrategyBuilder:
         """
         Builds and returns a specific strategy instance based on the config.
         """
-        strategy_type = strategy_config.get("type")
-        if not strategy_type:
-            raise UserFacingError("'type' must be specified in the strategy configuration.")
+        from pydantic import TypeAdapter
+        from .config_models import StrategyConfig, LLMStrategyConfig, LocalLLMStrategyConfig, BaselineRepeatConfig
 
-        if strategy_type == "llm":
-            llm_conf = strategy_config['llm'].copy()
-            llm_conf['seed'] = llm_conf.get('seed',0)+self.master_seed
+        # Validate using Pydantic
+        try:
+            config_model = TypeAdapter(StrategyConfig).validate_python(strategy_config)
+        except Exception as e:
+           # Fallback for now or raise detailed error?
+           # Re-raising nicely
+           print(f"DEBUG: Invalid config received: {strategy_config}")
+           raise UserFacingError(f"Invalid strategy configuration: {e}")
+
+        if isinstance(config_model, LLMStrategyConfig):
+            llm_conf = config_model.llm.copy()
+            llm_conf['seed'] = llm_conf.get('seed',0) + self.master_seed
             return LLMStrategy(
-                name=strategy_config["name"],
+                name=config_model.name,
                 llm_model=self.llm_manager_builder.from_config(llm_conf),
                 prompt_builder=JSONPromptBuilder.from_config(llm_conf)
             )
 
-        elif strategy_type == "local_llm":
-            # Assuming 'local_llm' key exists in strategy_config with model params
-            model_key = strategy_config.get("model_key", "phi-3")
+        elif isinstance(config_model, LocalLLMStrategyConfig):
+            model_key = config_model.model_key
             
             # System-level decision for backend
             backend = device_setup.get_llm_backend()
-            
-            # Use tuple key for cache to distinguish backends
             cache_key = f"{model_key}_{backend}"
             
-            # Check cache/singletons to avoid reloading 7GB models
             if cache_key not in self._local_model_cache:
                 if backend == "keras_llm":
                     if KerasLLM is None:
-                        raise UserFacingError("KerasLLM backend selected (via system config or auto-detect) but dependencies not found. "
-                                              "Please install keras, keras-nlp, and jax.")
+                        raise UserFacingError("KerasLLM backend selected but dependencies not found.")
                     logging.info(f"Initializing KerasLLM for {model_key}...")
                     self._local_model_cache[cache_key] = KerasLLM(model_key=model_key, block_llm=self.block_llm)
                 else:
                     self._local_model_cache[cache_key] = HuggingFaceModelAdapter(model_key=model_key, block_llm=self.block_llm)
             
-            prompt_filename = strategy_config.get("prompt_dir", "iterative_cloze") # Expecting directory now
-            prompt_path = self.prompts_dir / prompt_filename
-            
-            # Use from_directory if it's a directory, else fallback to file
+            prompt_path = self.prompts_dir / config_model.prompt_dir
             if prompt_path.is_dir():
                 prompt_builder = ClozePromptBuilder.from_directory(prompt_path)
             else:
                 raise UserFacingError(f"Prompt directory '{prompt_path}' does not exist.")
 
+            # Convert back to dict for the strategy constructor if it expects a dict
+            # or update Strategy to take the model?
+            # Existing Strategy expects a dict 'config'
+            # We can dump model to dict
+            
             return IterativeReconstructionStrategy(
-                name=strategy_config.get("name", "LocalLLM"),
+                name=config_model.name,
                 model_adapter=self._local_model_cache[cache_key],
                 prompt_builder=prompt_builder,
-                config=strategy_config
+                config=config_model.model_dump()
             )
 
-        elif strategy_type == "baseline_repeat_last":
+        elif isinstance(config_model, BaselineRepeatConfig):
             return BaselineRepeatStrategy()
 
         else:
-            raise NotImplementedError(f"Strategy type '{strategy_type}' is not implemented.")
+            raise NotImplementedError(f"Strategy type '{config_model.type}' is not implemented.")
 
 
 class BatchGridSearchStrategy(ReconstructionStrategy):

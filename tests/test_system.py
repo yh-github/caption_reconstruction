@@ -25,9 +25,9 @@ def test_toy_data_dry_run_results(
     Tests that the dry_run method produces the correct number of experiments
     and data count for each of the toy configuration files.
     """
-    # Assume the config files are in a 'config/' subdirectory relative to the project root.
+    # Assume the config files are in a 'config/recon/' subdirectory relative to the project root.
     # Adjust this path if your structure is different.
-    config_path = Path("config") / config_filename
+    config_path = Path("config/recon") / config_filename
 
     # This is the same logic as your original script.
     ep = ExperimentPipeline.build(ExecArgs(
@@ -55,7 +55,7 @@ def test_toy_data_dry_run_results(
 )
 def test_toy_data(config_filename:str, expected_num_exps:int, expected_data_count:int):
     expected_results_dir = Path('tests/fixtures/toy_results')
-    config_path = Path("config") / config_filename
+    config_path = Path("config/recon") / config_filename
     def set_paths(conf:dict):
         conf["paths"]["results"] = "test_results"
         conf["paths"]["log_dir"] = "test_logs"

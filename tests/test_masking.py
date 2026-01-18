@@ -148,7 +148,7 @@ def test_get_indices_to_mask_invalid_start():
     Tests that the method raises a ValueError if the start_ind is out of bounds.
     """
     strategy = FixedFillMasking(width=5, start_ind=10)
-    with pytest.raises(ValueError, match="start_ind (10) must be less than num_clips (10)"):
+    with pytest.raises(ValueError, match=r"start_ind \(10\) must be less than num_clips \(10\)"):
         strategy.get_indices_to_mask(num_clips=10)
 
 
