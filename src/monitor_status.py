@@ -369,6 +369,17 @@ def tail_log(log_path: Path, n: int = 10):
     except Exception as e:
         print(f"Error reading log: {e}")
 
+def get_log_tail(log_file: Path, n: int = 50) -> list[str]:
+    """Reads the last n lines of a file."""
+    if not log_file.exists():
+        return []
+    try:
+        with open(log_file, 'r', errors='replace') as f:
+            lines = f.readlines()
+            return lines[-n:]
+    except Exception:
+        return []
+
 def check_errors(log_file: Path):
     """Scans the end of the log file for critical errors."""
     if not log_file or not log_file.exists():

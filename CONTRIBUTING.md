@@ -24,5 +24,6 @@ We are open to new ideas! Please open an issue describing the feature and its po
 Please refer to the [Setup Guide](docs/code/setup.md) to initialize your environment for development.
 
 ## Style Guide
-- We follow standard Python PEP 8 conventions.
-- Ensure all new code includes type hints.
+- We generally track PEP 8, but are not strict about it (e.g. line lengths).
+- Ensure all new code includes type hints and is readable.
+- If possible, run `black` or `flake8` before submitting, but it is not enforced by CI.
