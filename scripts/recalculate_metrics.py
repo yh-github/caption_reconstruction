@@ -8,7 +8,9 @@ import numpy as np
 import pandas as pd
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
-PHI3_DIR = "results/recon/manual_download/reconstruction/wild_dev_sim_text"
+import argparse
+
+DEFAULT_PHI3_DIR = "results/recon/manual_download/reconstruction/wild_dev_sim_text"
 OUTPUT_CSV = "results/temporal_metrics_final.csv"
 
 def matrix_from_b64(b64_str: str):
@@ -65,7 +67,7 @@ def calculate_temporal_ndcg(sim_matrix, keys):
             
     return ndcg_sum / n
 
-def process_file(filepath, width, index, video_id):
+def process_file(filepath, width, index, temp, rp, video_id):
     try:
         with open(filepath, 'r') as f:
             data = json.load(f)
@@ -118,7 +120,9 @@ def process_file(filepath, width, index, video_id):
             "phi_recall_at_1": metrics.get("recall_at_1"),
             "temporal_recall_at_1_w1": r1_w1,
             "temporal_recall_at_1_w2": r1_w2,
-            "temporal_ndcg": ndcg_temp
+            "temporal_ndcg": ndcg_temp,
+            "temperature": temp,
+            "repetition_penalty": rp
         }
         
     except Exception as e:
@@ -126,21 +130,29 @@ def process_file(filepath, width, index, video_id):
         return None
 
 def main():
+    parser = argparse.ArgumentParser(description="Recalculate temporal metrics from experiment results.")
+    parser.add_argument("--dir", type=str, default=DEFAULT_PHI3_DIR, help="Directory containing experiment results (JSON files).")
+    args = parser.parse_args()
+    phi3_dir = args.dir
+
     tasks = []
-    folder_re = re.compile(r"w=(\d+), i=(\d+)\)")
+    # Folder pattern: phi-3__t=0.1_rp=1.2__fixed_fill(w=12, i=0)
+    folder_re = re.compile(r"t=(?P<temp>[\d\.]+)_rp=(?P<rp>[\d\.]+).*w=(?P<width>\d+), i=(?P<index>\d+)\)")
     
-    print("Collecting files...")
-    for root, dirs, files in os.walk(PHI3_DIR):
+    print(f"Collecting files from {phi3_dir}...")
+    for root, dirs, files in os.walk(phi3_dir):
         match = folder_re.search(root)
         if match:
-            width = int(match.group(1))
-            index = int(match.group(2))
+            width = int(match.group('width'))
+            index = int(match.group('index'))
+            temp = float(match.group('temp'))
+            rp = float(match.group('rp'))
             
             for file in files:
                 if file.endswith(".json"):
                     vid = file.rsplit('.', 1)[0]
                     path = os.path.join(root, file)
-                    tasks.append((path, width, index, vid))
+                    tasks.append((path, width, index, temp, rp, vid))
                     
     print(f"Processing {len(tasks)} files...")
     
