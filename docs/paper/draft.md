@@ -1,15 +1,3 @@
-<script>
-  window.MathJax = {
-    tex: {
-      inlineMath: [['$', '$']]
-    }
-  };
-</script>
-
-<script type="text/javascript" async
-  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
-</script>
-
 
 # Dense caption reconstruction: video in-filling with language models
 
