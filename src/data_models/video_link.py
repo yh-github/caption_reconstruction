@@ -66,3 +66,19 @@ class VideoLinkData(BaseModel):
             ))
 
         return result
+
+from pathlib import Path
+
+class VideoLocalData(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    video_id: str
+    path: Path
+    clip_duration: float
+
+    def duration(self) -> float:
+        return self.clip_duration
+
+    def limit_duration(self, limit: float | None) -> Self:
+        if limit is None or self.clip_duration <= limit:
+            return self
+        return self.model_copy(update={'clip_duration': limit})
