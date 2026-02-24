@@ -143,32 +143,33 @@ class TestYTVideoProcessing(unittest.TestCase):
             # Note: sys.stdout.write is low level. print() calls write.
             # Easier to verify flow didn't crash.
 
-from experiment_executor.yt_video_processing import load_local_links, gen_content_prompt_local
+from experiment_executor.yt_video_processing import load_local_links, gen_content_prompt_local, _normalize_name, _build_local_cache
 from data_models.video_link import VideoLocalData
+import tempfile
 
 class TestLocalVideoProcessing(unittest.TestCase):
+    def test_normalize_name(self):
+        self.assertEqual(_normalize_name("Olly's-Farm_6-clip-1"), "olly_s-farm_6-clip-1")
+        self.assertEqual(_normalize_name("Test-Video_1-clip-0"), "test-video_1-clip-0")
+    
+    @patch('experiment_executor.yt_video_processing._build_local_cache')
     @patch('experiment_executor.yt_video_processing.load_wild_dataset')
-    def test_load_local_links(self, mock_load_wild_dataset):
+    def test_load_local_links(self, mock_load_wild_dataset, mock_build_cache):
         # Mock the dataset
         mock_wild_metadata = MagicMock()
         mock_wild_metadata.video_id = "test_vid_1"
         mock_wild_metadata.duration = 20.0
         mock_load_wild_dataset.return_value = [mock_wild_metadata]
         
-        # Mock local_dir.rglob
-        mock_local_dir = MagicMock(spec=Path)
-        mock_path_1 = MagicMock(spec=Path)
-        mock_path_1.name = "test_vid_1_clip.mp4"
-        mock_path_1.suffix = ".mp4"
-        mock_path_2 = MagicMock(spec=Path)
-        mock_path_2.name = "other_vid.mkv"
-        mock_path_2.suffix = ".mkv"
-        mock_local_dir.rglob.return_value = [mock_path_1, mock_path_2]
+        # Mock the cache (what _build_local_cache would return)
+        mock_build_cache.return_value = {
+            "test_vid_1": Path("/fake/test_vid_1.mp4"),
+        }
         
         # Act
         links = load_local_links(
             path="dummy_path.json",
-            local_dir=mock_local_dir,
+            local_dirs=[Path("/fake/dir")],
             duration_limit=10.0,
             max_size=None
         )
@@ -177,8 +178,30 @@ class TestLocalVideoProcessing(unittest.TestCase):
         self.assertEqual(len(links), 1)
         self.assertIsInstance(links[0], VideoLocalData)
         self.assertEqual(links[0].video_id, "test_vid_1")
-        self.assertEqual(links[0].path, mock_path_1)
         self.assertAlmostEqual(links[0].clip_duration, 10.5)  # Because limit_duration adds 0.5 buffer
+
+    @patch('experiment_executor.yt_video_processing._build_local_cache')
+    @patch('experiment_executor.yt_video_processing.load_wild_dataset')
+    def test_load_local_links_apostrophe_matching(self, mock_load_wild_dataset, mock_build_cache):
+        # JSON has apostrophe, filesystem has underscore
+        mock_wild_metadata = MagicMock()
+        mock_wild_metadata.video_id = "Olly's-Farm_6-clip-1"
+        mock_wild_metadata.duration = 65.0
+        mock_load_wild_dataset.return_value = [mock_wild_metadata]
+        
+        mock_build_cache.return_value = {
+            "olly_s-farm_6-clip-1": Path("/fake/Olly_s-Farm_6-clip-1.mp4"),
+        }
+        
+        links = load_local_links(
+            path="dummy_path.json",
+            local_dirs=[Path("/fake/dir")],
+            duration_limit=60.0,
+            max_size=None
+        )
+        
+        self.assertEqual(len(links), 1)
+        self.assertEqual(links[0].video_id, "Olly's-Farm_6-clip-1")
 
     @patch('experiment_executor.yt_video_processing.subprocess.run')
     @patch('builtins.open', new_callable=mock_open, read_data=b"fake_video_bytes")

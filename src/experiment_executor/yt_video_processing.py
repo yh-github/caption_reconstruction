@@ -110,9 +110,26 @@ def load_wild_links(
         print('Error:', e)
         sys.exit(-1)
 
+def _normalize_name(name: str) -> str:
+    """Normalize video name for matching: apostrophes -> underscores, lowercase."""
+    return name.replace("'", "_").lower()
+
+def _build_local_cache(local_dirs: list[Path]) -> dict[str, Path]:
+    """Build a dict mapping normalized stem -> Path for all video files in given directories."""
+    cache = {}
+    for local_dir in local_dirs:
+        for root, _dirs, files in os.walk(local_dir):
+            for f in files:
+                if Path(f).suffix.lower() in ['.mp4', '.mkv', '.webm']:
+                    stem = Path(f).stem
+                    normalized = _normalize_name(stem)
+                    if normalized not in cache:
+                        cache[normalized] = Path(root) / f
+    return cache
+
 def load_local_links(
     path: str | Path,
-    local_dir: Path,
+    local_dirs: list[Path],
     duration_limit: float | None,
     max_size: int | None
 ) -> list[VideoLocalData]:
@@ -121,25 +138,30 @@ def load_local_links(
         vs = list(load_wild_dataset(path))
         links = []
         
-        # Pre-cache local file paths to avoid doing rglob per video
-        all_videos = list(local_dir.rglob("*.*"))
-        video_paths_cache = [p for p in all_videos if p.suffix.lower() in ['.mp4', '.mkv', '.webm']]
+        # Build a normalized-stem -> path lookup across all local dirs
+        video_paths_cache = _build_local_cache(local_dirs)
+        logging.info(f"Local video cache: {len(video_paths_cache)} files from {len(local_dirs)} directories")
         
+        not_found = []
         for v in vs:
             video_id = v.video_id
-            found_paths = [p for p in video_paths_cache if video_id in p.name]
+            normalized_id = _normalize_name(video_id)
             
-            if not found_paths:
-                logging.warning(f"Could not find local file for {video_id}")
+            if normalized_id not in video_paths_cache:
+                not_found.append(video_id)
                 continue
                 
-            local_path = found_paths[0]
+            local_path = video_paths_cache[normalized_id]
             vl = VideoLocalData(
                 video_id=video_id,
                 path=local_path,
                 clip_duration=v.duration
             )
             links.append(vl)
+        
+        if not_found:
+            logging.warning(f"Could not find local files for {len(not_found)} video_ids (out of {len(vs)}). "
+                            f"First 5: {not_found[:5]}")
             
         if duration_limit:
             links = [x.limit_duration(duration_limit + 0.5) for x in links if x.duration() >= duration_limit]
@@ -214,13 +236,27 @@ def main(args):
     data_conf = config["data_config"]
     duration_limit = data_conf.get("duration_limit")
     
-    args_local_dir = getattr(args, "local_dir", None)
-    local_dir = Path(args_local_dir) if args_local_dir else None
-    if local_dir and local_dir.exists():
-        logging.info(f"Using local video directory: {local_dir}")
+    # local_dir can be a single string or a list of strings (in config or CLI)
+    local_dir_conf = data_conf.get("local_dir")
+    if not local_dir_conf:
+        local_dir_conf = getattr(args, "local_dir", None)
+
+    # Normalize to a list of Paths
+    if isinstance(local_dir_conf, str):
+        local_dirs = [Path(local_dir_conf)]
+    elif isinstance(local_dir_conf, list):
+        local_dirs = [Path(p) for p in local_dir_conf]
+    else:
+        local_dirs = []
+    
+    # Filter to existing directories
+    local_dirs = [d for d in local_dirs if d.exists()]
+    
+    if local_dirs:
+        logging.info(f"Using local video directories: {local_dirs}")
         links = load_local_links(
             path=data_conf["path"],
-            local_dir=local_dir,
+            local_dirs=local_dirs,
             duration_limit=duration_limit,
             max_size=data_conf["limit"]
         )
