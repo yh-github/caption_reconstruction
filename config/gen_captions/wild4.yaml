@@ -4,12 +4,12 @@ base_params:
 data_config:
   name: "wildQA"
   path: "datasets/wildQA/dev.json"
-  limit: 1
+  limit: 1000
   duration_limit: 60
   local_dir:
     - "local/wild_videos_raw/Videos1/"
     - "local/wild_videos_raw/Videos2/"
-  out_path: "datasets/wildQA/captions_new/"
+  out_path: "datasets/wildQA/captions/"
 
 llm:
   model_name: "gemini-3-flash-preview"
