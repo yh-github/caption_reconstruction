@@ -142,3 +142,73 @@ class TestYTVideoProcessing(unittest.TestCase):
             print_calls = [c[0][0] for c in mock_stdout.write.call_args_list if isinstance(c[0][0], str)]
             # Note: sys.stdout.write is low level. print() calls write.
             # Easier to verify flow didn't crash.
+
+from experiment_executor.yt_video_processing import load_local_links, gen_content_prompt_local
+from data_models.video_link import VideoLocalData
+
+class TestLocalVideoProcessing(unittest.TestCase):
+    @patch('experiment_executor.yt_video_processing.load_wild_dataset')
+    def test_load_local_links(self, mock_load_wild_dataset):
+        # Mock the dataset
+        mock_wild_metadata = MagicMock()
+        mock_wild_metadata.video_id = "test_vid_1"
+        mock_wild_metadata.duration = 20.0
+        mock_load_wild_dataset.return_value = [mock_wild_metadata]
+        
+        # Mock local_dir.rglob
+        mock_local_dir = MagicMock(spec=Path)
+        mock_path_1 = MagicMock(spec=Path)
+        mock_path_1.name = "test_vid_1_clip.mp4"
+        mock_path_1.suffix = ".mp4"
+        mock_path_2 = MagicMock(spec=Path)
+        mock_path_2.name = "other_vid.mkv"
+        mock_path_2.suffix = ".mkv"
+        mock_local_dir.rglob.return_value = [mock_path_1, mock_path_2]
+        
+        # Act
+        links = load_local_links(
+            path="dummy_path.json",
+            local_dir=mock_local_dir,
+            duration_limit=10.0,
+            max_size=None
+        )
+        
+        # Assert
+        self.assertEqual(len(links), 1)
+        self.assertIsInstance(links[0], VideoLocalData)
+        self.assertEqual(links[0].video_id, "test_vid_1")
+        self.assertEqual(links[0].path, mock_path_1)
+        self.assertAlmostEqual(links[0].clip_duration, 10.5)  # Because limit_duration adds 0.5 buffer
+
+    @patch('experiment_executor.yt_video_processing.subprocess.run')
+    @patch('builtins.open', new_callable=mock_open, read_data=b"fake_video_bytes")
+    @patch('experiment_executor.yt_video_processing.os.remove')
+    @patch('experiment_executor.yt_video_processing.os.path.exists', return_value=True)
+    def test_gen_content_prompt_local(self, mock_exists, mock_remove, mock_file_open, mock_subprocess_run):
+        # Setup
+        vl = VideoLocalData(video_id="test_vid_1", path=Path("/tmp/test.mp4"), clip_duration=5.0)
+        
+        # Act
+        prompt = "Describe video"
+        content = gen_content_prompt_local(vl, prompt, fps=2)
+        
+        # Assert
+        # Check subprocess.run called with correct ffmpeg args
+        mock_subprocess_run.assert_called_once()
+        cmd_args = mock_subprocess_run.call_args[0][0]
+        self.assertEqual(cmd_args[0], 'ffmpeg')
+        self.assertIn('-i', cmd_args)
+        self.assertIn('/tmp/test.mp4', cmd_args)
+        self.assertIn('-t', cmd_args)
+        self.assertIn('5.0', cmd_args)
+        
+        # Check returned content structure
+        self.assertEqual(len(content.parts), 2)
+        
+        video_part = content.parts[0]
+        self.assertEqual(video_part.inline_data.mime_type, 'video/mp4')
+        self.assertEqual(video_part.inline_data.data, b"fake_video_bytes")
+        self.assertEqual(video_part.video_metadata.fps, 2)
+        
+        text_part = content.parts[1]
+        self.assertEqual(text_part.text, "Describe video")
