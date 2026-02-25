@@ -235,3 +235,110 @@ class TestLocalVideoProcessing(unittest.TestCase):
         
         text_part = content.parts[1]
         self.assertEqual(text_part.text, "Describe video")
+
+
+class TestVideoLocalDataDedup(unittest.TestCase):
+    """Test that VideoLocalData (frozen=True) deduplicates correctly in sets."""
+
+    def test_identical_objects_are_equal_and_hash_same(self):
+        a = VideoLocalData(video_id="vid1", path=Path("/fake/vid1.mp4"), clip_duration=60.0)
+        b = VideoLocalData(video_id="vid1", path=Path("/fake/vid1.mp4"), clip_duration=60.0)
+        self.assertEqual(a, b)
+        self.assertEqual(hash(a), hash(b))
+        self.assertEqual(len({a, b}), 1)
+
+    def test_different_duration_are_not_equal(self):
+        a = VideoLocalData(video_id="vid1", path=Path("/fake/vid1.mp4"), clip_duration=60.0)
+        b = VideoLocalData(video_id="vid1", path=Path("/fake/vid1.mp4"), clip_duration=90.0)
+        self.assertNotEqual(a, b)
+        self.assertEqual(len({a, b}), 2)
+
+
+class TestLoadLocalLinksDedup(unittest.TestCase):
+    """Test deduplication in load_local_links."""
+
+    @patch('experiment_executor.yt_video_processing._build_local_cache')
+    @patch('experiment_executor.yt_video_processing.load_wild_dataset')
+    def test_duplicate_entries_are_deduped(self, mock_load_wild, mock_build_cache):
+        """Same video_id appearing multiple times (same duration) should produce one link."""
+        entry1 = MagicMock()
+        entry1.video_id = "clip_A"
+        entry1.duration = 65.0
+
+        entry2 = MagicMock()
+        entry2.video_id = "clip_A"
+        entry2.duration = 65.0
+
+        entry3 = MagicMock()
+        entry3.video_id = "clip_B"
+        entry3.duration = 70.0
+
+        mock_load_wild.return_value = [entry1, entry2, entry3]
+        mock_build_cache.return_value = {
+            "clip_a": Path("/fake/clip_A.mp4"),
+            "clip_b": Path("/fake/clip_B.mp4"),
+        }
+
+        links = load_local_links(
+            path="dummy.json",
+            local_dirs=[Path("/fake/dir")],
+            duration_limit=60.0,
+            max_size=None,
+        )
+
+        video_ids = [l.video_id for l in links]
+        self.assertEqual(sorted(video_ids), ["clip_A", "clip_B"])
+
+    @patch('experiment_executor.yt_video_processing._build_local_cache')
+    @patch('experiment_executor.yt_video_processing.load_wild_dataset')
+    def test_no_duplicates_passes_through(self, mock_load_wild, mock_build_cache):
+        """All unique video_ids should pass through unchanged."""
+        entries = []
+        for i in range(3):
+            e = MagicMock()
+            e.video_id = f"vid_{i}"
+            e.duration = 65.0
+            entries.append(e)
+
+        mock_load_wild.return_value = entries
+        mock_build_cache.return_value = {
+            f"vid_{i}": Path(f"/fake/vid_{i}.mp4") for i in range(3)
+        }
+
+        links = load_local_links(
+            path="dummy.json",
+            local_dirs=[Path("/fake/dir")],
+            duration_limit=60.0,
+            max_size=None,
+        )
+
+        self.assertEqual(len(links), 3)
+
+    @patch('experiment_executor.yt_video_processing._build_local_cache')
+    @patch('experiment_executor.yt_video_processing.load_wild_dataset')
+    def test_same_video_id_different_duration_triggers_assert(self, mock_load_wild, mock_build_cache):
+        """Same video_id but different durations → set keeps both → assert fires."""
+        entry1 = MagicMock()
+        entry1.video_id = "clip_X"
+        entry1.duration = 60.0
+
+        entry2 = MagicMock()
+        entry2.video_id = "clip_X"
+        entry2.duration = 90.0  # different duration!
+
+        mock_load_wild.return_value = [entry1, entry2]
+        mock_build_cache.return_value = {
+            "clip_x": Path("/fake/clip_X.mp4"),
+        }
+
+        # The assert inside load_local_links should fire because
+        # 1 unique video_id but 2 unique VideoLocalData objects in the set.
+        # load_local_links catches all exceptions and calls sys.exit(-1),
+        # so we expect SystemExit.
+        with self.assertRaises(SystemExit):
+            load_local_links(
+                path="dummy.json",
+                local_dirs=[Path("/fake/dir")],
+                duration_limit=None,
+                max_size=None,
+            )

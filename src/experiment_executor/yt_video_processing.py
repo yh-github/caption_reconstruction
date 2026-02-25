@@ -159,13 +159,18 @@ def load_local_links(
             )
             links.append(vl)
         
+        # Deduplicate — same pattern as to_yt_links
+        _links = set(links)
+        _v_ids = {x.video_id for x in links}
+        assert len(_v_ids) == len(_links), f"video_id uniqueness mismatch: {len(_v_ids)} ids vs {len(_links)} unique links"
+        links = list(_links)
         if not_found:
             logging.warning(f"Could not find local files for {len(not_found)} video_ids (out of {len(vs)}). "
                             f"First 5: {not_found[:5]}")
             
         if duration_limit:
             links = [x.limit_duration(duration_limit + 0.5) for x in links if x.duration() >= duration_limit]
-            
+
         links.sort(key=lambda x: x.video_id)
         if max_size:
             return links[:max_size]
