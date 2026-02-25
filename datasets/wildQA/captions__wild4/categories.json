@@ -1,0 +1,158 @@
+{
+  "4k-Relaxation_12-clip-6": {
+    "predicted_domain": "Geography",
+    "ground_truth_domain": "Geography",
+    "correct": true,
+    "scores": {
+      "Military": 1,
+      "Human Survival": 15,
+      "Geography": 71,
+      "Agriculture": 0,
+      "Natural Disaster": 0
+    }
+  },
+  "4k-Relaxation_3-clip-4": {
+    "predicted_domain": "Geography",
+    "ground_truth_domain": "Geography",
+    "correct": true,
+    "scores": {
+      "Military": 0,
+      "Human Survival": 39,
+      "Geography": 52,
+      "Agriculture": 0,
+      "Natural Disaster": 0
+    }
+  },
+  "AiirSource-Military_1-clip-0": {
+    "predicted_domain": "Human Survival",
+    "ground_truth_domain": "Military",
+    "correct": false,
+    "scores": {
+      "Military": 7,
+      "Human Survival": 18,
+      "Geography": 0,
+      "Agriculture": 0,
+      "Natural Disaster": 1
+    }
+  },
+  "AiirSource-Military_12-manual": {
+    "predicted_domain": "Military",
+    "ground_truth_domain": "Military",
+    "correct": true,
+    "scores": {
+      "Military": 21,
+      "Human Survival": 15,
+      "Geography": 0,
+      "Agriculture": 1,
+      "Natural Disaster": 0
+    }
+  },
+  "AiirSource-Military_7-clip-1": {
+    "predicted_domain": "Military",
+    "ground_truth_domain": "Military",
+    "correct": true,
+    "scores": {
+      "Military": 61,
+      "Human Survival": 3,
+      "Geography": 12,
+      "Agriculture": 0,
+      "Natural Disaster": 0
+    }
+  },
+  "Army-military-2018_8-clip-73": {
+    "predicted_domain": "Military",
+    "ground_truth_domain": "Military",
+    "correct": true,
+    "scores": {
+      "Military": 30,
+      "Human Survival": 0,
+      "Geography": 5,
+      "Agriculture": 3,
+      "Natural Disaster": 6
+    }
+  },
+  "BC-Bushcraft_11-clip-31": {
+    "predicted_domain": "Human Survival",
+    "ground_truth_domain": "Human Survival",
+    "correct": true,
+    "scores": {
+      "Military": 0,
+      "Human Survival": 36,
+      "Geography": 2,
+      "Agriculture": 0,
+      "Natural Disaster": 0
+    }
+  },
+  "BC-Bushcraft_2-clip-2": {
+    "predicted_domain": "Geography",
+    "ground_truth_domain": "Human Survival",
+    "correct": false,
+    "scores": {
+      "Military": 0,
+      "Human Survival": 8,
+      "Geography": 10,
+      "Agriculture": 0,
+      "Natural Disaster": 1
+    }
+  },
+  "BC-Bushcraft_9-clip-5": {
+    "predicted_domain": "Human Survival",
+    "ground_truth_domain": "Human Survival",
+    "correct": true,
+    "scores": {
+      "Military": 0,
+      "Human Survival": 49,
+      "Geography": 0,
+      "Agriculture": 2,
+      "Natural Disaster": 0
+    }
+  },
+  "Bertram-Craft_12-clip-25": {
+    "predicted_domain": "Human Survival",
+    "ground_truth_domain": "Human Survival",
+    "correct": true,
+    "scores": {
+      "Military": 0,
+      "Human Survival": 20,
+      "Geography": 3,
+      "Agriculture": 0,
+      "Natural Disaster": 0
+    }
+  },
+  "Bertram-Craft_2-clip-3": {
+    "predicted_domain": "Human Survival",
+    "ground_truth_domain": "Human Survival",
+    "correct": true,
+    "scores": {
+      "Military": 0,
+      "Human Survival": 14,
+      "Geography": 0,
+      "Agriculture": 0,
+      "Natural Disaster": 0
+    }
+  },
+  "Bertram-Craft_5-clip-33": {
+    "predicted_domain": "Human Survival",
+    "ground_truth_domain": "Human Survival",
+    "correct": true,
+    "scores": {
+      "Military": 0,
+      "Human Survival": 47,
+      "Geography": 0,
+      "Agriculture": 0,
+      "Natural Disaster": 0
+    }
+  },
+  "Chad-Zuber_10-clip-20": {
+    "predicted_domain": "Human Survival",
+    "ground_truth_domain": "Human Survival",
+    "correct": true,
+    "scores": {
+      "Military": 0,
+      "Human Survival": 31,
+      "Geography": 8,
+      "Agriculture": 0,
+      "Natural Disaster": 0
+    }
+  }
+}
