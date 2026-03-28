@@ -1,0 +1,52 @@
+exception: !!python/object:common_utils.error_handling.ExceptionStr
+  __dict__:
+    message: Bad LLM Response for Weathershot_7-clip-0
+    traceback:
+    - "  File \"/home/yoavh/code/antigravity/caption_reconstruction/src/experiment_executor/yt_video_processing.py\"\
+      , line 378, in main\n    assert res and res.text, f\"Bad LLM Response for {x.video_id}\"\
+      \n           ^^^^^^^^^^^^^^^^\n"
+    type: AssertionError
+  __pydantic_extra__: {}
+  __pydantic_fields_set__: !!set
+    message: null
+    traceback: null
+    type: null
+  __pydantic_private__: null
+llm_response: '{"exception":{"type":"ServerError","message":"503 UNAVAILABLE. {''error'':
+  {''code'': 503, ''message'': ''This model is currently experiencing high demand.
+  Spikes in demand are usually temporary. Please try again later.'', ''status'': ''UNAVAILABLE''}}","traceback":["  File
+  \"/home/yoavh/code/antigravity/caption_reconstruction/src/llm/llm_interaction.py\",
+  line 143, in _call_retry\n    raw_response = self._invoke_llm(prompt)\n","  File
+  \"/home/yoavh/code/antigravity/caption_reconstruction/.venv/lib/python3.13/site-packages/google/api_core/retry/retry_unary.py\",
+  line 294, in retry_wrapped_func\n    return retry_target(\n        target,\n    ...<3
+  lines>...\n        on_error=on_error,\n    )\n","  File \"/home/yoavh/code/antigravity/caption_reconstruction/.venv/lib/python3.13/site-packages/google/api_core/retry/retry_unary.py\",
+  line 156, in retry_target\n    next_sleep = _retry_error_helper(\n        exc,\n    ...<6
+  lines>...\n        timeout,\n    )\n","  File \"/home/yoavh/code/antigravity/caption_reconstruction/.venv/lib/python3.13/site-packages/google/api_core/retry/retry_base.py\",
+  line 214, in _retry_error_helper\n    raise final_exc from source_exc\n","  File
+  \"/home/yoavh/code/antigravity/caption_reconstruction/.venv/lib/python3.13/site-packages/google/api_core/retry/retry_unary.py\",
+  line 147, in retry_target\n    result = target()\n","  File \"/home/yoavh/code/antigravity/caption_reconstruction/src/llm/llm_interaction.py\",
+  line 130, in _invoke_llm\n    return self._llm_client.models.generate_content(\n           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^\n        model=self._model_name,\n        ^^^^^^^^^^^^^^^^^^^^^^^\n        contents=prompt,\n        ^^^^^^^^^^^^^^^^\n        config=self._llm_config\n        ^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n","  File
+  \"/home/yoavh/code/antigravity/caption_reconstruction/.venv/lib/python3.13/site-packages/google/genai/models.py\",
+  line 6138, in generate_content\n    response = self._generate_content(\n        model=model,
+  contents=contents, config=parsed_config\n    )\n","  File \"/home/yoavh/code/antigravity/caption_reconstruction/.venv/lib/python3.13/site-packages/google/genai/models.py\",
+  line 4959, in _generate_content\n    response = self._api_client.request(\n        ''post'',
+  path, request_dict, http_options\n    )\n","  File \"/home/yoavh/code/antigravity/caption_reconstruction/.venv/lib/python3.13/site-packages/google/genai/_api_client.py\",
+  line 1266, in request\n    response = self._request(http_request, http_options,
+  stream=False)\n","  File \"/home/yoavh/code/antigravity/caption_reconstruction/.venv/lib/python3.13/site-packages/google/genai/_api_client.py\",
+  line 1086, in _request\n    return self._retry(self._request_once, http_request,
+  stream)  # type: ignore[no-any-return]\n           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n","  File
+  \"/home/yoavh/code/antigravity/caption_reconstruction/.venv/lib/python3.13/site-packages/tenacity/__init__.py\",
+  line 477, in __call__\n    do = self.iter(retry_state=retry_state)\n","  File \"/home/yoavh/code/antigravity/caption_reconstruction/.venv/lib/python3.13/site-packages/tenacity/__init__.py\",
+  line 378, in iter\n    result = action(retry_state)\n","  File \"/home/yoavh/code/antigravity/caption_reconstruction/.venv/lib/python3.13/site-packages/tenacity/__init__.py\",
+  line 420, in exc_check\n    raise retry_exc.reraise()\n          ~~~~~~~~~~~~~~~~~^^\n","  File
+  \"/home/yoavh/code/antigravity/caption_reconstruction/.venv/lib/python3.13/site-packages/tenacity/__init__.py\",
+  line 187, in reraise\n    raise self.last_attempt.result()\n          ~~~~~~~~~~~~~~~~~~~~~~~~^^\n","  File
+  \"/usr/lib/python3.13/concurrent/futures/_base.py\", line 449, in result\n    return
+  self.__get_result()\n           ~~~~~~~~~~~~~~~~~^^\n","  File \"/usr/lib/python3.13/concurrent/futures/_base.py\",
+  line 401, in __get_result\n    raise self._exception\n","  File \"/home/yoavh/code/antigravity/caption_reconstruction/.venv/lib/python3.13/site-packages/tenacity/__init__.py\",
+  line 480, in __call__\n    result = fn(*args, **kwargs)\n","  File \"/home/yoavh/code/antigravity/caption_reconstruction/.venv/lib/python3.13/site-packages/google/genai/_api_client.py\",
+  line 1063, in _request_once\n    errors.APIError.raise_for_response(response)\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^\n","  File
+  \"/home/yoavh/code/antigravity/caption_reconstruction/.venv/lib/python3.13/site-packages/google/genai/errors.py\",
+  line 107, in raise_for_response\n    raise ServerError(status_code, response_json,
+  response)\n"]}}'
+video_id: Weathershot_7-clip-0

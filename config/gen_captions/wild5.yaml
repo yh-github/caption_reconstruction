@@ -1,0 +1,21 @@
+base_params:
+  master_seed: 0x5EED
+
+data_config:
+  name: "wildQA"
+  path: "datasets/wildQA/test.json"
+  limit: 1000
+  duration_limit: 60
+  local_dir:
+    - "local/wild_videos_raw/Videos1/"
+    - "local/wild_videos_raw/Videos2/"
+  out_path: "datasets/wildQA/captions/"
+
+llm:
+  model_name: "gemini-3-flash-preview"
+  system_instructions: null
+  temperature: 0.8
+  thought_budget: -1
+  response_schema: "list[CaptionedInterval]"
+  prompt_template: "prompts/yt_video_processing/one_minute.txt"
+  fps: 1
