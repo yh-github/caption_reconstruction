@@ -81,14 +81,25 @@ Experiments are defined using YAML files in the `config/` directory.
 - `config/system.yaml`: Defines system-level paths (cache, datasets).
 - `config/recon/`: Contains specific reconstruction experiment configurations.
 
-## 📚 Documentation
+## 📚 Documentation Index
 
-For more detailed information, please refer to the documentation in `docs/code/`:
+Comprehensive documentation is organized under the [`docs/`](docs/) directory:
 
-- **[Setup Guide](docs/code/setup.md)**: Detailed instructions on environment and directory setup.
-- **[Execution Guide](docs/code/execution.md)**: Comprehensive guide on running experiments and using helper scripts.
-- **[Caching & Reproducibility](docs/code/caching.md)**: Explanation of the disk cache system, file locking, and how to verify experiments without API costs.
-- **[Batch Processing](docs/code/batch_processing.md)**: Details on heterogeneous batch processing for parameter sweeps.
+### 🛠️ Codebase & Pipeline Guides
+* **[Project Overview](docs/code/overview.md)**: Architecture overview, component breakdown, and directory structure.
+* **[Setup Guide](docs/code/setup.md)**: Environment initialization, dependency setup, and dataset caching.
+* **[Execution Guide](docs/code/execution.md)**: Detailed command-line execution, flags (`--dry-run`, `--block-llm`, `--eval-only`), and helper scripts reference.
+* **[Configuration Reference Guide](docs/code/configuration.md)**: Complete guide to YAML configuration parameters, dataset options, masking schemes (`contiguous`, `fixed_fill`, `random`, `partition`), reconstruction strategies (`llm`, `local_llm`, `vector`), and evaluation metrics.
+* **[Outputs and Results Guide](docs/code/outputs_and_results.md)**: Breakdown of output directory structures (`results/recon/`, `results/for_analysis/`), per-run CSV column definitions, z-score metrics, and master aggregated correlation datasets.
+* **[Caching & Reproducibility](docs/code/caching.md)**: Explanation of the disk cache system, file locking, and how to verify experiments without API costs.
+* **[Batch Processing](docs/code/batch_processing.md)**: Details on heterogeneous batch processing for parameter sweeps.
+
+### 📄 Paper & Research Specs
+* **[Paper Draft](docs/paper/draft.md)**: Current manuscript draft and methodological background.
+* **[Experiments Plan](docs/paper/experiments_plan.md)**: Research design, baseline comparisons, and hypothesis testing roadmap.
+* **[Dataset Taxonomy](docs/paper/dataset_taxonomy.md)**: Categorization of video domains across procedural and stochastic axes.
+* **[Temperature Impact Analysis](docs/paper/analysis_temperature_impact.md)**: Analysis of LLM sampling temperature effects on reconstruction quality.
+
 
 ## 📂 Project Structure
 
