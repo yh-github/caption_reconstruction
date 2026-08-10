@@ -54,7 +54,9 @@ class Executor:
         check_git_repository_is_clean(ignore_risk=self.pipeline.exec_args.should_ignore_unsafe())
         mlflow_uri = self.pipeline.config['paths']['mlflow_tracking_uri']
 
-        with FileLock(self.pipeline.config['paths'].get("lock", ".lock")):
+        lock_base = self.pipeline.config['paths'].get("lock", ".lock")
+        worker_lock = f"{lock_base}_w{self.pipeline.exec_args.worker_id}"
+        with FileLock(worker_lock):
             setup_mlflow(experiment_name=self.pipeline.experiment_name, tracking_uri=mlflow_uri)
             with mlflow.start_run(run_name=self.pipeline.parent_run_name) as parent_run, self.pipeline.cache:
                 self._setup_execution(parent_run.info, mlflow_uri)
