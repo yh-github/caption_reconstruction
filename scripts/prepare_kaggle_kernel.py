@@ -114,9 +114,9 @@ if num_gpus > 1:
     print(f"=== Launching {{num_gpus}} Parallel Workers (1 per GPU) ===")
     processes = []
     for i in range(num_gpus):
-        env = dict(os.environ, CUDA_VISIBLE_DEVICES=str(i))
+        env = dict(os.environ, CUDA_VISIBLE_DEVICES=str(i), PYTHONUNBUFFERED="1")
         cmd = [
-            sys.executable, "src/main.py",
+            sys.executable, "-u", "src/main.py",
             "{args.config}",
             "--worker-id", str(i),
             "--total-workers", str(num_gpus),
