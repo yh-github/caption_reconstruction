@@ -84,9 +84,9 @@ print("Logged into Hugging Face via provided HF_TOKEN successfully.")
         hf_token_code = '''
 # Load HF_TOKEN from Kaggle Secrets or environment if available
 try:
-    from kaggle_secrets import KaggleSecrets
-    secrets = KaggleSecrets()
-    hf_token = secrets.get_secret("HF_TOKEN")
+    from kaggle_secrets import UserSecretsClient
+    user_secrets = UserSecretsClient()
+    hf_token = user_secrets.get_secret("HF_TOKEN")
     if hf_token:
         from huggingface_hub import login
         login(token=hf_token)
