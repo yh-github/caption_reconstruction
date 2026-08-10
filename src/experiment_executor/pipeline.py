@@ -156,6 +156,7 @@ class ExperimentPipeline(ABC):
                     import shutil
                     import tempfile
                     logging.info(f"Checking for remote results to sync at {self.result_path}...")
+                    print(f"[Pipeline Worker {self.exec_args.worker_id}/{self.exec_args.total_workers}] Prefetching existing results from Hugging Face...", flush=True)
                     
                     with tempfile.TemporaryDirectory() as tmp_dir:
                         tmp_path = Path(tmp_dir)
