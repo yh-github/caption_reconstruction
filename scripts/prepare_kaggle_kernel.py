@@ -27,10 +27,10 @@ def main():
         "code_file": "run_kaggle.py",
         "language": "python",
         "kernel_type": "script",
-        "is_private": "true",
-        "enable_gpu": "true",
+        "is_private": True,
+        "enable_gpu": True,
         "accelerator": "nvidiaTeslaT4",
-        "enable_internet": "true",
+        "enable_internet": True,
         "dataset_sources": [],
         "competition_sources": [],
         "kernel_sources": []
