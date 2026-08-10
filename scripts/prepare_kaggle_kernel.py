@@ -62,8 +62,8 @@ def main():
         "kernel_type": "script",
         "is_private": True,
         "enable_gpu": True,
-        "accelerator": "nvidiaTeslaT4",
         "enable_internet": True,
+        "machine_shape": "t4X2" if args.multi_gpu else "nvidiaTeslaT4",
         "dataset_sources": [],
         "competition_sources": [],
         "kernel_sources": []
