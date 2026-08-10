@@ -91,7 +91,7 @@ class Executor:
             log_dir=self.pipeline.config['paths']['log_dir'],
             run_id=parent_run_info.run_id,
             tz_str=self.pipeline.config.get('tz', None),
-            console_level=self.pipeline.exec_args.log_level(logging.WARNING),
+            console_level=logging.INFO if (self.pipeline.exec_args.verbose or self.pipeline.exec_args.debug) else logging.WARNING,
             base_level=self.pipeline.exec_args.log_level(logging.INFO)
         )
         self.log_path = log_path
