@@ -122,6 +122,7 @@ if num_gpus > 1:
             "--worker-id", str(i),
             "--total-workers", str(num_gpus),
             "--max-runtime-hours", "{args.max_runtime_hours}",
+            "--no-download-existing",
             "--verbose"
         ]
         print(f"Starting Worker {{i}} on GPU {{i}} (CUDA_VISIBLE_DEVICES={{i}})...")
