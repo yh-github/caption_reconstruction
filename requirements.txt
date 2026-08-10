@@ -43,6 +43,7 @@ argcomplete~=3.6.2
 argparse~=1.4.0
 dict-path~=1.1.1
 gdown~=5.2.0
+kaggle>=2.0.0
 
 # --- Testing ---
 pytest==8.4.1
