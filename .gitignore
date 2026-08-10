@@ -5,10 +5,13 @@ __pycache__/
 
 # Distribution / Installation
 *.egg-info/
+*.dist-info/
 .eggs/
 dist/
 build/
 *.egg
+__editable__*.py
+_editable_impl_*.py
 
 # MLflow
 /mlruns/

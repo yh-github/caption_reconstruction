@@ -123,6 +123,7 @@ if num_gpus > 1:
             "--total-workers", str(num_gpus),
             "--max-runtime-hours", "{args.max_runtime_hours}",
             "--no-download-existing",
+            "--ignore-unsafe",
             "--verbose"
         ]
         print(f"Starting Worker {{i}} on GPU {{i}} (CUDA_VISIBLE_DEVICES={{i}})...")
@@ -147,7 +148,8 @@ else:
         "{args.config}",
         "--worker-id", "0",
         "--total-workers", "1",
-        "--max-runtime-hours", "{args.max_runtime_hours}"
+        "--max-runtime-hours", "{args.max_runtime_hours}",
+        "--ignore-unsafe"
     ]
     print(f"Executing command: {{' '.join(cmd)}}")
     subprocess.check_call(cmd)
@@ -160,7 +162,8 @@ cmd = [
     "{args.config}",
     "--worker-id", "{args.worker_id}",
     "--total-workers", "{args.total_workers}",
-    "--max-runtime-hours", "{args.max_runtime_hours}"
+    "--max-runtime-hours", "{args.max_runtime_hours}",
+    "--ignore-unsafe"
 ]
 
 print(f"Executing command: {{' '.join(cmd)}}")
