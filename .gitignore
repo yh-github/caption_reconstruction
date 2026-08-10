@@ -51,3 +51,6 @@ debug_config_validation.py
 
 # Workspace
 *.code-workspace
+
+# Generated Kaggle Kernels
+kaggle_kernel*/

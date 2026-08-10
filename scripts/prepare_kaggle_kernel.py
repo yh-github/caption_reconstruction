@@ -8,6 +8,7 @@ def main():
     parser.add_argument("--config", type=str, required=True, help="Path to experiment config (e.g. config/embs_vs_slms/wild4_sim_text.yaml)")
     parser.add_argument("--worker-id", type=int, default=0, help="Worker ID for dataset partitioning (default: 0)")
     parser.add_argument("--total-workers", type=int, default=1, help="Total number of workers (default: 1)")
+    parser.add_argument("--hf-token", type=str, default=None, help="Hugging Face write token (injected into generated kernel)")
     parser.add_argument("--max-runtime-hours", type=float, default=8.0, help="Max runtime before graceful exit (default: 8.0)")
     parser.add_argument("--username", type=str, default="kaggle_user", help="Your Kaggle username")
     parser.add_argument("--output-dir", type=str, default=None, help="Directory to create (default: kaggle_kernel_w{worker_id})")
@@ -38,6 +39,31 @@ def main():
     with open(output_dir / "kernel-metadata.json", "w") as f:
         json.dump(metadata, f, indent=2)
 
+    hf_token_code = ""
+    if args.hf_token:
+        hf_token_code = f'''
+# Login to HF via CLI argument
+from huggingface_hub import login
+login(token="{args.hf_token}")
+print("Logged into Hugging Face via provided HF_TOKEN successfully.")
+'''
+    else:
+        hf_token_code = '''
+# Load HF_TOKEN from Kaggle Secrets or environment if available
+try:
+    from kaggle_secrets import KaggleSecrets
+    secrets = KaggleSecrets()
+    hf_token = secrets.get_secret("HF_TOKEN")
+    if hf_token:
+        from huggingface_hub import login
+        login(token=hf_token)
+        print("Logged into Hugging Face via Kaggle Secrets successfully.")
+    else:
+        print("Warning: 'HF_TOKEN' key not found in Kaggle Secrets.")
+except Exception as e:
+    print(f"Note: Could not retrieve HF_TOKEN from Kaggle Secrets: {e}")
+'''
+
     # 2. run_kaggle.py
     run_kaggle_content = f'''#!/usr/bin/env python
 import os
@@ -64,21 +90,7 @@ os.chdir(REPO_DIR)
 print("Installing dependencies...")
 subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements_colab.txt"])
 subprocess.check_call([sys.executable, "-m", "pip", "install", "-e", ".", "--no-deps"])
-
-# Load HF_TOKEN from Kaggle Secrets if available
-try:
-    from kaggle_secrets import KaggleSecrets
-    secrets = KaggleSecrets()
-    hf_token = secrets.get_secret("HF_TOKEN")
-    if hf_token:
-        from huggingface_hub import login
-        login(token=hf_token)
-        print("Logged into Hugging Face via Kaggle Secrets successfully.")
-    else:
-        print("Warning: 'HF_TOKEN' key not found in Kaggle Secrets.")
-except Exception as e:
-    print(f"Note: Could not retrieve HF_TOKEN from Kaggle Secrets: {{e}}")
-
+{hf_token_code}
 # Launch Main Pipeline
 cmd = [
     sys.executable, "src/main.py",
