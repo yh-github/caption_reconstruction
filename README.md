@@ -94,6 +94,9 @@ Comprehensive documentation is organized under the [`docs/`](docs/) directory:
 * **[Caching & Reproducibility](docs/code/caching.md)**: Explanation of the disk cache system, file locking, and how to verify experiments without API costs.
 * **[Batch Processing](docs/code/batch_processing.md)**: Details on heterogeneous batch processing for parameter sweeps.
 
+### 📊 Dataset Quality Audit Reports
+* **[Dataset Audit Index](docs/data/audit_captions/README.md)**: Dataset quality, duplication, and ad phrase audit reports for caption datasets (`wild1` through `wild5`).
+
 ### 📄 Paper & Research Specs
 * **[Paper Draft](docs/paper/draft.md)**: Current manuscript draft and methodological background.
 * **[Experiments Plan](docs/paper/experiments_plan.md)**: Research design, baseline comparisons, and hypothesis testing roadmap.

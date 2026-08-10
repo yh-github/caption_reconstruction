@@ -35,6 +35,11 @@ Explore the detailed documentation guides:
 * `config/`: Configuration files (YAML) for experiments and system settings.
 * `datasets/`: Input caption datasets.
 * `local/`: Local pre-computed video embedding datasets.
+* `docs/`: Documentation, paper drafts, and dataset quality reports.
+  * `docs/code/`: Pipeline and architecture documentation guides.
+  * `docs/data/audit_captions/`: Dataset quality, duplication, and ad screening reports (`wild1` through `wild5`).
+  * `docs/paper/`: Manuscript draft, taxonomy, and research specifications.
 * `results/`: Output directories for timestamped run results, analysis CSVs, and master aggregated datasets.
 * `disk_cache/`: Persistent disk caching for LLM responses and embeddings.
 * `mlruns/`: MLflow experiment tracking database.
+

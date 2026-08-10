@@ -48,3 +48,6 @@ coverage_report.txt
 debug_config_validation.py
 .agents/skills/literature_search_arxiv
 .agents/skills/literature_search_openalex
+
+# Workspace
+*.code-workspace

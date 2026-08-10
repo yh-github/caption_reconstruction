@@ -1,9 +1,22 @@
 # TODO
 
-## Wild4 Dataset Audit
+## Dataset Quality Audits & Captions Status
 
-- [ ] **Re-run duplication & mislabeling check once wild4 captioning is complete.**
-  - Currently only 34/95 files have been generated in `datasets/wildQA/captions__wild4/`.
-  - Initial audit (2026-02-25) found **no duplication or mislabeling** in the partial data — all 34 files have unique content that matches their channel names.
-  - However, the channels most responsible for duplicates in the old dataset (`Survival-Instinct`, `Weathershot`, `Primal-Earth-Sounds`, `King-Kong-Amazon`) have **zero files** in wild4 so far. These need to be verified once generated.
-  - See `docs/paper/dataset_taxonomy.md` for the original duplication clusters found in the old data.
+- [x] **wild4 Captions Generation & Audit**: **100% Complete** (100/100 clips generated in `datasets/wildQA/captions__wild4/`).
+  - Quality Audit: [`docs/data/audit_captions/audit_wild4_results.md`](file:///home/yoavh/code/antigravity/caption_reconstruction/docs/data/audit_captions/audit_wild4_results.md) (0 duplicate clusters found, 79% domain accuracy).
+- [x] **wild5 Captions Generation & Audit**: **100% Complete** (109/109 clips generated in `datasets/wildQA/captions__wild5/`).
+  - Quality Audit: [`docs/data/audit_captions/audit_wild5_results.md`](file:///home/yoavh/code/antigravity/caption_reconstruction/docs/data/audit_captions/audit_wild5_results.md) (0 duplicate clusters found, 77.1% domain accuracy).
+
+## Downstream Reconstruction Experiments
+
+
+- [ ] **Run reconstruction experiments on wild4 dataset** (`datasets/wildQA/captions__wild4/`)
+  - [ ] Create experiment configs for SLM (Phi-3) and LLM (Gemini Pro) on `wild4`.
+  - [ ] Run benchmark evaluation sweeps and compile CSV metrics into `results/for_analysis/`.
+  - [ ] Sync result artifacts to HuggingFace dataset `Y3/dense_video_captions`.
+
+- [ ] **Run reconstruction experiments on wild5 dataset** (`datasets/wildQA/captions__wild5/`)
+  - [ ] Create experiment configs for SLM (Phi-3) and LLM (Gemini Pro) on `wild5`.
+  - [ ] Run benchmark evaluation sweeps and compile CSV metrics into `results/for_analysis/`.
+  - [ ] Sync result artifacts to HuggingFace dataset `Y3/dense_video_captions`.
+
