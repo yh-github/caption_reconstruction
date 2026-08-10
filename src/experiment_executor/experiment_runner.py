@@ -89,6 +89,7 @@ class ExperimentRunner:
     def run(self) -> list[MetricsRecordRaw]:
         """Runs the full experiment from data loading to evaluation."""
         import time
+        print(f"[Worker {self.worker_id}/{self.total_workers}] Checking Hugging Face remote state and loading data...", flush=True)
         self._sync_hf_state()
         
         self._save_path.mkdir(parents=True, exist_ok=True)
