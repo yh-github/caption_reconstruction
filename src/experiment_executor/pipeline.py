@@ -395,7 +395,10 @@ class ExperimentPipeline_Reconstruction(ExperimentPipeline):
                                 hf_manager=self.hf_manager,
                                 config_stem=config.get("__parent_run_name__", "default"),
                                 eval_only=self.exec_args.eval_only,
-                                no_download_existing=self.exec_args.no_download_existing
+                                no_download_existing=self.exec_args.no_download_existing,
+                                worker_id=self.exec_args.worker_id,
+                                total_workers=self.exec_args.total_workers,
+                                max_runtime_hours=self.exec_args.max_runtime_hours
                             )
                             runners.append(runner)
                             
@@ -407,7 +410,10 @@ class ExperimentPipeline_Reconstruction(ExperimentPipeline):
                             data_loader=self.data_loader,
                             masking_strategy=masker,
                             evaluator=self.evaluator,
-                            no_download_existing=self.exec_args.no_download_existing
+                            no_download_existing=self.exec_args.no_download_existing,
+                            worker_id=self.exec_args.worker_id,
+                            total_workers=self.exec_args.total_workers,
+                            max_runtime_hours=self.exec_args.max_runtime_hours
                         )
 
                     else:
@@ -434,7 +440,10 @@ class ExperimentPipeline_Reconstruction(ExperimentPipeline):
                                     hf_manager=self.hf_manager,
                                     config_stem=config.get("__parent_run_name__", "default"),
                                     eval_only=self.exec_args.eval_only,
-                                    no_download_existing=self.exec_args.no_download_existing
+                                    no_download_existing=self.exec_args.no_download_existing,
+                                    worker_id=self.exec_args.worker_id,
+                                    total_workers=self.exec_args.total_workers,
+                                    max_runtime_hours=self.exec_args.max_runtime_hours
                                 )
                                 yield runner
                             except TypeError:

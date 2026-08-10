@@ -1,0 +1,49 @@
+base_params:
+  master_seed: 2025
+  experiment_type: "recon"
+
+evaluation:
+  type: "emb_retrieval"
+  embedding_model: "local:all-mpnet-base-v2"
+
+data_config:
+  name: "wild_captions"
+  path: "datasets/wildQA/captions__wild5/"
+
+recon_strategy:
+  - name: "phi-3__t=0.1_rp=1.2"
+    type: "local_llm"
+    model_key: "phi-3"
+    prompt_dir: "iterative_cloze"
+    temperature: 0.1
+    repetition_penalty: 1.2
+
+  - name: "phi-3__t=1.0_rp=1.2"
+    type: "local_llm"
+    model_key: "phi-3"
+    prompt_dir: "iterative_cloze"
+    temperature: 1.0
+    repetition_penalty: 1.2
+
+  - name: "phi-3__t=1.5_rp=1.2"
+    type: "local_llm"
+    model_key: "phi-3"
+    prompt_dir: "iterative_cloze"
+    temperature: 1.5
+    repetition_penalty: 1.2
+
+  - name: "phi-3__t=1.0_rp=1.0"
+    type: "local_llm"
+    model_key: "phi-3"
+    prompt_dir: "iterative_cloze"
+    temperature: 1.0
+    repetition_penalty: 1.0
+
+  - name: "phi-3__t=0.6_rp=1.2"
+    type: "local_llm"
+    model_key: "phi-3"
+    prompt_dir: "iterative_cloze"
+    temperature: 0.6
+    repetition_penalty: 1.2
+
+IMPORT masking_configs: masking_fill.yaml

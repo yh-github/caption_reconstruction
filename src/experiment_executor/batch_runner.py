@@ -1,6 +1,7 @@
+from __future__ import annotations
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 from data.data_loaders import BaseDataLoader
 from data_models.captions_only import CaptionedVideo
 from evaluations.evaluation import ReconstructionEvaluator
@@ -23,8 +24,16 @@ class BatchExperimentRunner:
         data_loader: BaseDataLoader,
         masking_strategy: MaskingStrategy,
         evaluator: ReconstructionEvaluator,
-        no_download_existing: bool = False
+        no_download_existing: bool = False,
+        worker_id: int = 0,
+        total_workers: int = 1,
+        max_runtime_hours: float | None = None
     ):
+        if total_workers < 1:
+            raise ValueError(f"total_workers must be >= 1, got {total_workers}")
+        if not (0 <= worker_id < total_workers):
+            raise ValueError(f"worker_id must be in range [0, {total_workers-1}], got {worker_id}")
+
         self.run_name = base_run_name
         self.runners = runners
         self.batch_strategy = batch_strategy
@@ -32,6 +41,9 @@ class BatchExperimentRunner:
         self._masking_strategy = masking_strategy
         self.evaluator = evaluator
         self.no_download_existing = no_download_existing
+        self.worker_id = worker_id
+        self.total_workers = total_workers
+        self.max_runtime_hours = max_runtime_hours
         self.conf_for_log = {'batch_size': len(runners), 'runners': [r.run_name for r in runners]}
         
         # Batch runner doesn't have a single remote path, as it manages multiple runners.
@@ -44,6 +56,7 @@ class BatchExperimentRunner:
             self.remote_run_path = f"reconstruction/batch_empty/{base_run_name}"
 
     def run(self) -> list[MetricsRecordRaw]:
+        import time
         # Initialize all sub-runners (create dirs, sync HF, etc)
         for runner in self.runners:
             runner._sync_hf_state()
@@ -52,7 +65,20 @@ class BatchExperimentRunner:
         all_videos: list[CaptionedVideo] = self.data_loader.load()
         all_metrics: list[MetricsRecordRaw] = []
 
-        for video in all_videos:
+        start_time = time.time()
+        for idx, video in enumerate(all_videos):
+            if (idx % self.total_workers) != self.worker_id:
+                continue
+
+            if self.max_runtime_hours is not None:
+                elapsed_hours = (time.time() - start_time) / 3600.0
+                if elapsed_hours >= self.max_runtime_hours:
+                    logging.warning(
+                        f"BatchRunner [{self.run_name}]: Reached max runtime limit of "
+                        f"{self.max_runtime_hours}h (elapsed: {elapsed_hours:.2f}h). Exiting loop cleanly."
+                    )
+                    break
+
             metrics = self._process_single_video_batch(video)
             all_metrics.extend(metrics)
 

@@ -120,3 +120,26 @@ def clear_cache():
         torch.cuda.empty_cache()
     # XLA doesn't exactly have an empty_cache equivalent in the same way, 
     # but memory management is handled by the XLA runtime.
+
+def calculate_optimal_batch_size(requested_batch_size: int, default_min: int = 1, gb_per_sequence: float = 1.5) -> int:
+    """
+    Dynamically computes optimal batch size based on available GPU VRAM.
+    Defaults to requested_batch_size on CPU, TPU, or if CUDA mem_get_info is unavailable.
+    """
+    if requested_batch_size <= 1:
+        return max(default_min, requested_batch_size)
+
+    if not is_cuda():
+        return requested_batch_size
+
+    try:
+        free_bytes, total_bytes = torch.cuda.mem_get_info()
+        free_vram_gb = free_bytes / (1024 ** 3)
+        safe_batch = max(default_min, int(free_vram_gb // gb_per_sequence))
+        optimal = max(default_min, min(requested_batch_size, safe_batch))
+        logger.debug(f"Dynamic VRAM Batch Sizing: free_vram={free_vram_gb:.2f}GB -> batch_size={optimal} (requested={requested_batch_size})")
+        return optimal
+    except Exception as e:
+        logger.warning(f"Could not query CUDA memory info ({e}). Using requested batch size {requested_batch_size}")
+        return requested_batch_size
+

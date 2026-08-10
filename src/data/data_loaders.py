@@ -150,7 +150,7 @@ class WildLoader(BaseDataLoader):
     def load(self, limit: int | None = None) -> list[CaptionedVideo]:
         logging.info(f"Loading from Wild Video Captions dataset at: {self.data_path} {self.limit=}")
 
-        filenames = sorted(list(self.data_path.glob('*.json')))
+        filenames = sorted([f for f in self.data_path.glob('*.json') if f.name != 'categories.json'])
         _limit = limit or self.limit
         if _limit:
             filenames = filenames[:_limit]

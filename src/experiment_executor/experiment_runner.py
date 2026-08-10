@@ -1,6 +1,7 @@
+from __future__ import annotations
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 from data.data_loaders import BaseDataLoader
 from data_models.captions_only import CaptionedVideo
 from evaluations.evaluation import ReconstructionEvaluator
@@ -26,8 +27,16 @@ class ExperimentRunner:
         hf_manager: Any = None, # Optional HFFileManager
         config_stem: str = "",
         eval_only: bool = False,
-        no_download_existing: bool = False
+        no_download_existing: bool = False,
+        worker_id: int = 0,
+        total_workers: int = 1,
+        max_runtime_hours: float | None = None
     ):
+        if total_workers < 1:
+            raise ValueError(f"total_workers must be >= 1, got {total_workers}")
+        if not (0 <= worker_id < total_workers):
+            raise ValueError(f"worker_id must be in range [0, {total_workers-1}], got {worker_id}")
+
         self.run_name = run_name
         self.data_loader = data_loader
         self._masking_strategy = masking_strategy
@@ -38,6 +47,9 @@ class ExperimentRunner:
         self.hf_manager = hf_manager
         self.eval_only = eval_only
         self.no_download_existing = no_download_existing
+        self.worker_id = worker_id
+        self.total_workers = total_workers
+        self.max_runtime_hours = max_runtime_hours
         
         self.remote_run_path = f"reconstruction/{config_stem}/{run_name}"
         
@@ -76,13 +88,27 @@ class ExperimentRunner:
 
     def run(self) -> list[MetricsRecordRaw]:
         """Runs the full experiment from data loading to evaluation."""
+        import time
         self._sync_hf_state()
         
         self._save_path.mkdir(parents=True, exist_ok=True)
         all_videos:list[CaptionedVideo] = self.data_loader.load()
         all_metrics:list[MetricsRecordRaw] = []
 
-        for video in all_videos:
+        start_time = time.time()
+        for idx, video in enumerate(all_videos):
+            if (idx % self.total_workers) != self.worker_id:
+                continue
+
+            if self.max_runtime_hours is not None:
+                elapsed_hours = (time.time() - start_time) / 3600.0
+                if elapsed_hours >= self.max_runtime_hours:
+                    logging.warning(
+                        f"ExperimentRunner [{self.run_name}]: Reached max runtime limit of "
+                        f"{self.max_runtime_hours}h (elapsed: {elapsed_hours:.2f}h). Exiting loop cleanly."
+                    )
+                    break
+
             if metric := self._process_single_video(video):
                 all_metrics.append(metric)
 

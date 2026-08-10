@@ -520,21 +520,28 @@ class BatchGridSearchStrategy(ReconstructionStrategy):
             if not prompts:
                 continue
                 
-            # 4. Run Batch Inference
+            # 4. Run Batch Inference with Dynamic VRAM Micro-Batching
             # Gather params for the active batch
             active_temps = [self.temperatures[i] for i in valid_batch_indices]
             active_pens = [self.penalties[i] for i in valid_batch_indices]
             
-            # Simple max token heuristic: use default
-            # A more complex one would be max(computed_max for all)
+            from common_utils.device_setup import calculate_optimal_batch_size
+            micro_batch_size = calculate_optimal_batch_size(len(valid_batch_indices))
             
             try:
-                responses = self.model_adapter.generate_batch(
-                    messages_list=prompts,
-                    temperatures=active_temps,
-                    penalties=active_pens,
-                    max_new_tokens=self.default_max_new_tokens
-                )
+                responses = []
+                for b_start in range(0, len(valid_batch_indices), micro_batch_size):
+                    sub_prompts = prompts[b_start : b_start + micro_batch_size]
+                    sub_temps = active_temps[b_start : b_start + micro_batch_size]
+                    sub_pens = active_pens[b_start : b_start + micro_batch_size]
+                    
+                    sub_responses = self.model_adapter.generate_batch(
+                        messages_list=sub_prompts,
+                        temperatures=sub_temps,
+                        penalties=sub_pens,
+                        max_new_tokens=self.default_max_new_tokens
+                    )
+                    responses.extend(sub_responses)
                 
                 # 5. Update States
                 for local_i, global_i in enumerate(valid_batch_indices):
