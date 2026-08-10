@@ -170,6 +170,7 @@ import os
 import sys
 import subprocess
 
+os.environ["MLFLOW_ALLOW_FILE_STORE"] = "true"
 print("=== Starting Kaggle Caption Reconstruction Execution ===")
 print(f"Python: {{sys.executable}}")
 print(f"Config: {args.config}")

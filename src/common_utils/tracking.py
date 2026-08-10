@@ -122,6 +122,7 @@ def setup_mlflow(
     Sets up the MLflow experiment and logs all specified parameters.
     All dependencies are now explicit arguments.
     """
+    os.environ["MLFLOW_ALLOW_FILE_STORE"] = "true"
     logging.info("Setting up MLflow and logging parameters...")
     mlflow.set_tracking_uri(tracking_uri)
     mlflow.set_experiment(experiment_name=experiment_name)
