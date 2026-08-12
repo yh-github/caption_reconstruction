@@ -91,15 +91,18 @@ class BatchExperimentRunner:
         # Check each runner to see if it already has a result
         for i, runner in enumerate(self.runners):
              filename = runner._filename(video.video_id)
+             skip_filename = f"skip__{filename}"
              result_file = runner._save_path / filename
+             skip_file = runner._save_path / skip_filename
              
-             # If result exists locally, we don't need to run it (unless eval-only mode, but ignoring for now)
-             # Also check remote? For now using runner's internal check logic would be complex 
-             # because runner.run() does it all.
-             # We reproduce the check logic here briefly:
-             
-             exists_locally = result_file.exists()
-             exists_remotely = runner.hf_manager and filename in runner.remote_files
+             exists_locally = result_file.exists() or skip_file.exists()
+             target_remote_filename = None
+             if runner.hf_manager:
+                 if filename in runner.remote_files:
+                     target_remote_filename = filename
+                 elif skip_filename in runner.remote_files:
+                     target_remote_filename = skip_filename
+             exists_remotely = target_remote_filename is not None
              
              if not exists_locally and not exists_remotely:
                  active_indices.append(i)
@@ -110,9 +113,10 @@ class BatchExperimentRunner:
                  
                  # Try download
                  # If download fails, add to active
-                 logging.info(f"BatchRunner: Downloading {video.video_id} for {runner.run_name}...")
-                 remote_path = f"{runner.remote_run_path}/{filename}"
-                 if runner.hf_manager.download_file(remote_path, result_file):
+                 logging.info(f"BatchRunner: Downloading {video.video_id} ({target_remote_filename}) for {runner.run_name}...")
+                 remote_path = f"{runner.remote_run_path}/{target_remote_filename}"
+                 target_local = skip_file if target_remote_filename.startswith("skip__") else result_file
+                 if runner.hf_manager.download_file(remote_path, target_local):
                      continue # Done
                  else:
                      active_indices.append(i)
@@ -127,8 +131,14 @@ class BatchExperimentRunner:
         # 3. Mask Video (Shared)
         masked_video, masked_indices = self._masking_strategy.mask_video(video)
         if not masked_video:
-             # Logic for "skip" or "error" needs to apply to all active runners
-             # For simplicity, we skip this video for now or return error record
+             logging.warning(f"BatchRunner: Not masking video {video.video_id} size={len(video.clips)} with {self._masking_strategy}")
+             from reconstruction.text_reconstruction import ReconstructionStrategy
+             for i in active_indices:
+                 runner = self.runners[i]
+                 runner._save_result(ReconstructionStrategy.create_error_result(
+                     video_id=video.video_id,
+                     error_message=f"NOT_MASKING: invalid masking bounds for num_clips={len(video.clips)}"
+                 ))
              return []
 
         # 4. Run Batch Inference
@@ -183,6 +193,11 @@ class BatchExperimentRunner:
     def _load_all_metrics(self, video) -> list[MetricsRecordRaw]:
         res = []
         for runner in self.runners:
-             if m := runner._load_existing_result(video, runner._save_path / runner._filename(video.video_id)):
+             filename = runner._filename(video.video_id)
+             skip_filename = f"skip__{filename}"
+             target_file = runner._save_path / filename
+             if not target_file.exists() and (runner._save_path / skip_filename).exists():
+                 target_file = runner._save_path / skip_filename
+             if m := runner._load_existing_result(video, target_file):
                  res.append(m)
         return res

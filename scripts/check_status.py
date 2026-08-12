@@ -28,10 +28,12 @@ def check_runner(runner, all_videos, verbose=False):
     
     for video in all_videos:
         filename = runner._filename(video.video_id)
+        skip_filename = f"skip__{filename}"
         local_path = runner._save_path / filename
+        local_skip_path = runner._save_path / skip_filename
         
-        is_local = local_path.exists()
-        is_remote = runner.hf_manager and filename in runner.remote_files
+        is_local = local_path.exists() or local_skip_path.exists()
+        is_remote = runner.hf_manager and (filename in runner.remote_files or skip_filename in runner.remote_files)
         
         if is_local:
             done_local += 1

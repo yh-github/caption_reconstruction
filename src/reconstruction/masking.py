@@ -1,3 +1,4 @@
+import logging
 import random
 from abc import ABC, abstractmethod
 
@@ -41,7 +42,11 @@ class MaskingStrategy(ABC):
         pass
 
     def mask_video(self, video: CaptionedVideo) -> tuple[None, None] | tuple[CaptionedVideo, set[int]]:
-        indices_to_mask: set = self.get_indices_to_mask(len(video.clips))
+        try:
+            indices_to_mask: set = self.get_indices_to_mask(len(video.clips))
+        except ValueError as e:
+            logging.warning(f"Masking strategy {self} cannot be applied to video {video.video_id} (num_clips={len(video.clips)}): {e}")
+            return None, None
         if not indices_to_mask:
             return None, None
         masked_clips = self.mask_list(video.clips, indices_to_mask)

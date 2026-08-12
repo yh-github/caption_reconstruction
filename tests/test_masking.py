@@ -163,3 +163,16 @@ def test_get_indices_to_mask_with_zero_clips():
     # A valid case where the result should be empty
     strategy_valid = FixedFillMasking(width=5, start_ind=0)
     assert strategy_valid.get_indices_to_mask(num_clips=1) == {0}
+
+
+def test_mask_video_out_of_bounds_returns_none(captions_of_length):
+    """
+    Tests that mask_video returns (None, None) gracefully when start_ind is out of bounds for a video.
+    """
+    from data_models.captions_only import CaptionedVideo
+    video = CaptionedVideo(video_id="v_short", clips=captions_of_length(10))
+    strategy = FixedFillMasking(width=3, start_ind=59)
+
+    masked_video, masked_indices = strategy.mask_video(video)
+    assert masked_video is None
+    assert masked_indices is None

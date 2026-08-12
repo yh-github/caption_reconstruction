@@ -128,22 +128,36 @@ class ExperimentRunner:
         - Runs new experiment if needed
         """
         filename = self._filename(video.video_id)
+        skip_filename = f"skip__{filename}"
         result_file = self._save_path / filename
+        skip_file = self._save_path / skip_filename
 
         # 1. Check Local
         if result_file.exists():
             return self._load_existing_result(video, result_file)
+        if skip_file.exists():
+            return self._load_existing_result(video, skip_file)
             
         # 2. Check Remote (HF)
-        if self.hf_manager and filename in self.remote_files:
+        target_remote_filename = None
+        target_local_file = None
+        if self.hf_manager:
+            if filename in self.remote_files:
+                target_remote_filename = filename
+                target_local_file = result_file
+            elif skip_filename in self.remote_files:
+                target_remote_filename = skip_filename
+                target_local_file = skip_file
+
+        if target_remote_filename:
             if self.no_download_existing:
-                logging.info(f"Video {video.video_id} found in HF Cache (Remote). Skipping download (--no-download-existing).")
+                logging.info(f"Video {video.video_id} found in HF Cache (Remote: {target_remote_filename}). Skipping download (--no-download-existing).")
                 return None
 
-            logging.info(f"Video {video.video_id} found in HF Cache. Downloading...")
-            remote_path = f"{self.remote_run_path}/{filename}"
-            if self.hf_manager.download_file(remote_path, result_file):
-                 return self._load_existing_result(video, result_file)
+            logging.info(f"Video {video.video_id} found in HF Cache ({target_remote_filename}). Downloading...")
+            remote_path = f"{self.remote_run_path}/{target_remote_filename}"
+            if self.hf_manager.download_file(remote_path, target_local_file):
+                 return self._load_existing_result(video, target_local_file)
             else:
                  logging.warning(f"Failed to download {video.video_id} from HF despite listing. Re-computing.")
 
