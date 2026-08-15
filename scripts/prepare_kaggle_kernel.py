@@ -43,6 +43,7 @@ def main():
     parser.add_argument("--max-runtime-hours", type=float, default=8.0, help="Max runtime before graceful exit (default: 8.0)")
     parser.add_argument("--username", type=str, default=default_username, help="Your Kaggle username")
     parser.add_argument("--output-dir", type=str, default=None, help="Directory to create (default: local/kaggle_kernel_multi_gpu or local/kaggle_kernel_w{worker_id})")
+    parser.add_argument("--override", type=str, nargs="+", default=[], help="Config key value pairs to override (e.g. masking_configs/0/width=[3])")
 
     args = parser.parse_args()
 
@@ -98,6 +99,11 @@ except Exception as e:
     print(f"Note: Could not retrieve HF_TOKEN from Kaggle Secrets: {e}")
 '''
 
+    override_flags = ""
+    if args.override:
+        formatted_overrides = " ".join([f'"{o}"' for o in args.override])
+        override_flags = f', "--override", {", ".join([repr(o) for o in args.override])}'
+
     if args.multi_gpu:
         launch_code = f'''
 # Auto-detect available GPUs and launch 1 parallel worker per GPU
@@ -124,7 +130,7 @@ if num_gpus > 1:
             "--max-runtime-hours", "{args.max_runtime_hours}",
             "--no-download-existing",
             "--ignore-unsafe",
-            "--verbose"
+            "--verbose"{override_flags}
         ]
         print(f"Starting Worker {{i}} on GPU {{i}} (CUDA_VISIBLE_DEVICES={{i}})...")
         p = subprocess.Popen(cmd, env=env)
@@ -149,7 +155,7 @@ else:
         "--worker-id", "0",
         "--total-workers", "1",
         "--max-runtime-hours", "{args.max_runtime_hours}",
-        "--ignore-unsafe"
+        "--ignore-unsafe"{override_flags}
     ]
     print(f"Executing command: {{' '.join(cmd)}}")
     subprocess.check_call(cmd)
@@ -163,7 +169,7 @@ cmd = [
     "--worker-id", "{args.worker_id}",
     "--total-workers", "{args.total_workers}",
     "--max-runtime-hours", "{args.max_runtime_hours}",
-    "--ignore-unsafe"
+    "--ignore-unsafe"{override_flags}
 ]
 
 print(f"Executing command: {{' '.join(cmd)}}")

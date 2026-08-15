@@ -1,0 +1,54 @@
+base_params:
+  master_seed: 2025
+  experiment_type: "recon"
+
+evaluation:
+  type: "emb_retrieval"
+  embedding_model: "local:all-mpnet-base-v2"
+
+data_config:
+  name: "wild_captions"
+  path: "datasets/wildQA/captions__wild4/"
+
+recon_strategy:
+  - name: "phi-3_v2__t=0.1_rp=1.2"
+    type: "local_llm"
+    model_key: "phi-3"
+    prompt_dir: "iterative_cloze_v2"
+    temperature: 0.1
+    repetition_penalty: 1.2
+    length_multiplier: 1.3
+    min_tokens: 12
+    max_tokens_cap: 35
+
+  - name: "phi-3_v2__t=0.6_rp=1.2"
+    type: "local_llm"
+    model_key: "phi-3"
+    prompt_dir: "iterative_cloze_v2"
+    temperature: 0.6
+    repetition_penalty: 1.2
+    length_multiplier: 1.3
+    min_tokens: 12
+    max_tokens_cap: 35
+
+  - name: "phi-3_v2__t=1.0_rp=1.2"
+    type: "local_llm"
+    model_key: "phi-3"
+    prompt_dir: "iterative_cloze_v2"
+    temperature: 1.0
+    repetition_penalty: 1.2
+    length_multiplier: 1.3
+    min_tokens: 12
+    max_tokens_cap: 35
+
+  - name: "phi-3_v2__t=1.0_rp=1.0"
+    type: "local_llm"
+    model_key: "phi-3"
+    prompt_dir: "iterative_cloze_v2"
+    temperature: 1.0
+    repetition_penalty: 1.0
+    length_multiplier: 1.3
+    min_tokens: 12
+    max_tokens_cap: 35
+
+IMPORT masking_configs: masking_fill_w3.yaml

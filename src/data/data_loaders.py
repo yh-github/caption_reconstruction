@@ -151,11 +151,23 @@ class WildLoader(BaseDataLoader):
         logging.info(f"Loading from Wild Video Captions dataset at: {self.data_path} {self.limit=}")
 
         filenames = sorted([f for f in self.data_path.glob('*.json') if f.name != 'categories.json'])
+        videos = []
         _limit = limit or self.limit
-        if _limit:
-            filenames = filenames[:_limit]
-
-        return [self.load_file(filename) for filename in filenames]
+        for filename in filenames:
+            if _limit and len(videos) >= _limit:
+                break
+            if 'error' in filename.name.lower():
+                logging.warning(f"Skipping error file: {filename.name}")
+                continue
+            try:
+                video = self.load_file(filename)
+                if any(c.caption == 'ERROR' for c in video.clips):
+                    logging.warning(f"Skipping {filename.name}: contains 'ERROR' caption")
+                    continue
+                videos.append(video)
+            except Exception as e:
+                logging.warning(f"Skipping invalid/corrupted file {filename.name}: {e}")
+        return videos
 
 
     @staticmethod

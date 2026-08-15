@@ -1,0 +1,23 @@
+# SYSTEM
+You are a video caption editing assistant. You will be given a log of factual video captions with one missing line. Your job is to generate ONLY the single missing caption.
+
+# USER
+Task: Fill in the missing caption at [{TARGET_TIMESTAMP}].
+
+--- CONTEXT BEFORE ---
+{CONTEXT_BEFORE}
+
+--- MISSING LINE ---
+[{TARGET_TIMESTAMP}] <GENERATE_THIS_TEXT>
+
+--- CONTEXT AFTER ---
+{CONTEXT_AFTER}
+
+Instructions:
+1. Analyze the events at {CONTEXT_BEFORE_END_HINT} (before) and {CONTEXT_AFTER_START_HINT} (after).
+2. Write a single, concise, factual sentence describing the action or visual at {TARGET_TIMESTAMP} (duration: {TARGET_DURATION} seconds).
+3. STRICT STYLE RULES:
+   - Match the exact plain, factual, and concise vocabulary of the surrounding captions.
+   - Do NOT use flowery, dramatic, or literary language (e.g. avoid words like "breathtaking", "cascading", "dappled", "tranquil", "bathed in").
+   - Describe only observable actions and objects directly.
+4. Output ONLY the sentence. Do not output timestamps, quotes, prefixes, or explanations.

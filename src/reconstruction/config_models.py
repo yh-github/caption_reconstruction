@@ -15,6 +15,9 @@ class LocalLLMStrategyConfig(BaseStrategyConfig):
     temperature: float = 0.2
     repetition_penalty: float = 1.2
     max_new_tokens: int = 60
+    length_multiplier: float = 2.5
+    min_tokens: int = 20
+    max_tokens_cap: int = 100
     
     # Catch-all for extra fields needed for IterativeReconstructionStrategy
     extra_params: dict[str, Any] = Field(default_factory=dict)

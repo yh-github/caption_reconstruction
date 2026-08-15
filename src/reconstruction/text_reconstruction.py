@@ -269,7 +269,10 @@ class IterativeReconstructionStrategy(ReconstructionStrategy):
         self.config = config
         self.temperature = config.get("temperature", 0.2)
         self.repetition_penalty = config.get("repetition_penalty", 1.2)
-        self.default_max_new_tokens = config.get("max_new_tokens", 60) 
+        self.default_max_new_tokens = config.get("max_new_tokens", 60)
+        self.length_multiplier = config.get("length_multiplier", 2.5)
+        self.min_tokens = config.get("min_tokens", 20)
+        self.max_tokens_cap = config.get("max_tokens_cap", 100)
 
     def _clean_output(self, text: str) -> str:
         """
@@ -339,12 +342,12 @@ class IterativeReconstructionStrategy(ReconstructionStrategy):
                     "CONTEXT_AFTER_START_HINT": context_after_start_hint
                 }
                 
-                # Dynamic max_new_tokens calculation
+                # Dynamic max_new_tokens calculation based on unmasked context
                 lengths = [len(str(c.caption).split()) for c in context_before_clips + context_after_clips if c.caption]
                 if lengths:
                     avg_len = sum(lengths) / len(lengths)
-                    computed_max_tokens = int(avg_len * 2.5) 
-                    max_new_tokens = max(20, min(computed_max_tokens, 100)) 
+                    computed_max_tokens = int(avg_len * self.length_multiplier) 
+                    max_new_tokens = max(self.min_tokens, min(computed_max_tokens, self.max_tokens_cap)) 
                 else:
                     max_new_tokens = self.default_max_new_tokens
 
@@ -465,6 +468,9 @@ class BatchGridSearchStrategy(ReconstructionStrategy):
         # Fallback defaults if missing in config
         self.temperatures = [c.get("temperature", 0.2) for c in configs]
         self.penalties = [c.get("repetition_penalty", 1.2) for c in configs]
+        self.length_multipliers = [c.get("length_multiplier", 2.5) for c in configs]
+        self.min_tokens = [c.get("min_tokens", 20) for c in configs]
+        self.max_tokens_caps = [c.get("max_tokens_cap", 100) for c in configs]
         
         # We assume max_new_tokens logic is similar or we pick the max requested?
         # For simplicity, we'll calculate per-batch-item but we must pass a single scalar to generate() 
@@ -508,13 +514,15 @@ class BatchGridSearchStrategy(ReconstructionStrategy):
                 
             # 3. Prepare Batch Inputs (Only for active configs)
             prompts = []
+            max_tokens_list = []
             valid_batch_indices = [] # Map local batch idx -> global config idx
             
             for config_idx in active_indices:
                 # Build context for this specific state
                 current_clips = batch_states[config_idx]
-                prompt_messages, computed_max = self._build_prompt_for_state(current_clips, clip_idx)
+                prompt_messages, computed_max = self._build_prompt_for_state(current_clips, clip_idx, config_idx)
                 prompts.append(prompt_messages)
+                max_tokens_list.append(computed_max)
                 valid_batch_indices.append(config_idx)
                 
             if not prompts:
@@ -534,12 +542,13 @@ class BatchGridSearchStrategy(ReconstructionStrategy):
                     sub_prompts = prompts[b_start : b_start + micro_batch_size]
                     sub_temps = active_temps[b_start : b_start + micro_batch_size]
                     sub_pens = active_pens[b_start : b_start + micro_batch_size]
+                    sub_max = max(max_tokens_list[b_start : b_start + micro_batch_size]) if max_tokens_list else self.default_max_new_tokens
                     
                     sub_responses = self.model_adapter.generate_batch(
                         messages_list=sub_prompts,
                         temperatures=sub_temps,
                         penalties=sub_pens,
-                        max_new_tokens=self.default_max_new_tokens
+                        max_new_tokens=sub_max
                     )
                     responses.extend(sub_responses)
                 
@@ -581,7 +590,7 @@ class BatchGridSearchStrategy(ReconstructionStrategy):
                 
         return final_results
 
-    def _build_prompt_for_state(self, clips: list[CaptionedClip], target_idx: int):
+    def _build_prompt_for_state(self, clips: list[CaptionedClip], target_idx: int, config_idx: int = 0):
         # reuse logic from IterativeReconstructionStrategy
         # Ideally refactor `IterativeReconstructionStrategy` to extract `build_context`
         # But for now, I'll duplicate/adapt logic to avoid massive refactor risk.
@@ -628,14 +637,16 @@ class BatchGridSearchStrategy(ReconstructionStrategy):
             "CONTEXT_AFTER_START_HINT": context_after_start_hint
         }
         
-        # Max tokens
+        # Max tokens calculated dynamically from unmasked context
         lengths = [len(str(c.caption).split()) for c in context_before_clips + context_after_clips if c.caption]
         if lengths:
             avg_len = sum(lengths) / len(lengths)
-            computed_max = int(avg_len * 2.5) 
-            max_new = max(20, min(computed_max, 100)) 
+            computed_max = int(avg_len * self.length_multipliers[config_idx]) 
+            max_new = max(self.min_tokens[config_idx], min(computed_max, self.max_tokens_caps[config_idx])) 
         else:
             max_new = self.default_max_new_tokens
+            
+        return self.prompt_builder.build_prompt(prompt_context), max_new
             
         return self.prompt_builder.build_prompt(prompt_context), max_new
 

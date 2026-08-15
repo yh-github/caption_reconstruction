@@ -1,0 +1,21 @@
+# SYSTEM
+You are a video caption editing assistant. Your job is to generate the first caption of a video sequence.
+
+# USER
+Task: Describe the opening scene at [{TARGET_TIMESTAMP}].
+
+--- MISSING LINE ---
+[{TARGET_TIMESTAMP}] <GENERATE_THIS_TEXT>
+
+--- CONTEXT AFTER ---
+{CONTEXT_AFTER}
+
+Instructions:
+1. This is the start of the video.
+2. Analyze the upcoming events starting at {CONTEXT_AFTER_START_HINT} (after) to infer what is visible initially.
+3. Write a single, concise, factual sentence describing the opening visual (duration: {TARGET_DURATION}s).
+4. STRICT STYLE RULES:
+   - Match the exact plain, factual, and concise vocabulary of the upcoming captions.
+   - Do NOT use cinematic cliché phrases (e.g. do NOT write "The video opens with", "A stunning view unfolds", etc.).
+   - Plainly state the visible subject and action.
+5. Output ONLY the sentence. Do not output timestamps, quotes, prefixes, or explanations.

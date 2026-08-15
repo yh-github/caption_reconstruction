@@ -57,20 +57,57 @@ def get_llm_config(config:dict[str, Any]) -> dict[str, Any]:
     return llm_config
 
 
-from dict_path import DictPath
+def get_nested_key(d: Any, path: str) -> Any:
+    parts = path.split('/')
+    curr = d
+    for part in parts:
+        if isinstance(curr, list):
+            try:
+                curr = curr[int(part)]
+            except (ValueError, IndexError):
+                return None
+        elif isinstance(curr, dict):
+            curr = curr.get(part)
+            if curr is None:
+                return None
+        else:
+            return None
+    return curr
+
+def set_nested_key(d: Any, path: str, value: Any):
+    parts = path.split('/')
+    curr = d
+    for i, part in enumerate(parts[:-1]):
+        next_part = parts[i + 1]
+        if isinstance(curr, list):
+            idx = int(part)
+            curr = curr[idx]
+        elif isinstance(curr, dict):
+            if part not in curr:
+                curr[part] = [] if next_part.isdigit() else {}
+            curr = curr[part]
+    
+    last_part = parts[-1]
+    if isinstance(curr, list):
+        idx = int(last_part)
+        curr[idx] = value
+    elif isinstance(curr, dict):
+        curr[last_part] = value
+
 def config_from_args(exec_args:ExecArgs) -> dict[str, Any]:
-    con = DictPath(load_config(exec_args.config_path, exec_args.system_config_path))
+    con = load_config(exec_args.config_path, exec_args.system_config_path)
     if exec_args.override:
         for x in exec_args.override:
             k, v = x.split('=', 1)
-            old_v = con.get(k)
-            logger.info(f"Overriding {k} from {old_v} to {v}, type: {type(old_v)}")
-            if old_v is not None and type(old_v) != type(v):
-                con.set(k,type(old_v)(v)) # TODO use eval instead of cast? Support lists?
-            else:
-                con.set(k, v)
+            old_v = get_nested_key(con, k)
+            try:
+                parsed_v = yaml.safe_load(v)
+            except Exception:
+                parsed_v = v
+            logger.info(f"Overriding {k} from {old_v} ({type(old_v)}) to {parsed_v} ({type(parsed_v)})")
+            set_nested_key(con, k, parsed_v)
 
-    return con.dict
+    return con
 
 
 if __name__ == "__main__":
