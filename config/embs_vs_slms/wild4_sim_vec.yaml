@@ -1,0 +1,19 @@
+base_params:
+  master_seed: 2025
+  experiment_type: "RECON_VECTORS"
+
+evaluation:
+  type: "emb_retrieval"
+  embedding_model: "local:all-mpnet-base-v2"
+
+data_config:
+  name: "wild_captions"
+  path: "datasets/wildQA/captions__wild4/"
+  limit: 100
+  embedding_model: "local:all-mpnet-base-v2"
+
+recon_strategy:
+  - type: "mean_closest"
+  - type: "repeat_closest"
+
+IMPORT masking_configs: masking_fill.yaml
