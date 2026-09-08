@@ -22,7 +22,7 @@ _editable_impl_*.py
 venv/
 logs/
 try_code/
-.lock
+.lock*
 .idea/
 cache/
 disk_cache/
