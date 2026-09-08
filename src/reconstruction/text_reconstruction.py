@@ -428,17 +428,30 @@ class TextReconstructionStrategyBuilder:
                 else:
                     self._local_model_cache[cache_key] = HuggingFaceModelAdapter(model_key=model_key, block_llm=self.block_llm)
             
-            prompt_path = self.prompts_dir / config_model.prompt_dir
+            # Check if whole-window execution is requested
+            if config_model.strategy_mode == "whole_window" or config_model.prompt_template is not None:
+                from llm.local_llm import LocalLLMCaller
+                template_path = config_model.prompt_template or "prompts/dense_zero_shot_v2.txt"
+                prompt_builder = JSONPromptBuilder.from_path(template_path)
+                llm_caller = LocalLLMCaller(
+                    adapter=self._local_model_cache[cache_key],
+                    temperature=config_model.temperature,
+                    max_new_tokens=config_model.max_new_tokens,
+                    repetition_penalty=config_model.repetition_penalty
+                )
+                return LLMStrategy(
+                    name=config_model.name,
+                    llm_model=llm_caller,
+                    prompt_builder=prompt_builder
+                )
+
+            prompt_dir = config_model.prompt_dir or "iterative_cloze"
+            prompt_path = self.prompts_dir / prompt_dir
             if prompt_path.is_dir():
                 prompt_builder = ClozePromptBuilder.from_directory(prompt_path)
             else:
                 raise UserFacingError(f"Prompt directory '{prompt_path}' does not exist.")
 
-            # Convert back to dict for the strategy constructor if it expects a dict
-            # or update Strategy to take the model?
-            # Existing Strategy expects a dict 'config'
-            # We can dump model to dict
-            
             return IterativeReconstructionStrategy(
                 name=config_model.name,
                 model_adapter=self._local_model_cache[cache_key],

@@ -29,6 +29,11 @@ MODELS: dict[str, ModelConfig] = {
         "load_in_4bit": True,
         "trust_remote_code": False
     },
+    "llama-3.1-8b": {
+        "id": "meta-llama/Llama-3.1-8B-Instruct",
+        "load_in_4bit": True,
+        "trust_remote_code": False
+    },
     "llama-3-8b": {
         "id": "meta-llama/Meta-Llama-3-8B-Instruct",
         "load_in_4bit": True,
@@ -220,3 +225,24 @@ class HuggingFaceModelAdapter:
             responses.append(response.strip())
             
         return responses
+
+
+class LocalLLMCaller:
+    """Wraps HuggingFaceModelAdapter to provide a .call(prompt) -> LLM_Response interface for LLMStrategy."""
+    def __init__(self, adapter: HuggingFaceModelAdapter, temperature: float = 0.6, max_new_tokens: int = 1024, repetition_penalty: float = 1.0):
+        self.adapter = adapter
+        self.temperature = temperature
+        self.max_new_tokens = max_new_tokens
+        self.repetition_penalty = repetition_penalty
+
+    def call(self, prompt: str):
+        from llm.llm_interaction import LLM_Response
+        messages = [{"role": "user", "content": prompt}]
+        response_text = self.adapter.call(
+            messages=messages,
+            temperature=self.temperature,
+            max_new_tokens=self.max_new_tokens,
+            repetition_penalty=self.repetition_penalty,
+            do_sample=self.temperature > 0
+        )
+        return LLM_Response(text=response_text)
