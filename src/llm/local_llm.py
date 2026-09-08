@@ -30,7 +30,7 @@ MODELS: dict[str, ModelConfig] = {
         "trust_remote_code": False
     },
     "llama-3.1-8b": {
-        "id": "meta-llama/Llama-3.1-8B-Instruct",
+        "id": "unsloth/Meta-Llama-3.1-8B-Instruct",
         "load_in_4bit": True,
         "trust_remote_code": False
     },
