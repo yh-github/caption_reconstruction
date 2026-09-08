@@ -80,7 +80,7 @@ class HuggingFaceModelAdapter:
 
         bnb_config: BitsAndBytesConfig | None = None
         torch_dtype = torch.float16 if not self.config["load_in_4bit"] else None
-        device_map = self.device if isinstance(self.device, str) else "auto"
+        device_map = "auto"
 
         if device_setup.is_tpu():
             # TPU: No quantization, force BFloat16
@@ -102,7 +102,9 @@ class HuggingFaceModelAdapter:
                 bnb_4bit_compute_dtype=torch.float16,
                 bnb_4bit_quant_type="nf4",
             )
-            device_map = self.device 
+            device_map = "auto"
+        else:
+            device_map = self.device if isinstance(self.device, str) else "auto"
 
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.config["id"], 
@@ -133,11 +135,12 @@ class HuggingFaceModelAdapter:
         """
         self._ensure_loaded()
         
+        target_device = getattr(self.model, "device", self.device)
         input_ids: torch.Tensor = self.tokenizer.apply_chat_template(
             messages, 
             add_generation_prompt=True, 
             return_tensors="pt"
-        ).to(self.device)
+        ).to(target_device)
 
         # Dynamic parameter handling
         gen_kwargs = {
@@ -187,14 +190,15 @@ class HuggingFaceModelAdapter:
             for msgs in messages_list
         ]
         
-        inputs = self.tokenizer(texts, return_tensors="pt", padding=True).to(self.device)
+        target_device = getattr(self.model, "device", self.device)
+        inputs = self.tokenizer(texts, return_tensors="pt", padding=True).to(target_device)
         
         # 2. Setup Heterogeneous Logits Processor
         from llm.logits_processor import HeterogeneousLogitsProcessor
         from transformers import LogitsProcessorList
         
         logits_processor = LogitsProcessorList([
-            HeterogeneousLogitsProcessor(temperatures, penalties, device=self.device)
+            HeterogeneousLogitsProcessor(temperatures, penalties, device=target_device)
         ])
         
         # 3. Generate
