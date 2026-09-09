@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import re
 import logging
-from typing import Type, TypeVar
+from typing import Type, TypeVar, Union, Optional
 from pydantic import BaseModel, TypeAdapter
 
 # Define a generic type for BaseModel
@@ -40,6 +42,49 @@ def parse_llm_response_list(
     return validated_response
 
 
+def repair_truncated_json_array(text: str) -> str | None:
+    """Repairs unclosed JSON arrays caused by token limit truncation."""
+    last_brace = text.rfind("}")
+    if last_brace == -1:
+        return None
+    candidate = text[:last_brace + 1].strip()
+    if not candidate.endswith("]"):
+        candidate += "\n]"
+    if not candidate.startswith("["):
+        first_bracket = candidate.find("[")
+        if first_bracket != -1:
+            candidate = candidate[first_bracket:]
+        else:
+            candidate = "[\n" + candidate
+    return candidate
+
+
+def fallback_extract_captions(text: str) -> list[dict]:
+    """Extracts valid {'index': X, 'caption': Y} objects from malformed or truncated text."""
+    results = []
+    pattern = re.compile(
+        r'\{\s*(?:'
+        r'\"index\"\s*:\s*(\d+)[^{}]*?\"caption\"\s*:\s*\"((?:[^\"\\\\]|\\\\.)*)\"'
+        r'|'
+        r'\"caption\"\s*:\s*\"((?:[^\"\\\\]|\\\\.)*)\"[^{}]*?\"index\"\s*:\s*(\d+)'
+        r')',
+        re.DOTALL
+    )
+    for m in pattern.finditer(text):
+        if m.group(1) is not None:
+            idx = int(m.group(1))
+            cap = m.group(2)
+        else:
+            idx = int(m.group(4))
+            cap = m.group(3)
+        try:
+            cap = cap.encode("utf-8").decode("unicode_escape")
+        except Exception:
+            pass
+        results.append({"index": idx, "caption": cap.strip()})
+    return results
+
+
 def parse_llm_response(model: Type[T_BaseModel], response_text: str) -> T_BaseModel | None:
     """
     Parses the raw text response from the LLM and validates it against the provided model.
@@ -73,5 +118,25 @@ def parse_llm_response(model: Type[T_BaseModel], response_text: str) -> T_BaseMo
         logging.debug(f"LLM response parsed and validated successfully: {validated_response}")
         return validated_response
     except Exception as e:
+        # 3. Attempt repair of truncated JSON array (e.g. cut off at token ceiling)
+        repaired = repair_truncated_json_array(cleaned_text)
+        if repaired:
+            try:
+                validated_response = model.model_validate_json(repaired)
+                logging.info("LLM response parsed successfully after repairing truncated JSON array.")
+                return validated_response
+            except Exception:
+                pass
+
+        # 4. Fallback recovery: extract individual complete caption entries via regex
+        fallback_items = fallback_extract_captions(cleaned_text)
+        if fallback_items:
+            try:
+                validated_response = model.model_validate(fallback_items)
+                logging.info(f"LLM response recovered {len(fallback_items)} items via fallback regex parser.")
+                return validated_response
+            except Exception:
+                pass
+
         logging.warning(f"Failed to parse LLM response as {model.__name__}: {e}. Snippet: {cleaned_text[:200]}")
         return None

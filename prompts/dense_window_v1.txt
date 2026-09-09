@@ -11,11 +11,13 @@ Reconstruct the missing captions to create a smooth, logical timeline of events 
 - **Narrative progression**: Do NOT repeat the exact same sentence across consecutive seconds; describe distinct, progressive actions.
 - **Sentence style**: Each caption must be a single, complete, concise sentence (10 to 14 words). Conclude with a period.
 - **Output Requirements**:
-  - Return a JSON array containing ONLY the reconstructed entries for the missing clips.
+  - Return a JSON array containing **ONLY the entries where `caption` was `null`**.
+  - **Do NOT re-generate or include any existing, non-null captions.**
+  - **STOP immediately** after closing the JSON array with `]`. Do NOT output any clips beyond the missing interval.
   - Match this exact schema:
 ```json
 [
   {"index": <int>, "caption": "<sentence>"}
 ]
 ```
-  - **Output ONLY the JSON array**. Do not output unmasked captions, and do not include explanations, intro, or text outside the JSON array.
+  - **Output ONLY the JSON array**. Do not include explanations, intros, or text outside the JSON array.
