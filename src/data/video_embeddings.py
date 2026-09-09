@@ -13,7 +13,7 @@ class VideoEmbedder:
     """
     A class to process video files and generate clip-based embeddings.
     """
-    def __init__(self, model_name: str = 'vit_small_patch16_224', device: str = None):
+    def __init__(self, model_name: str = 'vit_small_patch16_224', device: str = None, batch_size: int = 32):
         """
         Initializes the VideoEmbedder, loading the model and setting up the device.
         """
@@ -31,7 +31,8 @@ class VideoEmbedder:
         self.model_name = model_name
         self.device = device if device else ("cuda" if torch.cuda.is_available() else "cpu")
         self.is_siglip = 'siglip' in self.model_name.lower()
-        logger.info(f"Using device: {self.device}")
+        self.batch_size = batch_size
+        logger.info(f"Using device: {self.device} (batch_size={self.batch_size})")
 
         # Load the pre-trained model and move it to the appropriate device
         # For SigLIP, num_classes=0 activates the Attention Pooling head
@@ -39,7 +40,13 @@ class VideoEmbedder:
         if self.is_siglip:
             kwargs['num_classes'] = 0
 
-        self.model: torch.nn.Module = timm.create_model(self.model_name, **kwargs)
+        model_to_load = self.model_name
+        if "siglip-base-patch16-224" in model_to_load:
+            model_to_load = "vit_base_patch16_siglip_224"
+        elif '/' in model_to_load and not (model_to_load.startswith('hf-hub:') or model_to_load.startswith('hf_hub:') or model_to_load.startswith('local-dir:')):
+            model_to_load = f"hf-hub:{model_to_load}"
+
+        self.model: torch.nn.Module = timm.create_model(model_to_load, **kwargs)
         self.model.to(self.device)
         self.model.eval()
 
@@ -97,15 +104,16 @@ class VideoEmbedder:
 
         embeddings: list[np.ndarray] = []
         with torch.no_grad():
-            for frame in frames:
-                img_tensor: torch.Tensor = self.transform(frame).unsqueeze(0).to(self.device)
+            for i in range(0, len(frames), self.batch_size):
+                batch_frames = frames[i:i + self.batch_size]
+                img_tensors = torch.stack([self.transform(f) for f in batch_frames]).to(self.device)
                 if self.is_siglip:
-                    raw_embeds = self.model(img_tensor)
-                    embedding = F.normalize(raw_embeds, p=2, dim=-1)
-                    embeddings.append(embedding.cpu().numpy().flatten())
+                    raw_embeds = self.model(img_tensors)
+                    embeds = F.normalize(raw_embeds, p=2, dim=-1)
+                    embeddings.extend([e for e in embeds.cpu().numpy()])
                 else:
-                    embedding: torch.Tensor = self.model.forward_features(img_tensor)
-                    embeddings.append(embedding[:, 0].cpu().numpy().flatten())
+                    embeds = self.model.forward_features(img_tensors)
+                    embeddings.extend([e for e in embeds[:, 0].cpu().numpy()])
 
         return embeddings
 
@@ -126,7 +134,7 @@ class VideoEmbedder:
 
         return np.array(averaged_embeddings)
 
-    def process_directory(self, video_dir: Path, output_dir: Path, fps: int, clip_size: int = 1):
+    def process_directory(self, video_dir: Path, output_dir: Path, fps: int, clip_size: int = 1, recursive: bool = False):
         """
         Finds MP4s, generates embeddings, and saves one averaged vector per clip_size.
         """
@@ -145,8 +153,10 @@ class VideoEmbedder:
                 "input": video_dir.name
             }, f, default_flow_style=False, sort_keys=False)
 
-
-        video_files = list(video_dir.glob("*.mp4"))
+        if recursive:
+            video_files = list(video_dir.rglob("*.mp4"))
+        else:
+            video_files = list(video_dir.glob("*.mp4"))
         logger.info(f"Found {len(video_files)} videos to process.")
 
         for video_path in video_files:

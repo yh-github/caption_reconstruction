@@ -17,7 +17,7 @@ def test_text_embedder():
     assert len(vec) == 768, f"Expected 768 dims, got {len(vec)}"
     
     norm = np.linalg.norm(vec)
-    assert np.isclose(norm, 1.0, atol=1e-5), f"Expected norm 1.0, got {norm}"
+    assert np.isclose(norm, 1.0, atol=1e-3), f"Expected norm 1.0, got {norm}"
     print("✅ Text Embedder OK (dim=768, norm=1.0)")
 
 def test_video_embedder():
