@@ -1,0 +1,8 @@
+video_dir: "local/wild_videos_raw"
+output_dir: "local/wild_videos_embs_siglip"
+model_name: "google/siglip-base-patch16-224"
+match_existing: "local/wild_videos_embs"
+batch_size: 32
+fps: 1
+clip_size: 1
+limit: null
