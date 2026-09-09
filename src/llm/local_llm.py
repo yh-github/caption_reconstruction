@@ -151,11 +151,27 @@ class HuggingFaceModelAdapter:
         self._ensure_loaded()
         
         target_device = getattr(self.model, "device", self.device)
-        input_ids: torch.Tensor = self.tokenizer.apply_chat_template(
+        encoded = self.tokenizer.apply_chat_template(
             messages, 
             add_generation_prompt=True, 
             return_tensors="pt"
-        ).to(target_device)
+        )
+
+        if hasattr(encoded, "input_ids"):
+            input_ids = encoded.input_ids.to(target_device)
+            attention_mask = getattr(encoded, "attention_mask", None)
+            if attention_mask is not None:
+                attention_mask = attention_mask.to(target_device)
+        elif isinstance(encoded, dict):
+            input_ids = encoded["input_ids"].to(target_device)
+            attention_mask = encoded.get("attention_mask")
+            if attention_mask is not None:
+                attention_mask = attention_mask.to(target_device)
+        else:
+            input_ids = encoded.to(target_device)
+            attention_mask = None
+
+        prompt_len = input_ids.shape[-1]
 
         # Dynamic parameter handling
         gen_kwargs = {
@@ -166,17 +182,20 @@ class HuggingFaceModelAdapter:
             "do_sample": do_sample
         }
 
+        if attention_mask is not None:
+            gen_kwargs["attention_mask"] = attention_mask
+
         # Temperature is only valid if we are sampling
         if do_sample:
             gen_kwargs["temperature"] = temperature
             gen_kwargs["top_p"] = 0.95 # Slight truncation of tail
         
-        outputs: torch.Tensor = self.model.generate(
-            input_ids,
+        outputs = self.model.generate(
+            input_ids=input_ids,
             **gen_kwargs
         )
 
-        generated_ids = outputs[0][input_ids.shape[1]:]
+        generated_ids = outputs[0][prompt_len:]
         response: str = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
         return response.strip()
 
