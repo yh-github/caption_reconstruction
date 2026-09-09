@@ -103,6 +103,9 @@ Comprehensive documentation is organized under the [`docs/`](docs/) directory:
 * **[Dataset Taxonomy](docs/paper/dataset_taxonomy.md)**: Categorization of video domains across procedural and stochastic axes.
 * **[Temperature Impact Analysis](docs/paper/analysis_temperature_impact.md)**: Analysis of LLM sampling temperature effects on reconstruction quality.
 
+### 🧠 Theory & Methodology Guides
+* **[Cross-Modal Evaluation & Metrics Reference](docs/theory/cross_modal_evaluation_metrics.md)**: Comprehensive guide to video vs. text evaluation metrics, PROs and CONs, representation dependency critique, and shared multimodal contrastive spaces (CLIP/SigLIP).
+
 
 ## 📂 Project Structure
 
