@@ -172,6 +172,7 @@ def main():
         else:
             clip_embeddings = embedder._group_and_average_embeddings(list(timestamps), frame_embeddings, clip_size)
 
+        output_filepath.parent.mkdir(parents=True, exist_ok=True)
         np.save(output_filepath, clip_embeddings)
 
     logger.info("Embedding extraction completed successfully!")
