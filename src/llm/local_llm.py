@@ -30,8 +30,23 @@ MODELS: dict[str, ModelConfig] = {
         "trust_remote_code": False
     },
     "llama-3.1-8b": {
-        "id": "unsloth/Meta-Llama-3.1-8B-Instruct",
+        "id": "unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit",
         "load_in_4bit": True,
+        "trust_remote_code": False
+    },
+    "qwen-2.5-7b": {
+        "id": "unsloth/Qwen2.5-7B-Instruct-bnb-4bit",
+        "load_in_4bit": True,
+        "trust_remote_code": False
+    },
+    "qwen-2.5-3b": {
+        "id": "Qwen/Qwen2.5-3B-Instruct",
+        "load_in_4bit": False,
+        "trust_remote_code": False
+    },
+    "llama-3.2-3b": {
+        "id": "unsloth/Llama-3.2-3B-Instruct",
+        "load_in_4bit": False,
         "trust_remote_code": False
     },
     "llama-3-8b": {
