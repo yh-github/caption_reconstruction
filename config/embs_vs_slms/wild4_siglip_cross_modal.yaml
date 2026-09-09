@@ -1,0 +1,22 @@
+base_params:
+  master_seed: 2025
+  experiment_type: "recon"
+
+evaluation:
+  type: "cross_modal_sim"
+  embedding_model: "local:siglip"
+  video_embs_path: "local/wild_videos_embs_siglip/"
+
+data_config:
+  name: "wild_captions"
+  path: "datasets/wildQA/captions__wild4/"
+
+recon_strategy:
+  - name: "phi-3__t=0.6_rp=1.2"
+    type: "local_llm"
+    model_key: "phi-3"
+    prompt_dir: "iterative_cloze"
+    temperature: 0.6
+    repetition_penalty: 1.2
+
+IMPORT masking_configs: masking_fill.yaml

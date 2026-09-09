@@ -83,3 +83,57 @@ class LocalEmbedder(BaseEmbedder):
             result[text] = emb.tolist() if hasattr(emb, 'tolist') else list(emb)
             
         return result
+
+class SiglipTextEmbedder(BaseEmbedder):
+    def __init__(self, model_name: str = "google/siglip-base-patch16-224", device: str = None):
+        """
+        model_name: Name of the SigLIP model
+        """
+        self.model_name = model_name
+        self.device = device or device_setup.get_device()
+        
+        logger.info(f"Initializing SiglipTextEmbedder with {model_name} on {self.device}")
+        
+        from transformers import AutoTokenizer, SiglipTextModel
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        if self.device != "cpu":
+            self.model = SiglipTextModel.from_pretrained(model_name, torch_dtype=torch.float16, attn_implementation="sdpa").to(self.device)
+        else:
+            self.model = SiglipTextModel.from_pretrained(model_name).to(self.device)
+        self.model.eval()
+        
+        out_dim = getattr(self.model.config, "hidden_size", 768)
+        
+        cache_dir = get_cache_dir(model_name + "_text")
+        super().__init__(cache_dir, out_dim)
+
+    def _embed_new(self, video_id: str, texts: list[str]) -> dict[str, list[float]]:
+        if not texts:
+            return {}
+            
+        logger.debug(f"Computing {len(texts)} new SigLIP text embeddings locally for {video_id}")
+        
+        inputs = self.tokenizer(
+            texts,
+            padding="max_length",
+            max_length=64,
+            truncation=True,
+            return_tensors="pt"
+        )
+        if hasattr(inputs, "to"):
+            inputs = inputs.to(self.device)
+        else:
+            inputs = {k: v.to(self.device) for k, v in inputs.items()}
+        
+        with torch.no_grad():
+            outputs = self.model(**inputs)
+            raw_embeds = outputs.pooler_output
+            embeddings = torch.nn.functional.normalize(raw_embeds, p=2, dim=-1)
+            
+        embeddings_np = embeddings.cpu().numpy()
+        
+        result = {}
+        for text, emb in zip(texts, embeddings_np):
+            result[text] = emb.tolist()
+            
+        return result

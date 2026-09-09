@@ -1,6 +1,7 @@
 import logging
 from abc import abstractmethod, ABC
 from collections import defaultdict
+from pathlib import Path
 from typing import Any, Generic, TypeVar, Self
 import numpy as np
 from bert_score import BERTScorer
@@ -91,16 +92,22 @@ class ReconstructionEvaluator(ABC, Generic[T_RECON, T_ORIG]):
                     model_type=eval_conf.get('model_type', 'microsoft/deberta-large-mnli'),
                     idf=eval_conf.get('idf', True)
                 )
-            elif eval_type in ('emb_sim', 'emb_retrieval', 'retrieval'):
+            elif eval_type in ('emb_sim', 'emb_retrieval', 'retrieval', 'cross_modal_sim'):
                 emb_model_name = eval_conf.get('embedding_model', 'gemini')
                 
                 if emb_model_name.startswith('local:'):
-                    from llm.local_embedder import LocalEmbedder
                     # Format: local:all-MiniLM-L6-v2
                     model_id = emb_model_name.split('local:', 1)[1]
                     if not model_id: model_id = "all-MiniLM-L6-v2" # Default
                     
-                    embedder = LocalEmbedder(model_name=model_id)
+                    if "siglip" in model_id.lower():
+                        from llm.local_embedder import SiglipTextEmbedder
+                        if model_id == "siglip":
+                            model_id = "google/siglip-base-patch16-224"
+                        embedder = SiglipTextEmbedder(model_name=model_id)
+                    else:
+                        from llm.local_embedder import LocalEmbedder
+                        embedder = LocalEmbedder(model_name=model_id)
                 else:
                     embedder = GeminiEmbedder(client=llm_client)
 
@@ -108,6 +115,9 @@ class ReconstructionEvaluator(ABC, Generic[T_RECON, T_ORIG]):
                     return ReconstructionEvaluator_EmbSimilarity(embedder)
                 elif eval_type == 'emb_retrieval' or eval_type == 'retrieval':
                     return ReconstructionEvaluator_Retrieval(embedder)
+                elif eval_type == 'cross_modal_sim':
+                    video_embs_path = eval_conf.get('video_embs_path', 'local/wild_videos_embs_siglip')
+                    return ReconstructionEvaluator_CrossModal(embedder, video_embs_path)
 
             elif eval_type == 'nop':
                 return EvaluatorNOP()
@@ -317,3 +327,73 @@ class ReconstructionEvaluator_Retrieval(ReconstructionEvaluator_EmbSimilarity):
         except Exception as e:
             logger.error(f"Error calculating retrieval metrics: {e}")
             return base_metrics
+
+class ReconstructionEvaluator_CrossModal(TextReconstructionEvaluator):
+    """
+    Evaluates reconstruction by comparing text embeddings of reconstructed captions
+    directly against the video frame embeddings (cross-modal).
+    """
+
+    def __init__(self, embedder: Any, video_embs_path: str):
+        self._embedder = embedder
+        self.video_embs_path = Path(video_embs_path)
+        self._inner = VectorReconstructionEvaluator()
+
+    def evaluate(self, reconstructed: Reconstructed, orig: CaptionedVideo) -> RAW_METRIC_OBJ:
+        from llm.embedder import CacheMissError
+        logger.debug("Aligning clips for CrossModal evaluation...")
+
+        sorted_clip_indices = sorted(reconstructed.reconstructed_captions.keys())
+        if not sorted_clip_indices:
+            logger.warning("No reconstructed clips found to evaluate.")
+            return {}
+
+        candidates = [reconstructed.reconstructed_captions[idx] for idx in sorted_clip_indices]
+
+        logger.debug(f"Calculating cross-modal sim score for {len(candidates)} clip pairs.")
+
+        npy_file = self.video_embs_path / f"{reconstructed.video_id}.npy"
+        if not npy_file.exists():
+            logger.warning(f"Video embeddings file not found: {npy_file}")
+            return {}
+
+        try:
+            video_embs = np.load(npy_file)
+            pred_vecs = self._embedder.get_embeddings(reconstructed.video_id + "(pred)", candidates)
+            
+            true_vecs = []
+            for idx in sorted_clip_indices:
+                if idx < len(video_embs):
+                    true_vecs.append(video_embs[idx])
+                else:
+                    logger.warning(f"Clip index {idx} out of bounds for video_embs length {len(video_embs)}")
+                    return {}
+            
+            # Ensure proper array shapes
+            pred_vecs = np.array(pred_vecs, dtype=np.float64)
+            true_vecs = np.array(true_vecs, dtype=np.float64)
+
+            ##
+            masked_inds = set(reconstructed.reconstructed_captions.keys())
+            unmasked_clips = [x for x in orig.clips if x.index not in masked_inds]
+            context_vecs = []
+            for clip in unmasked_clips:
+                if clip.index < len(video_embs):
+                    context_vecs.append(video_embs[clip.index])
+            ##
+
+            if len(context_vecs) == 0:
+                 res = self._inner.evaluate(pred_vecs, true_vecs)
+                 res["cos_sim_residual"] = res["cos_sim"]
+                 return res
+
+            context_vecs = np.array(context_vecs, dtype=np.float64)
+            return self._inner.evaluate_residual(pred_vecs=pred_vecs, true_vecs=true_vecs, context=context_vecs)
+            
+        except CacheMissError as e:
+            logger.warning(f"Cache miss during evaluation for {reconstructed.video_id}: {e}")
+            return {}
+        except Exception as e:
+            logger.error(f"Error calculating cross-modal metrics: {e}")
+            return {}
+

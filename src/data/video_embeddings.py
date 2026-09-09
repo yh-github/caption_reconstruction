@@ -1,3 +1,4 @@
+from __future__ import annotations
 
 import numpy as np
 from pathlib import Path
@@ -29,10 +30,16 @@ class VideoEmbedder:
 
         self.model_name = model_name
         self.device = device if device else ("cuda" if torch.cuda.is_available() else "cpu")
+        self.is_siglip = 'siglip' in self.model_name.lower()
         logger.info(f"Using device: {self.device}")
 
         # Load the pre-trained model and move it to the appropriate device
-        self.model: torch.nn.Module = timm.create_model(self.model_name, pretrained=True)
+        # For SigLIP, num_classes=0 activates the Attention Pooling head
+        kwargs = {'pretrained': True}
+        if self.is_siglip:
+            kwargs['num_classes'] = 0
+
+        self.model: torch.nn.Module = timm.create_model(self.model_name, **kwargs)
         self.model.to(self.device)
         self.model.eval()
 
@@ -86,12 +93,19 @@ class VideoEmbedder:
         if not frames:
             return []
 
+        import torch.nn.functional as F
+
         embeddings: list[np.ndarray] = []
         with torch.no_grad():
             for frame in frames:
                 img_tensor: torch.Tensor = self.transform(frame).unsqueeze(0).to(self.device)
-                embedding: torch.Tensor = self.model.forward_features(img_tensor)
-                embeddings.append(embedding[:, 0].cpu().numpy().flatten())
+                if self.is_siglip:
+                    raw_embeds = self.model(img_tensor)
+                    embedding = F.normalize(raw_embeds, p=2, dim=-1)
+                    embeddings.append(embedding.cpu().numpy().flatten())
+                else:
+                    embedding: torch.Tensor = self.model.forward_features(img_tensor)
+                    embeddings.append(embedding[:, 0].cpu().numpy().flatten())
 
         return embeddings
 

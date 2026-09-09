@@ -22,6 +22,18 @@ def get_video_complexity(gt_vectors: np.ndarray) -> float:
     
     return 1.0 - mean_similarity
 
+def get_extended_video_complexity(gt_vectors: np.ndarray) -> dict:
+    from data.video_surprisal import VideoSurprisalScorer
+    scorer = VideoSurprisalScorer()
+    res = scorer.calculate_surprisal(gt_vectors)
+    return {
+        "mean_surprisal": res.avg_cosine_distance,
+        "max_surprisal": res.max_cosine_distance,
+        "variance_surprisal": res.variance_cosine_distance,
+        "p95_surprisal": res.p95_cosine_distance,
+        "effective_rank": res.effective_rank,
+        "tortuosity": res.tortuosity
+    }
 def get_narrative_complexity(captions: list[str]) -> float:
     """
     Calculates Type-Token Ratio (TTR) as a proxy for 

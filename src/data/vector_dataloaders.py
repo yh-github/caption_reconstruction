@@ -48,9 +48,15 @@ class VectorDataLoader(ABC):
         else:
             emb_model_name = data_config.get('embedding_model', 'gemini')
             if emb_model_name.startswith('local:'):
-                from llm.local_embedder import LocalEmbedder
                 model_id = emb_model_name.split('local:', 1)[1] or "all-MiniLM-L6-v2"
-                embedder = LocalEmbedder(model_name=model_id)
+                if "siglip" in model_id.lower():
+                    from llm.local_embedder import SiglipTextEmbedder
+                    if model_id == "siglip":
+                        model_id = "google/siglip-base-patch16-224"
+                    embedder = SiglipTextEmbedder(model_name=model_id)
+                else:
+                    from llm.local_embedder import LocalEmbedder
+                    embedder = LocalEmbedder(model_name=model_id)
             else:
                  embedder = Embedder(client=llm_client)
 
