@@ -88,8 +88,9 @@ class ExperimentRunner:
 
     def run(self) -> list[MetricsRecordRaw]:
         """Runs the full experiment from data loading to evaluation."""
-        import time
-        print(f"[Worker {self.worker_id}/{self.total_workers}] Checking Hugging Face remote state and loading data...", flush=True)
+        w_idx = self.worker_id + 1
+        w_tot = self.total_workers
+        print(f"[Worker {w_idx}/{w_tot}] Checking Hugging Face remote state and loading data...", flush=True)
         self._sync_hf_state()
         
         self._save_path.mkdir(parents=True, exist_ok=True)
@@ -98,23 +99,23 @@ class ExperimentRunner:
 
         start_time = time.time()
         my_videos = [v for idx, v in enumerate(all_videos) if (idx % self.total_workers) == self.worker_id]
-        print(f"[Worker {self.worker_id}/{self.total_workers}] Assigned {len(my_videos)} out of {len(all_videos)} total videos.", flush=True)
+        print(f"[Worker {w_idx}/{w_tot}] Assigned {len(my_videos)} out of {len(all_videos)} total videos.", flush=True)
 
         for i, video in enumerate(my_videos):
             if self.max_runtime_hours is not None:
                 elapsed_hours = (time.time() - start_time) / 3600.0
                 if elapsed_hours >= self.max_runtime_hours:
                     print(
-                        f"[Worker {self.worker_id}/{self.total_workers}] Reached max runtime limit of "
+                        f"[Worker {w_idx}/{w_tot}] Reached max runtime limit of "
                         f"{self.max_runtime_hours}h (elapsed: {elapsed_hours:.2f}h). Exiting loop cleanly.",
                         flush=True
                     )
                     break
 
-            print(f"[Worker {self.worker_id}/{self.total_workers}] [{i+1}/{len(my_videos)}] Processing: {video.video_id}...", flush=True)
+            print(f"[Worker {w_idx}/{w_tot}] [{i+1}/{len(my_videos)}] Processing: {video.video_id}...", flush=True)
             if metric := self._process_single_video(video):
                 all_metrics.append(metric)
-                print(f"[Worker {self.worker_id}/{self.total_workers}] ✓ Completed: {video.video_id}", flush=True)
+                print(f"[Worker {w_idx}/{w_tot}] ✓ Completed: {video.video_id}", flush=True)
 
         # TODO: keep only the sums (NA as 0)
 
