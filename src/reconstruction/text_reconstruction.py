@@ -4,7 +4,10 @@ from typing import Any
 from pathlib import Path
 import re
 
-from google import genai
+try:
+    from google import genai
+except (ImportError, Exception):
+    genai = None
 from pydantic import BaseModel
 from pydantic_core import PydanticSerializationError
 
@@ -205,9 +208,36 @@ class LLMStrategy(ReconstructionStrategy):
             return {}, {}
         return reconstructed_video.to_dict()
 
+    @staticmethod
+    def _align_recon_indices(masked_video: CaptionedVideo, recon_caps: dict[int, str]) -> dict[int, str]:
+        """Auto-aligns 1-indexed LLM responses when the masked interval starts at 0."""
+        masked_set = set(c.index for c in masked_video.clips if c.is_masked())
+        recon_set = set(recon_caps.keys())
+
+        if recon_set == masked_set or not recon_caps or not masked_set:
+            return recon_caps
+
+        # Case 1: 1-indexed shift when 0 is in masked_set
+        # E.g., masked_set = {0, 1, 2}, but model returned {1, 2, 3}
+        if 0 in masked_set:
+            shifted = {k - 1: v for k, v in recon_caps.items()}
+            if set(shifted.keys()) == masked_set:
+                logging.info(f"Auto-aligning 1-indexed LLM response: shifted keys from {list(recon_caps.keys())} to {list(shifted.keys())}")
+                return shifted
+
+        # Case 2: Model returned {1, 2} for masked {0, 1, 2} (omitted 0, 1-indexed for first 2 items)
+        if 0 in masked_set and min(recon_caps.keys()) == 1 and max(recon_caps.keys()) == len(masked_set):
+            shifted = {k - 1: v for k, v in recon_caps.items()}
+            if set(shifted.keys()) == masked_set:
+                logging.info(f"Auto-aligning 1-indexed LLM response: shifted keys from {list(recon_caps.keys())} to {list(shifted.keys())}")
+                return shifted
+
+        return recon_caps
+
     def _process_reconstruction_results(self, masked_video: CaptionedVideo, recon_caps: dict[int, str],
                                         llm_response_text: str) -> Reconstructed:
         """Process reconstruction results and categorize clips."""
+        recon_caps = self._align_recon_indices(masked_video, recon_caps)
         result = self._categorize_clips(masked_video, recon_caps)
 
         debug_data = None
@@ -431,7 +461,10 @@ class TextReconstructionStrategyBuilder:
             # Check if whole-window execution is requested
             if config_model.strategy_mode == "whole_window" or config_model.prompt_template is not None:
                 from llm.local_llm import LocalLLMCaller
-                template_path = config_model.prompt_template or "prompts/dense_zero_shot_v2.txt"
+                raw_template = config_model.prompt_dir or config_model.prompt_template or "prompts/dense_window"
+                template_path = Path(raw_template)
+                if not template_path.exists() and (self.prompts_dir / raw_template).exists():
+                    template_path = self.prompts_dir / raw_template
                 prompt_builder = JSONPromptBuilder.from_path(template_path)
                 llm_caller = LocalLLMCaller(
                     adapter=self._local_model_cache[cache_key],

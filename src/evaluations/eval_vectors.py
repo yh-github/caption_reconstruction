@@ -1,6 +1,10 @@
 import pandas as pd
 from pydantic import BaseModel
-from typing import Iterator, Self
+from typing import Iterator
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self
 import numpy as np
 from numpy.typing import NDArray
 from pathlib import Path

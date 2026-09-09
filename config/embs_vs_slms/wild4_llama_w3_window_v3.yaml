@@ -1,0 +1,26 @@
+base_params:
+  master_seed: 2025
+  experiment_type: "recon"
+
+evaluation:
+  type: "emb_retrieval"
+  embedding_model: "local:all-mpnet-base-v2"
+
+data_config:
+  name: "wild_captions"
+  path: "datasets/wildQA/captions__wild4/"
+
+recon_strategy:
+  - name: "llama-3.1-8b__whole_window__t=0.6"
+    type: "local_llm"
+    model_key: "llama-3.1-8b"
+    strategy_mode: "whole_window"
+    prompt_dir: "prompts/dense_window"
+    temperature: 0.6
+    repetition_penalty: 1.05
+    max_new_tokens: 512
+
+masking_configs:
+  - scheme: "fixed_fill"
+    width: [3]
+    start_ind: [0, 29, 59]

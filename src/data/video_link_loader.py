@@ -1,7 +1,12 @@
+from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Self, Iterator
+from typing import Iterator, Optional
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self
 
 from pydantic import BaseModel, RootModel, Field, model_validator
 
@@ -109,8 +114,8 @@ class TimeInSeconds(BaseModel):
 
 class TimeInOriginalVideo(BaseModel):
     split_method: str = Field(alias="split-method")
-    frames: TimeInFrames | None = None
-    seconds: TimeInSeconds | None = None
+    frames: Optional[TimeInFrames] = None
+    seconds: Optional[TimeInSeconds] = None
 
     @model_validator(mode='after')
     def validate_and_transform(self) -> Self:

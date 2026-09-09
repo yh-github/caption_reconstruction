@@ -1,9 +1,13 @@
+from __future__ import annotations
 import json
 import logging
 import statistics
 from pathlib import Path
 from typing import Iterator
-from bert_score import BERTScorer
+try:
+    from bert_score import BERTScorer
+except ImportError:
+    BERTScorer = None
 from pydantic import BaseModel, Field, RootModel
 from data_models.complex_struct import VideoAnalysis
 from data.video_link_loader import WildVideoMetadata

@@ -2,9 +2,16 @@ import logging
 from abc import abstractmethod, ABC
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Generic, TypeVar, Self
+from typing import Any, Generic, TypeVar
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self
 import numpy as np
-from bert_score import BERTScorer
+try:
+    from bert_score import BERTScorer
+except ImportError:
+    BERTScorer = None
 from torch import Tensor
 from common_utils.error_handling import UserFacingError
 from data_models.captions_only import CaptionedVideo

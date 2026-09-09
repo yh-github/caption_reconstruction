@@ -77,30 +77,56 @@ class PromptBuilderDataOnly(PromptBuilder):
 
 
 class JSONPromptBuilder(PromptBuilder):
-    """Builds a prompt that instructs the LLM to work with JSON."""
+    """Builds a prompt that instructs the LLM to work with JSON, supporting condition templates (start/default/end)."""
 
-    def __init__(self, instruction_template: str, consts:dict[str,str]|None=None):
-        self._instruction_template = instruction_template
+    def __init__(self, templates: dict[str, str] | str, consts: dict[str, str] | None = None):
+        if isinstance(templates, str):
+            self.templates: dict[str, str] = {"default": templates}
+        else:
+            self.templates = dict(templates)
         self.set_consts(consts)
         self._data_prompter = PromptBuilderDataOnly()
 
     def build_prompt(self, masked_video: CaptionedVideo) -> str:
         """Builds the final JSON prompt to be sent to the LLM."""
-        instruction = self._instruction_template #.format(DATA_MISSING=DATA_MISSING)
+        masked_indices = [c.index for c in masked_video.clips if c.is_masked()]
 
-        # captions_for_json = [clip.model_dump() for clip in masked_video.clips]
-        # json_prompt_data = json.dumps(captions_for_json, indent=2)
+        # Determine condition based on masked position
+        if masked_video.clips and masked_video.clips[0].is_masked():
+            condition = "start"
+        elif masked_video.clips and masked_video.clips[-1].is_masked():
+            condition = "end"
+        else:
+            condition = "default"
+
+        template = self.templates.get(condition, self.templates.get("default", ""))
+
+        # Inject missing indices variables if available
+        if masked_indices:
+            min_idx = min(masked_indices)
+            max_idx = max(masked_indices)
+            vars_dict = {
+                "MISSING_INDICES": str(masked_indices),
+                "START_INDEX": str(min_idx),
+                "END_INDEX": str(max_idx),
+                "COUNT": str(len(masked_indices))
+            }
+            instruction, _ = simple_safe_format(template, vars_dict)
+        else:
+            instruction = template
+
         json_prompt_data = self._data_prompter.build_prompt(masked_video)
-
         return f"{instruction}\n\n{json_prompt_data}"
 
-    def set_consts(self, consts:dict[str,str]|None):
+    def set_consts(self, consts: dict[str, str] | None):
         if consts:
-            self._instruction_template, missing_keys = simple_safe_format(self._instruction_template, consts)
+            for k in list(self.templates.keys()):
+                self.templates[k], _ = simple_safe_format(self.templates[k], consts)
         return self
 
-    def with_vars(self, values:dict[str,str]) -> str:
-        formatted_string, missing_keys = simple_safe_format(self._instruction_template, values)
+    def with_vars(self, values: dict[str, str]) -> str:
+        default_tmpl = self.templates.get("default", "")
+        formatted_string, missing_keys = simple_safe_format(default_tmpl, values)
         if missing_keys:
             raise ValueError(f"Missing keys in prompt template: {missing_keys}")
         return formatted_string
@@ -108,22 +134,39 @@ class JSONPromptBuilder(PromptBuilder):
     @staticmethod
     def from_config(config: dict):
         """Constructs the builder from a configuration dictionary."""
-        template_path = config.get("prompt_template")
+        template_path = config.get("prompt_dir") or config.get("prompt_template")
         if not template_path:
-            raise ValueError("Prompt template path not specified in config.")
+            raise ValueError("Neither prompt_dir nor prompt_template specified in config.")
         return JSONPromptBuilder.from_path(template_path)
 
     @staticmethod
-    def from_path(template_path: str):
-        """Constructs the builder from a file path."""
-        with open(template_path, 'r') as f:
-            template_string = f.read().strip()
-        return JSONPromptBuilder.from_string(template_string)
+    def from_path(template_path: str | Path):
+        """Constructs the builder from a file path or directory."""
+        path = Path(template_path)
+        if path.is_dir():
+            templates = {}
+            default_path = path / "default.txt"
+            if not default_path.exists():
+                raise FileNotFoundError(f"default.txt not found in prompt directory: {path}")
+            templates["default"] = default_path.read_text(encoding="utf-8").strip()
+
+            start_path = path / "start.txt"
+            if start_path.exists():
+                templates["start"] = start_path.read_text(encoding="utf-8").strip()
+
+            end_path = path / "end.txt"
+            if end_path.exists():
+                templates["end"] = end_path.read_text(encoding="utf-8").strip()
+
+            return JSONPromptBuilder(templates=templates)
+        else:
+            template_string = path.read_text(encoding="utf-8").strip()
+            return JSONPromptBuilder.from_string(template_string)
 
     @staticmethod
     def from_string(template_string: str):
         """Constructs the builder directly from a string."""
-        return JSONPromptBuilder(instruction_template=template_string)
+        return JSONPromptBuilder(templates=template_string)
 
 
 

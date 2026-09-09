@@ -1,6 +1,10 @@
 from abc import abstractmethod, ABC
 from pathlib import Path
-from typing import Iterator, Any, Self
+from typing import Iterator, Any
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self
 import numpy as np
 import yaml
 from numpy.typing import NDArray

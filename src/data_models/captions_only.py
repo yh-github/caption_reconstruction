@@ -1,4 +1,9 @@
-from typing import Self
+from __future__ import annotations
+try:
+    from typing import Self, Optional
+except ImportError:
+    from typing import Optional
+    from typing_extensions import Self
 from pydantic import BaseModel, Field, field_validator, ConfigDict, RootModel
 
 
@@ -20,7 +25,7 @@ class CaptionedClip(BaseModel):
 
     index: int
     timestamp: TimestampRange
-    caption: str|None
+    caption: Optional[str]
 
     def is_masked(self) -> bool:
         return self.caption is None
@@ -65,7 +70,7 @@ class CaptionedVideo(BaseModel):
 class ReconstructedCaption(BaseModel):
     """Represents a single reconstructed caption with its original index."""
     index: int = Field(..., description="The original index of the clip that was reconstructed.")
-    caption: str|None = Field(..., description="The newly generated caption for the clip.")
+    caption: Optional[str] = Field(..., description="The newly generated caption for the clip.")
 
 # Allow caption to be None to do our custom validation. Change if needs to be used as an output schema
 
