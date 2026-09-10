@@ -48,10 +48,16 @@ def load_apcs_scores():
     for vid_id, res in data.get("scores", {}).items():
         wvs = res.get("whole_video_surprisal")
         if wvs:
+            nll = wvs.get("avg_surprisal_nll")
+            ppl = wvs.get("avg_perplexity")
             rows.append({
                 "norm_id": vid_id.replace("'", "_"),
-                "apcs_surprisal_nll": wvs.get("avg_surprisal_nll"),
-                "apcs_perplexity": wvs.get("avg_perplexity")
+                "apcs_nll": nll,
+                "apcs_perplexity": ppl,
+                # Clear aliases for analysis
+                "caption_surprisal_nll": nll,
+                "caption_perplexity": ppl,
+                "apcs_surprisal_nll": nll  # Retained for legacy compatibility
             })
     return pd.DataFrame(rows)
 
@@ -69,7 +75,7 @@ def load_phi_metrics():
         "temporal_ndcg": "text_temporal_ndcg"
     })
 
-    # 2. Extract cosine similarity from raw JSON results
+    # 2. Extract cosine similarity (mean, min, max, residuals) from raw JSON results
     json_pattern = str(RESULTS_DIR / "recon" / "manual_download" / "reconstruction" / "wild_dev_sim_text" / "*" / "*.json")
     json_files = glob.glob(json_pattern)
     cos_rows = []
@@ -85,14 +91,20 @@ def load_phi_metrics():
             cos_res = metrics.get("cos_sim_residual", [])
             cos_rows.append({
                 "norm_id": vid.replace("'", "_"),
-                "text_cos_sim": float(np.mean(cos_sims)) if len(cos_sims) else None,
-                "text_cos_sim_residual": float(np.mean(cos_res)) if len(cos_res) else None
+                "text_cos_sim_mean": float(np.mean(cos_sims)) if len(cos_sims) else None,
+                "text_cos_sim_min": float(np.min(cos_sims)) if len(cos_sims) else None,
+                "text_cos_sim_max": float(np.max(cos_sims)) if len(cos_sims) else None,
+                "text_cos_sim_residual_mean": float(np.mean(cos_res)) if len(cos_res) else None,
+                "text_cos_sim_residual_min": float(np.min(cos_res)) if len(cos_res) else None,
             })
         except Exception:
             pass
 
     if cos_rows:
         df_cos = pd.DataFrame(cos_rows).groupby("norm_id").mean().reset_index()
+        # Aliases for backwards compatibility
+        df_cos["text_cos_sim"] = df_cos["text_cos_sim_mean"]
+        df_cos["text_cos_sim_residual"] = df_cos["text_cos_sim_residual_mean"]
         phi_agg = pd.merge(phi_temp_agg, df_cos, on="norm_id", how="left")
     else:
         phi_agg = phi_temp_agg
@@ -113,16 +125,25 @@ def load_video_metrics():
         "temporal_ndcg": "video_temporal_ndcg"
     })
 
-    # 2. Video cosine similarity from wild_dev_sim_vec_vid.csv
+    # 2. Video cosine similarity (mean, min, max, residuals) from wild_dev_sim_vec_vid.csv
     vec_vid_file = RESULTS_DIR / "for_analysis" / "wild_dev_sim_vec_vid.csv"
     if vec_vid_file.exists():
         df_vid = pd.read_csv(vec_vid_file)
         df_vid["norm_id"] = df_vid["video_id"].str.replace("'", "_")
-        vid_cos_agg = df_vid.groupby("norm_id")[["cos_sim_mean", "cos_sim_residual_mean"]].mean().reset_index()
-        vid_cos_agg = vid_cos_agg.rename(columns={
-            "cos_sim_mean": "video_cos_sim",
-            "cos_sim_residual_mean": "video_cos_sim_residual"
-        })
+        vid_cols = ["cos_sim_mean", "cos_sim_min", "cos_sim_max", "cos_sim_residual_mean", "cos_sim_residual_min"]
+        vid_cols_present = [c for c in vid_cols if c in df_vid.columns]
+        vid_cos_agg = df_vid.groupby("norm_id")[vid_cols_present].mean().reset_index()
+        vid_rename = {
+            "cos_sim_mean": "video_cos_sim_mean",
+            "cos_sim_min": "video_cos_sim_min",
+            "cos_sim_max": "video_cos_sim_max",
+            "cos_sim_residual_mean": "video_cos_sim_residual_mean",
+            "cos_sim_residual_min": "video_cos_sim_residual_min",
+        }
+        vid_cos_agg = vid_cos_agg.rename(columns=vid_rename)
+        # Aliases for backwards compatibility
+        vid_cos_agg["video_cos_sim"] = vid_cos_agg["video_cos_sim_mean"]
+        vid_cos_agg["video_cos_sim_residual"] = vid_cos_agg["video_cos_sim_residual_mean"]
         base_agg = pd.merge(base_agg, vid_cos_agg, on="norm_id", how="left")
 
     return base_agg
@@ -213,15 +234,27 @@ def main():
         "text_temporal_ndcg",
         "video_temporal_ndcg",
         "t_ndcg_delta",
+        "text_cos_sim_mean",
+        "text_cos_sim_min",
+        "video_cos_sim_mean",
+        "video_cos_sim_min",
+        "text_cos_sim_residual_mean",
+        "text_cos_sim_residual_min",
+        "video_cos_sim_residual_mean",
+        "video_cos_sim_residual_min",
+        "apcs_nll",
+        "apcs_perplexity",
+        "video_surprisal_var",
+        "video_surprisal_avg",
+        "video_surprisal_max",
+        # Legacy column names for backward compatibility
         "text_cos_sim",
         "video_cos_sim",
         "text_cos_sim_residual",
         "video_cos_sim_residual",
         "apcs_surprisal_nll",
-        "apcs_perplexity",
-        "video_surprisal_var",
-        "video_surprisal_avg",
-        "video_surprisal_max"
+        "caption_surprisal_nll",
+        "caption_perplexity"
     ]
 
     final_cols = [c for c in cols if c in merged.columns]
