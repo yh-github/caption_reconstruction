@@ -31,6 +31,7 @@ remote/
 local/
 results/*
 !results/phi_vs_video_integration_summary.csv
+!results/prior_vs_post_reconstruction_master.csv
 test_logs/
 test_results/
 .test_lock
