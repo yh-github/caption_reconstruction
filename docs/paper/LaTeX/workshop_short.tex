@@ -22,6 +22,10 @@
 \newcommand{\deltaMetric}{\Delta}
 \newcommand{\textSub}[1]{_{\text{#1}}}
 
+\setlength{\textfloatsep}{6pt plus 1pt minus 1pt}
+\setlength{\floatsep}{5pt plus 1pt minus 1pt}
+\setlength{\intextsep}{5pt plus 1pt minus 1pt}
+
 % Support for easy cross-referencing
 \usepackage[capitalize]{cleveref}
 \crefname{section}{Sec.}{Secs.}
@@ -169,20 +173,20 @@ Motion Var \(\sigma^2_{\Delta v}\) & Phi-3 MRR & +0.0290 & ns & -0.0748 & ns \\
 \end{table}
 
 \subsection{Finding 1: Scale-Induced Surprisal Immunity}
-As presented in \Cref{fig:surprisal_immunity} and \Cref{tab:correlations}, prior caption surprisal (APCS NLL) exhibits a massive negative correlation with Phi-3-mini performance (\(r = -0.6408, p < 0.0001\)). Compact models lean heavily on high-probability stereotypical phrases; when real-world events diverge from standard templates, their generative capability collapses.
-In sharp contrast, Llama-3.1-8B shows zero correlation with APCS NLL (\(r = +0.0276, p = 0.7908\)). Its parameter scale grants it robust world knowledge, allowing it to in-fill uncommon events with equal precision. Consequently, Llama's margin of victory over Phi-3 increases significantly as caption surprisal rises (\(r = +0.2022, p = 0.0495\)).
+As presented in \Cref{fig:surprisal_immunity} and \Cref{tab:correlations}, prior caption surprisal (APCS NLL) exhibits a massive negative correlation with Phi-3-mini performance (\(r = -0.6408, p < 0.0001\), power \(= 100\%\)). Compact models lean heavily on high-probability stereotypical phrases; when real-world events diverge from standard templates, their generative capability collapses.
+In sharp contrast, Llama-3.1-8B shows no significant correlation with APCS NLL (\(r = +0.0276, p = 0.7908\)). Comparing these two dependent correlations via Williams' test reveals that Llama's robustness shift relative to Phi-3 is statistically decisive (\(t = -5.51, p = 3.2 \times 10^{-7}\)). Consequently, Llama's margin of victory over Phi-3 increases significantly as caption surprisal rises (\(r = +0.2022, p = 0.0495\)).
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.98\columnwidth]{figures/fig3_category_performance.png}
   \vspace{-2mm}
-  \caption{\textbf{Reconstruction Performance Across Domains.} Llama-3.1-8B consistently outperforms Phi-3-mini and Visual Continuity across all categories, achieving its largest gains in procedural and action domains.}
+  \caption{\textbf{Reconstruction Across Domains.} Error bars denote two-tailed 95\% Student's \(t\) confidence intervals. While between-category differences for Llama-3.1 are not statistically significant (\(p = 0.096\)), its paired advantage over Visual Continuity and Phi-3 is consistent across all domains (\(p < 0.0001\)).}
   \label{fig:category_performance}
   \vspace{-3mm}
 \end{figure}
 
 \subsection{Finding 2: The Modality Decoupling Law}
-\Cref{fig:modality_decoupling} empirically validates the Modality Decoupling Law. For non-parametric visual interpolation, motion variance acts as an immediate failure mode: visual cosine similarity degrades dramatically with motion variance (\(r = -0.8648, p < 0.0001\)). When a scene undergoes rapid panning, cutting, or erratic subject displacement, visual interpolation fails because the optical manifold breaks temporal smoothness.
+\Cref{fig:modality_decoupling} empirically validates the Modality Decoupling Law. For non-parametric visual interpolation, motion variance acts as an immediate failure mode: visual cosine similarity degrades dramatically with motion variance (\(r = -0.8648, p < 0.0001\), power \(= 100\%\)). When a scene undergoes rapid panning, cutting, or erratic subject displacement, visual interpolation fails because the optical manifold breaks temporal smoothness.
 
 Language reasoning, however, is decoupled from visual motion: the correlation between optical motion variance and Llama-3.1 MRR is virtually zero (\(r = -0.0013, p = 0.9899\)). A textual description (e.g., \textit{``The combine harvester turns 90 degrees at the edge of the crop row''}) remains fully deducible regardless of whether the physical recording camera shook or hovered smoothly.
 
@@ -190,7 +194,7 @@ Language reasoning, however, is decoupled from visual motion: the correlation be
 \centering
 \footnotesize
 \setlength{\tabcolsep}{2.5pt}
-\caption{\textbf{Domain Stratification.} Performance across video categories (\(W=3\)). Llama-3.1-8B delivers large, consistent advantages over both visual and small-language baselines.}
+\caption{\textbf{Exploratory Domain Breakdown.} Performance across video categories (\(W=3\)). Between-category variation in Llama-3.1 MRR is not statistically significant (ANOVA \(F=1.94, p=0.096\)), but within-category paired gains over Visual Continuity are massive (\(p < 0.0001\)).}
 \label{tab:categories}
 \begin{tabular}{lcccccc}
 \toprule
@@ -214,14 +218,14 @@ Nature/Doc & 12 & 1.223 & 0.190 & 0.365 & 0.273 & \textbf{0.505} \\
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=0.75\columnwidth]{figures/fig4_positional_mrr.png}
-  \vspace{-2mm}
-  \caption{\textbf{Positional Reconstruction MRR.} Opening sequences (\(i=0\)) achieve the highest accuracy due to backward teleological causality in human video editing.}
+  \includegraphics[width=0.60\columnwidth]{figures/fig4_positional_mrr.png}
+  \vspace{-2.5mm}
+  \caption{\textbf{Positional Reconstruction MRR (95\% CI).} Opening sequences (\(i=0\)) outperform middle segments (\(p = 0.0058\)), reflecting backward causal constraints in edited video.}
   \label{fig:positional_mrr}
-  \vspace{-3mm}
+  \vspace{-2.5mm}
 \end{figure}
 
-\noindent \textbf{Positional Teleology:} Counterintuitively, reconstructing opening sequences (\(i=0\)) yields the highest retrieval MRR (\(0.585 \pm 0.014\)), surpassing middle (\(0.532 \pm 0.014\)) and ending segments (\(0.558 \pm 0.014\)) (\Cref{fig:positional_mrr}). In natural video editing, downstream narrative resolution is strongly determined by initial conditions; working backward from the established premise provides tighter causal constraints than forward open-ended branching.
+\noindent \textbf{Positional Teleology:} Reconstructing opening sequences (\(i=0\)) achieves significantly higher retrieval MRR (\(0.585 \pm 0.028\)) than middle segments (\(0.532 \pm 0.028\), paired \(t = 2.82, p = 0.0058\)), while the difference between opening and ending segments (\(0.558 \pm 0.028\)) is not statistically significant (\(p = 0.177\)) (\Cref{fig:positional_mrr}). In natural video editing, downstream narrative resolution is strongly determined by initial conditions; working backward from the established premise provides tighter causal constraints than forward open-ended branching.
 
 %-------------------------------------------------------------------------
 \section{Discussion and Implications}
@@ -238,7 +242,8 @@ While an 8B model successfully bridges 9-second gaps (\(W=3\)) with 0.558 MRR, f
 \label{sec:conclusion}
 Through dense caption reconstruction, we demonstrated that language models operate as robust causal engines capable of bridging temporal omissions in video. We established that parametric scale (\(\ge 8\text{B}\)) eliminates vulnerability to language surprisal, and proved that symbolic reasoning is mathematically decoupled from optical motion disturbance. These principles pave the way toward selective, semantically guided video processing architectures.
 
-{\small
+{\footnotesize
+\setlength{\bibsep}{0pt plus 0.3pt}
 \bibliographystyle{ieeenat_fullname}
 \bibliography{main}
 }

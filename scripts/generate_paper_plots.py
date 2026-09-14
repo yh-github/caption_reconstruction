@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
 """
 Generate publication-quality figures for the ICCV Workshop Short Paper.
-
-Outputs saved to docs/paper/LaTeX/figures/:
-1. fig1_surprisal_immunity.png: APCS Surprisal vs Phi-3 vs Llama-3.1 MRR (dual regression).
-2. fig2_modality_decoupling.png: Visual Motion Variance vs Visual Continuity vs Llama MRR.
-3. fig3_category_performance.png: Grouped MRR comparison across video domains.
-4. fig4_positional_mrr.png: Positional MRR across Opening, Middle, and Ending segments.
+All error bars represent true two-tailed 95% Confidence Intervals (Student's t).
 """
 
 from pathlib import Path
@@ -16,7 +11,6 @@ import pandas as pd
 import scipy.stats as stats
 import seaborn as sns
 
-# Publication style
 plt.rcParams.update({
     'font.family': 'sans-serif',
     'font.sans-serif': ['DejaVu Sans', 'Helvetica', 'Arial'],
@@ -155,39 +149,55 @@ plt.close()
 print(f"Saved: {fig2_path}")
 
 # -------------------------------------------------------------
-# Figure 3: Performance Across Video Domains
+# Figure 3: Performance Across Video Domains (TRUE 95% Student's t CI)
 # -------------------------------------------------------------
 cat_order = ['Action/Vehicle', 'Scenery', 'Military', 'Survival', 'Farming', 'Nature/Doc']
 counts = df['category'].value_counts().to_dict()
 cat_labels = [f"{cat}\n(n={counts.get(cat, 0)})" for cat in cat_order]
 
-cat_df = df.groupby('category').agg(
-    llama_mrr=('llama_mrr', 'mean'),
-    phi_mrr=('phi_mrr', 'mean'),
-    video_mrr=('video_mrr', 'mean'),
-    llama_sem=('llama_mrr', 'sem'),
-    phi_sem=('phi_mrr', 'sem'),
-    video_sem=('video_mrr', 'sem')
-).reindex(cat_order).reset_index()
+# Compute true 95% Student's t confidence intervals per category:
+cat_stats = []
+for cat in cat_order:
+    sub = df[df['category'] == cat]
+    n = len(sub)
+    for model_name, col in [('llama', 'llama_mrr'), ('phi', 'phi_mrr'), ('video', 'video_mrr')]:
+        mean = sub[col].mean()
+        sem = sub[col].sem()
+        tcrit = stats.t.ppf(0.975, df=n-1) if n > 1 else 1.96
+        ci95 = tcrit * sem
+        cat_stats.append({
+            'category': cat,
+            'model': model_name,
+            'mean': mean,
+            'ci95': ci95
+        })
 
-fig, ax = plt.subplots(figsize=(6.8, 3.0))
+cs_df = pd.DataFrame(cat_stats)
+llama_vals = cs_df[cs_df['model'] == 'llama']['mean'].values
+llama_errs = cs_df[cs_df['model'] == 'llama']['ci95'].values
+phi_vals = cs_df[cs_df['model'] == 'phi']['mean'].values
+phi_errs = cs_df[cs_df['model'] == 'phi']['ci95'].values
+vis_vals = cs_df[cs_df['model'] == 'video']['mean'].values
+vis_errs = cs_df[cs_df['model'] == 'video']['ci95'].values
+
+fig, ax = plt.subplots(figsize=(6.8, 3.1))
 x = np.arange(len(cat_order))
 bar_width = 0.25
 
-rects1 = ax.bar(x - bar_width, cat_df['llama_mrr'], bar_width, yerr=cat_df['llama_sem'],
+rects1 = ax.bar(x - bar_width, llama_vals, bar_width, yerr=llama_errs,
                 label='Llama-3.1-8B (Whole Window)', color=c_llama, capsize=3, edgecolor='black', linewidth=0.5)
-rects2 = ax.bar(x, cat_df['phi_mrr'], bar_width, yerr=cat_df['phi_sem'],
+rects2 = ax.bar(x, phi_vals, bar_width, yerr=phi_errs,
                 label='Phi-3-mini-4k (Iterative)', color=c_phi, capsize=3, edgecolor='black', linewidth=0.5)
-rects3 = ax.bar(x + bar_width, cat_df['video_mrr'], bar_width, yerr=cat_df['video_sem'],
+rects3 = ax.bar(x + bar_width, vis_vals, bar_width, yerr=vis_errs,
                 label='Visual Vector Continuity', color=c_vis, capsize=3, edgecolor='black', linewidth=0.5)
 
 ax.set_ylabel('Mean Reciprocal Rank (MRR)')
-ax.set_title('Reconstruction Performance Across Diverse Video Domains (W=3)', fontsize=10.5)
+ax.set_title('Reconstruction Performance Across Video Domains (Error bars: 95% CI)', fontsize=10)
 ax.set_xticks(x)
-ax.set_xticklabels(cat_labels, fontsize=8.5)
+ax.set_xticklabels(cat_labels, fontsize=8.0)
 ax.legend(loc='upper right', frameon=True, framealpha=0.9)
 ax.grid(True, axis='y')
-ax.set_ylim(0, 0.75)
+ax.set_ylim(0, 0.82)
 
 sns.despine(fig)
 plt.tight_layout()
@@ -197,7 +207,7 @@ plt.close()
 print(f"Saved: {fig3_path}")
 
 # -------------------------------------------------------------
-# Figure 4: Positional Dynamics (Opening vs Middle vs Ending)
+# Figure 4: Positional Dynamics (TRUE 95% Student's t CI)
 # -------------------------------------------------------------
 fig, ax = plt.subplots(figsize=(3.4, 2.7))
 
@@ -207,20 +217,20 @@ pos_data = [
     df['llama_mrr_end'].dropna()
 ]
 pos_means = [d.mean() for d in pos_data]
-pos_sems = [d.sem() for d in pos_data]
+pos_cis = [stats.t.ppf(0.975, df=len(d)-1) * d.sem() for d in pos_data]
 pos_labels = ['Opening\n(i=0)', 'Middle\n(i=mid)', 'Ending\n(i=end)']
 
-bars = ax.bar(pos_labels, pos_means, yerr=pos_sems, color=['#1f77b4', '#4b97c9', '#7cbbe0'],
+bars = ax.bar(pos_labels, pos_means, yerr=pos_cis, color=['#1f77b4', '#4b97c9', '#7cbbe0'],
               capsize=4, edgecolor='black', linewidth=0.6, width=0.55)
 
-for bar, mean_val in zip(bars, pos_means):
+for bar, mean_val, ci_val in zip(bars, pos_means, pos_cis):
     yval = bar.get_height()
-    ax.text(bar.get_x() + bar.get_width()/2.0, yval + 0.025, f"{mean_val:.3f}",
+    ax.text(bar.get_x() + bar.get_width()/2.0, yval + ci_val + 0.015, f"{mean_val:.3f}",
             ha='center', va='bottom', fontsize=8, fontweight='bold')
 
 ax.set_ylabel('Llama-3.1-8B MRR')
-ax.set_title('Positional Gap Reconstruction', fontsize=9.5)
-ax.set_ylim(0, 0.72)
+ax.set_title('Positional Gap Reconstruction (95% CI)', fontsize=9.5)
+ax.set_ylim(0, 0.75)
 ax.grid(True, axis='y')
 sns.despine(fig)
 plt.tight_layout()
@@ -229,4 +239,4 @@ plt.savefig(fig4_path)
 plt.close()
 print(f"Saved: {fig4_path}")
 
-print("All figures successfully regenerated!")
+print("All figures regenerated with honest 95% Confidence Intervals!")
