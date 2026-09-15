@@ -77,5 +77,29 @@ class TestRetrievalMetrics(unittest.TestCase):
         metrics = calculate_retrieval_metrics(recon, gt, pool)
         self.assertEqual(metrics['mean_rank'], 1.0)
 
+    def test_no_float_precision_overflow(self):
+        # 3 vectors where all distractors are strictly worse or equal
+        # Simulate subtle float noise
+        gt = np.random.randn(3, 128)
+        gt = gt / np.linalg.norm(gt, axis=1, keepdims=True)
+        recon = gt.copy()
+        
+        metrics = calculate_retrieval_metrics(recon, gt, gt)
+        self.assertTrue(all(r <= 3 for r in metrics['ranks']))
+        self.assertEqual(metrics['recall_at_1'], 1.0)
+
+    def test_video_level_pool_with_indices(self):
+        # Pool has 10 vectors, GT are at indices 2, 5
+        pool = np.random.randn(10, 32)
+        pool = pool / np.linalg.norm(pool, axis=1, keepdims=True)
+        gt_indices = [2, 5]
+        gt = pool[gt_indices].copy()
+        recon = gt.copy()
+        
+        metrics = calculate_retrieval_metrics(recon, gt, pool, gt_indices_in_pool=gt_indices)
+        self.assertEqual(metrics['mean_rank'], 1.0)
+        self.assertEqual(metrics['recall_at_1'], 1.0)
+        self.assertTrue(all(r <= 10 for r in metrics['ranks']))
+
 if __name__ == '__main__':
     unittest.main()

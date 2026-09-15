@@ -281,23 +281,36 @@ def monolith(directory:Path):
 def calculate_retrieval_metrics(
     reconstructed_vectors: np.ndarray,  # Shape: (M, Dim)
     ground_truth_vectors: np.ndarray,   # Shape: (M, Dim)
-    distractor_pool: np.ndarray,        # Shape: (N, Dim) - Global distractors
-    top_k: int = 5
+    distractor_pool: np.ndarray,        # Shape: (N, Dim) - Distractors
+    top_k: int = 5,
+    gt_indices_in_pool: list[int]|np.ndarray|None = None
 ) -> dict:
     
-    # 1. Combine GT and Distractors for each query
-    # Note: For efficiency, usually we just compute sim against ALL distractors once
+    reconstructed_vectors = np.asarray(reconstructed_vectors)
+    ground_truth_vectors = np.asarray(ground_truth_vectors)
+    distractor_pool = np.asarray(distractor_pool)
+    m = len(reconstructed_vectors)
     
-    # Sim(Recon, GT) -> Shape (M,)
+    # 1. Sim(Recon, GT) -> Shape (M,)
     sim_gt = np.sum(reconstructed_vectors * ground_truth_vectors, axis=1)
     
     # Sim(Recon, Distractors) -> Shape (M, N)
     sim_dist = np.dot(reconstructed_vectors, distractor_pool.T)
     
+    # Copy to safely mask out the GT target for each query
+    sim_dist_effective = sim_dist.copy()
+    if gt_indices_in_pool is not None:
+        for i, gt_idx in enumerate(gt_indices_in_pool):
+            if 0 <= gt_idx < sim_dist_effective.shape[1]:
+                sim_dist_effective[i, gt_idx] = -np.inf
+    elif (distractor_pool.shape == ground_truth_vectors.shape 
+          and np.allclose(distractor_pool, ground_truth_vectors)):
+        for i in range(min(m, sim_dist_effective.shape[1])):
+            sim_dist_effective[i, i] = -np.inf
+
     # 2. Count how many distractors have higher score than GT
-    # This gives us the rank without needing a full sort (faster)
-    # (M, N) boolean matrix
-    better_than_gt = sim_dist > sim_gt[:, None]
+    # Use 1e-6 epsilon to prevent floating-point precision artifacts from BLAS vs elementwise sum
+    better_than_gt = sim_dist_effective > (sim_gt[:, None] + 1e-6)
     
     # Rank = (count better) + 1
     ranks = np.sum(better_than_gt, axis=1) + 1

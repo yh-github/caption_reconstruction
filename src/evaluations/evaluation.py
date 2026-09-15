@@ -121,7 +121,8 @@ class ReconstructionEvaluator(ABC, Generic[T_RECON, T_ORIG]):
                 if eval_type == 'emb_sim':
                     return ReconstructionEvaluator_EmbSimilarity(embedder)
                 elif eval_type == 'emb_retrieval' or eval_type == 'retrieval':
-                    return ReconstructionEvaluator_Retrieval(embedder)
+                    pool_scope = eval_conf.get('pool_scope', 'video')
+                    return ReconstructionEvaluator_Retrieval(embedder, pool_scope=pool_scope)
                 elif eval_type == 'cross_modal_sim':
                     video_embs_path = eval_conf.get('video_embs_path', 'local/wild_videos_embs_siglip')
                     return ReconstructionEvaluator_CrossModal(embedder, video_embs_path)
@@ -299,8 +300,13 @@ class ReconstructionEvaluator_Retrieval(ReconstructionEvaluator_EmbSimilarity):
     """
     Evaluates reconstruction as a retrieval task.
     In addition to cosine similarity, it ranks each reconstructed caption against
-    the pool of all original captions in the video (distractors).
+    the pool of original captions (distractors) — either within the full video ('video')
+    or within the masked window ('gap').
     """
+    def __init__(self, embedder: Any, pool_scope: str = "video"):
+        super().__init__(embedder)
+        self.pool_scope = pool_scope
+
     def evaluate(self, reconstructed: Reconstructed, orig: CaptionedVideo) -> RAW_METRIC_OBJ:
         # Get the basic sim metrics first
         base_metrics = super().evaluate(reconstructed, orig)
@@ -308,11 +314,6 @@ class ReconstructionEvaluator_Retrieval(ReconstructionEvaluator_EmbSimilarity):
             return {}
 
         try:
-            # We need the vectors again.
-            # Optimization: ReconstructionEvaluator_EmbSimilarity doesn't expose them easily
-            # without refactoring, so we might re-fetch.
-            # However, since they are cached/local, it should be cheap.
-            
             # Align again to be sure we match the super() logic
             candidates, references = reconstructed.align(orig.clips)
             if not candidates: return base_metrics
@@ -320,12 +321,20 @@ class ReconstructionEvaluator_Retrieval(ReconstructionEvaluator_EmbSimilarity):
             pred_vecs = self._embedder.get_embeddings(reconstructed.video_id + "(pred)", candidates)
             true_vecs = self._embedder.get_embeddings(reconstructed.video_id + "(orig)", references)
 
-            # For retrieval, the distractor pool constitutes all TRUE concepts in this video.
-            # We strictly want to find the MATCHING true vec among all TRUE vecs.
+            if self.pool_scope == "video":
+                # Distractor pool is all clips across the entire original video
+                all_orig_captions = [c.caption for c in orig.clips]
+                distractor_pool = self._embedder.get_embeddings(reconstructed.video_id + "(all_gt)", all_orig_captions)
+                gt_indices = [int(i) for i in reconstructed.reconstructed_captions.keys()]
+            else:
+                distractor_pool = true_vecs
+                gt_indices = list(range(len(true_vecs)))
+
             ranking_metrics = calculate_retrieval_metrics(
                 reconstructed_vectors=np.array(pred_vecs),
                 ground_truth_vectors=np.array(true_vecs),
-                distractor_pool=np.array(true_vecs)
+                distractor_pool=np.array(distractor_pool),
+                gt_indices_in_pool=gt_indices
             )
             
             # Merge dictionary
