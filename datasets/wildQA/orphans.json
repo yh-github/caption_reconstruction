@@ -1,0 +1,6290 @@
+[
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          26.192
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Natural-Disaster_3-manual",
+    "time_in_original_video": {
+      "split-method": "manual",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "26.192"
+      }
+    },
+    "duration": 26.192,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          22.732
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Natural-Disaster_4-manual",
+    "time_in_original_video": {
+      "split-method": "manual",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "22.732"
+      }
+    },
+    "duration": 22.732,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          65.782
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Natural-Disaster_8-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "65.782"
+      }
+    },
+    "duration": 65.782,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          63.229
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Ultimate-Chase_1-clip-2",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "63.229"
+      }
+    },
+    "duration": 63.229,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          46.811
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Ultimate-Chase_11-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "46.811"
+      }
+    },
+    "duration": 46.811,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          62.729
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Ultimate-Chase_2-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "62.729"
+      }
+    },
+    "duration": 62.729,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          57.191
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Ultimate-Chase_4-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "57.191"
+      }
+    },
+    "duration": 57.191,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          31.254
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Ultimate-Chase_6-manual",
+    "time_in_original_video": {
+      "split-method": "manual",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "31.254"
+      }
+    },
+    "duration": 31.254,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          66.4
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Ultimate-Chase_7-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "66.4"
+      }
+    },
+    "duration": 66.4,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          68.84
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Weathershot_10-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "68.84"
+      }
+    },
+    "duration": 68.84,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          65.573
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Weathershot_5-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "65.573"
+      }
+    },
+    "duration": 65.573,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          61.92
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Weathershot_6-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "61.92"
+      }
+    },
+    "duration": 61.92,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          66.338
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Weathershot_9-clip-1",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "66.338"
+      }
+    },
+    "duration": 66.338,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          46.222
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Tornado-Trackers_0-clip-1",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "46.222"
+      }
+    },
+    "duration": 46.222,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          100.914
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Tornado-Trackers_3-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "100.914"
+      }
+    },
+    "duration": 100.914,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          62.894
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Tornado-Trackers_8-clip-2",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "62.894"
+      }
+    },
+    "duration": 62.894,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          64.663
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Climate-Change_11-clip-14",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "64.663"
+      }
+    },
+    "duration": 64.663,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          66.497
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Climate-Change_3-clip-8",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "66.497"
+      }
+    },
+    "duration": 66.497,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          66.863
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Climate-Change_4-clip-2",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "66.863"
+      }
+    },
+    "duration": 66.863,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          60.33
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Climate-Change_5-clip-11",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "60.33"
+      }
+    },
+    "duration": 60.33,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          61.24
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Climate-Change_9-clip-3",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "61.24"
+      }
+    },
+    "duration": 61.24,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          71.783
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Disaster-Compilations_1-clip-1",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "71.783"
+      }
+    },
+    "duration": 71.783,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          69.28
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Disaster-Compilations_12-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "69.28"
+      }
+    },
+    "duration": 69.28,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          70.617
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Disaster-Compilations_8-clip-4",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "70.617"
+      }
+    },
+    "duration": 70.617,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          47.671
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Dan-Robinson_2-manual",
+    "time_in_original_video": {
+      "split-method": "manual",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "47.671"
+      }
+    },
+    "duration": 47.671,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          57.529
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Dan-Robinson_4-clip-1",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "57.529"
+      }
+    },
+    "duration": 57.529,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          62.671
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Skip-Talbot_2-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "62.671"
+      }
+    },
+    "duration": 62.671,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          49.599
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Skip-Talbot_5-clip-1",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "49.599"
+      }
+    },
+    "duration": 49.599,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          64.36
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Skip-Talbot_7-clip-4",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "64.36"
+      }
+    },
+    "duration": 64.36,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          66.431
+        ]
+      }
+    ],
+    "domain": "Natural Disaster",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Skip-Talbot_8-clip-6",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "66.431"
+      }
+    },
+    "duration": 66.431,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          51.226
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Virtual-Running-Videos_11-clip-3",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "51.226"
+      }
+    },
+    "duration": 51.226,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          99.837
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Virtual-Running-Videos_2-clip-8",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "99.837"
+      }
+    },
+    "duration": 99.837,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          123.88
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Virtual-Running-Videos_3-clip-16",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "123.88"
+      }
+    },
+    "duration": 123.88,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          105.138
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Virtual-Running-Videos_7-clip-11",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "105.138"
+      }
+    },
+    "duration": 105.138,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          92.907
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Virtual-Running-Videos_8-clip-16",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "92.907"
+      }
+    },
+    "duration": 92.907,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          28.587
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Nick-Gaillard_0-clip-2",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "28.587"
+      }
+    },
+    "duration": 28.587,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          61.228
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Nick-Gaillard_10-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "61.228"
+      }
+    },
+    "duration": 61.228,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          64.132
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Nick-Gaillard_11-clip-1",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "64.132"
+      }
+    },
+    "duration": 64.132,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          51.778
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Nick-Gaillard_3-clip-2",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "51.778"
+      }
+    },
+    "duration": 51.778,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          61.417
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Nick-Gaillard_7-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "61.417"
+      }
+    },
+    "duration": 61.417,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          63.951
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Nick-Gaillard_8-clip-1",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "63.951"
+      }
+    },
+    "duration": 63.951,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          77.948
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "4k-Relaxation_0-clip-2",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "77.948"
+      }
+    },
+    "duration": 77.948,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          61.371
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "4k-Relaxation_1-clip-194",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "61.371"
+      }
+    },
+    "duration": 61.371,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          70.034
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "4k-Relaxation_10-manual",
+    "time_in_original_video": {
+      "split-method": "manual",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "70.034"
+      }
+    },
+    "duration": 70.034,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          215.014
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "4k-Relaxation_2-clip-28",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "215.014"
+      }
+    },
+    "duration": 215.014,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          80.046
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "4k-Relaxation_5-manual",
+    "time_in_original_video": {
+      "split-method": "manual",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "80.046"
+      }
+    },
+    "duration": 80.046,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          70.017
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "4k-Relaxation_6-manual",
+    "time_in_original_video": {
+      "split-method": "manual",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "70.017"
+      }
+    },
+    "duration": 70.017,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          224.23
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "4k-Relaxation_7-clip-9",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "224.23"
+      }
+    },
+    "duration": 224.23,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          78.02
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "4k-Relaxation_8-manual",
+    "time_in_original_video": {
+      "split-method": "manual",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "78.02"
+      }
+    },
+    "duration": 78.02,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          65.016
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "4k-Relaxation_9-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "65.016"
+      }
+    },
+    "duration": 65.016,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          145.091
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Primal-Earth-Sounds_1-clip-74",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "145.091"
+      }
+    },
+    "duration": 145.091,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          186.038
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Primal-Earth-Sounds_10-clip-7",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "186.038"
+      }
+    },
+    "duration": 186.038,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          64.927
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Primal-Earth-Sounds_6-clip-40",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "64.927"
+      }
+    },
+    "duration": 64.927,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          73.33
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Primal-Earth-Sounds_7-clip-32",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "73.33"
+      }
+    },
+    "duration": 73.33,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          66.635
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Primal-Earth-Sounds_8-clip-21",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "66.635"
+      }
+    },
+    "duration": 66.635,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          60.661
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "TK-Hinshaw_6-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "60.661"
+      }
+    },
+    "duration": 60.661,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          63.236
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Norwegian-Explorer_0-clip-10",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "63.236"
+      }
+    },
+    "duration": 63.236,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          64.633
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Norwegian-Explorer_1-clip-26",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "64.633"
+      }
+    },
+    "duration": 64.633,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          78.367
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Norwegian-Explorer_10-clip-16",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "78.367"
+      }
+    },
+    "duration": 78.367,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          234.243
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Norwegian-Explorer_2-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "234.243"
+      }
+    },
+    "duration": 234.243,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          71.23
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Norwegian-Explorer_3-clip-35",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "71.23"
+      }
+    },
+    "duration": 71.23,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          64.967
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Norwegian-Explorer_4-clip-17",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "64.967"
+      }
+    },
+    "duration": 64.967,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          61.026
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Norwegian-Explorer_5-manual",
+    "time_in_original_video": {
+      "split-method": "manual",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "61.026"
+      }
+    },
+    "duration": 61.026,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          52.144
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Norwegian-Explorer_6-clip-59",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "52.144"
+      }
+    },
+    "duration": 52.144,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          124.696
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Norwegian-Explorer_9-clip-13",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "124.696"
+      }
+    },
+    "duration": 124.696,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          74.444
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "The-Flying-Dutchman_0-clip-6",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "74.444"
+      }
+    },
+    "duration": 74.444,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          69.87
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "The-Flying-Dutchman_1-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "69.87"
+      }
+    },
+    "duration": 69.87,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          60.457
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "The-Flying-Dutchman_10-clip-16",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "60.457"
+      }
+    },
+    "duration": 60.457,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          60.206
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "The-Flying-Dutchman_11-clip-14",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "60.206"
+      }
+    },
+    "duration": 60.206,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          62.476
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "The-Flying-Dutchman_2-clip-10",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "62.476"
+      }
+    },
+    "duration": 62.476,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          101.971
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "The-Flying-Dutchman_3-clip-11",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "101.971"
+      }
+    },
+    "duration": 101.971,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          100.746
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "The-Flying-Dutchman_7-clip-29",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "100.746"
+      }
+    },
+    "duration": 100.746,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          107.071
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "The-Flying-Dutchman_8-clip-25",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "107.071"
+      }
+    },
+    "duration": 107.071,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          60.16
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "TreadmillTV_0-clip-2",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "60.16"
+      }
+    },
+    "duration": 60.16,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          61.662
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "TreadmillTV_1-clip-13",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "61.662"
+      }
+    },
+    "duration": 61.662,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          86.355
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "TreadmillTV_10-clip-15",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "86.355"
+      }
+    },
+    "duration": 86.355,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          60.761
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "TreadmillTV_11-clip-24",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "60.761"
+      }
+    },
+    "duration": 60.761,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          105.811
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "TreadmillTV_8-clip-11",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "105.811"
+      }
+    },
+    "duration": 105.811,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          62.175
+        ]
+      }
+    ],
+    "domain": "Agriculture",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Millennial-Farmer_3-clip-1",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "62.175"
+      }
+    },
+    "duration": 62.175,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          90.009
+        ]
+      }
+    ],
+    "domain": "Agriculture",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Millennial-Farmer_6-manual",
+    "time_in_original_video": {
+      "split-method": "manual",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "90.009"
+      }
+    },
+    "duration": 90.009,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          60.062
+        ]
+      }
+    ],
+    "domain": "Agriculture",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "How-Farms-Work_0-clip-9",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "60.062"
+      }
+    },
+    "duration": 60.062,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          60.398
+        ]
+      }
+    ],
+    "domain": "Agriculture",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "How-Farms-Work_2-clip-3",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "60.398"
+      }
+    },
+    "duration": 60.398,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          159.026
+        ]
+      }
+    ],
+    "domain": "Agriculture",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "How-Farms-Work_7-manual",
+    "time_in_original_video": {
+      "split-method": "manual",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "159.026"
+      }
+    },
+    "duration": 159.026,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          108.344
+        ]
+      }
+    ],
+    "domain": "Agriculture",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Peterson-Farm-Bros_0-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "108.344"
+      }
+    },
+    "duration": 108.344,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          61.616
+        ]
+      }
+    ],
+    "domain": "Agriculture",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Peterson-Farm-Bros_10-clip-3",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "61.616"
+      }
+    },
+    "duration": 61.616,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          129.053
+        ]
+      }
+    ],
+    "domain": "Agriculture",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "John-Suscovich_11-clip-2",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "129.053"
+      }
+    },
+    "duration": 129.053,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          63.342
+        ]
+      }
+    ],
+    "domain": "Agriculture",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "John-Suscovich_8-clip-2",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "63.342"
+      }
+    },
+    "duration": 63.342,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          144.014
+        ]
+      }
+    ],
+    "domain": "Agriculture",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "RealAgriculture_10-manual",
+    "time_in_original_video": {
+      "split-method": "manual",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "144.014"
+      }
+    },
+    "duration": 144.014,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          76.471
+        ]
+      }
+    ],
+    "domain": "Agriculture",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "RealAgriculture_3-clip-1",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "76.471"
+      }
+    },
+    "duration": 76.471,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          210.001
+        ]
+      }
+    ],
+    "domain": "Agriculture",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "RealAgriculture_7-manual",
+    "time_in_original_video": {
+      "split-method": "manual",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "210.001"
+      }
+    },
+    "duration": 210.001,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          65.862
+        ]
+      }
+    ],
+    "domain": "Agriculture",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Welker-Farms-Inc_5-clip-3",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "65.862"
+      }
+    },
+    "duration": 65.862,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          61.73
+        ]
+      }
+    ],
+    "domain": "Agriculture",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Welker-Farms-Inc_6-clip-7",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "61.73"
+      }
+    },
+    "duration": 61.73,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          64.582
+        ]
+      }
+    ],
+    "domain": "Agriculture",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Welker-Farms-Inc_7-clip-17",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "64.582"
+      }
+    },
+    "duration": 64.582,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          62.417
+        ]
+      }
+    ],
+    "domain": "Human Survival",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "King-Kong-Amazon_9-clip-13",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "62.417"
+      }
+    },
+    "duration": 62.417,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          79.809
+        ]
+      }
+    ],
+    "domain": "Human Survival",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Survival-Skills-Primitive_9-clip-35",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "79.809"
+      }
+    },
+    "duration": 79.809,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          61.829
+        ]
+      }
+    ],
+    "domain": "Human Survival",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Primitive-Technology_4-clip-2",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "61.829"
+      }
+    },
+    "duration": 61.829,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          69.521
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "TK-Hinshaw_11-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "69.521"
+      }
+    },
+    "duration": 69.521,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          60.163
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "TK-Hinshaw_12-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "60.163"
+      }
+    },
+    "duration": 60.163,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          14.062
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "TK-Hinshaw_2-clip-4",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "14.062"
+      }
+    },
+    "duration": 14.062,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          72.97
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "TK-Hinshaw_3-clip-1",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "72.97"
+      }
+    },
+    "duration": 72.97,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          40.015
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "TK-Hinshaw_4-clip-3",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "40.015"
+      }
+    },
+    "duration": 40.015,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          70.509
+        ]
+      }
+    ],
+    "domain": "Geography",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "TK-Hinshaw_8-clip-1",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "70.509"
+      }
+    },
+    "duration": 70.509,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          83.55
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Gung-Ho-Vids_1-clip-3",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "83.55"
+      }
+    },
+    "duration": 83.55,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          63.117
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Gung-Ho-Vids_11-clip-4",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "63.117"
+      }
+    },
+    "duration": 63.117,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          61.8
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Gung-Ho-Vids_7-clip-1",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "61.8"
+      }
+    },
+    "duration": 61.8,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          61.983
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Sandboxx_1-clip-1",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "61.983"
+      }
+    },
+    "duration": 61.983,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          61.763
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Sandboxx_11-clip-1",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "61.763"
+      }
+    },
+    "duration": 61.763,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          63.833
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Sandboxx_3-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "63.833"
+      }
+    },
+    "duration": 63.833,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          87.02
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Sandboxx_4-manual",
+    "time_in_original_video": {
+      "split-method": "manual",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "87.02"
+      }
+    },
+    "duration": 87.02,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          60.564
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "AiirSource-Military_5-clip-1",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "60.564"
+      }
+    },
+    "duration": 60.564,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          73.073
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "AiirSource-Military_9-manual",
+    "time_in_original_video": {
+      "split-method": "manual",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "73.073"
+      }
+    },
+    "duration": 73.073,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          60.302
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "WarLeaks-Military-Blog_0-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "60.302"
+      }
+    },
+    "duration": 60.302,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          60.414
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "WarLeaks-Military-Blog_1-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "60.414"
+      }
+    },
+    "duration": 60.414,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          38.002
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "WarLeaks-Military-Blog_11-manual",
+    "time_in_original_video": {
+      "split-method": "manual",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "38.002"
+      }
+    },
+    "duration": 38.002,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          44.071
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "WarLeaks-Military-Blog_6-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "44.071"
+      }
+    },
+    "duration": 44.071,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          60.953
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Military-Archive_0-clip-5",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "60.953"
+      }
+    },
+    "duration": 60.953,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          60.403
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Military-Archive_2-clip-1",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "60.403"
+      }
+    },
+    "duration": 60.403,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          232.083
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Military-Archive_3-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "232.083"
+      }
+    },
+    "duration": 232.083,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          63.03
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Military-Archive_4-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "63.03"
+      }
+    },
+    "duration": 63.03,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          61.6
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Military-Archive_9-clip-4",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "61.6"
+      }
+    },
+    "duration": 61.6,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          70.997
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Army-military-2018_12-clip-4",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "70.997"
+      }
+    },
+    "duration": 70.997,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          63.5
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Army-military-2018_2-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "63.5"
+      }
+    },
+    "duration": 63.5,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          184.529
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Army-military-2018_4-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "184.529"
+      }
+    },
+    "duration": 184.529,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          60.46
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Army-military-2018_5-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "60.46"
+      }
+    },
+    "duration": 60.46,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          60.15
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Army-military-2018_9-clip-34",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "60.15"
+      }
+    },
+    "duration": 60.15,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          60.534
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "MilitaryNotes_2-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "60.534"
+      }
+    },
+    "duration": 60.534,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          62.533
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "MilitaryNotes_7-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "62.533"
+      }
+    },
+    "duration": 62.533,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          62.671
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "USA-Military-Channel_4-clip-0",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "62.671"
+      }
+    },
+    "duration": 62.671,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          61.052
+        ]
+      }
+    ],
+    "domain": "Military",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "USA-Military-Channel_8-clip-3",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "61.052"
+      }
+    },
+    "duration": 61.052,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          78.579
+        ]
+      }
+    ],
+    "domain": "Human Survival",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Survival-Instinct_4-clip-14",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "78.579"
+      }
+    },
+    "duration": 78.579,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  },
+  {
+    "question": "N/A",
+    "answer": "N/A",
+    "assignment_id": "N/A",
+    "objective": "N/A",
+    "confidence": "very_high",
+    "original_question": "N/A",
+    "original_answer": "N/A",
+    "question_type": [
+      "N/A"
+    ],
+    "question_base": [
+      "N/A"
+    ],
+    "evidences": [
+      {
+        "0": [
+          0.0,
+          60.201
+        ]
+      }
+    ],
+    "domain": "Human Survival",
+    "worker_id": "N/A",
+    "evidences_in_min": [
+      {
+        "0": [
+          "00:00.000",
+          "01:00.000"
+        ]
+      }
+    ],
+    "time_spent": 0.0,
+    "video_link": "",
+    "video_id": "Chad-Zuber_9-clip-2",
+    "time_in_original_video": {
+      "split-method": "auto",
+      "frames": null,
+      "seconds": {
+        "start": "0.0",
+        "end": "60.201"
+      }
+    },
+    "duration": 60.201,
+    "alter_answers": [],
+    "alter_evidences": [],
+    "url_for_original_video": ""
+  }
+]
