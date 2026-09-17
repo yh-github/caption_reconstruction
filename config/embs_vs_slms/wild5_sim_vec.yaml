@@ -8,7 +8,7 @@ evaluation:
 
 data_config:
   name: "wild_captions"
-  path: "datasets/wildQA/captions__wild4/"
+  path: "datasets/wildQA/captions__wild5/"
   embedding_model: "local:all-mpnet-base-v2"
 
 recon_strategy:

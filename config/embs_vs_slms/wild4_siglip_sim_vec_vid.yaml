@@ -8,7 +8,7 @@ evaluation:
 data_config:
   name: "np_files"
   path: "local/wild_videos_embs_siglip/"
-  limit: 100
+  filter_dir: "datasets/wildQA/captions__wild4/"
 
 recon_strategy:
   - type: "mean_closest"

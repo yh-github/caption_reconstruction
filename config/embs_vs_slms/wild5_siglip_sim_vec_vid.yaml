@@ -4,12 +4,11 @@ base_params:
 
 evaluation:
   type: "emb_retrieval"
-  embedding_model: "local:all-mpnet-base-v2"
 
 data_config:
-  name: "wild_captions"
-  path: "datasets/wildQA/captions__wild4/"
-  embedding_model: "local:all-mpnet-base-v2"
+  name: "np_files"
+  path: "local/wild_videos_embs_siglip/"
+  filter_dir: "datasets/wildQA/captions__wild5/"
 
 recon_strategy:
   - type: "mean_closest"
