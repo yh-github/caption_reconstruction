@@ -89,7 +89,8 @@ class ReconstructionEvaluator(ABC, Generic[T_RECON, T_ORIG]):
             if eval_type == 'emb_sim':
                 return VectorReconstructionEvaluator()
             elif eval_type == 'emb_retrieval':
-                return VectorReconstructionEvaluator_Retrieval()
+                pool_scope = eval_conf.get('pool_scope', 'video')
+                return VectorReconstructionEvaluator_Retrieval(pool_scope=pool_scope)
             elif eval_type == 'nop':
                 return VectorEvaluatorNOP()
             raise UserFacingError(f"VectorReconstructionEvaluator: Unknown evaluation type '{eval_type}'")
@@ -134,10 +135,10 @@ class ReconstructionEvaluator(ABC, Generic[T_RECON, T_ORIG]):
 
 
 class VectorReconstructionEvaluator(ReconstructionEvaluator[Matrix, Matrix]):
-    def evaluate(self, pred_vecs:Matrix, true_vecs:Matrix) -> RAW_METRIC_OBJ:
+    def evaluate(self, pred_vecs:Matrix, true_vecs:Matrix, **kwargs) -> RAW_METRIC_OBJ:
         return {"cos_sim": calculate_elementwise_cosine(pred_vecs, true_vecs)}
 
-    def evaluate_residual(self, pred_vecs:Matrix, true_vecs:Matrix, context:Matrix) -> RAW_METRIC_OBJ:
+    def evaluate_residual(self, pred_vecs:Matrix, true_vecs:Matrix, context:Matrix, **kwargs) -> RAW_METRIC_OBJ:
         if isinstance(context, list):
             context = np.array(context, dtype=np.float64)
 
@@ -147,26 +148,41 @@ class VectorReconstructionEvaluator(ReconstructionEvaluator[Matrix, Matrix]):
 
         return {
             # "cos_sim": calculate_elementwise_cosine(pred_vecs, true_vecs),
-            **self.evaluate(pred_vecs, true_vecs),
+            **self.evaluate(pred_vecs, true_vecs, **kwargs),
             "cos_sim_residual": calculate_elementwise_cosine(pred_proj, true_proj)
         }
 
 
 
 class VectorReconstructionEvaluator_Retrieval(VectorReconstructionEvaluator):
-    def evaluate(self, pred_vecs: Matrix, true_vecs: Matrix) -> RAW_METRIC_OBJ:
+    def __init__(self, pool_scope: str = "video"):
+        self.pool_scope = pool_scope
+
+    def evaluate(
+        self,
+        pred_vecs: Matrix,
+        true_vecs: Matrix,
+        full_vecs: Matrix | None = None,
+        gt_indices: list[int] | None = None,
+        **kwargs
+    ) -> RAW_METRIC_OBJ:
         # Base cosine similarity
         base_metrics = super().evaluate(pred_vecs, true_vecs)
         
         # Retrieval metrics
-        # For pure vector evaluation, we assume true_vecs represents the "ground truth" pool 
-        # from which we want to retrieve the correct concept.
-        # This matches the logic: each reconstructed vector should map to its corresponding ground truth vector
-        # while treating all other ground truth vectors as distractors.
+        # If pool_scope == "video" and full_vecs provided, rank against all frames/clips across the video
+        if self.pool_scope == "video" and full_vecs is not None and gt_indices is not None:
+            distractor_pool = full_vecs
+            gt_indices_in_pool = gt_indices
+        else:
+            distractor_pool = true_vecs
+            gt_indices_in_pool = None
+
         ranking_metrics = calculate_retrieval_metrics(
             reconstructed_vectors=pred_vecs,
             ground_truth_vectors=true_vecs,
-            distractor_pool=true_vecs
+            distractor_pool=distractor_pool,
+            gt_indices_in_pool=gt_indices_in_pool
         )
         return {**base_metrics, **ranking_metrics}
 
