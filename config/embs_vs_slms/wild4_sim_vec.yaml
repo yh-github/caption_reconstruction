@@ -5,6 +5,7 @@ base_params:
 evaluation:
   type: "emb_retrieval"
   embedding_model: "local:all-mpnet-base-v2"
+  pool_scope: "video"
 
 data_config:
   name: "wild_captions"

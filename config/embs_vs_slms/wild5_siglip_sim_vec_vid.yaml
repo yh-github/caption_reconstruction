@@ -4,6 +4,7 @@ base_params:
 
 evaluation:
   type: "emb_retrieval"
+  pool_scope: "video"
 
 data_config:
   name: "np_files"
