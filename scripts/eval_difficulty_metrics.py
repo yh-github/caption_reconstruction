@@ -29,6 +29,8 @@ def parse_args():
                         help="Path to local directory with reconstruction JSONs (e.g. results/reconstruction/wild4_llama_w6)")
     parser.add_argument("--hf_pattern", type=str, default=None,
                         help="Pattern to match in HF dataset Y3/dense_video_captions (e.g. wild4_llama_w3_window_v3)")
+    parser.add_argument("--filter_width", type=int, default=None,
+                        help="Filter evaluation to a specific gap width (e.g. 3 or 6)")
     parser.add_argument("--gt_dir", type=str, default="datasets/wildQA/captions__wild4",
                         help="Directory containing ground truth JSONs")
     parser.add_argument("--cache_dir", type=str, default="disk_cache/local_all-mpnet-base-v2",
@@ -97,7 +99,15 @@ def main():
         from huggingface_hub import HfApi, hf_hub_download
         api = HfApi()
         repo_files = api.list_repo_files(repo_id="Y3/dense_video_captions", repo_type="dataset")
-        matching = [f for f in repo_files if args.hf_pattern in f and f.endswith(".json")]
+        matching = [
+            f for f in repo_files 
+            if args.hf_pattern in f 
+            and f.endswith(".json") 
+            and not os.path.basename(f).startswith("skip__") 
+            and not f.endswith("metadata.json")
+        ]
+        if args.filter_width:
+            matching = [f for f in matching if f"w={args.filter_width}" in f or f"w{args.filter_width}" in f]
         print(f"Found {len(matching)} matching files on HuggingFace ({args.hf_pattern}). Downloading...")
         for f in matching:
             lp = hf_hub_download(repo_id="Y3/dense_video_captions", filename=f, repo_type="dataset")
@@ -223,7 +233,7 @@ def main():
             })
 
     df = pd.DataFrame(records)
-    print(f"\nSuccessfully evaluated {len(df)} clips across {df['video_id'].nunique()} videos (Gap Width W={df['gap_width'].iloc[0]}).")
+    print(f"\nSuccessfully evaluated {len(df)} clips across {df['video_id'].nunique()} videos.")
 
     if args.output_csv:
         Path(args.output_csv).parent.mkdir(parents=True, exist_ok=True)
@@ -231,95 +241,88 @@ def main():
         print(f"Saved detailed per-clip metrics to {args.output_csv}")
 
     # =========================================================
-    # SUMMARY REPORT
+    # SUMMARY REPORT PER GAP WIDTH
     # =========================================================
-    print("\n" + "="*85)
-    print("=== OVERALL MEAN PERFORMANCE ===")
-    print("="*85)
-    print(f"Nearest Boundary CosSim:    {df['nearest_cos'].mean():.4f} (std={df['nearest_cos'].std():.3f})")
-    print(f"Visual (Mean-Closest) CosSim:{df['interp_cos'].mean():.4f} (std={df['interp_cos'].std():.3f})")
-    print(f"Model CosSim:               {df['model_cos'].mean():.4f} (std={df['model_cos'].std():.3f})")
-    print(f"Mean Narrative Difficulty:  {df['difficulty'].mean():.4f}")
-    print(f"Overall Win Rate vs Nearest:{df['win_vs_nearest'].mean()*100:.1f}%")
-    print(f"Overall Win Rate vs Interp: {df['win_vs_interp'].mean()*100:.1f}%")
+    all_summary_rows = []
+    unique_widths = sorted(df['gap_width'].unique())
 
-    t_nr, p_nr = stats.ttest_rel(df['model_cos'], df['nearest_cos'])
-    d_nr = (df['model_cos'] - df['nearest_cos']).mean() / (df['adv_model'].std() + 1e-9)
-    print(f"Paired t-test vs Nearest:   t={t_nr:.2f}, p={p_nr:.2e}, Cohen's d={d_nr:.3f}")
+    for w_val in unique_widths:
+        w_df = df[df['gap_width'] == w_val].copy()
+        print("\n" + "="*85)
+        print(f"=== GAP WIDTH W={w_val} (N={len(w_df)} clips across {w_df['video_id'].nunique()} videos) ===")
+        print("="*85)
+        print(f"Nearest Boundary CosSim:     {w_df['nearest_cos'].mean():.4f} (std={w_df['nearest_cos'].std():.3f})")
+        print(f"Visual (Mean-Closest) CosSim:{w_df['interp_cos'].mean():.4f} (std={w_df['interp_cos'].std():.3f})")
+        print(f"Model CosSim:                {w_df['model_cos'].mean():.4f} (std={w_df['model_cos'].std():.3f})")
+        print(f"Mean Narrative Difficulty:   {w_df['difficulty'].mean():.4f}")
+        print(f"Overall Win Rate vs Nearest: {w_df['win_vs_nearest'].mean()*100:.1f}%")
+        print(f"Overall Win Rate vs Interp:  {w_df['win_vs_interp'].mean()*100:.1f}%")
 
-    # =========================================================
-    # DIFFICULTY-WEIGHTED MEAN ADVANTAGE
-    # =========================================================
-    w = df['difficulty'].values
-    w_nr = np.average(df['nearest_cos'], weights=w)
-    w_int = np.average(df['interp_cos'], weights=w)
-    w_mod = np.average(df['model_cos'], weights=w)
+        t_nr, p_nr = stats.ttest_rel(w_df['model_cos'], w_df['nearest_cos'])
+        d_nr = (w_df['model_cos'] - w_df['nearest_cos']).mean() / (w_df['adv_model'].std() + 1e-9)
+        print(f"Paired t-test vs Nearest:    t={t_nr:.2f}, p={p_nr:.2e}, Cohen's d={d_nr:.3f}")
 
-    print("\n" + "="*85)
-    print("=== DIFFICULTY-WEIGHTED AGGREGATE (Singularity-Free) ===")
-    print("="*85)
-    print(f"Weighted Nearest Boundary:  {w_nr:.4f}")
-    print(f"Weighted Visual Baseline:   {w_int:.4f} (Advantage = {w_int - w_nr:+.4f})")
-    print(f"Weighted Model:             {w_mod:.4f} (Advantage = {w_mod - w_nr:+.4f})")
+        # Difficulty-Weighted
+        w_weights = w_df['difficulty'].values
+        w_nr = np.average(w_df['nearest_cos'], weights=w_weights)
+        w_int = np.average(w_df['interp_cos'], weights=w_weights)
+        w_mod = np.average(w_df['model_cos'], weights=w_weights)
 
-    # =========================================================
-    # DIFFICULTY QUARTILE BREAKDOWN
-    # =========================================================
-    print("\n" + "="*85)
-    print("=== PERFORMANCE STRATIFIED BY DIFFICULTY QUARTILE ===")
-    print("="*85)
-    df['quartile'] = pd.qcut(df['difficulty'], q=4, labels=['Q1 (Easy/Static)', 'Q2 (Mild)', 'Q3 (Moderate)', 'Q4 (Hard/Dynamic)'])
+        print("\n--- Difficulty-Weighted Aggregate (Singularity-Free) ---")
+        print(f"Weighted Nearest Boundary:   {w_nr:.4f}")
+        print(f"Weighted Visual Baseline:    {w_int:.4f} (Advantage = {w_int - w_nr:+.4f})")
+        print(f"Weighted Model:              {w_mod:.4f} (Advantage = {w_mod - w_nr:+.4f})")
 
-    summary_rows = []
-    for q_name, grp in df.groupby('quartile', observed=True):
-        n = len(grp)
-        d_mean = grp['difficulty'].mean()
-        nr_mean = grp['nearest_cos'].mean()
-        int_mean = grp['interp_cos'].mean()
-        mod_mean = grp['model_cos'].mean()
-        wins_nr = grp['win_vs_nearest'].sum()
-        wins_int = grp['win_vs_interp'].sum()
-        t_q, p_q = stats.ttest_rel(grp['model_cos'], grp['nearest_cos'])
-        d_q = grp['adv_model'].mean() / (grp['adv_model'].std() + 1e-9)
+        # Quartile Stratification
+        print("\n--- Performance Stratified by Difficulty Quartile ---")
+        w_df['quartile'] = pd.qcut(w_df['difficulty'], q=4, labels=['Q1 (Easy/Static)', 'Q2 (Mild)', 'Q3 (Moderate)', 'Q4 (Hard/Dynamic)'])
 
-        print(f"[{q_name:18s}] N={n:3d} | Difficulty={d_mean:.3f}")
-        print(f"   Nearest Boundary: {nr_mean:.4f}")
-        print(f"   Visual Baseline:  {int_mean:.4f}")
-        print(f"   Model:            {mod_mean:.4f}")
-        print(f"   Win vs Nearest:   {wins_nr}/{n} ({wins_nr/n*100:4.1f}%) | Win vs Interp: {wins_int}/{n} ({wins_int/n*100:4.1f}%)")
-        print(f"   Paired t-test:    t={t_q:+.2f}, p={p_q:.2e}, d={d_q:+.3f}\n")
+        for q_name, grp in w_df.groupby('quartile', observed=True):
+            n = len(grp)
+            d_mean = grp['difficulty'].mean()
+            nr_mean = grp['nearest_cos'].mean()
+            int_mean = grp['interp_cos'].mean()
+            mod_mean = grp['model_cos'].mean()
+            wins_nr = grp['win_vs_nearest'].sum()
+            wins_int = grp['win_vs_interp'].sum()
+            t_q, p_q = stats.ttest_rel(grp['model_cos'], grp['nearest_cos'])
+            d_q = grp['adv_model'].mean() / (grp['adv_model'].std() + 1e-9)
 
-        summary_rows.append({
-            "quartile": q_name,
-            "n_clips": n,
-            "difficulty_mean": d_mean,
-            "nearest_boundary_cos": nr_mean,
-            "visual_interp_cos": int_mean,
-            "model_cos": mod_mean,
-            "win_rate_vs_nearest": wins_nr / n,
-            "win_rate_vs_interp": wins_int / n,
-            "t_statistic": t_q,
-            "p_value": p_q,
-            "cohen_d": d_q
-        })
+            print(f"[{q_name:18s}] N={n:4d} | Difficulty={d_mean:.3f}")
+            print(f"   Nearest Boundary: {nr_mean:.4f}")
+            print(f"   Visual Baseline:  {int_mean:.4f}")
+            print(f"   Model:            {mod_mean:.4f}")
+            print(f"   Win vs Nearest:   {wins_nr}/{n} ({wins_nr/n*100:4.1f}%) | Win vs Interp: {wins_int}/{n} ({wins_int/n*100:4.1f}%)")
+            print(f"   Paired t-test:    t={t_q:+.2f}, p={p_q:.2e}, d={d_q:+.3f}\n")
+
+            all_summary_rows.append({
+                "gap_width": w_val,
+                "quartile": q_name,
+                "n_clips": n,
+                "difficulty_mean": d_mean,
+                "nearest_boundary_cos": nr_mean,
+                "visual_interp_cos": int_mean,
+                "model_cos": mod_mean,
+                "win_rate_vs_nearest": wins_nr / n,
+                "win_rate_vs_interp": wins_int / n,
+                "t_statistic": t_q,
+                "p_value": p_q,
+                "cohen_d": d_q
+            })
+
+        # Scaling Correlation
+        r_nr, p_corr_nr = stats.pearsonr(w_df['difficulty'], w_df['adv_model'])
+        print(f"Advantage Scaling Correlation (W={w_val}): r = {r_nr:.4f} (p = {p_corr_nr:.2e})")
+
+        # Breakdown by position
+        print(f"\nBreakdown by Window Position (W={w_val}):")
+        for pos, p_df in w_df.groupby('position'):
+            print(f"  • {pos.upper():6s} [N={len(p_df)}]: Diff={p_df['difficulty'].mean():.3f} | Nearest={p_df['nearest_cos'].mean():.4f} | Visual={p_df['interp_cos'].mean():.4f} | Model={p_df['model_cos'].mean():.4f} | WinVsNearest={p_df['win_vs_nearest'].mean()*100:.1f}%")
 
     if args.summary_csv:
         Path(args.summary_csv).parent.mkdir(parents=True, exist_ok=True)
-        pd.DataFrame(summary_rows).to_csv(args.summary_csv, index=False)
-        print(f"Saved quartile summary CSV to {args.summary_csv}")
-
-    # =========================================================
-    # ADVANTAGE SCALING CORRELATION
-    # =========================================================
-    r_nr, p_corr_nr = stats.pearsonr(df['difficulty'], df['adv_model'])
-    print("="*85)
-    print(f"Advantage Scaling Correlation: r = {r_nr:.4f} (p = {p_corr_nr:.2e})")
-    print("="*85)
-
-    # Breakdown by position
-    print("\nBreakdown by Window Position:")
-    for pos, p_df in df.groupby('position'):
-        print(f"  • {pos.upper():6s} [N={len(p_df)}]: Diff={p_df['difficulty'].mean():.3f} | Nearest={p_df['nearest_cos'].mean():.4f} | Visual={p_df['interp_cos'].mean():.4f} | Model={p_df['model_cos'].mean():.4f} | WinVsNearest={p_df['win_vs_nearest'].mean()*100:.1f}%")
+        pd.DataFrame(all_summary_rows).to_csv(args.summary_csv, index=False)
+        print(f"\nSaved quartile summary CSV to {args.summary_csv}")
 
 if __name__ == "__main__":
     main()
