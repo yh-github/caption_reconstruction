@@ -98,7 +98,7 @@ Used when configured as `evaluation.type: "emb_retrieval"` (implemented in [`cal
   * **Scale-invariant**: Evaluates relative discriminative power against candidate distractors rather than raw dot-product magnitudes.
   * Measures whether the reconstructed representation is fine-grained enough to identify the specific target event among adjacent events.
 * **CONs**:
-  * **Pool size sensitivity**: The metric depends heavily on the distractor pool size (e.g., retrieving from a pool of 3 masked clips vs. 15 masked clips).
+  * **Pool size sensitivity**: The metric depends heavily on the distractor pool size (e.g., retrieving from a pool of 3 masked clips vs. 60 video clips). To ensure comparability across language models and vector baselines, all evaluations are harmonized under `pool_scope: "video"`, where each query is ranked against all 60 frames/clips in the video (see [`baseline_framework_standardization.md`](file:///home/yoavh/code/antigravity/caption_reconstruction/docs/theory/baseline_framework_standardization.md)).
   * Discrete and non-smooth: Small shifts in vector space can cause sharp ranking drops.
 
 ---
