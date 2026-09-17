@@ -36,10 +36,12 @@ class VectorDataLoader(ABC):
 
         if dataset_name == "np_files":
             data_path = Path(data_config["path"])
+            filter_dir = data_config.get("filter_dir")
             return VectorFileLoader(
                 directory=data_path,
                 data_type_name=VectorFileLoader.data_type_name(data_path),
-                limit=limit
+                limit=limit,
+                filter_dir=Path(filter_dir) if filter_dir else None
             )
         elif dataset_name == "toy_vectors":
             return ToyVectorsLoader(
@@ -116,14 +118,18 @@ class ToyVectorsLoader(VectorDataLoader):
         return self.data_type_name
 
 class VectorFileLoader(VectorDataLoader):
-    def __init__(self, directory: Path, data_type_name:str, limit:int|None=None, file_pattern: str = "*.npy"):
+    def __init__(self, directory: Path, data_type_name:str, limit:int|None=None, file_pattern: str = "*.npy", filter_dir: Path|None=None):
         self.directory = directory
         self._data_type_name = data_type_name
         self.limit = limit
         self.file_pattern = file_pattern
+        self.filter_dir = filter_dir
 
     def find_numpy_files(self) -> list[Path]:
         files = sorted(list(self.directory.rglob(self.file_pattern)))
+        if self.filter_dir and self.filter_dir.exists():
+            allowed_stems = {p.stem for p in self.filter_dir.iterdir() if p.is_file()}
+            files = [f for f in files if f.stem in allowed_stems]
         return files[:self.limit] if self.limit else files
 
     @staticmethod

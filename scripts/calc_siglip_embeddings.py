@@ -128,10 +128,10 @@ def main():
 
     # Filter to match existing embeddings if requested
     if match_existing and match_existing.exists():
-        target_stems = {p.stem for p in match_existing.glob("*.npy")}
+        target_stems = {p.stem for p in match_existing.iterdir() if p.is_file()}
         filtered_videos = [v for v in all_videos if v.stem in target_stems]
         logger.info(
-            f"Filtered by {match_existing}: {len(filtered_videos)} videos matched (out of {len(target_stems)} existing .npy files)"
+            f"Filtered by {match_existing}: {len(filtered_videos)} videos matched (out of {len(target_stems)} existing files)"
         )
         videos_to_process = filtered_videos
     else:
