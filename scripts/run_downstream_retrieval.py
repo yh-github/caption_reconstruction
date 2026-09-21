@@ -46,10 +46,39 @@ def parse_args():
                         help="Include multi-interval and longer evidence spans")
     parser.add_argument("--max-items", type=int, default=None,
                         help="Limit number of QA pairs to process (for quick testing)")
+    parser.add_argument("--recon-source", type=str, default=None,
+                        help="Path to local directory or HF run path containing reconstructed JSON files")
     parser.add_argument("--output-dir", type=str, default="results/downstream_retrieval",
                         help="Directory to save output CSV and summary reports")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
     return parser.parse_args()
+
+
+def load_reconstructed_clips(source: str | None, video_id: str) -> dict[int, str] | None:
+    """Loads reconstructed captions for a video from local disk or Hugging Face dataset."""
+    if not source:
+        return None
+    p = Path(source)
+    local_file = p / f"{video_id}.json"
+    if local_file.exists():
+        try:
+            with open(local_file, "r", encoding="utf-8") as f:
+                d = json.load(f)
+            return {int(k): v for k, v in d.get("reconstructed_captions", {}).items()}
+        except Exception as e:
+            logger.debug(f"Failed to load local reconstruction for {video_id}: {e}")
+            return None
+
+    try:
+        from huggingface_hub import hf_hub_download
+        hf_path = f"{source.rstrip('/')}/{video_id}.json"
+        cached_p = hf_hub_download("Y3/dense_video_captions", hf_path, repo_type="dataset")
+        with open(cached_p, "r", encoding="utf-8") as f:
+            d = json.load(f)
+        return {int(k): v for k, v in d.get("reconstructed_captions", {}).items()}
+    except Exception as e:
+        logger.debug(f"Failed to load HF reconstruction for {video_id} from {source}: {e}")
+        return None
 
 
 def get_embedder(embedder_name: str):
@@ -179,6 +208,25 @@ def run_experiment():
                 "baseline_repeat_sim": repeat_m["best_target_sim"],
             }
 
+            # Condition 4: Text Reconstructed (LLM in-filling if available)
+            recon_caps = load_reconstructed_clips(args.recon_source, vid)
+            if recon_caps:
+                sorted_targets = sorted(target_indices)
+                recon_texts = [recon_caps.get(t, "") for t in sorted_targets]
+                if all(recon_texts):
+                    recon_embs = np.array(embedder.get_embeddings(f"{vid}_recon", recon_texts), dtype=np.float32)
+                    recon_idx = build_evidence_retrieval_index(
+                        text_index, target_indices, condition="reconstructed", reconstructed_embeddings=recon_embs
+                    )
+                    recon_m = calculate_evidence_retrieval_metrics(query_vec, recon_idx, target_indices)
+                    row.update({
+                        "recon_rank": recon_m["rank"],
+                        "recon_mrr": recon_m["mrr"],
+                        "recon_r1": recon_m["recall_at_1"],
+                        "recon_r5": recon_m["recall_at_5"],
+                        "recon_sim": recon_m["best_target_sim"],
+                    })
+
             # Optional Visual Modality Condition (Cross-modal SigLIP)
             if is_siglip:
                 vid_npy = video_embs_dir / f"{vid}.npy"
@@ -241,6 +289,10 @@ def generate_summary_report(df: pd.DataFrame, report_path: Path, is_siglip: bool
     lines.append(f"| **Text Oracle (Ceiling)** | {df['oracle_mrr'].mean():.4f} | {df['oracle_r1'].mean():.4f} | {df['oracle_r5'].mean():.4f} | {df['oracle_sim'].mean():.4f} |")
     lines.append(f"| **Text Masked (Black Hole)** | {df['masked_mrr'].mean():.4f} | {df['masked_r1'].mean():.4f} | {df['masked_r5'].mean():.4f} | {df['masked_sim'].mean():.4f} |")
     lines.append(f"| **Text Baseline (Repeat Nearest)** | {df['baseline_repeat_mrr'].mean():.4f} | {df['baseline_repeat_r1'].mean():.4f} | {df['baseline_repeat_r5'].mean():.4f} | {df['baseline_repeat_sim'].mean():.4f} |")
+
+    if "recon_mrr" in df.columns:
+        valid_r = df.dropna(subset=["recon_mrr"])
+        lines.append(f"| **Text Reconstructed (LLM)** | {valid_r['recon_mrr'].mean():.4f} | {valid_r['recon_r1'].mean():.4f} | {valid_r['recon_r5'].mean():.4f} | {valid_r['recon_sim'].mean():.4f} |")
 
     if is_siglip and "vis_oracle_mrr" in df.columns:
         valid_v = df.dropna(subset=["vis_oracle_mrr"])
