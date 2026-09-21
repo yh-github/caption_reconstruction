@@ -1,6 +1,7 @@
+from __future__ import annotations
 import pandas as pd
 from pydantic import BaseModel
-from typing import Iterator
+from typing import Iterator, Union
 try:
     from typing import Self
 except ImportError:
@@ -13,7 +14,7 @@ from common_utils.matrix_utils import matrix_to_b64
 
 NPY_FILE_PATTERN = "*.npy"
 
-Matrix = list[list[float]]|NDArray[np.float64]
+Matrix = Union[list[list[float]], NDArray[np.float64]]
 
 def find_numpy_files(directory: Path, file_pattern: str = NPY_FILE_PATTERN) -> list[Path]:
     return list(directory.rglob(file_pattern))

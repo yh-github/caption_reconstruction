@@ -1,3 +1,4 @@
+from __future__ import annotations
 from abc import abstractmethod, ABC
 from pathlib import Path
 from typing import Iterator, Any

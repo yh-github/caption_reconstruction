@@ -1,3 +1,4 @@
+from __future__ import annotations
 import logging
 import seaborn as sns
 import matplotlib.pyplot as plt

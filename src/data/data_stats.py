@@ -1,3 +1,4 @@
+from __future__ import annotations
 import pandas as pd
 
 from data_loaders import get_data_loader

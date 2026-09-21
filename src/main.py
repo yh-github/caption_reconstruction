@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # PYTHON_ARGCOMPLETE_OK
+from __future__ import annotations
 from data_models.exec_args import ExecArgs, args_parser
 _exec_args:ExecArgs = args_parser() if __name__ == "__main__" else None
 

@@ -100,6 +100,7 @@ Comprehensive documentation is organized under the [`docs/`](docs/) directory:
 ### 📄 Paper & Research Specs
 * **[Paper Draft](docs/paper/draft.md)**: Current manuscript draft and methodological background.
 * **[Experiments Plan](docs/paper/experiments_plan.md)**: Research design, baseline comparisons, and hypothesis testing roadmap.
+* **[Downstream Evidence Retrieval](docs/experiments/downstream_retrieval.md)**: Downstream evaluation methodology and CLI guide on WildQA evidence retrieval.
 * **[Dataset Taxonomy](docs/paper/dataset_taxonomy.md)**: Categorization of video domains across procedural and stochastic axes.
 * **[Temperature Impact Analysis](docs/paper/analysis_temperature_impact.md)**: Analysis of LLM sampling temperature effects on reconstruction quality.
 

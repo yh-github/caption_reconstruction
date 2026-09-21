@@ -1,3 +1,4 @@
+from __future__ import annotations
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig # type: ignore
 from typing import TypedDict, Any

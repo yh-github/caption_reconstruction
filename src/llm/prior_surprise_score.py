@@ -1,3 +1,4 @@
+from __future__ import annotations
 import torch
 from torch.nn import CrossEntropyLoss
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig # type: ignore

@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Any, TypeVar, Union, get_origin, get_args
 from pydantic import BaseModel
 

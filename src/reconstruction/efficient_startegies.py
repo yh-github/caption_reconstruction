@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Callable
 from common_utils.error_handling import UserFacingError
 import numpy as np

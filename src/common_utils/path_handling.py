@@ -1,3 +1,4 @@
+from __future__ import annotations
 from pathlib import Path
 
 def add_suffix_to_path(path:Path, suffix:str) -> Path:

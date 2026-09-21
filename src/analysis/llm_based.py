@@ -1,3 +1,4 @@
+from __future__ import annotations
 import yaml
 import logging
 from common_utils.jsonables import dump_model_compact_json

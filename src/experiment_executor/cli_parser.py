@@ -1,3 +1,4 @@
+from __future__ import annotations
 import sys
 from typing import Type, TypeVar, Any
 from pydantic import BaseModel, ValidationError

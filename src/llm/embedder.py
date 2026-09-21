@@ -1,3 +1,4 @@
+from __future__ import annotations
 import logging
 from collections import Counter
 import diskcache
@@ -80,7 +81,7 @@ class BaseEmbedder(ABC):
                 fail += counts.get(the_text, 0)
                 
         # Calculate hits: total requested - total we had to compute (ok+fail)
-        hits = len(all_texts) - counts.total()
+        hits = len(all_texts) - sum(counts.values())
         return ok, fail, hits
 
     def get_embeddings(self, video_id: str, all_texts: list[str], use_cache: bool = True) -> list[list[float]]:
