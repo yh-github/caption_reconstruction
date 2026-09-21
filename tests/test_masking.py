@@ -176,3 +176,55 @@ def test_mask_video_out_of_bounds_returns_none(captions_of_length):
     masked_video, masked_indices = strategy.mask_video(video)
     assert masked_video is None
     assert masked_indices is None
+
+
+def test_evidence_masking(captions_of_length, tmp_path):
+    """
+    Tests EvidenceMasking strategy using a small temporary WildQA JSON file.
+    """
+    import json
+    from data_models.captions_only import CaptionedVideo
+    from reconstruction.masking import EvidenceMasking, get_masking_strategies
+
+    # Create dummy WildQA dev json
+    dummy_qa = [
+        {
+            "video_id": "vid_procedural",
+            "domain": "Agriculture",
+            "question_type": ["Reasoning"],
+            "question_base": ["scene"],
+            "question": "What is the farmer doing?",
+            "answer": "Adjusting the blade.",
+            "evidences": [{"0": [10.0, 15.0]}],
+        }
+    ]
+    qa_file = tmp_path / "dev.json"
+    qa_file.write_text(json.dumps(dummy_qa))
+
+    strategy = EvidenceMasking(dataset_path=str(qa_file))
+    video = CaptionedVideo(video_id="vid_procedural", clips=captions_of_length(60))
+
+    masked_video, masked_indices = strategy.mask_video(video)
+    assert masked_video is not None
+    assert masked_indices == {10, 11, 12, 13, 14}
+    for idx in masked_indices:
+        assert masked_video.clips[idx].caption is None
+
+    # Video not in dataset should return (None, None)
+    unknown_video = CaptionedVideo(video_id="vid_unknown", clips=captions_of_length(60))
+    m_vid, m_ind = strategy.mask_video(unknown_video)
+    assert m_vid is None
+    assert m_ind is None
+
+    # Test factory instantiation
+    configs = [
+        {
+            "scheme": "evidence",
+            "dataset_path": str(qa_file),
+            "single_evidence_only": True
+        }
+    ]
+    strategies = get_masking_strategies(configs, master_seed=42)
+    assert len(strategies) == 1
+    assert isinstance(strategies[0], EvidenceMasking)
+

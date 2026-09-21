@@ -2,6 +2,7 @@ from __future__ import annotations
 import logging
 import random
 from abc import ABC, abstractmethod
+from pathlib import Path
 
 from data_models.captions_only import CaptionedClip
 from data_models.captions_only import CaptionedVideo
@@ -189,6 +190,59 @@ class PartitionMasking(MaskingStrategy):
     def get_params_for_repr(self) -> dict:
         return {"num_partitions": self.num_partitions, "start_partition": self.start_partition, "num_parts_to_mask": self.num_parts_to_mask}
 
+
+class EvidenceMasking(MaskingStrategy):
+    """
+    Masks ground-truth evidence interval(s) from WildQA dataset annotations.
+    Allows exact per-video evidence masking for downstream evaluation.
+    """
+    def __init__(
+        self,
+        dataset_path: str = "datasets/wildQA/dev.json",
+        filter_scene_only: bool = True,
+        max_duration: float = 60.0,
+        single_evidence_only: bool = True,
+        max_evidence_duration: float | None = 15.0
+    ):
+        super().__init__("evidence")
+        self.dataset_path = dataset_path
+        self.filter_scene_only = filter_scene_only
+        self.max_duration = max_duration
+        self.single_evidence_only = single_evidence_only
+        self.max_evidence_duration = max_evidence_duration
+
+        from data.wildqa_loader import load_wildqa_dataset
+        qa_pairs = load_wildqa_dataset(
+            path=dataset_path,
+            filter_scene_only=filter_scene_only,
+            max_duration=max_duration,
+            single_evidence_only=single_evidence_only,
+            max_evidence_duration=max_evidence_duration
+        )
+        self.evidence_map: dict[str, set[int]] = {}
+        for qa in qa_pairs:
+            indices = qa.evidence_indices(max_duration=int(max_duration))
+            if indices and qa.video_id not in self.evidence_map:
+                self.evidence_map[qa.video_id] = indices
+
+    def get_indices_to_mask(self, num_clips: int) -> set[int]:
+        return set()
+
+    def mask_video(self, video: CaptionedVideo) -> tuple[None, None] | tuple[CaptionedVideo, set[int]]:
+        indices = self.evidence_map.get(video.video_id)
+        if not indices:
+            logging.info(f"EvidenceMasking: Video {video.video_id} has no matching evidence annotation; skipping.")
+            return None, None
+
+        masked_clips = self.mask_list(video.clips, indices)
+        masked_video = video.model_copy(update={'clips': masked_clips})
+        return masked_video, indices
+
+    def get_params_for_repr(self) -> dict:
+        dataset_stem = Path(self.dataset_path).stem
+        return {"dataset": dataset_stem}
+
+
 def get_masking_strategies(masking_configs: list, master_seed: int) -> list[MaskingStrategy]:
     """
     Factory function that reads a list of masking configurations and generates
@@ -230,6 +284,19 @@ def get_masking_strategies(masking_configs: list, master_seed: int) -> list[Mask
                         start_partition=start_part,
                         num_parts_to_mask=num_to_mask
                     ))
+        elif scheme == "evidence":
+            dataset_path = config.get("dataset_path", "datasets/wildQA/dev.json")
+            filter_scene_only = config.get("filter_scene_only", True)
+            max_duration = config.get("max_duration", 60.0)
+            single_evidence_only = config.get("single_evidence_only", True)
+            max_evidence_duration = config.get("max_evidence_duration", 15.0)
+            strategies.append(EvidenceMasking(
+                dataset_path=dataset_path,
+                filter_scene_only=filter_scene_only,
+                max_duration=max_duration,
+                single_evidence_only=single_evidence_only,
+                max_evidence_duration=max_evidence_duration
+            ))
         else:
             raise NotImplementedError(f"Masking scheme '{scheme}' is not implemented.")
 
