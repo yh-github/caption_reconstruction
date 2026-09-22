@@ -201,8 +201,13 @@ else:
 os.chdir(REPO_DIR)
 
 print("Installing dependencies...")
-subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements_colab.txt"])
+subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements_colab.txt", "--extra-index-url", "https://download.pytorch.org/whl/cu121"])
 subprocess.check_call([sys.executable, "-m", "pip", "install", "-e", ".", "--no-deps"])
+
+import torch
+if not torch.cuda.is_available():
+    print("Warning: CUDA is not available. Ensuring CUDA PyTorch...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "torch", "torchvision", "--index-url", "https://download.pytorch.org/whl/cu121"])
 {hf_token_code}
 {launch_code}
 print("=== Kaggle Execution Completed Successfully ===")
