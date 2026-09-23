@@ -71,48 +71,48 @@ Results are automatically saved to `results/downstream_retrieval/`:
 
 ## 5. Empirical Results & Findings
 
-### Overall Benchmark Performance (Dev Split / Llama 3.1 8B)
+### Overall Benchmark Performance (Combined Dev + Test / Llama 3.1 8B)
 
-Evaluated on 85 clean WildQA dev questions using SigLIP text embeddings:
+Evaluated across all **301 clean WildQA questions** (85 Dev, 216 Test) across **170 unique videos** using SigLIP text embeddings. For the **176 questions** with complete LLM reconstructions:
 
-| Condition | MRR | Recall@1 | Recall@5 | Mean Sim | Relative Gain vs. Baseline |
+| Condition | MRR | Recall@1 | Recall@5 | Relative Gain vs. Baseline |
+|---|:---:|:---:|:---:|:---:|
+| **Text Masked (Black Hole)** | 0.0183 | 0.0% | 0.0% | — |
+| **Text Baseline (Repeat Nearest)** | 0.0840 | 1.1% | 9.1% | *Baseline* |
+| **Text Baseline (LERP Interp)** | 0.1664 | 4.7% | 23.4% | +98% |
+| **Text Reconstructed (Llama 3.1 8B)** | **0.2795** | **11.9%** | **44.9%** | **+233% relative gain** (\(p < 10^{-10}\)) |
+| **Text Oracle (Ceiling)** | 0.2530 | 9.1% | 42.6% | — |
+| **Visual Oracle (Video Frames, N=298)** | 0.2383 | 12.1% | — | — |
+| **Visual Interp (Frame Repeat, N=298)** | 0.0867 | 2.0% | — | — |
+
+---
+
+### High-Headroom Evaluation Subset (Oracle in Top 5, \(N = 75\))
+
+The High-Headroom subset isolates questions where the caption modality is proven to contain the required visual information (Oracle rank \(\le 5\)). Across the combined Dev + Test benchmark, this yields **\(N = 75\) high-headroom questions**:
+
+| Metric | Text Masked | Baseline Repeat | Baseline LERP | Text Reconstructed (LLM) | Text Oracle |
 |---|:---:|:---:|:---:|:---:|:---:|
-| **Text Masked (Black Hole)** | 0.0184 | 0.0% | 0.0% | 0.0000 | — |
-| **Text Baseline (Repeat Nearest)** | 0.0618 | 0.0% | 5.9% | 0.6229 | *Baseline* |
-| **Text Reconstructed (Llama 3.1 8B)** | **0.2640** | **12.5%** | **41.7%** | **0.7287** | **+327% relative gain** |
-| **Text Oracle (Ceiling)** | 0.2309 | 9.4% | 35.3% | 0.7189 | — |
-| **Visual Oracle (Video Frames)** | 0.2755 | 14.3% | — | — | — |
-| **Visual Interp (Frame Repeat)** | 0.0964 | 3.6% | — | 0.0742 | — |
+| **MRR** | `0.0186` | `0.1200` | `0.2159` | **`0.3492`** | `0.4842` |
+| **Recall@1** | 0.0% | 2.7% | 8.1% | **16.0%** | 21.3% |
+| **Recall@5** | 0.0% | 14.7% | 27.4% | **57.3%** | 100.0% |
+
+#### Statistical Significance & Win Rates (\(N = 75\)):
+* **Vs. Baseline Repeat**: **59 Wins (78.7%)**, 3 Ties, 13 Losses — **Wilcoxon \(p = 1.25 \times 10^{-7}\)**.
+* **Vs. Baseline LERP**: **36 Wins (58.1%)**, 8 Ties, 18 Losses — **Wilcoxon \(p = 0.00796\)**.
+
+#### High-Headroom Performance by Domain:
+
+| Domain | N | Oracle MRR | Llama 8B Recon MRR | Baseline Repeat MRR | Gain vs. Baseline |
+|---|:---:|:---:|:---:|:---:|:---:|
+| **Agriculture** | 11 | 0.552 | **0.476** | 0.045 | **+958%** |
+| **Natural Disaster** | 17 | 0.481 | **0.457** | 0.181 | **+152%** |
+| **Military** | 13 | 0.322 | **0.309** | 0.054 | **+472%** |
+| **Geography** | 10 | 0.593 | **0.273** | 0.067 | **+307%** |
+| **Human Survival** | 24 | 0.498 | **0.268** | 0.169 | **+59%** |
 
 ---
 
-### High-Headroom Evaluation Subset (Oracle in Top 5)
-
-The High-Headroom subset isolates questions where the caption modality is proven to contain the required visual information (Oracle rank \(\le 5\)). On this subset, Llama 3.1 8B achieves a **92.3% head-to-head win rate** against naive frame repetition:
-
-* **Baseline Repeat MRR**: `0.0777` (Recall@5 = `6.7%`, Recall@1 = `0.0%`)
-* **Llama 3.1 8B MRR**: **`0.4188`** (Recall@5 = **`61.5%`**, Recall@1 = **`23.1%`**)
-* **Head-to-Head Comparison**: **12 Wins, 0 Ties, 1 Loss**
-
-#### Question-by-Question Breakdown:
-
-| Domain | Question | Oracle Rank | LLM Recon | Baseline Repeat | Masked Gap | Outcome |
-|---|---|:---:|:---:|:---:|:---:|:---:|
-| **Human Survival** | *Is the plant a potato?* | #3 | **#1** | #41 | #56 | **WIN** |
-| **Military** | *Is there a person on a motorbike in the video?* | #2 | **#2** | #52 | #53 | **WIN** |
-| **Military** | *Is there a military facility in the video?* | #4 | **#2** | #47 | #49 | **WIN** |
-| **Agriculture** | *How many acres of farmland has to be planted?* | #1 | **#1** | #40 | #51 | **WIN** |
-| **Human Survival** | *Does the human have shelter?* | #4 | **#4** | #36 | #54 | **WIN** |
-| **Natural Disaster** | *What type of storm occurred?* | #3 | **#1** | #3 | #54 | **WIN** |
-| **Military** | *How long does this training event last?* | #4 | **#2** | #17 | #53 | **WIN** |
-| **Natural Disaster** | *What is happening?* | #2 | **#4** | #8 | #56 | **WIN** |
-| **Human Survival** | *Does the man have water, food, fire, and shelter?* | #1 | **#9** | #54 | #57 | **WIN** |
-| **Geography** | *Where are the lakes at?* | #5 | **#9** | #11 | #53 | **WIN** |
-| **Natural Disaster** | *What area is the storm affecting?* | #3 | **#9** | #17 | #53 | **WIN** |
-| **Human Survival** | *What kind of water source was there?* | #2 | **#14** | #56 | #57 | **WIN** |
-| **Human Survival** | *How is the man making his tool?* | #3 | **#25** | #6 | #56 | *LOSS* |
-
----
 
 ### Why Can Reconstructed Captions Match or Beat the Oracle on SigLIP?
 

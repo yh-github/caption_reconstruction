@@ -176,6 +176,10 @@ def run_experiment():
             repeat_idx = build_evidence_retrieval_index(text_index, target_indices, condition="baseline_repeat")
             repeat_m = calculate_evidence_retrieval_metrics(query_vec, repeat_idx, target_indices)
 
+            # Condition 3b: Text Baseline LERP (Linear interpolation weighted by distance)
+            lerp_idx = build_evidence_retrieval_index(text_index, target_indices, condition="baseline_lerp")
+            lerp_m = calculate_evidence_retrieval_metrics(query_vec, lerp_idx, target_indices)
+
             row = {
                 "split": split,
                 "video_id": vid,
@@ -206,6 +210,13 @@ def run_experiment():
                 "baseline_repeat_r1": repeat_m["recall_at_1"],
                 "baseline_repeat_r5": repeat_m["recall_at_5"],
                 "baseline_repeat_sim": repeat_m["best_target_sim"],
+
+                # Text Baseline LERP
+                "baseline_lerp_rank": lerp_m["rank"],
+                "baseline_lerp_mrr": lerp_m["mrr"],
+                "baseline_lerp_r1": lerp_m["recall_at_1"],
+                "baseline_lerp_r5": lerp_m["recall_at_5"],
+                "baseline_lerp_sim": lerp_m["best_target_sim"],
             }
 
             # Condition 4: Text Reconstructed (LLM in-filling if available)
@@ -289,6 +300,8 @@ def generate_summary_report(df: pd.DataFrame, report_path: Path, is_siglip: bool
     lines.append(f"| **Text Oracle (Ceiling)** | {df['oracle_mrr'].mean():.4f} | {df['oracle_r1'].mean():.4f} | {df['oracle_r5'].mean():.4f} | {df['oracle_sim'].mean():.4f} |")
     lines.append(f"| **Text Masked (Black Hole)** | {df['masked_mrr'].mean():.4f} | {df['masked_r1'].mean():.4f} | {df['masked_r5'].mean():.4f} | {df['masked_sim'].mean():.4f} |")
     lines.append(f"| **Text Baseline (Repeat Nearest)** | {df['baseline_repeat_mrr'].mean():.4f} | {df['baseline_repeat_r1'].mean():.4f} | {df['baseline_repeat_r5'].mean():.4f} | {df['baseline_repeat_sim'].mean():.4f} |")
+    if "baseline_lerp_mrr" in df.columns:
+        lines.append(f"| **Text Baseline (LERP Interp)** | {df['baseline_lerp_mrr'].mean():.4f} | {df['baseline_lerp_r1'].mean():.4f} | {df['baseline_lerp_r5'].mean():.4f} | {df['baseline_lerp_sim'].mean():.4f} |")
 
     if "recon_mrr" in df.columns:
         valid_r = df.dropna(subset=["recon_mrr"])
