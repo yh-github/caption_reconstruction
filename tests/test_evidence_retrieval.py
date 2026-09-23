@@ -65,6 +65,18 @@ def test_index_builders():
     assert np.allclose(repeat_idx[3], orig[2])
     assert np.allclose(repeat_idx[4], orig[2])
 
+    # Baseline LERP
+    lerp_idx = build_evidence_retrieval_index(orig, target_indices={3, 4}, condition="baseline_lerp")
+    assert not np.allclose(lerp_idx[3], 0.0)
+    assert not np.allclose(lerp_idx[4], 0.0)
+
+    # Baseline Mean
+    mean_idx = build_evidence_retrieval_index(orig, target_indices={3, 4}, condition="baseline_mean")
+    expected_mean = 0.5 * (orig[2] + orig[5])
+    expected_mean = expected_mean / np.linalg.norm(expected_mean)
+    assert np.allclose(mean_idx[3], expected_mean)
+    assert np.allclose(mean_idx[4], expected_mean)
+
     # Reconstructed
     recon_vecs = np.ones((2, D), dtype=np.float32)
     recon_idx = build_evidence_retrieval_index(
@@ -73,3 +85,4 @@ def test_index_builders():
     assert np.allclose(recon_idx[3], 1.0)
     assert np.allclose(recon_idx[4], 1.0)
     assert np.allclose(recon_idx[0:3], orig[0:3])
+

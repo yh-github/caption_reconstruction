@@ -155,6 +155,53 @@ def build_evidence_retrieval_index(
             orig[valid_targets] = 0.0
         return orig
 
+    elif condition == "baseline_lerp":
+        # Linear interpolation weighted by temporal distance from boundary frames
+        min_idx = valid_targets[0]
+        max_idx = valid_targets[-1]
+        has_left = min_idx > 0
+        has_right = max_idx + 1 < t_total
+
+        if has_left and has_right:
+            v_left = orig[min_idx - 1]
+            v_right = orig[max_idx + 1]
+            total_span = (max_idx + 1) - (min_idx - 1)
+            for t in valid_targets:
+                alpha = (t - (min_idx - 1)) / float(total_span)
+                v_t = (1.0 - alpha) * v_left + alpha * v_right
+                v_norm = np.linalg.norm(v_t)
+                if v_norm > 1e-12:
+                    v_t = v_t / v_norm
+                orig[t] = v_t
+        elif has_left:
+            orig[valid_targets] = orig[min_idx - 1]
+        elif has_right:
+            orig[valid_targets] = orig[max_idx + 1]
+        else:
+            orig[valid_targets] = 0.0
+        return orig
+
+    elif condition == "baseline_mean":
+        # Flat average of pre-gap and post-gap boundary vectors
+        min_idx = valid_targets[0]
+        max_idx = valid_targets[-1]
+        has_left = min_idx > 0
+        has_right = max_idx + 1 < t_total
+
+        if has_left and has_right:
+            v_mean = 0.5 * (orig[min_idx - 1] + orig[max_idx + 1])
+            v_norm = np.linalg.norm(v_mean)
+            if v_norm > 1e-12:
+                v_mean = v_mean / v_norm
+            orig[valid_targets] = v_mean
+        elif has_left:
+            orig[valid_targets] = orig[min_idx - 1]
+        elif has_right:
+            orig[valid_targets] = orig[max_idx + 1]
+        else:
+            orig[valid_targets] = 0.0
+        return orig
+
     elif condition == "reconstructed":
         if reconstructed_embeddings is None:
             raise ValueError("reconstructed_embeddings must be provided for condition='reconstructed'")
@@ -167,4 +214,6 @@ def build_evidence_retrieval_index(
         return orig
 
     else:
-        raise ValueError(f"Unknown condition '{condition}'. Expected 'oracle', 'masked', 'baseline_repeat', or 'reconstructed'")
+        raise ValueError(
+            f"Unknown condition '{condition}'. Expected 'oracle', 'masked', 'baseline_repeat', 'baseline_lerp', 'baseline_mean', or 'reconstructed'"
+        )
