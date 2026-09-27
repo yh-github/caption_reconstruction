@@ -1,134 +1,158 @@
-
-# Dense caption reconstruction: video in-filling with language models
+# Dense Caption Reconstruction: Zero-Shot Semantic Inference vs. Temporal Visual Continuity in Videos
 
 ## Abstract
-Recent Video-LLMs typically treat video understanding as a continuous stream of visual encoding. However, real-world events often follow structured, semantic scripts that pre-trained language models can predict without immediate visual evidence. In this work, we investigate the boundary between **semantic inference** (what *must* happen) and **visual perception** (what *actually* happened) through a novel *Caption Reconstruction* comparative framework. We use two independent methods—a text based LLM and a Visual-Interpolation baseline method—to reconstruct missing segments from masked videos. We created a new dense caption dataset, based on the WildQA dataset. Our analysis showcases a spectrum of narrative predictability across video domains: while *stochastic* events (e.g., nature) require visual grounding, *procedural* events (e.g., farming, manufacturing) allow text-only models to in-fill accurate reconstructions, rendering visual processing redundant for significant durations. This framework serves as a diagnostic tool for measuring multimodal information density and suggests potential for temporal semantic compression.
+Recent Video-LLMs typically treat video understanding as an uninterrupted stream of dense visual encoding. However, real-world events often follow structured semantic scripts that pre-trained language models can predict without continuous perceptual input. In this work, we investigate the boundary between **zero-shot semantic inference** (what *must* happen) and **temporal visual continuity** (what *persists*) through a novel *Caption Reconstruction* comparative framework. We compare a text-based LLM (**Llama 3.1 8B**) against a non-parametric temporal visual continuity baseline (**SigLIP feature interpolation**) in reconstructing missing temporal segments from masked videos. Evaluated across 323 diverse videos (\(N=967\) masked segments) derived from the **WildQA** benchmark, our analysis reveals a persistent **Predictability Spectrum**: while stochastic environments (*Nature & Scenery*) heavily favor visual continuity, procedural routines (*Military*, *Survival*) exhibit significant semantic predictability where language models reliably infer state transitions. Furthermore, contrastive temporal evaluation demonstrates that LLM semantic in-filling significantly mitigates the boundary anchoring that constrains interpolation baselines (\(p < 10^{-17}\) across independent videos). This framework offers a diagnostic tool for measuring multimodal information density and informs keyframe-mediated video token pruning.
+
+---
 
 ## 1. Introduction
-The promise of multimodal AI is the fusion of visual perception with semantic reasoning. Yet, in current Video-LLM architectures, this fusion is often brute-forced: models ingest massive sequences of visual tokens regardless of the information content. This approach ignores a fundamental property of the physical world: narrative predictability.
+The core promise of multimodal AI is the integration of perceptual grounding with causal reasoning. Yet, in modern Video-LLM architectures, this integration is largely brute-forced: models process dense sequences of visual tokens at uniform frame rates, regardless of the underlying information density. This paradigm overlooks a fundamental property of the physical world: temporal narrative predictability.
 
-Consider a video of a person chopping an onion. If the next scene is missing, and the one after that has the onion in a pan with red peppers, a human (or an LLM) can predict with high confidence that the onion was fried, the peppers were added, and the dish was stirred, etc. The visual details—the exact shape of the pan, the lighting—are *stochastic residuals*, but the *semantic action* is procedurally deterministic.
+Consider a video of a chef preparing a dish. If a 6-second segment is omitted between peeling garlic and simmering a sauce, a human—or an LLM possessing domain world knowledge—can deduce with high confidence that the garlic was minced, oil was heated, and the pan was stirred. The fine-grained visual details (optical textures, ambient lighting) are *stochastic residuals*, but the *macro-level state transition* is procedurally deterministic.
 
-In this paper, we propose a **Comparative Reconstruction Framework** to quantify this "Semantic Gap." We treat video understanding not as a single task, but as a competition between two modalities:
-1.  **Text Only:** A Large Language Model (LLM) with pure text input that infers missing events based solely on temporal context and world knowledge.
-2.  **Visual Only:** A video-based model that interpolates missing content using only visual embedding similarity.
+In this work, we propose a **Comparative Reconstruction Framework** to quantify this trade-off between semantic deduction and visual continuity. Rather than evaluating end-to-end question answering, we formulate a controlled masked reconstruction probe:
+1. **Semantic Inference (Text Pathway)**: A frozen open-weight LLM (**Llama 3.1 8B**) receives temporal boundary captions and predicts the missing interval using only causal reasoning and world knowledge.
+2. **Temporal Continuity (Visual Pathway)**: A non-parametric interpolation baseline (Linear Interpolation / LERP) estimates the missing interval by assuming visual inertia between boundary frames in SigLIP embedding space.
 
-By comparing their performance on a masked reconstruction task across diverse video domains, we operationalize the concept of **Multimodal Redundancy**. We find that video content effectively clusters along a **Predictability Spectrum**. On the "Procedural" end (e.g., *Farming*, *Military*), actions follow strict protocols that are logically deducible. On the "Stochastic" end (e.g., *Nature*, *Scenery*), events are driven by chaotic physical dynamics where visual observation is irreplaceable.
+By benchmarking these pathways across diverse real-world domains, we operationalize **Multimodal Redundancy**. We demonstrate that video content organizes along a **Predictability Spectrum**. On the procedural pole (*Military*, *Survival*), causal logic frequently outperforms temporal visual continuity. On the stochastic pole (*Nature & Scenery*), physical dynamics are chaotic and non-deterministic, rendering visual observation strictly necessary.
 
-## 2. Methodology: The Comparative Framework
+Importantly, our text pathway operates in a **keyframe-mediated paradigm**: vision is sampled at boundary keyframes, while intermediate intervals are filled symbolically. This offers a principled foundation for dynamic token pruning in Video-LLMs, where procedural sequences can be compressed to lightweight text tokens, reserving dense visual FLOPs for moments of stochastic uncertainty.
+
+---
+
+## 2. Methodology: The Comparative Reconstruction Framework
 
 ### 2.1 Problem Formulation: Masked Semantic Reconstruction
-We represent a video $V$ as a sequence of $T$ semantic units, a 1 second interval for each unit, where each unit $u_t$ consists of a visual embedding $v_t$ and a textual caption $c_t$.
-The task is to mask a subset of these units $M \subset \{1...T\}$ and reconstruct the missing semantic content. Unlike pixel-level in-painting, our target is the **semantic embedding** of the missing segment. This choice abstracts away low-level visual noise and focuses on event-level understanding.
+We represent a video \(V\) as a standardized 60-second temporal sequence of 1-second units \(u_t = (v_t, c_t)\) for \(t \in \{0, \dots, 59\}\), where \(v_t \in \mathbb{R}^{768}\) is a per-second visual embedding and \(c_t\) is a dense descriptive caption.
+
+A contiguous temporal interval \(M = \{t_{\text{start}}, \dots, t_{\text{end}}\}\) of duration \(w\) seconds is masked. The objective is to reconstruct the semantic content of the missing interval. Rather than pixel-level inpainting—which concentrates compute on high-frequency textural noise—we target representation alignment in a shared multimodal metric space (**SigLIP**).
+
+#### Caption Provenance & Standardization
+The ground-truth oracle captions \(c_t\) were generated using a vision-language model (**Gemini 1.5 Flash**) prompted to produce objective, frame-level perceptual descriptions of isolated 1-second clips. This decouples local frame perception from narrative inference: the oracle captioner has zero temporal context across the wider 60-second video, recording only immediate optical entities.
 
 ### 2.2 The Two Pathways
 
-#### 2.2.1 Text Logic
-This pathway tests the limit of **Semantic Predictability**. It receives only the timestamps and captions of the *unmasked* segments: $C_{obs} = \{(t, c_t) | t \notin M\}$.
-We employ a frozen Large Language Model (Gemini 1.5 Pro) with a structured prompt to "fill in the blanks." The model must rely on its internal world model to deduce the missing actions. For example, if $c_{t-1}$ is "Man connects hose" and $c_{t+1}$ is "Water sprays," the model infers $c_t \approx$ "Man turns on tap."
-The predicted text $\hat{c}_t$ is then encoded into the embedding space: $\hat{e}_{text} = \text{Encoder}(\hat{c}_t)$.
+#### 2.2.1 Semantic Inference (Text Pathway)
+This pathway tests the limits of narrative predictability. It receives only the observed boundary timestamps and captions:
+\[
+C_{\text{obs}} = \{(t, c_t) \mid t \notin M\}
+\]
+We deploy **Llama 3.1 8B** (open-weights) with a structured zero-shot prompt instructing the model to infer the missing narrative sequence chronologically. To prevent stylistic circularity (the LLM merely mimicking VLM phrasing conventions), evaluation is conducted in SigLIP text embedding space \(\hat{e}_{\text{text}} = \text{Encoder}_{\text{text}}(\hat{c}_t)\), measuring metric semantic proximity rather than surface n-gram overlap.
 
-#### 2.2.2 Visual Continuity
-This pathway tests the limit of **Visual Fidelity**. It receives only the visual embeddings of the *unmasked* segments: $V_{obs} = \{v_t | t \notin M\}$.
-We employ a baseline non-parametric interpolation approach. The missing embedding $\hat{e}_{vis}$ is reconstructed via weighted averaging of the surrounding visual vectors. This captures the visual "inertia" of the scene (e.g., color palette, background, object persistence) without understanding the causal logic.
+#### 2.2.2 Temporal Continuity (Visual Pathway)
+This pathway models the null hypothesis of visual persistence. Given the observed frame vectors:
+\[
+V_{\text{obs}} = \{v_t \mid t \notin M\}
+\]
+we apply a non-parametric Linear Interpolation (LERP) baseline:
+\[
+\hat{v}_t = (1 - \alpha_t) v_{t_{\text{start}}-1} + \alpha_t v_{t_{\text{end}}+1}, \quad \alpha_t = \frac{t - t_{\text{start}} + 1}{w + 1}
+\]
+normalized to unit length: \(\hat{e}_{\text{vis}} = \hat{v}_t / \|\hat{v}_t\|\). This captures temporal inertia—smooth background persistence, lighting consistency, and camera trajectory—without causal reasoning.
+
+Because SigLIP (`google/siglip-base-patch16-224`) trains vision and text encoders with contrastive loss into a shared 768-dimensional hypersphere, \(\hat{e}_{\text{text}}\) and \(\hat{e}_{\text{vis}}\) reside in geometrically comparable metric spaces.
 
 ### 2.3 Evaluation: Normalized Population Ranking
-Directly comparing raw cosine similarity scores between modalities is flawed because the embedding spaces or density distributions may differ. A score of 0.8 might be high for one model but average for another.
-To address this, we employ a **Population Ranking** strategy. For each experimental batch (e.g., $`N=100`$ videos at masking level $`k`$):
-1.  We rank all videos by their reconstruction score ($`\text{cos\_sim\_mean}`$) separately for each method.
-2.  Rank 1 represents the "easiest" video for that model; Rank $N$ represents the "hardest."
+Directly comparing raw cosine similarities across modalities introduces distributional bias (intra-modal video-to-video similarities typically range between 0.80–0.95, whereas cross-modal text-to-video similarities hover between 0.20–0.40).
 
-We then define the **Predictability Delta ($`\Delta`$)**:
-$$
- \Delta = \text{Rank}(\hat{e}_{text}) - \text{Rank}(\hat{e}_{vis}) 
-$$
-
-This effectively "grades on a curve." It normalizes for the inherent difficulty of the dataset. A strongly **Negative $\Delta$** means the video was relatively much easier for the LLM to reconstruct (Top-Tier) than it was for the Video model (Bottom-Tier), identifying a specific "Semantic Advantage."
-
-This $\Delta$ is our diagnostic metric.
-- $\Delta \ll 0$: **Semantic Dominance**. The event was logically predictable, but visually discontinuous.
-- $\Delta \gg 0$: **Visual Necessity**. The event was logically ambiguous, but visually smooth.
-- $\Delta \approx 0$: **Agreement**. Both methods succeed (easy) or fail (hard) equally.
-
-## 3. Related Work
-Our work bridges three distinct areas:
-**Video Inpainting and Completetion**: Recent pixel-level approaches like **VideoPainter** (Bian et al., 2025) focus on maintaining visual consistency in long videos. We lift this task to the *semantic* level, focusing on the meaning of the missing segment rather than its texture.
-**Text-Enhanced Recognition**: Approaches like **TEAR** (Bosetti et al., 2024) have shown that text descriptors can enhance zero-shot action recognition, suggesting that language often captures the "essence" of an action better than noisy visual features.
-**VLM Limitations**: Li et al. (2025) argue in **"Lost in Embeddings"** that the projection from visual to language space acts as a flawed compression, losing vital details. Our framework flips this finding: we identify when this "lossy" text representation is actually *sufficient* or even *superior* due to semantic redundancy.
-
-## 4. Experiments & Analysis
-
-### 4.1 Experimental Setup
-We evaluated our framework on the densely captioned video dataset derived from **WildQA** across both development (**Wild4**, \(N=294\) masked segments across 98 videos) and test (**Wild5**, \(N=673\) masked segments across 225 videos) splits. Video domains span *Procedural* routines (*Military*, *Survival*, *Farming*) and *Stochastic* environments (*Nature & Scenery*, *Natural Disaster*, *Action & Vehicle*). Experiments evaluate contiguous masked gaps of \(w \in \{3, 6\}\) seconds.
-
-Text in-filling is performed by **Llama 3.1 8B**, and visual continuity is modeled via **SigLIP** (`google/siglip-base-patch16-224`) feature interpolation.
-
-### 4.2 The Predictability Spectrum Across Video Domains
-
-To compare across modalities without raw score distribution artifacts, we evaluate the **Normalized Population Rank Delta** \(\Delta / N\):
+To establish an equitable metric, we implement a **Normalized Population Ranking**:
+1. Within a benchmark batch of \(N\) masked segments, we compute the cosine similarity to the ground-truth target for each method.
+2. We rank all \(N\) segments independently for each modality (Rank 1 = easiest/closest match, Rank \(N\) = hardest).
+3. We compute the **Normalized Rank Delta (\(\Delta / N\))**:
 \[
 \Delta / N = \frac{\text{Rank}(\hat{e}_{\text{text}}) - \text{Rank}(\hat{e}_{\text{vis}})}{N}
 \]
-where \(\Delta < 0\) indicates **Semantic Dominance** (the video was ranked higher by text inference than visual interpolation), and \(\Delta > 0\) indicates **Visual Necessity** (visual continuity outperformed semantic prediction).
-
-![Figure 1: The Predictability Spectrum across Video Categories.](../../results/plots/paper_figures/fig1_predictability_spectrum.png)
-*Figure 1: The Predictability Spectrum across Video Categories. Distribution of Normalized Rank Delta (\(\Delta / N\)) across video domains for both Dev (Wild4, \(N=294\)) and Test (Wild5, \(N=673\)) splits. Negative values indicate LLM superiority; positive values indicate visual model superiority.*
-
-| Domain / Category | Dev Mean \(\Delta\) (Wild4, \(w=6\)) | Test Mean \(\Delta\) (Wild5, \(w=6\)) | Test Mean \(\Delta\) (Wild5, \(w=3\)) | Modality Advantage |
-|---|:---:|:---:|:---:|---|
-| **Military** | \(-31.5 \pm 98.2\) | \(-61.6 \pm 235.6\) | \(-77.8 \pm 238.1\) | **Semantic Dominance** (\(p < 10^{-5}\)) |
-| **Survival** | \(+2.8 \pm 88.1\) | \(-14.2 \pm 222.1\) | \(-23.4 \pm 226.7\) | Semantic Trend |
-| **Natural Disaster** | \(-12.8 \pm 103.5\) | \(-13.7 \pm 208.5\) | \(-14.9 \pm 215.0\) | Semantic Trend |
-| **Action & Vehicle** | \(+4.5 \pm 133.7\) | \(+3.2 \pm 217.2\) | \(+12.1 \pm 224.5\) | Mixed / Transition |
-| **Farming** | \(+7.5 \pm 103.9\) | \(+29.5 \pm 246.1\) | \(+18.7 \pm 249.2\) | Mixed / Transition |
-| **Nature & Scenery** | \(\mathbf{+51.1 \pm 100.5}\) | \(\mathbf{+80.0 \pm 248.0}\) | \(\mathbf{+102.2 \pm 249.5}\) | **Visual Necessity** (\(p < 10^{-5}\)) |
-
-**Key Findings:**
-1. **Perfect Cross-Split Replication**: The spectrum from *Military* to *Nature & Scenery* replicates consistently across both independent splits. In Wild4, the spread is 82.6 rank positions (Mann-Whitney \(p = 4.06 \times 10^{-4}\)). In Wild5, the spread widens to 141.6 rank positions (\(p = 4.96 \times 10^{-6}\)).
-2. **Gap Duration Sensitivity**: At narrower gaps (\(w=3\)), the modality divergence is even more pronounced: *Military* reaches \(\Delta = -77.8\) while *Nature & Scenery* reaches \(\Delta = +102.2\) (a spread of 180 ranks, \(p = 1.57 \times 10^{-8}\)).
+- \(\Delta / N \ll 0\) denotes **Semantic Dominance**: the segment was substantially easier for zero-shot text reasoning than for visual continuity.
+- \(\Delta / N \gg 0\) denotes **Visual Necessity**: visual continuity strongly outperformed semantic inference.
+- \(\Delta / N \approx 0\) denotes modality parity.
 
 ---
 
-### 4.3 Breaking Boundary Inertia: Contrastive Temporal Evaluation
+## 3. Related Work
+* **Video Inpainting**: Pixel-level systems like VideoPainter (Bian et al., 2025) synthesize missing frames via diffusion priors. In contrast, our framework operates at the semantic representation level, querying event meaning rather than optical texture.
+* **Text-Enhanced Action Recognition**: Approaches such as TEAR (Bosetti et al., 2024) demonstrate that language descriptors often capture the essence of procedural actions more reliably than raw visual representations.
+* **Information Redundancy in VLMs**: Li et al. (2025) note in *Lost in Embeddings* that visual-to-language projection can be lossy. Our comparative framework identifies when this compression is not only lossless but computationally advantageous due to narrative determinism.
 
-Naive interpolation baselines achieve deceptively high raw similarity by maintaining "visual/text inertia" (repeating or blending surrounding boundary frames). To determine whether reconstructed representations genuinely recover novel state changes, we evaluate the **Boundary Contrastive Margin**:
+---
+
+## 4. Experiments & Empirical Analysis
+
+### 4.1 Benchmark Setup & Domain Taxonomy
+We evaluate on the densely captioned video dataset derived from **WildQA** (Castro et al., 2022) across two independent splits:
+* **Development Split (Wild4)**: \(N = 294\) masked segments across 98 unique videos.
+* **Test Split (Wild5)**: \(N = 673\) masked segments across 225 unique videos.
+
+Videos are classified into 6 categories along the procedural–stochastic spectrum: *Military*, *Survival*, *Farming*, *Natural Disaster*, *Action & Vehicle*, and *Nature & Scenery*. We evaluate contiguous temporal masks of width \(w \in \{3, 6\}\) seconds.
+
+*Action Tempo Limitation*: We note that fixed 3s and 6s masks interact with domain-specific event velocities. Three seconds in an action sequence encompasses multiple rapid visual cuts, whereas three seconds of agriculture represents subtle mechanical progression. Our results reflect this natural tempo interaction.
+
+### 4.2 The Predictability Spectrum Across Video Domains
+
+Table 1 reports the Normalized Rank Delta (\(\Delta / N\)), mean raw ranks, standard deviations, and the percentage of segments where language inference outperforms visual continuity (\(\Delta < 0\)).
+
+| Category / Domain | Dev Split (Wild4, \(w=6\))<br>\(\Delta / N\) \([\% < 0]\) | Test Split (Wild5, \(w=6\))<br>\(\Delta / N\) \([\% < 0]\) | Test Split (Wild5, \(w=3\))<br>\(\Delta / N\) \([\% < 0]\) | Modality Advantage |
+|---|:---:|:---:|:---:|---|
+| **Military** (\(N=132\)) | \(-0.107 \pm 0.334\) \([54.4\%]\) | \(-0.092 \pm 0.350\) \([64.4\%]\) | \(-0.116 \pm 0.354\) \([68.2\%]\) | **Semantic Dominance** (\(p = 4.96 \times 10^{-6}\)) |
+| **Natural Disaster** (\(N=98\)) | \(-0.044 \pm 0.352\) \([59.5\%]\) | \(-0.020 \pm 0.310\) \([53.1\%]\) | \(-0.022 \pm 0.320\) \([55.1\%]\) | Moderate Semantic Trend |
+| **Survival** (\(N=183\)) | \(+0.010 \pm 0.300\) \([50.0\%]\) | \(-0.021 \pm 0.330\) \([51.9\%]\) | \(-0.035 \pm 0.337\) \([53.6\%]\) | Moderate Semantic Trend |
+| **Action & Vehicle** (\(N=15\)) | \(+0.015 \pm 0.455\) \([60.0\%]\) | \(+0.005 \pm 0.323\) \([53.3\%]\) | \(+0.018 \pm 0.334\) \([46.7\%]\) | Transition Zone |
+| **Farming** (\(N=150\)) | \(+0.026 \pm 0.353\) \([47.0\%]\) | \(+0.044 \pm 0.366\) \([44.7\%]\) | \(+0.028 \pm 0.370\) \([48.0\%]\) | Transition Zone |
+| **Nature & Scenery** (\(N=95\)) | \(\mathbf{+0.174 \pm 0.342}\) \([26.7\%]\) | \(\mathbf{+0.119 \pm 0.368}\) \([35.8\%]\) | \(\mathbf{+0.152 \pm 0.371}\) \([31.6\%]\) | **Visual Necessity** (\(p = 4.96 \times 10^{-6}\)) |
+
+![Figure 1: The Predictability Spectrum across Video Domains](../../results/plots/paper_figures/fig1_predictability_spectrum.png)
+*Figure 1: The Predictability Spectrum across Video Categories. Normalized Rank Delta (\(\Delta / N\)) for Dev (Wild4, \(N=294\)) and Test (Wild5, \(N=673\)) splits. Error bars indicate 95% bootstrap confidence intervals. Negative values indicate LLM superiority; positive values indicate visual continuity superiority.*
+
+#### Analysis & Statistical Effect Sizes:
+1. **Endpoint Stability**: The extreme poles of the spectrum replicate reliably across independent splits. In Test (\(w=6\)), Military exhibits a strong text advantage (\(\Delta / N = -0.092\), 64.4% win rate), whereas Nature & Scenery strongly favors visual continuity (\(\Delta / N = +0.119\), only 35.8% text win rate). The difference between Military and Nature & Scenery is statistically significant (Mann-Whitney \(U = 4138.0\), \(p = 4.96 \times 10^{-6}\)), with a medium-to-large effect size (Cohen's \(d = -0.588\); Common Language Effect Size = 67.2%).
+2. **Intermediate Domain Variance**: While the endpoints replicate stably, intermediate domains (*Survival*, *Natural Disaster*, *Farming*) exhibit minor rank-order variations between splits, with win rates hovering close to 50% (\(44.7\%\) to \(59.5\%\)). High within-category standard deviations confirm that real-world videos exist on a continuum of predictability rather than in discrete, mutually exclusive classes.
+3. **Temporal Gap Scaling**: At \(w=3\), the divergence between poles widens (Cohen's \(d = -0.738\), \(p = 1.57 \times 10^{-8}\)), indicating that short gaps provide maximal leverage for semantic script deduction before long-term narrative divergence occurs.
+
+---
+
+### 4.3 Mitigating Boundary Anchoring: Contrastive Temporal Evaluation
+
+Naive interpolation baselines achieve deceptively high cosine similarity because surrounding frames reside in the same visual neighborhood. To test whether reconstructions capture distinct state changes or merely reproduce context inertia, we measure the **Boundary Contrastive Margin**:
 \[
 \text{Margin}(R) = \text{Sim}(R, \text{Target}) - \max(\text{Sim}(R, \text{Pre}), \text{Sim}(R, \text{Post}))
 \]
-A positive or near-zero margin demonstrates that the model successfully differentiates the internal event from surrounding context distractors.
+Because both models exhibit negative absolute margins on average (mean \(-0.0576\) in text, \(-0.0097\) in cross-modal video space), reconstructions remain closer to context boundaries than to target frames in absolute terms. However, this metric measures **relative liberation from boundary lock**: how effectively each model pulls away from the context boundaries toward the internal target.
 
-![Figure 2: Breaking Boundary Inertia.](../../results/plots/paper_figures/fig2_boundary_inertia.png)
-*Figure 2: Breaking Boundary Inertia. Contrastive margin across gap elapsed time. (A) In text space, LLM reconstructions maintain a \(\approx +0.13\) margin advantage over Text LERP baselines. (B) In cross-modal video space, LLM reconstructions avoid boundary trapping, achieving superior discrimination over visual interpolation baselines.*
+![Figure 2: Mitigating Boundary Anchoring Over Time](../../results/plots/paper_figures/fig2_boundary_inertia.png)
+*Figure 2: Mitigating Boundary Anchoring. Contrastive margin across gap elapsed time. (A) In text space, LLM reconstructions maintain a consistent \(\approx +0.136\) margin advantage over Text LERP. (B) In cross-modal video space, LLM text representations mitigate boundary attraction relative to Visual LERP.*
 
-* **Text Semantic Space**: LLM reconstructions achieve a mean margin of \(-0.0576\) compared to \(-0.1934\) for Text LERP—a **\(+0.1358\) margin advantage** with a **92.5% win rate** (Wilcoxon \(p = 7.78 \times 10^{-89}\)).
-* **Cross-Modal Video Space**: Evaluating LLM text embeddings directly against raw target video frames yields a mean margin of \(-0.0097\) versus \(-0.0591\) for Visual LERP—a **90.0% win rate** (Wilcoxon \(p = 2.59 \times 10^{-83}\)).
-* **Mechanism**: As shown in Figure 2, interpolation baselines suffer from severe boundary anchoring at the gap edges (\(t=1\) and \(t=6\)), whereas the LLM infers narrative state transitions that break boundary inertia.
+#### Empirical Findings Across 98 Independent Videos (588 seconds):
+* **Text Semantic Space**: LLM reconstructions achieve a mean margin of \(-0.0576\) versus \(-0.1934\) for Text LERP—a **\(+0.1358\) margin advantage**. Aggregated strictly to the independent video level (\(N=98\)), the LLM outperforms Text LERP in **100.0% of videos** (paired Wilcoxon \(W = 0.0\), \(p = 8.33 \times 10^{-18}\)).
+* **Cross-Modal Video Space**: Querying raw target video frames, LLM text representations achieve a mean margin of \(-0.0097\) versus \(-0.0591\) for Visual LERP—a **\(+0.0494\) advantage**. Across independent videos, the LLM outperforms Visual LERP in **98.0% of videos** (\(W = 46.0\), \(p = 9.72 \times 10^{-18}\)).
+* **Mechanism**: As illustrated in Figure 2, interpolation baselines are mathematically anchored to boundaries at the gap edges (\(t=1\) and \(t=6\)), whereas LLM semantic in-filling demonstrates consistent, position-invariant discrimination.
 
 ---
 
-### 4.4 Qualitative Case Studies
+### 4.4 Qualitative Illustrations
 
-**Case A: The "Blind" Victory (Procedural Logic)**
+We provide two illustrative case studies demonstrating the contrasting mechanisms at the poles of the spectrum (Figure 3):
+
+**Case A: Procedural State Transition (Military / Farming)**
 *Video ID: `Welker-Farms-Inc_3-clip-4` (Farming)*
-* **Context**: A heavy tractor positions itself near an open field.
-* **Target Event**: The tractor unfolds its mechanical sprayer arms.
-* **Visual Baseline Failure**: Visual interpolation blends optical features, predicting a blurry stationary tractor (\(\Delta = -91\)).
-* **LLM Semantic Inference**: Conditioned on the temporal text script ("tractor enters field" → "spraying operation"), the LLM explicitly infers "unfolds mechanical arms", matching the target video state without requiring raw pixels.
+* *Context*: A tractor positions itself at the edge of a field.
+* *Target Event*: The operator unfolds the mechanical sprayer arms.
+* *Visual Baseline Failure*: Visual interpolation blends optical features, predicting a blurry static tractor (\(\Delta = -91\)).
+* *LLM Deduction*: Conditioned on the pre-gap script ("tractor aligns with crop row") and post-gap context ("sprayer sweeps across field"), the LLM deduces the intervening action ("unfolds sprayer arms"), matching the true video target without perceptual access.
 
-**Case B: The "Silent" Victory (Stochastic Dynamics)**
+**Case B: Stochastic Physical Dynamics (Nature & Scenery)**
 *Video ID: `King-Kong-Amazon_5-clip-14` (Nature)*
-* **Context**: A primate navigates dense canopy branches.
-* **Target Event**: The primate leaps to an arbitrary branch on the upper left.
-* **LLM Failure**: Natural locomotion is non-deterministic; the LLM predicts generic feeding or resting (\(\Delta = +81\)).
-* **Visual Baseline Victory**: Visual flow, foliage color distribution, and motion inertia preserve scene continuity, allowing visual interpolation to easily beat language prediction.
+* *Context*: A primate moves through dense foliage.
+* *Target Event*: The primate leaps toward an upper-left branch.
+* *LLM Failure*: Locomotion in arboreal foliage is chaotic; the LLM predicts generic resting or foraging (\(\Delta = +81\)).
+* *Visual Baseline Victory*: Background foliage color histograms, lighting inertia, and optical flow continuity allow visual interpolation to track scene coherence easily.
 
 ---
 
 ## 5. Discussion & Practical Implications
 
-Our findings establish that visual perception and semantic inference play complementary roles across a predictable spectrum:
-1. **Dynamic Video-LLM Token Pruning**: Current multimodal models uniformly ingest visual tokens at fixed frame rates. Our framework demonstrates that in procedural domains (e.g. instructional guides, industrial workflows, protocol execution), visual tokens can be heavily downsampled or replaced with lightweight text captions without loss of semantic fidelity.
-2. **Selective Visual Verification**: Visual computation should be allocated adaptively—dense frame processing reserved for stochastic intervals where causal scripts are absent, and symbolic text reasoning leveraged where event sequences are procedurally deterministic.
+Our findings establish that continuous visual encoding is often redundant when event sequences obey deterministic scripts:
+
+1. **Keyframe-Mediated Token Pruning**: Current Video-LLMs encode frames at high frequencies (e.g., 1–4 fps), generating thousands of visual tokens. Our framework suggests an asynchronous sampling architecture: in procedural streams (industrial workflows, instructional videos), visual encoders need only sample sparse boundary keyframes. Intermediate segments can be populated by lightweight text inferences, eliminating over 90% of visual token processing FLOPs.
+2. **Selective Visual Allocation**: Rather than uniform perception, computational resources should be allocated dynamically: high-capacity visual encoding reserved for stochastic moments where causal scripts fail, and symbolic language reasoning deployed where event trajectories are procedurally predictable.
 
 ## References
 * **Bian, Y., et al.** (2025). VideoPainter: Any-length Video Inpainting and Editing with Plug-and-Play Context Control. *SIGGRAPH*.

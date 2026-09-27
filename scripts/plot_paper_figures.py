@@ -92,10 +92,21 @@ def plot_figure_1_predictability_spectrum():
         ha="center",
         bbox=dict(boxstyle="round,pad=0.3", fc="#fdf2e9", ec="#b35422", lw=1)
     )
+
+    # Effect size annotation
+    ax.text(
+        0.50, 0.90,
+        "Military vs. Nature: Cohen's d = -0.59 (Test), p = 4.96e-6\nDev: d = -0.84, p = 4.06e-4",
+        transform=ax.transAxes,
+        fontsize=9,
+        ha="center",
+        va="top",
+        bbox=dict(boxstyle="round,pad=0.4", fc="#ffffff", ec="#cccccc", lw=1)
+    )
     
     ax.set_ylabel("Normalized Rank Delta (Δ / N)")
     ax.set_xlabel("Video Domain / Category")
-    ax.set_title("The Predictability Spectrum: Semantic Inference vs. Visual Perception")
+    ax.set_title("The Predictability Spectrum: Semantic Inference vs. Visual Continuity")
     ax.legend(title="Benchmark Split", frameon=True, loc="upper left")
     
     plt.xticks(rotation=15, ha="right")
@@ -132,9 +143,10 @@ def plot_figure_2_boundary_inertia():
     
     ax1.set_title("(A) Text Semantic Space")
     ax1.set_xlabel("Elapsed Time Inside Gap (seconds)")
-    ax1.set_ylabel("Boundary Contrastive Margin")
+    ax1.set_ylabel("Boundary Contrastive Margin (Sim(Tgt) - Sim(Bnd))")
     ax1.legend(loc="lower left", frameon=True)
     ax1.axhline(0, color="black", linestyle=":", linewidth=1.0, alpha=0.6)
+    ax1.text(0.98, 0.05, "Higher = Less Boundary Lock\n(Paired Wilcoxon p = 8.3e-18)", transform=ax1.transAxes, ha="right", va="bottom", fontsize=8, color="#555555")
     
     # Panel B: Cross-Modal Video Space
     mean_llm_v = df.groupby("gap_second")["margin_max_llm_v"].mean()
@@ -150,11 +162,12 @@ def plot_figure_2_boundary_inertia():
     
     ax2.set_title("(B) Cross-Modal Video Frame Space")
     ax2.set_xlabel("Elapsed Time Inside Gap (seconds)")
-    ax2.set_ylabel("Boundary Contrastive Margin")
+    ax2.set_ylabel("Boundary Contrastive Margin (Sim(Tgt) - Sim(Bnd))")
     ax2.legend(loc="lower left", frameon=True)
     ax2.axhline(0, color="black", linestyle=":", linewidth=1.0, alpha=0.6)
+    ax2.text(0.98, 0.05, "Higher = Less Boundary Lock\n(Paired Wilcoxon p = 9.7e-18)", transform=ax2.transAxes, ha="right", va="bottom", fontsize=8, color="#555555")
     
-    plt.suptitle("Breaking Boundary Inertia: Contrastive Discrimination Over Time", fontsize=13)
+    plt.suptitle("Mitigating Boundary Anchoring: Contrastive Discrimination Over Time", fontsize=13)
     plt.tight_layout()
     
     out_file = os.path.join(OUTPUT_DIR, "fig2_boundary_inertia.png")
