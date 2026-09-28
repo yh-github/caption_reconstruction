@@ -87,9 +87,9 @@ To test H1, Table 1 compares Llama 3.1 8B against trivial text persistence basel
 | **Farming** | 0.356 \| 28.3 | **0.436 \| 23.6** | **0.457 \| 24.3** | \(-0.080\) |
 | **Nature & Scenery** | 0.429 \| 26.4 | **0.495 \| 24.8** | **0.519 \| 25.0** | \(-0.066\) |
 
-**Finding for H1**: **Hypothesis 1 is definitively rejected.** In embedding space, trivial persistence outperforms zero-shot LLM in-filling across all domains. Copying the nearest boundary caption achieves higher cosine similarity (\(0.436\)–\(0.506\) vs. \(0.356\)–\(0.429\)) and better retrieval ranks (\(20.3\)–\(24.8\) vs. \(25.2\)–\(28.5\)). Text LERP achieves even higher similarity (\(0.457\)–\(0.520\)).
+**Finding for H1**: **Hypothesis 1 is not supported.** In embedding space, trivial persistence outperforms zero-shot LLM in-filling across all domains. Copying the nearest boundary caption achieves higher cosine similarity (\(0.436\)–\(0.506\) vs. \(0.356\)–\(0.429\)) and better retrieval ranks (\(20.3\)–\(24.8\) vs. \(25.2\)–\(28.5\)). Text LERP achieves even higher similarity (\(0.457\)–\(0.520\)).
 
-While the LLM demonstrates genuine grounding over random distractors (LLM \(0.709 \pm 0.117\) vs. within-domain random \(0.526 \pm 0.098\), paired \(t\)-test \(p < 10^{-20}\)), it fails to surpass trivial persistence. Because real-world video frames at 1-second resolution exhibit high temporal autocorrelation and adjacent captions share VLM stylistic conventions, persistence is a formidable baseline that zero-shot language models do not overcome.
+While the LLM demonstrates genuine grounding over random distractors (LLM \(0.424\) vs. within-video random \(0.382\)), it fails to surpass trivial persistence. Because real-world video frames at 1-second resolution exhibit high temporal autocorrelation and adjacent captions share VLM stylistic conventions, persistence is a formidable baseline that zero-shot language models do not overcome.
 
 ---
 
@@ -110,7 +110,7 @@ We regress text-space lift (\(\text{Lift} = \text{Sim}_{\text{LLM}} - \text{Sim}
 
 *Standard errors clustered by 15 YouTube channels.*
 
-**Finding for H2**: **Hypothesis 2 is rejected.** The domain term is statistically non-significant (\(p = 0.304\)). The LLM incurs a substantial penalty relative to persistence in both Military (\(-0.078\)) and Nature (\(-0.060\)). Zero-shot language models do not gain a measurable procedural advantage over persistence in text semantic space.
+**Finding for H2**: **Hypothesis 2 is not supported.** The domain term is statistically non-significant (\(p = 0.304\)). The LLM incurs a substantial penalty relative to persistence in both Military (\(-0.078\)) and Nature (\(-0.060\)). Zero-shot language models do not gain a measurable procedural advantage over persistence in text semantic space.
 
 ---
 
@@ -118,7 +118,7 @@ We regress text-space lift (\(\text{Lift} = \text{Sim}_{\text{LLM}} - \text{Sim}
 
 If language models exhibit no procedural advantage in text space, why does the cross-modal index (\(\Delta / N\)) reliably separate Military from Nature & Scenery? Hypothesis 3 proposes that the effect is driven by physical visual autocorrelation: static scenes favor visual baselines, while dynamic scenes degrade them.
 
-We empirically measured adjacent visual frame continuity (\(v_{\text{continuity}} = \frac{1}{T-1} \sum_{t} \text{Sim}(v_t, v_{t+1})\)) across 325 videos. Nature & Scenery exhibits significantly higher visual continuity (\(0.9497 \pm 0.0292\)) than Military (\(0.9225 \pm 0.0344\), Mann-Whitney \(U = 68.0, p = 0.0289\)).
+We empirically measured adjacent visual frame continuity (\(v_{\text{continuity}} = \frac{1}{T-1} \sum_{t} \text{Sim}(v_t, v_{t+1})\)) across 323 videos. Nature & Scenery exhibits significantly higher visual continuity (\(0.9497 \pm 0.0292\)) than Military (\(0.9225 \pm 0.0344\), Mann-Whitney \(p < 0.001\)).
 
 We fit two channel-clustered regression models predicting \(\Delta / N\) across 105 videos (314 segments) at the poles:
 * **Model 3A (Unadjusted Domain Effect)**: \(\Delta / N \sim \text{is\_nature}\)
@@ -134,7 +134,7 @@ We fit two channel-clustered regression models predicting \(\Delta / N\) across 
 | `is_nature` | \(+0.1196\) | 0.0697 | \(+1.715\) | **\(0.0863\)** | \([-0.0171, +0.2562]\) |
 | \(v_{\text{continuity}}\) | \(+3.4268\) | 1.2605 | \(+2.719\) | **\(0.0065\)** | \([+0.9563, +5.8973]\) |
 
-**Finding for H3**: **Hypothesis 3 is confirmed.** Physical visual continuity is a massive, statistically significant predictor of relative modality sensitivity (\(\beta = 3.427, p = 0.0065\)). Controlling for visual continuity cuts the domain coefficient nearly in half (from \(0.228\) to \(0.120\)) and reduces it to non-significance at the 0.05 level (\(p = 0.0863\)).
+**Finding for H3**: **Hypothesis 3 is confirmed.** Physical visual continuity is a massive, statistically significant predictor of relative modality sensitivity (\(\beta = 3.427, p = 0.0065\)). Controlling for visual continuity reduces the domain coefficient by nearly half (from \(0.228\) to \(0.120\); \(\Delta = -0.108\), 95\% bootstrap CI \([-0.205, -0.011]\)) and reduces the direct effect to non-significance (\(p = 0.0863\)).
 
 The Predictability Spectrum is primarily driven by physical scene dynamics: in static nature scenes, visual persistence achieves near-perfect frame similarity (\(\approx 0.95\)), making visual baselines virtually unbeatable. In dynamic military scenes, rapid camera and actor motion degrade visual continuity, making language in-filling *relatively* more competitive.
 
@@ -197,6 +197,6 @@ Rather than justifying a broad replacement of visual tokens with language models
 * **Bian, Y., et al.** (2025). VideoPainter: Any-length Video Inpainting and Editing with Plug-and-Play Context Control. *SIGGRAPH*.
 * **Bosetti, M., et al.** (2024). Text-Enhanced Zero-Shot Action Recognition: A training-free approach. *ICPR*.
 * **Castro, S., et al.** (2022). WildQA: In-the-Wild Video Question Answering. *COLING*.
-* **Chen, L., Zhao, H., Guan, J., et al.** (2024). An Image is Worth 1/2 Tokens After Layer 2: Plug-and-Play Image Token Pruning for Efficient Vision-Language Models. *ECCV*. (arXiv:2403.06764).
+* **Chen, L., Zhao, H., Liu, T., Bai, S., Lin, J., Zhou, C., and Chang, B.** (2024). An Image is Worth 1/2 Tokens After Layer 2: Plug-and-Play Inference Acceleration for Large Vision-Language Models. *ECCV*. (arXiv:2403.06764).
 * **Li, W., et al.** (2025). Lost in Embeddings: Information Loss in Vision-Language Models. *Findings of EMNLP*.
 * **Rao, Y., et al.** (2021). DynamicViT: Efficient Vision Transformers with Dynamic Token Sparsification. *NeurIPS*.

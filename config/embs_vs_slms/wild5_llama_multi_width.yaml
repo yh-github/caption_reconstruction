@@ -9,7 +9,7 @@ evaluation:
 
 data_config:
   name: "wild_captions"
-  path: "datasets/wildQA/captions__wild4/"
+  path: "datasets/wildQA/captions__wild5/"
 
 recon_strategy:
   - name: "llama-3.1-8b__whole_window__t=0.6"
