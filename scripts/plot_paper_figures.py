@@ -175,28 +175,25 @@ def plot_figure_2_gap_scaling_and_control():
              transform=ax1.transAxes, fontsize=7.8, color="#333333",
              bbox=dict(boxstyle="round,pad=0.25", fc="#f8f9fa", ec="#cccccc", lw=0.8))
 
-    # Panel B: Falsification Control (Target Similarity across Baselines)
-    conditions = ["LLM Recon", "Copy Near", "Text LERP", "Rand (Within)", "Rand (Cross)"]
-    target_sims = [0.7094, 0.7250, 0.7841, 0.5257, 0.5187]
-    target_sim_errs = [0.0116, 0.0120, 0.0082, 0.0105, 0.0112]
+    # Panel B: Direct Text-Space Test of H1 & H2 (LLM vs. Persistence Across Poles)
+    methods = ["Llama 3.1 8B", "Copy-Nearest", "Text LERP"]
+    mil_sims = [0.4032, 0.4766, 0.4995]
+    nat_sims = [0.4286, 0.4951, 0.5187]
     
-    x = np.arange(len(conditions))
-    width = 0.55
-    color_sim = "#1f77b4"
+    x = np.arange(len(methods))
+    width = 0.35
 
-    bars = ax2.bar(x, target_sims, width, yerr=target_sim_errs, capsize=4, color=color_sim, alpha=0.85)
-    bars[0].set_color("#2ca02c") # Highlight LLM
-    bars[3].set_color("#d62728") # Highlight random
-    bars[4].set_color("#d62728")
+    rects1 = ax2.bar(x - width/2, mil_sims, width, label="Military (Procedural)", color="#2b5c8f", alpha=0.85)
+    rects2 = ax2.bar(x + width/2, nat_sims, width, label="Nature (Stochastic)", color="#b35422", alpha=0.85)
 
-    ax2.set_ylabel("Target Cosine Similarity (Text Space)", color=color_sim)
+    ax2.set_ylabel("Target Cosine Similarity (Text Space)")
     ax2.set_xticks(x)
-    ax2.set_xticklabels(conditions, rotation=20, ha="right", fontsize=8.5)
-    ax2.set_ylim(0.4, 0.88)
-    ax2.axhline(0.52, color="gray", linestyle=":", linewidth=0.8, alpha=0.8)
+    ax2.set_xticklabels(methods, rotation=15, ha="right", fontsize=9)
+    ax2.set_ylim(0.30, 0.58)
+    ax2.legend(loc="upper left", frameon=True, fontsize=8)
 
-    ax2.set_title("(B) Grounding Control: LLM vs. Random Baselines")
-    ax2.text(0.50, 0.16, "LLM achieves significant grounding over\nWithin-Domain Random (0.526, p < 10^-20)\nand Cross-Domain Random (0.519, p < 10^-20).",
+    ax2.set_title("(B) Decisive Test: LLM vs. Persistence (Text Space)")
+    ax2.text(0.50, 0.15, "H1 Rejected: Persistence beats LLM in both domains.\nH2 Rejected: Lift over repeat is negative in both (-0.078 vs -0.060)\nand does not differ significantly by domain (p = 0.304).",
              transform=ax2.transAxes, ha="center", va="center", fontsize=8.0, color="#333333",
              bbox=dict(boxstyle="round,pad=0.3", fc="#fff9e6", ec="#d4b106", lw=1))
 
