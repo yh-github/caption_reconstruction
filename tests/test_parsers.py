@@ -33,8 +33,7 @@ def test_parse_llm_response_invalid_json():
     ]
     """ # Missing closing curly brace
 
-    with pytest.raises(ValidationError):
-        parse_llm_response(model=ReconstructedCaptions, response_text=llm_output)
+    assert parse_llm_response(model=ReconstructedCaptions, response_text=llm_output) is None
 
 
 def test_parse_llm_response_validation_error():
@@ -48,6 +47,5 @@ def test_parse_llm_response_validation_error():
         "payload": {"desc": "Wrong key names"}
     }
     """
-    with pytest.raises(ValidationError):
-        parse_llm_response(model=ReconstructedCaptions, response_text=llm_output)
+    assert parse_llm_response(model=ReconstructedCaptions, response_text=llm_output) is None
 

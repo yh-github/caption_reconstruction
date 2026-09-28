@@ -14,6 +14,7 @@ class TestBatchGeneration(unittest.TestCase):
         # 1. Setup Mock Adapter
         adapter = HuggingFaceModelAdapter(model_key="phi-3") # Valid key
         adapter.model = MagicMock()
+        adapter.model.device = "cpu"
         adapter.tokenizer = MagicMock()
         adapter.device = "cpu"
         

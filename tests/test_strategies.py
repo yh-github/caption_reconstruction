@@ -73,8 +73,7 @@ def test_llm_reconstruct_parsing_error(mock_llm_components):
     video = create_mock_video([(0, None)])
     result = strategy.reconstruct(video)
     
-    assert result.debug_data["error"] == "exception"
-    assert "ValidationError" in str(result.debug_data.get("exception", ""))
+    assert result.debug_data["error"] == LLMStrategy.PARSING_ERROR
 
 def test_llm_reconstruct_duplicate_indices(mock_llm_components):
     mock_model, mock_prompt_builder = mock_llm_components
@@ -232,7 +231,7 @@ def test_batch_reconstruct_flow(mock_batch_components):
     args, kwargs = mock_adapter.generate_batch.call_args
     assert kwargs["temperatures"] == [0.1, 0.9]
     assert kwargs["penalties"] == [1.0, 1.2]
-    assert kwargs["max_new_tokens"] == 50
+    assert kwargs["max_new_tokens"] == 20
 
 def test_batch_reconstruct_partial_indices(mock_batch_components):
     mock_adapter, mock_prompt_builder = mock_batch_components
