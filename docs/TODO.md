@@ -2,21 +2,18 @@
 
 ## Dataset Quality Audits & Captions Status
 
-- [x] **wild4 Captions Generation & Audit**: **100% Complete** (100/100 clips generated in `datasets/wildQA/captions__wild4/`).
-  - Quality Audit: [`docs/data/audit_captions/audit_wild4_results.md`](file:///home/yoavh/code/antigravity/caption_reconstruction/docs/data/audit_captions/audit_wild4_results.md) (0 duplicate clusters found, 79% domain accuracy).
-- [x] **wild5 Captions Generation & Audit**: **100% Complete** (109/109 clips generated in `datasets/wildQA/captions__wild5/`).
-  - Quality Audit: [`docs/data/audit_captions/audit_wild5_results.md`](file:///home/yoavh/code/antigravity/caption_reconstruction/docs/data/audit_captions/audit_wild5_results.md) (0 duplicate clusters found, 77.1% domain accuracy).
+- [x] **wild4 Captions Generation & Audit**: **100% Complete** (100/100 clips in `datasets/wildQA/captions__wild4/`).
+- [x] **wild5 Captions Generation & Audit**: **100% Complete** (235/235 clips in `datasets/wildQA/captions__wild5/`).
+- [x] **SigLIP Visual Embeddings Extraction**: **100% Complete** (335/335 clips in `local/wild_videos_embs_siglip/`).
+- [x] **A-Priori Scores Generation**: **100% Complete** (Visual Dynamism, APCS_V, Textual Dynamism, APCS_T across 335 videos in `results/apriori_full_scores.csv`).
 
-## Downstream Reconstruction Experiments
+## Downstream Reconstruction Experiments (Llama-3.1-8B)
 
-
-- [ ] **Run reconstruction experiments on wild4 dataset** (`datasets/wildQA/captions__wild4/`)
-  - [ ] Create experiment configs for SLM (Phi-3) and LLM (Gemini Pro) on `wild4`.
-  - [ ] Run benchmark evaluation sweeps and compile CSV metrics into `results/for_analysis/`.
-  - [ ] Sync result artifacts to HuggingFace dataset `Y3/dense_video_captions`.
-
-- [ ] **Run reconstruction experiments on wild5 dataset** (`datasets/wildQA/captions__wild5/`)
-  - [ ] Create experiment configs for SLM (Phi-3) and LLM (Gemini Pro) on `wild5`.
-  - [ ] Run benchmark evaluation sweeps and compile CSV metrics into `results/for_analysis/`.
-  - [ ] Sync result artifacts to HuggingFace dataset `Y3/dense_video_captions`.
+- [x] **wild4 Llama sweeps** (Multi-width w ∈ [1..30], w=6 window, w=3 window): Complete and archived.
+- [x] **wild5 Llama w3/w6 benchmarks** (`wild5_llama_w3_w6.yaml`): Complete and synced from HF.
+- [/] **wild5 Llama multi-width sweep** (`wild5_llama_multi_width.yaml`): **In Progress on Kaggle**.
+- [ ] **Cross-Cohort Analysis & Final Curves**:
+  - [ ] Download wild5 multi-width outputs once Kaggle completes.
+  - [ ] Run `scripts/aggregate_llama_results.py` on full 335-video set.
+  - [ ] Generate crossover and degradation curves across gap width W and dynamism strata.
 
