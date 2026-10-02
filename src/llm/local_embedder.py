@@ -1,6 +1,7 @@
 from __future__ import annotations
 import logging
 import diskcache
+import numpy as np
 import torch
 import transformers
 try:
@@ -114,27 +115,38 @@ class SiglipTextEmbedder(BaseEmbedder):
             
         logger.debug(f"Computing {len(texts)} new SigLIP text embeddings locally for {video_id}")
         
-        inputs = self.tokenizer(
-            texts,
-            padding="max_length",
-            max_length=64,
-            truncation=True,
-            return_tensors="pt"
-        )
-        if hasattr(inputs, "to"):
-            inputs = inputs.to(self.device)
-        else:
-            inputs = {k: v.to(self.device) for k, v in inputs.items()}
-        
-        with torch.no_grad():
-            outputs = self.model(**inputs)
-            raw_embeds = outputs.pooler_output
-            embeddings = torch.nn.functional.normalize(raw_embeds, p=2, dim=-1)
+        if self.device == "cpu":
+            torch.set_num_threads(4)
+            torch.set_num_interop_threads(1)
             
-        embeddings_np = embeddings.cpu().numpy()
+        batch_size = 32
+        embeddings_list = []
+        for i in range(0, len(texts), batch_size):
+            chunk = texts[i:i + batch_size]
+            inputs = self.tokenizer(
+                chunk,
+                padding="max_length",
+                max_length=64,
+                truncation=True,
+                return_tensors="pt"
+            )
+            if hasattr(inputs, "to"):
+                inputs = inputs.to(self.device)
+            else:
+                inputs = {k: v.to(self.device) for k, v in inputs.items()}
+            
+            with torch.no_grad():
+                outputs = self.model(**inputs)
+                raw_embeds = outputs.pooler_output
+                emb = torch.nn.functional.normalize(raw_embeds, p=2, dim=-1)
+                
+            embeddings_list.append(emb.cpu().numpy())
+            
+        embeddings_np = np.concatenate(embeddings_list, axis=0) if embeddings_list else np.empty((0, self.output_dimensionality))
         
         result = {}
         for text, emb in zip(texts, embeddings_np):
             result[text] = emb.tolist()
             
         return result
+

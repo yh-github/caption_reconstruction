@@ -12,6 +12,8 @@ class VideoSurprisalResult:
     p95_cosine_distance: float
     effective_rank: float
     tortuosity: float
+    apcs_v: float
+    combined_dynamism: float
 
 class VideoSurprisalScorer:
     """
@@ -25,7 +27,7 @@ class VideoSurprisalScorer:
         embeddings: (T, D) numpy array
         """
         if embeddings.shape[0] < 2:
-            return VideoSurprisalResult(0.0, 0.0, 0.0, 0.0, 1.0, 1.0)
+            return VideoSurprisalResult(0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0)
             
         # 1. Normalize (just in case)
         norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
@@ -57,12 +59,27 @@ class VideoSurprisalScorer:
         displacement = np.linalg.norm(embeddings[-1] - embeddings[0])
         tortuosity = float(path_length / (displacement + 1e-9))
         
+        # 6. APCS_V (Average Pairwise Cosine Similarity)
+        m = embeddings.shape[0]
+        if m > 1:
+            all_sims = np.dot(embeddings, embeddings.T)
+            j, k = np.triu_indices(m, k=1)
+            pairwise_sims = all_sims[j, k]
+            apcs_v = float(np.mean(pairwise_sims))
+        else:
+            apcs_v = 0.0
+
+        # 7. Combined Dynamism
+        combined_dynamism = 100.0 * (0.5 * avg_dist + 0.5 * p95_dist)
+
         return VideoSurprisalResult(
             avg_cosine_distance=avg_dist,
             max_cosine_distance=max_dist,
             variance_cosine_distance=var_dist,
             p95_cosine_distance=p95_dist,
             effective_rank=eff_rank,
-            tortuosity=tortuosity
+            tortuosity=tortuosity,
+            apcs_v=apcs_v,
+            combined_dynamism=combined_dynamism
         )
 

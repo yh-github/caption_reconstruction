@@ -33,7 +33,9 @@ def get_extended_video_complexity(gt_vectors: np.ndarray) -> dict:
         "variance_surprisal": res.variance_cosine_distance,
         "p95_surprisal": res.p95_cosine_distance,
         "effective_rank": res.effective_rank,
-        "tortuosity": res.tortuosity
+        "tortuosity": res.tortuosity,
+        "apcs_v": res.apcs_v,
+        "combined_dynamism": res.combined_dynamism
     }
 def get_narrative_complexity(captions: list[str]) -> float:
     """
