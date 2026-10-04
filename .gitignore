@@ -32,10 +32,12 @@ local/
 results/*
 !results/phi_vs_video_integration_summary.csv
 !results/prior_vs_post_reconstruction_master.csv
+!results/for_analysis/335/*
 test_logs/
 test_results/
 .test_lock
 .coverage
+.agents/
 
 # LaTeX build artifacts
 *.aux
@@ -51,8 +53,6 @@ coverage_report.txt
 
 # Temporary/Debug scripts
 debug_config_validation.py
-.agents/skills/literature_search_arxiv
-.agents/skills/literature_search_openalex
 
 # Workspace
 *.code-workspace

@@ -21,7 +21,7 @@ This document establishes the authoritative ground truth for datasets, experimen
 ### What is Current (Active Standard)
 1. **Generative Text Model**: **Llama-3.1-8B** (`llama-3.1-8b__whole_window__t=0.6`, repetition penalty 1.05).
    - Prompt directory: `prompts/dense_window/`
-   - Evaluation embedding model: `all-mpnet-base-v2` (`384-dim`, `pool_scope: "video"`)
+   - Evaluation embedding model: `all-mpnet-base-v2` (`768-dim`, `pool_scope: "video"`)
    - Configs:
      - `config/embs_vs_slms/wild4_llama_multi_width.yaml` (w ∈ [1, 2, 4, 8, 12, 16, 24, 30] at i=29)
      - `config/embs_vs_slms/wild4_llama_w6.yaml` (w=6, i ∈ [0, 29, 59])

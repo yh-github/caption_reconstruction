@@ -105,6 +105,7 @@ def main():
                 "recall_at_1": float(row["recall_at_1_mean"]) if pd.notnull(row["recall_at_1_mean"]) else None,
                 "recall_at_5": float(row["recall_at_5_mean"]) if pd.notnull(row["recall_at_5_mean"]) else None,
                 "cos_sim": float(row["cos_sim_mean"]) if pd.notnull(row["cos_sim_mean"]) else None,
+                "cos_sim_min": float(row["cos_sim_min"]) if ("cos_sim_min" in row and pd.notnull(row["cos_sim_min"])) else None,
                 "cos_sim_residual": float(row["cos_sim_residual_mean"]) if pd.notnull(row["cos_sim_residual_mean"]) else None,
                 "mean_rank": float(row["mean_rank_mean"]) if pd.notnull(row["mean_rank_mean"]) else None,
             })
@@ -146,6 +147,7 @@ def main():
                         "recall_at_1": float(metrics["recall_at_1"]) if "recall_at_1" in metrics and metrics["recall_at_1"] is not None else None,
                         "recall_at_5": float(metrics["recall_at_5"]) if "recall_at_5" in metrics and metrics["recall_at_5"] is not None else None,
                         "cos_sim": float(np.mean(cos_list)) if cos_list else None,
+                        "cos_sim_min": float(np.min(cos_list)) if cos_list else None,
                         "cos_sim_residual": float(np.mean(metrics["cos_sim_residual"])) if "cos_sim_residual" in metrics and metrics["cos_sim_residual"] else None,
                         "mean_rank": float(metrics["mean_rank"]) if "mean_rank" in metrics and metrics["mean_rank"] is not None else None,
                     })
