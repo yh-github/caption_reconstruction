@@ -13,7 +13,7 @@ def get_file_mtimes():
     return tuple(os.path.getmtime(p) if os.path.exists(p) else 0 for p in paths)
 
 @st.cache_data
-def load_all_data(_mtimes):
+def load_all_data(mtimes):
     master_path = "results/unified_benchmark_master.csv"
     apriori_path = "results/apriori_full_scores.csv"
     
@@ -29,6 +29,10 @@ def load_all_data(_mtimes):
         df = df_master.copy()
     
     df = df.rename(columns={"width": "w", "index": "i", "cos_sim": "cos_sim_mean"})
+    
+    # Exclude W > 16: Llama prompt truncation skipped >95% of videos (N=4 at W=24, N=17 at W=30),
+    # while valid benchmark evaluations run symmetrically up to W=16 across all methods.
+    df = df[df["w"] <= 16].copy()
     
     # Standardize dataset names to lowercase for consistency
     df["dataset"] = df["dataset"].str.lower()
@@ -64,11 +68,11 @@ elif dataset_choice == "Wild5 only":
 else:
     df_active = df_raw.copy()
 
-# A-Priori metrics available
+# A-Priori metrics available (note: num_captions excluded as all valid clips have 60 captions)
 apriori_metrics = [
     "APCS_V", "APCS_T", "average_dynamism", "peak_dynamism",
     "combined_dynamism", "text_average_dynamism", "text_peak_dynamism",
-    "text_combined_dynamism", "num_captions", "caption_perplexity"
+    "text_combined_dynamism", "caption_perplexity"
 ]
 available_apriori = [m for m in apriori_metrics if m in df_active.columns]
 
@@ -98,8 +102,8 @@ with tab_comparison:
     st.markdown(
         """
         Compare the relative performance of two methods (e.g. SLM vs. Visual Baseline). 
-        Videos are ranked **$1 \\dots V$** for each method based on the selected score. 
-        Then we test whether the **rank difference** ($\\Delta \\text{Rank} = \\text{Rank}_A - \\text{Rank}_B$) 
+        Videos are ranked **\\(1 \\dots V\\)** for each method based on the selected score. 
+        Then we test whether the **rank difference** (\\(\\Delta \\text{Rank} = \\text{Rank}_A - \\text{Rank}_B\\)) 
         correlates with video properties (visual dynamism, text redundancy, etc.).
         """
     )
@@ -296,6 +300,7 @@ with tab_macro:
             title=f"Mean {macro_metric} by Window Size (W)",
             xaxis_title="Window Size (W)",
             yaxis_title=f"Mean {macro_metric}",
+            xaxis=dict(tickmode="array", tickvals=sorted(df_macro["w"].unique())),
             hovermode="x unified"
         )
         st.plotly_chart(fig_w)
@@ -381,7 +386,8 @@ with tab_strat:
     fig_strat.update_layout(
         title=f"{strat_method} Performance by Window Size (Stratified by {strat_prior})",
         xaxis_title="Window Size (W)",
-        yaxis_title=f"Mean {strat_metric}"
+        yaxis_title=f"Mean {strat_metric}",
+        xaxis=dict(tickmode="array", tickvals=sorted(df_active["w"].unique()))
     )
     st.plotly_chart(fig_strat)
 
