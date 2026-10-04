@@ -34,7 +34,7 @@ To maintain scientific rigor and prevent pipeline divergence, all baseline evalu
   \text{gt\_indices\_in\_pool} = I_{\text{mask}}
   \]
 * In `src/evaluations/eval_vectors.py`, the query's own ground truth index in \(\mathbf{M}\) is masked out by setting its similarity to \(-\infty\).
-* The remaining 59 clips in the video serve as background distractors, ensuring **identical rank distribution and chance-level probability** (\(1/60 \approx 0.0167\)) across both LLMs and vector baselines.
+* The remaining 59 clips in the video serve as background distractors, ensuring **identical rank distribution and chance-level probabilities** (e.g. MRR $\approx 0.078$, Recall@1 $\approx 0.017$) across both LLMs and vector baselines.
 
 ---
 

@@ -31,7 +31,7 @@ This document establishes the authoritative ground truth for datasets, experimen
    - Strategy: `MeanClosestVectors` / `RepeatClosestVector`
    - Configs: `config/embs_vs_slms/wild4_siglip_sim_vec_vid.yaml`, `config/embs_vs_slms/wild5_siglip_sim_vec_vid.yaml`
 3. **Harmonized Distractor Pool**:
-   - `pool_scope: "video"` (queries evaluated against all other 59 timestamps in the 60-second video; chance-level = 1/60 ≈ 0.0167).
+   - `pool_scope: "video"` (queries evaluated against all other 59 timestamps in the 60-second video; Recall@1 chance = $1/60 \approx 0.017$; MRR chance $\approx 0.078$).
 
 ### What is Legacy (DO NOT USE for New Hypotheses)
 1. **Phi-3 / SLM text evaluations**: Early exploratory runs using Phi-3 Mini with varying temperatures (`wild_dev_sim_text`). Replaced by Llama-3.1-8B.

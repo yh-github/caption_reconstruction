@@ -246,7 +246,7 @@ The repository was explicitly designed around this limitation:
 ### Disambiguation: Did This Codebase Use CLIP?
 **No. OpenAI's CLIP was not used in this codebase.** 
 * The term **"clip"** throughout the codebase refers strictly to a **1-second video segment** (e.g., `CaptionedVideo.clips`, `clip_size=1`, `Welker-Farms-Inc_3-clip-4`).
-* The visual embeddings were extracted using an ImageNet-pretrained vision transformer via `timm`: [`vit_small_patch16_224`](file:///home/yoavh/code/antigravity/caption_reconstruction/src/data/video_embeddings.py#L35) (384-dimensional features).
+* The visual embeddings were extracted using an ImageNet-pretrained vision transformer via `timm`: [`vit_small_patch16_224`](file:///home/yoavh/code/antigravity/caption_reconstruction/src/data/video_embeddings.py#L35) (768-dimensional features).
 * The text embeddings were extracted using [`GeminiEmbedder`](file:///home/yoavh/code/antigravity/caption_reconstruction/src/llm/embedder.py) (`gemini-embedding-001`, 512 dimensions) or [`LocalEmbedder`](file:///home/yoavh/code/antigravity/caption_reconstruction/src/llm/local_embedder.py) (`all-mpnet-base-v2`, 768 dimensions).
 * These encoders produce **disjoint, incompatible vector spaces**.
 

@@ -15,7 +15,7 @@ When evaluating video caption cloze reconstruction, posterior evaluation metrics
                                           │
                   ┌───────────────────────┴───────────────────────┐
                   ▼                                               ▼
-     [Visual Stream (SigLIP 768d)]                   [Text Stream (MPNet 384d)]
+     [Visual Stream (SigLIP 768d)]                   [Text Stream (MPNet 768d)]
                   │                                               │
       ┌───────────┴───────────┐                       ┌───────────┴───────────┐
       ▼                       ▼                       ▼                       ▼
@@ -70,8 +70,8 @@ Extracted at 1 FPS using `google/siglip-base-patch16-224`, yielding frame vector
 
 ---
 
-### B. Textual A-Priori Metrics (Embedding Space: `all-mpnet-base-v2` 384-dim)
-Computed by embedding the ground-truth dense captions $c_1, c_2, \dots, c_T$ using `sentence-transformers/all-mpnet-base-v2`, yielding text vectors $e_1, e_2, \dots, e_T \in \mathbb{R}^{384}$.
+### B. Textual A-Priori Metrics (Embedding Space: `all-mpnet-base-v2` 768-dim)
+Computed by embedding the ground-truth dense captions $c_1, c_2, \dots, c_T$ using `sentence-transformers/all-mpnet-base-v2`, yielding text vectors $e_1, e_2, \dots, e_T \in \mathbb{R}^{768}$.
 
 #### 1. Textual APCS (`APCS_T`)
 * **Concept**: Average Pairwise Cosine Similarity across all ground-truth caption pairs in the video.

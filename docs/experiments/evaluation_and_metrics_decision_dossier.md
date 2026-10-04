@@ -8,11 +8,11 @@ This dossier provides a complete, self-contained review of all evaluation metric
 ## 1. Executive Summary of the Core Dilemma
 
 In our research into video caption cloze reconstruction, we evaluate two competing paradigms:
-1. **Generative Language Model (`Llama-3.1-8B`)**: Observes surrounding unmasked captions $C_{\text{obs}} = \{(t, c_t) \mid t \notin [i, i+W-1]\}$, infers the missing cloze text via zero-shot reasoning, and embeds the output into sentence space via `all-mpnet-base-v2` (384-dim).
+1. **Generative Language Model (`Llama-3.1-8B`)**: Observes surrounding unmasked captions $C_{\text{obs}} = \{(t, c_t) \mid t \notin [i, i+W-1]\}$, infers the missing cloze text via zero-shot reasoning, and embeds the output into sentence space via `all-mpnet-base-v2` (768-dim).
 2. **Visual Feature Continuity (`MeanClosestVectors` on SigLIP 768-dim)**: Observes unmasked video frame vectors $V_{\text{obs}} = \{v_t \mid t \notin [i, i+W-1]\}$, and linearly interpolates the missing segment between boundary frames.
 
 ### The Fundamental Evaluation Conflict:
-* **Raw Cosine Similarity is Non-Comparable Across Modalities**: Llama's score lives in 384-dim text space; SigLIP's score lives in 768-dim vision space. Comparing raw dot products or cosine values is mathematical nonsense.
+* **Raw Cosine Similarity is Non-Comparable Across Modalities**: Llama's score lives in the 768-dim MPNet text space; SigLIP's score lives in the 768-dim SigLIP vision space. Equal dimensionality does not make the spaces comparable: they are unrelated geometries with different similarity distributions, so comparing raw dot products or cosine values across them is meaningless.
 * **Raw Cosine Similarity is Massively Confounded by Caption Redundancy**: We discovered that Llama's `cos_sim_mean` correlates at Spearman $\rho = +0.606$ ($p = 6.2 \times 10^{-34}$) with textual caption redundancy (`APCS_T`). When a video's ground truth captions are naturally repetitive, *any* generated text receives an artificially inflated cosine similarity.
 * **MRR (Mean Reciprocal Rank) is Scale-Free and Directly Comparable**, but has subtle representation-dependent boundaries and step-function discreteness.
 
@@ -20,7 +20,7 @@ In our research into video caption cloze reconstruction, we evaluate two competi
 
 ## 2. Definitive Benchmark Results & Statistical Findings
 
-All findings are computed over the full, clean combined benchmark of **335 videos** (100 in `wild4`, 235 in `wild5`) across gap widths $W \in [1, 2, 3, 4, 6, 8, 12, 16]$ at center cloze position $i=29$, with `pool_scope: "video"` (queries ranked against all other 59 timestamps in the video; chance level = $1/60 \approx 0.0167$).
+All findings are computed over the full, clean combined benchmark of **335 videos** (100 in `wild4`, 235 in `wild5`) across gap widths $W \in [1, 2, 3, 4, 6, 8, 12, 16]$ at center cloze position $i=29$, with `pool_scope: "video"` (queries ranked against all other 59 timestamps in the video, pool size $N = 60$). **Chance levels for $N=60$**: MRR $= H_{60}/60 \approx 0.078$, Mean Rank $= 30.5$, Recall@1 $= 1/60 \approx 0.017$, Recall@5 $= 5/60 \approx 0.083$ (see Section 2.1).
 
 ### Table 1: Llama-3.1-8B Reconstruction Performance by Gap Width $W$
 (Source: [`results/benchmark_wild4_wild5_summary_by_width.csv`](../../results/benchmark_wild4_wild5_summary_by_width.csv))
@@ -41,19 +41,51 @@ All findings are computed over the full, clean combined benchmark of **335 video
 
 | Gap Width ($W$) | $N$ Shared | Mean Llama MRR | Mean SigLIP MRR | Margin ($\text{MRR}_{\text{LLM}} - \text{MRR}_{\text{Vid}}$) | Llama Wins | Video Wins | Llama Win Rate | Paired Wilcoxon $p$-value |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **$W=3$** | 225 | 0.085 | **0.175** | **-0.091** | 44 | 181 | **19.6%** | $p = 4.8 \times 10^{-17}$ |
-| **$W=6$** | 323 | 0.090 | **0.129** | **-0.039** | 96 | 227 | **29.7%** | $p = 1.2 \times 10^{-10}$ |
-| **$W=12$** | 322 | 0.083 | **0.092** | **-0.001** | 126 | 196 | **39.1%** | **$p = 0.480$ (Statistical Parity)** |
+| **$W=3$** | 225 | 0.085 | **0.175** | **-0.091** | 44 | 181 | **19.6%** | $p = 4.3 \times 10^{-20}$ |
+| **$W=6$** | 323 | 0.090 | **0.129** | **-0.038** | 96 | 227 | **29.7%** | $p = 2.2 \times 10^{-14}$ |
+| **$W=12$** | 322 | 0.083 | **0.092** | **-0.009** (median $-0.016$) | 126 | 196 | **39.1%** | $p = 2.1 \times 10^{-5}$ (paired $t$: $p = 0.052$) |
+
+> **Correction (2026-10-04)**: All $p$-values recomputed from the source CSV (`scipy.stats.wilcoxon`, paired). The earlier $W=12$ row (margin $-0.001$, $p = 0.480$, "Statistical Parity") could not be reproduced. The margin $-0.0009$ comes from the 224-video subset that has both $W=3$ and $W=12$ (see H2); on that subset the paired $t$-test gives $p = 0.88$, but Wilcoxon still gives $p = 0.022$ with video winning 131/224. **The means converge, but video still wins on most videos.** Also, at $W=12$ Llama's MRR (0.083) is statistically indistinguishable from chance (0.078) and SigLIP (0.092) is close to it, so the convergence is mainly both methods approaching the chance floor, not Llama catching up (Section 2.1).
 
 ### Table 3: Rigorous Statistical Significance Tests on Key Hypotheses
 
 | Hypothesis Tested | Test Applied | Sample Size | Test Statistic | $p$-value | Statistical Conclusion |
 | :--- | :--- | :---: | :--- | :---: | :--- |
 | **H1: Does widening gap from $W=3$ to $W=12$ increase Llama's win rate?** | Two-proportion $z$-test | $N_3=225, N_{12}=322$ | $z = 4.868$ | **$1.13 \times 10^{-6}$** | **Overwhelmingly Significant**. 19.6% $\to$ 39.1% (+19.6% gain, 95% CI: $[+11.9\%, +26.8\%]$). |
-| **H2: Does the paired deficit $\Delta \text{MRR}$ close across time?** | Paired $t$-test / Wilcoxon | $N=224$ paired | $t = 8.404, W = 4452$ | **$5.10 \times 10^{-15}$** | **Overwhelmingly Significant**. Deficit shrinks from $-0.0906$ to $-0.0009$. |
+| **H2: Does the paired deficit $\Delta \text{MRR}$ close across time?** | Paired $t$-test / Wilcoxon | $N=224$ paired | $t = 8.404, W = 4452$ | **$5.10 \times 10^{-15}$** | **Overwhelmingly Significant**. Deficit shrinks from $-0.0906$ to $-0.0009$ (on the 224-video subset; $-0.0086$ on all 322 videos at $W=12$). **Caveat**: shrinkage is largely driven by SigLIP falling toward chance, not by Llama improving (Llama's MRR is flat at ≈ chance, Section 2.1). |
 | **H3: At $W=12$, does visual dynamism increase Llama's win rate (37% vs 44%)?** | Fisher's Exact & $z$-test | $N_{\text{Q1}}=81, N_{\text{Q4}}=81$ | $z = 0.959, \text{OR}=1.36$ | **$p = 0.337$ (n.s.)** | **NOT Significant**. 95% CI: $[-7.7\%, +22.2\%]$ crosses zero. |
 | **H4: At $W=12$, does visual dynamism correlate with continuous $\Delta \text{MRR}$?** | Spearman Rank Corr | $N=322$ | $\rho = -0.063$ | **$p = 0.260$ (n.s.)** | **NOT Significant**. Visual motion does not alter MRR margin. |
 | **H5: Does text redundancy (`APCS_T`) correlate with raw `cos_sim_mean`?** | Spearman Rank Corr | $N=335$ ($W=6$) | $\rho = +0.613$ | **$6.9 \times 10^{-36}$** | **Massive Confounder**. `cos_sim_mean` mostly measures caption repetition. |
+
+### 2.1 Chance-Level Reference (added 2026-10-04)
+
+Under a uniformly random ranking of the target among $N$ candidates, the expected value of each metric is:
+
+| Metric | Chance formula | $N = 60$ | $N = 31$ |
+| :--- | :--- | :---: | :---: |
+| MRR | $H_N / N = \frac{1}{N}\sum_{r=1}^{N} \frac{1}{r}$ | **0.078** | 0.130 |
+| Mean Rank | $(N+1)/2$ | 30.5 | 16.0 |
+| Recall@$k$ | $k/N$ | R@1 = 0.017, R@5 = 0.083 | R@1 = 0.032, R@5 = 0.161 |
+| AUC $= (N-r)/(N-1)$ | 0.5 (any $N$) | 0.5 | 0.5 |
+| Calibrated $c = 2\,\text{AUC} - 1$ | 0 (any $N$) | 0 | 0 |
+
+> [!WARNING]
+> Earlier versions of this dossier and related docs stated MRR chance as $1/60 \approx 0.0167$. That is the chance level of **Recall@1**, not MRR. MRR chance for $N=60$ is $\approx 0.078$, i.e. 4.7× higher.
+
+**Llama-3.1-8B vs. chance** (source: `results/benchmark_wild4_wild5_combined_per_video.csv`, one-sample $t$-tests against the chance value, per-video means):
+
+| $W$ | Mean MRR | $p$ (MRR vs 0.078) | Mean Rank | $p$ (Rank vs 30.5) | R@1 | R@5 |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 1 | 0.119 | $2 \times 10^{-4}$ | 23.0 | $5 \times 10^{-16}$ | 3.4% | 16.6% |
+| 3 | 0.088 | 0.12 (n.s.) | 27.6 | $9 \times 10^{-5}$ | 2.0% | 10.2% |
+| 6 | 0.090 | 0.002 | 27.6 | $3 \times 10^{-8}$ | 1.8% | 10.8% |
+| 12 | 0.083 | 0.23 (n.s.) | 29.5 | 0.007 | 1.9% | 8.8% |
+| 16 | 0.076 | 0.38 (n.s.) | 30.2 | 0.39 (n.s.) | 1.6% | 8.0% |
+
+**Takeaways**:
+1. Llama is only marginally above chance for $W \ge 3$ and **at chance for $W = 16$** on every metric.
+2. **Mean rank (linear in rank, equivalent to AUC) detects above-chance performance far more reliably than MRR** (e.g. $W=3$: $p = 9 \times 10^{-5}$ vs $p = 0.12$). MRR's $1/r$ weighting compresses all non-top-3 ranks into a narrow band near the floor, where most Llama queries live.
+3. Near-zero correlations between MRR and the a-priori scores (`experiment_protocol_current.md` §4) must be read with this in mind: when the outcome is mostly noise around chance, correlations are attenuated toward zero regardless of the true relationship.
 
 ---
 
@@ -63,10 +95,12 @@ All findings are computed over the full, clean combined benchmark of **335 video
 * **How it works**: For each query timestamp $t$ in the gap, rank the true item among all 60 video timestamps based on cosine similarity to the prediction. $\text{MRR} = \frac{1}{|M|} \sum_{t} \frac{1}{\text{rank}_t}$.
 * **Why it's our current best**:
   - Scale-free: independent of raw embedding norms.
-  - Aligns both modalities into an identical game with chance level = $1/60 \approx 0.0167$.
-  - Unbiased by video motion or caption redundancy.
+  - Aligns both modalities into an identical game with the same chance level ($H_{60}/60 \approx 0.078$ for MRR; $1/60 \approx 0.017$ for Recall@1).
+  - Empirically near-zero correlation with video motion and caption redundancy (|ρ| ≤ 0.15 across widths). **Caveat**: this is partly because Llama's per-video MRR is close to chance and therefore noisy; low outcome reliability attenuates every correlation, so "uncorrelated" is not yet evidence of "unbiased".
 * **Why it falls short / Weaknesses**:
   - **Reciprocal cliff**: Ranks 1, 2, 3 receive weights $1.0, 0.5, 0.333$, but ranks 10 through 60 receive tiny weights ($0.10 \to 0.016$). If a model deduces the action roughly and lands at rank 4, it loses 75% of credit compared to rank 1.
+  - **Raw score is not chance-corrected**: an MRR of 0.08 looks like "something" but is chance for $N = 60$, and the chance value changes with pool size. Use $\text{MRR}_{\text{norm}} = (\text{MRR} - H_N/N)/(1 - H_N/N)$ or the calibrated score $c$ for interpretable reporting.
+  - **Low power for detecting above-chance or tail differences**: see Section 2.1 and the metric sensitivity analysis (AUC / mean-rank detects V_Repeat vs V_Mean differences at $p = 10^{-8}$ that MRR rates as identical, $p = 0.69$).
   - **Zero temporal tolerance**: If the LLM generates the exact correct action, but the true action occurred at $t=30$ and the candidate pool has a near-identical frame at $t=29$, placing it at $t=29$ is penalized heavily even though it was off by only 1 second.
   - **Asymmetric Distractor Geometry**: As detailed in [`docs/theory/cross_modal_evaluation_metrics.md`](file:///home/yoavh/code/antigravity/caption_reconstruction/docs/theory/cross_modal_evaluation_metrics.md), human caption embeddings have distinct, discrete semantic clusters, whereas SigLIP video frame embeddings form a continuous, smooth visual trajectory. Ranking in a smooth space vs. a discrete cluster space may have unequal difficulty.
 

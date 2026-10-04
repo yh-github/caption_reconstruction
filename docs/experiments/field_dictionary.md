@@ -29,10 +29,10 @@ All a-priori scores are computed **prior to masking and reconstruction**.
 | `peak_dynamism` | Vision (`SigLIP 768d`) | $\text{Percentile}_{95} \{ 1 - \cos(v_t, v_{t+1}) \}$ | 95th percentile consecutive frame distance. Measures sudden visual scene cuts/actions. |
 | `combined_dynamism` | Vision (`SigLIP 768d`) | $100 \times [0.5 \times \text{avg\_dyn} + 0.5 \times \text{peak\_dyn}]$ | Scaled composite score of visual dynamism. Higher = more volatile video. |
 | `APCS_V` | Vision (`SigLIP 768d`) | $\frac{2}{T(T-1)} \sum_{j < k} \cos(v_j, v_k)$ | Gail's **Average Pairwise Cosine Similarity** across all video frame pairs. Higher = static/monotonous visuals. |
-| `text_average_dynamism` | Text (`mpnet 384d`) | $\frac{1}{T-1} \sum_{t=1}^{T-1} (1 - \cos(c_t, c_{t+1}))$ | Mean consecutive cosine distance between ground-truth captions. Measures narrative pace. |
-| `text_peak_dynamism` | Text (`mpnet 384d`) | $\text{Percentile}_{95} \{ 1 - \cos(c_t, c_{t+1}) \}$ | 95th percentile caption step distance. Measures abrupt narrative topic shifts. |
-| `text_combined_dynamism` | Text (`mpnet 384d`) | $100 \times [0.5 \times \text{text\_avg} + 0.5 \times \text{text\_peak}]$ | Composite score of textual dynamism. Higher = rapidly changing caption content. |
-| `APCS_T` | Text (`mpnet 384d`) | $\frac{2}{T(T-1)} \sum_{j < k} \cos(c_j, c_k)$ | **Average Pairwise Cosine Similarity** across all ground-truth captions in the clip. Higher = repetitive captions. |
+| `text_average_dynamism` | Text (`mpnet 768d`) | $\frac{1}{T-1} \sum_{t=1}^{T-1} (1 - \cos(c_t, c_{t+1}))$ | Mean consecutive cosine distance between ground-truth captions. Measures narrative pace. |
+| `text_peak_dynamism` | Text (`mpnet 768d`) | $\text{Percentile}_{95} \{ 1 - \cos(c_t, c_{t+1}) \}$ | 95th percentile caption step distance. Measures abrupt narrative topic shifts. |
+| `text_combined_dynamism` | Text (`mpnet 768d`) | $100 \times [0.5 \times \text{text\_avg} + 0.5 \times \text{text\_peak}]$ | Composite score of textual dynamism. Higher = rapidly changing caption content. |
+| `APCS_T` | Text (`mpnet 768d`) | $\frac{2}{T(T-1)} \sum_{j < k} \cos(c_j, c_k)$ | **Average Pairwise Cosine Similarity** across all ground-truth captions in the clip. Higher = repetitive captions. |
 | `apcs_nll` | Language Model | Negative Log Likelihood (NLL) of the caption sequence. | Measures linguistic rarity/surprisal of the caption transcript. |
 | `caption_perplexity` | Language Model | $\exp(\text{NLL})$ | Perplexity of the ground-truth captions. |
 
@@ -44,7 +44,7 @@ Reconstruction metrics measure the quality of reconstructed captions/vectors aga
 
 | Field Name | Range | Evaluation Space | Description |
 | :--- | :--- | :--- | :--- |
-| `mrr` | $[0.0, 1.0]$ | Distractor pool (`pool_scope: "video"`) | **Mean Reciprocal Rank**. Evaluated against all 59 background timestamps in the video ($1/\text{rank}$). Random chance $\approx 1/60 = 0.0167$. **Unbiased metric**. |
+| `mrr` | $[0.0, 1.0]$ | Distractor pool (`pool_scope: "video"`) | **Mean Reciprocal Rank**. Evaluated against all 59 background timestamps in the video ($1/\text{rank}$). Random chance $\approx 0.078$ for $N=60$. |
 | `mean_rank` | $[1.0, 60.0]$ | Distractor pool (`pool_scope: "video"`) | Average rank of the ground-truth timestamp among all 60 video candidates. Lower is better (1 = perfect match). |
 | `recall_at_1` | $[0.0, 1.0]$ | Distractor pool (`pool_scope: "video"`) | Fraction of reconstructed timestamps ranked #1 against all distractors. |
 | `recall_at_5` | $[0.0, 1.0]$ | Distractor pool (`pool_scope: "video"`) | Fraction of reconstructed timestamps ranked in top 5 against all distractors. |
