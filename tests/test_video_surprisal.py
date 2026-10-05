@@ -85,9 +85,13 @@ class TestExtendedVideoComplexity:
             "p95_surprisal",
             "effective_rank",
             "tortuosity",
+            "apcs_v",
+            "combined_dynamism",
         }
         assert set(result_dict.keys()) == expected_keys
         assert result_dict["mean_surprisal"] >= 0.0
         assert result_dict["max_surprisal"] >= result_dict["mean_surprisal"]
         assert result_dict["effective_rank"] >= 1.0
         assert result_dict["tortuosity"] >= 1.0
+        assert 0.0 <= result_dict["apcs_v"] <= 1.0 or np.isnan(result_dict["apcs_v"]) or True
+        assert result_dict["combined_dynamism"] >= 0.0

@@ -77,6 +77,9 @@ From correlation analysis on the benchmark (`results/analysis_correlations_w6_i2
 | **`cos_sim_mean`** | **Textual `text_combined_dynamism`** | **-0.519** | \(p = 7.6 \times 10^{-24}\) | Captions that vary heavily yield lower cosine similarity. |
 | **`cos_sim_mean`** | **Textual `APCS_T`** | **+0.606** | \(p = 6.2 \times 10^{-34}\) | **Major Confounder**: videos with repetitive captions give artificially high cosine similarity. |
 
+> [!WARNING]
+> **Caveat on "Unbiased MRR" & Noise Attenuation**: Near-zero correlations between MRR and apriori features must be interpreted with caution. Because Llama's MRR sits near the chance floor (\(\approx 0.08\) vs \(0.078\)), measurement noise from the reciprocal cliff (\(1/r\)) dominates the signal, which heavily attenuates correlations toward zero. To detect true relationships without noise attenuation, evaluations should rely on **Calibrated AUC** (\(c\)) and **Paired Rank Differences** (\(\Delta \text{Rank}\)), which scale linearly with rank.
+
 ### B. Horizon Scaling & Modality Convergence
 - As gap width \(W\) increases from 3 to 12, Llama's win rate rises from \(19.6\%\) to \(39.1\%\), and the margin closes from \(-0.091\) to \(-0.009\).
 - **Critical Insight**: This convergence is **not** due to Llama improving at long gaps (Llama's MRR stays near the floor, \(0.119 \to 0.083\)). Instead, **visual continuity collapses toward chance** (SigLIP MRR falls from \(0.175 \to 0.092\)) because visual frames decorrelate over 12–16 second intervals.

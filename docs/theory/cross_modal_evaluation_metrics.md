@@ -320,3 +320,49 @@ When selecting metrics and criteria for comparative experiments:
 * **For evaluating event identification within a modality**: Use **MRR** and **Temporal NDCG** rather than raw cosine similarity to avoid static background bias.
 * **For penalizing static visual continuity baselines**: Use **Context Residual Cosine Similarity (`cos_sim_residual`)**.
 * **For next-generation architecture benchmarks**: Transitioning to a **Shared Multimodal Contrastive Space (SigLIP / VideoCLIP)** or an extrinsic downstream task (**VideoQA on masked intervals**) provides the cleanest path toward representation-neutral cross-modal evaluation.
+
+---
+
+## 7. Methodological Confounders & Audit Insights (2026 Revisions)
+
+Following extensive statistical auditing across the Wild4 and Wild5 cohorts, five critical methodological insights were formalized:
+
+### 7.1 The Zero-Sum Constraint of Population Ranking (\(\Delta / N\))
+Because all \(N\) segments within a benchmark batch are ranked against each other for both the text pathway and the visual pathway:
+\[
+\sum_{i=1}^N \text{Rank}(\hat{e}_{\text{text}, i}) = \frac{N(N+1)}{2}, \quad \sum_{i=1}^N \text{Rank}(\hat{e}_{\text{vis}, i}) = \frac{N(N+1)}{2}
+\]
+Consequently, the sum of rank differences is strictly zero:
+\[
+\sum_{i=1}^N \left(\text{Rank}(\hat{e}_{\text{text}, i}) - \text{Rank}(\hat{e}_{\text{vis}, i})\right) \equiv 0 \implies \overline{\Delta / N} \equiv 0
+\]
+* **Critical Interpretation**: The dataset-wide text win rate is algebraically centered at \(\approx 50\%\). Therefore, \(\Delta / N\) **cannot support absolute claims of modality dominance or parity**. A category with \(\Delta / N \approx 0\) (e.g., Survival or Farming) reflects alignment with the benchmark average, not parity in absolute task execution. \(\Delta / N\) functions strictly as a **zero-sum relative sensitivity index**.
+
+### 7.2 The Geometric Tautology of Boundary Contrastive Margins
+An intuitive alternative probe was the local Boundary Contrastive Margin:
+\[
+\text{Margin}(R) = \text{Sim}(R, \text{Target}) - \max(\text{Sim}(R, \text{Pre}), \text{Sim}(R, \text{Post}))
+\]
+An initial empirical test showed LLM text reconstructions achieving a mean margin of \(-0.053\) compared to \(-0.145\) for Text LERP (\(p < 10^{-17}\)). However, evaluating a **Random Distractor Control** (sampling unrelated captions) achieved a margin of \(-0.034\)—beating both the LLM and LERP.
+* **Root Cause**: LERP is mathematically a convex combination of boundary endpoints (\(\hat{e}_t = (1-\alpha)e_{\text{pre}} + \alpha e_{\text{post}}\)). By triangle inequality on unit spheres, its similarity to boundary vectors is constrained to be near \(1.0\) (\(\text{Sim} \approx 0.93\)), guaranteeing a large negative margin regardless of semantic content. Any unconstrained vector (including random noise) sits far from boundaries (\(\text{Sim} \approx 0.15\)), mechanically yielding a near-zero margin.
+* **Conclusion**: Local boundary contrast measures distance from the boundary line segment rather than semantic reasoning, rendering it mathematically invalid as a discriminative probe.
+
+### 7.3 Channel-Clustered Standard Errors & Pseudoreplication
+Videos in WildQA stem from a smaller number of distinct YouTube series channels (e.g., *AiirSource*, *WarLeaks*, *King Kong*, *TreadmillTV*). Across 105 videos evaluated at the poles, clips originate from only 15 distinct channels.
+* Because visual production styles, camera settings, and recurring environments are consistent within a channel, treating clips as independent observations leads to deflated standard errors. All hypothesis testing (Mann-Whitney, binomial tests, OLS) must report **video-level cluster aggregations** and **channel-clustered standard errors**.
+
+### 7.4 Wording Jitter vs. Physical Visual Continuity
+To test whether the domain spectrum was an artifact of VLM captioning variance (isolated 1s captioning introducing artificial wording jitter in static scenes while remaining formulaic in military scenes), adjacent-second continuity was measured across 98 videos:
+* **Caption Continuity (\(\text{Sim}(c_t, c_{t+1})\))**: Military (\(0.734 \pm 0.052\)) vs. Nature & Scenery (\(0.727 \pm 0.037\)) exhibits no significant difference (\(U = 149.0, p = 0.393\)). Captioning lexical variance is invariant across domains.
+* **Visual Frame Continuity (\(\text{Sim}(v_t, v_{t+1})\))**: In contrast, visual frame similarity in Nature & Scenery (\(0.950 \pm 0.029\)) is significantly higher than in Military (\(0.922 \pm 0.034\)) (\(U = 68.0, p = 0.029\)).
+* **Conclusion**: The spectrum reflects real physical temporal dynamics (smooth environmental inertia in Nature vs. rapid motion in Military), not captioning artifacts.
+
+### 7.5 Direct Test of Temporal In-Filling (Persistence vs. LLM)
+When testing whether an LLM infers what happens beyond persistence in shared SigLIP text space:
+* **Copy-Nearest Caption**: \(\text{Sim} = 0.477 \pm 0.088\), Mean Rank = \(24.1\)
+* **Text LERP**: \(\text{Sim} = 0.500 \pm 0.082\), Mean Rank = \(24.3\)
+* **Llama 3.1 8B**: \(\text{Sim} = 0.403 \pm 0.096\), Mean Rank = \(28.5\)
+* **Channel-Clustered Regression**: Regressing text lift (\(\text{Sim}_{\text{LLM}} - \text{Sim}_{\text{Repeat}}\)) on domain yields \(\beta = +0.017, p = 0.304\).
+* Multiple regression of \(\Delta / N\) on domain and visual continuity shows that physical frame continuity is a massive, significant predictor (\(\beta = 3.427, p = 0.0065\)), reducing the domain coefficient by 47.6% and rendering it non-significant (\(p = 0.0863\)).
+* **Takeaway**: Trivial persistence beats zero-shot LLM in-filling in embedding space across all domains. The observed cross-modal domain contrast is substantially driven by the physical breakdown of visual continuity in high-motion scenes, rather than zero-shot narrative inference.
+

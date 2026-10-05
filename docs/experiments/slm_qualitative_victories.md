@@ -107,3 +107,24 @@ Researchers and subagents can explore these qualitative instances using our inte
    - Use the **Qualitative Victory Deep-Dive** dropdown to inspect the exact context captions, predicted text, ground truth, and candidate rankings side by side.
 2. **Pre-computed Paired Benchmark Dataset**:
    - Source: [`results/unified_benchmark_master.csv`](file:///home/yoavh/code/antigravity/caption_reconstruction/results/unified_benchmark_master.csv) and [`results/method_rank_differences_per_video.csv`](file:///home/yoavh/code/antigravity/caption_reconstruction/results/method_rank_differences_per_video.csv).
+
+---
+
+## 6. Empirical Distribution Audit: Why Individual Victories Do Not Equal Aggregate Superiority
+
+While the qualitative archetypes in Section 3 illustrate authentic instances of semantic deduction, rigorous regression and hypothesis testing across 323 videos (\(N=967\) segments) establish crucial empirical boundaries:
+
+1. **Persistence Outperforms LLM In-Filling Across All Domains (H1 Rejected)**:
+   - When evaluated in shared SigLIP text space, non-parametric text persistence (`Caption_RepeatClosest`, \(\text{Sim} = 0.477 \pm 0.088\)) and Text LERP (\(0.500 \pm 0.082\)) consistently outperform Llama 3.1 8B (\(0.403 \pm 0.096\)).
+   - In-filling does not achieve positive lift over persistence in any of the 6 benchmark categories.
+
+2. **No Greater Lift in Procedural vs. Stochastic Domains (H2 Rejected)**:
+   - Channel-clustered regression of text lift (\(\text{Lift} = \text{Sim}_{\text{LLM}} - \text{Sim}_{\text{Repeat}}\)) on domain yields \(\beta = +0.017, p = 0.304\). The LLM suffers a comparable penalty relative to persistence across both Military and Nature.
+
+3. **Physical Continuity Drives the Cross-Modal Spectrum (H3 Confirmed)**:
+   - The apparent cross-modal advantage of language in dynamic military videos (\(\Delta / N < 0\)) is heavily mediated by physical scene continuity (\(v_{\text{continuity}}\), \(\beta = 3.427, p = 0.0065\)).
+   - In static scenes, visual persistence is virtually unbeatable (\(\text{Sim} \approx 0.95\)). In dynamic scenes, visual features decorrelate, making language in-filling *relatively* more competitive without outperforming text persistence.
+
+4. **Connective Tissue Bias vs. Key Events**:
+   - Randomly masking video intervals predominantly samples visually static connective tissue where persistence is optimal.
+   - For detailed protocol and formal regression tables, consult [`docs/paper/draft.md`](../paper/draft.md) and [`docs/theory/cross_modal_evaluation_metrics.md`](../theory/cross_modal_evaluation_metrics.md).

@@ -152,3 +152,23 @@ Spearman rank correlation matrix ($\rho$) across all 335 videos:
 * **Merging Script**: [`scripts/merge_apriori_scores.py`](file:///home/yoavh/code/antigravity/caption_reconstruction/scripts/merge_apriori_scores.py)
 * **Core Data Model & Logic**: [`src/data/video_surprisal.py`](file:///home/yoavh/code/antigravity/caption_reconstruction/src/data/video_surprisal.py)
 * **Authoritative Pre-computed CSV**: [`results/apriori_full_scores.csv`](file:///home/yoavh/code/antigravity/caption_reconstruction/results/apriori_full_scores.csv) (335 rows, 13 columns)
+
+---
+
+## 6. Correlating A-Priori Scores with Posteriori Reconstruction
+
+A central objective of this research is predicting **which videos are inherently easier for language models vs. visual baselines**. When analyzing correlations between a-priori scores and posteriori performance, two critical methodological principles emerged:
+
+### A. The Noise Attenuation Problem with MRR
+* Early correlation analyses between a-priori scores (`APCS_V`, `APCS_T`, `combined_dynamism`) and raw `mrr` yielded near-zero correlations ($|\rho| \le 0.15$).
+* **Statistical Cause**: Llama-3.1-8B's MRR hovers near random chance ($0.08$ vs. chance $0.078$ for $N=60$), and MRR's reciprocal cliff ($1/r$) heavily compresses all non-top-3 ranks into an undifferentiated floor. Because the outcome variable is dominated by chance noise, true underlying correlations are **attenuated toward zero**.
+* **Remedy**: Use linear rank metrics such as **Calibrated AUC** ($c = 2 \cdot \text{AUC} - 1$, scaled to $[-100, +100]$), which weights rank 30 vs 31 identically to rank 1 vs 2, preserving instance-level variance across the 335 videos.
+
+### B. Paired Method Rank Differences ($\Delta \text{Rank}$)
+* Rather than correlating raw single-method scores, evaluate the **relative competitive advantage**:
+  \[
+  \Delta \text{Rank} = \text{Rank}_{\text{SLM}} - \text{Rank}_{\text{Baseline}}, \quad \text{Percentile Advantage} = \frac{\text{Rank}_{\text{Baseline}} - \text{Rank}_{\text{SLM}}}{N} \times 100\%
+  \]
+* Correlate $\Delta \text{Rank}$ against a-priori features for specific gap slices (e.g. $W=6, i=29$). This isolates whether high visual dynamism or high text redundancy systematically shifts the win rate between semantic deduction and visual continuity.
+* **Interactive Tooling**: Explorable in real-time via `scripts/evaluation_explorer_app.py` (Tab 1: Method Comparison & Rank Diffs).
+

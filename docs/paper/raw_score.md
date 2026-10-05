@@ -1,20 +1,25 @@
+> [!NOTE]
+> **Historical Metric Specification**: This document details the preliminary exploratory metric formulation (using `vit_small_patch16_224` 384-dim and `gemini-embedding-001` 512-dim). It was subsequently superseded by the shared **SigLIP** (`google/siglip-base-patch16-224`, 768-dim) framework and rank-based evaluation detailed in [`docs/theory/cross_modal_evaluation_metrics.md`](../theory/cross_modal_evaluation_metrics.md).
+
 # Data
 
 The data is 100 videos, each 60 seconds long.  
-the score is cosine similarity (which is 1-distance), between \-1 and 1\.  
-Segment length is 1 second  
-Videos are sampled at 1 FPS
+The score is cosine similarity (which is \(1 - \text{distance}\)), between \(-1\) and \(1\).  
+Segment length is 1 second.  
+Videos are sampled at 1 FPS.  
 
-The score is the mean of scores of all videos  
-The score of a video is the minimum of the its cosine similarity over all reconstructed vectors
-
-Score(method, maksing) \= MEAN(MIN(CosineSimilarity(original\_vector, reconstructed\_vector) ) )
+The score is the mean of scores of all videos.  
+The score of a video is the minimum of its cosine similarity over all reconstructed vectors:
+\[
+\text{Score}(\text{method}, \text{masking}) = \text{MEAN}(\text{MIN}(\text{CosineSimilarity}(v_{\text{original}}, v_{\text{reconstructed}})))
+\]
 
 The Z-Score normalized version is:
+\[
+\text{ScoreZ}(\text{method}, \text{masking}) = \text{MEAN}(\text{MIN}(Z, (\text{CosineSimilarity}(v_{\text{original}}, v_{\text{reconstructed}}))))
+\]
 
-ScoreZ(method, masking) \= MEAN(MIN(Z,(CosineSimilarity(original\_vector, reconstructed\_vector) ) ) )
-
-The global mean and std (,) are calculated over all maskings per method.
+The global mean and standard deviation are calculated over all maskings per method.
 
 # Methods
 

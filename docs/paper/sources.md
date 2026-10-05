@@ -72,3 +72,32 @@
     2. **Performance Impact:** This information loss negatively affects the model's ability to retrieve or recall information.  
     3. **Prediction of Failure:** Researchers can predict when the model will struggle with visually grounded question answering by identifying areas of significant information loss.  
   * **Conclusion:** VLMs underperform because the critical "connector" component discards vital details when bridging visual and language understanding.
+
+---
+
+### **4. FastV: An Image is Worth 1/2 Tokens After Layer 2**
+
+* #### **Publication**
+  * **Venue:** ECCV (European Conference on Computer Vision)  
+  * **Date:** 2024 (arXiv:2403.06764)  
+  * **Authors & Affiliations:**  
+    * Liang Chen, Haozhe Zhao, Tianyu Liu, Shuai Bai, Junyang Lin, Chang Zhou, Baobao Chang (Peking University, Alibaba Group)
+
+* #### **Key points**
+  * **Visual Attention Inefficiency:** Investigates spatial token redundancy in Large Vision-Language Models (LVLMs). Early transformer layers attend to dense visual tokens, but deep layers focus primarily on text and summary tokens.
+  * **Plug-and-Play Pruning:** Proposes FastV, a training-free inference acceleration method that prunes up to 50% of visual tokens after layer 2 based on attention ranks.
+  * **Relevance to Caption Reconstruction:** FastV addresses spatial token sparsification during forward inference. Our caption reconstruction framework addresses temporal sparsification across video spans: determining when entire multi-second video intervals contain redundant visual information that can be skipped or reconstructed from temporal context.
+
+---
+
+### **5. DynamicViT: Efficient Vision Transformers with Dynamic Token Sparsification**
+
+* #### **Publication**
+  * **Venue:** NeurIPS (Advances in Neural Information Processing Systems)  
+  * **Date:** 2021  
+  * **Authors & Affiliations:**  
+    * Yongming Rao, Wenxun Zhao, Zheng Zhu, Jiwen Lu, Jie Zhou (Tsinghua University)
+
+* #### **Key points**
+  * **Dynamic Pruning:** Introduces lightweight prediction modules to dynamically drop non-informative visual tokens hierarchically across vision transformer layers.
+  * **Relevance:** Foundational framework for adaptive visual computation, motivating our temporal counterpart (evaluating non-parametric continuity vs. parametric language generation across time).
