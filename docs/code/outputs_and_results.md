@@ -66,24 +66,44 @@ Each experiment run generates two CSV files in `results/recon/<run_name>__<times
 
 ---
 
-## 3. Master Aggregated Result Files
+## 3. Master Aggregated Result Files (Current Benchmark Standard)
 
-Pre-computed master result files in the [`results/`](file:///home/yoavh/code/antigravity/caption_reconstruction/results) directory aggregate data across multiple experiments for paper analysis and plotting:
+The authoritative, harmonized benchmark suite is compiled across **335 videos** (100 `wild4` + 235 `wild5`) using Llama-3.1-8B and 768-dim SigLIP/MPNet embeddings:
 
-* **[`results/final_correlations_master.csv`](file:///home/yoavh/code/antigravity/caption_reconstruction/results/final_correlations_master.csv)**:
-  Master correlation dataset combining model performance (`phi_mrr`, `temporal_ndcg`, `base_mrr`), metric deltas (`mrr_delta`, `t_ndcg_delta`), vector geometric distances (`euclidean_dist`, `video_avg_dist`, `video_max_dist`), video metadata (`video_length`, `category`), and language surprisal (`text_surprisal_nll`, `text_perplexity`).
-* **[`results/combined_analysis_data.csv`](file:///home/yoavh/code/antigravity/caption_reconstruction/results/combined_analysis_data.csv)**:
-  Aggregated metrics grouped by strategy `method` (e.g. `phi-3`) and mask `width`.
-* **[`results/baseline_full_metrics.csv`](file:///home/yoavh/code/antigravity/caption_reconstruction/results/baseline_full_metrics.csv)**:
-  Detailed retrieval metrics across 2,341 baseline test cases.
-* **[`results/deep_analysis_final.csv`](file:///home/yoavh/code/antigravity/caption_reconstruction/results/deep_analysis_final.csv)** & **`deep_analysis_config_comparison.csv`**:
-  Comprehensive comparative evaluation between visual and text-based reconstruction models.
-* **[`results/temporal_metrics_final.csv`](file:///home/yoavh/code/antigravity/caption_reconstruction/results/temporal_metrics_final.csv)**:
-  Temporal alignment and sequence ordering metrics across video domains.
-* **[`results/euclidean_metrics.csv`](file:///home/yoavh/code/antigravity/caption_reconstruction/results/euclidean_metrics.csv)**:
-  L2 distance analysis between video embedding spaces.
-* **[`results/video_surprisal_scores.csv`](file:///home/yoavh/code/antigravity/caption_reconstruction/results/video_surprisal_scores.csv)**:
-  Information-theoretic surprisal scores per video.
+* **[`results/unified_benchmark_master.csv`](file:///home/yoavh/code/antigravity/caption_reconstruction/results/unified_benchmark_master.csv)**:
+  The master evaluation table containing **36,152 rows** covering all 5 methods (`Llama-3.1-8B`, `Visual_SigLIP_MeanClosest`, `Visual_SigLIP_RepeatClosest`, `Caption_MeanClosest`, `Caption_RepeatClosest`) across gap widths \(W \in [1, 2, 3, 4, 6, 8, 12, 16]\) and query indices \(i \in [0, 29, 59]\). Includes `mrr`, `mean_rank`, `cos_sim_mean`, `cos_sim_min`, and `cos_sim_residual`.
+* **[`results/apriori_full_scores.csv`](file:///home/yoavh/code/antigravity/caption_reconstruction/results/apriori_full_scores.csv)**:
+  Pre-computed visual and textual video properties across all 335 videos: `APCS_V`, `average_dynamism`, `peak_dynamism`, `combined_dynamism`, `APCS_T`, `text_average_dynamism`, `text_peak_dynamism`, and `text_combined_dynamism`.
+* **[`results/method_rank_differences_per_video.csv`](file:///home/yoavh/code/antigravity/caption_reconstruction/results/method_rank_differences_per_video.csv)**:
+  Paired instance evaluations comparing Llama-3.1-8B vs. `Visual_SigLIP_MeanClosest`, containing computed ranks, rank differences (\(\Delta \text{Rank}\)), percentile advantages, and winner indicators.
+
+### Archived Legacy Result Files (DO NOT USE for New Hypotheses)
+The following files represent early exploratory runs (e.g. Phi-3 Mini, 384-dim embeddings, or contaminated window pools) and are preserved for historical provenance only:
+* `results/final_correlations_master.csv` & `results/combined_analysis_data.csv` (Early Phi-3 runs).
+* `results/temporal_metrics_final.csv` & `results/video_surprisal_scores.csv` (Early 384-dim exploratory runs).
+* `results/baseline_full_metrics.csv` (Legacy baseline test cases).
+
+---
+
+## 4. Metadata Companion & Traceability Standard (`.md` next to `.csv`)
+
+To ensure complete reproducibility and prevent confusion between experiment iterations, every primary CSV dataset and user-exported slice is accompanied by a Markdown metadata companion file with the **same base name and `.md` extension**:
+
+```
+results/
+├── unified_benchmark_master.csv
+├── unified_benchmark_master.md              # Auto-generated metadata companion
+├── method_rank_differences_per_video.csv
+└── method_rank_differences_per_video.md     # Auto-generated metadata companion
+```
+
+### Companion File Requirements:
+1. **Provenance & Generation**: Records the exact script, configuration file, commit hash, date, and source cohort (`wild4`, `wild5`, or combined).
+2. **Experiment Parameters**: Explicitly specifies the model name, gap widths \(W\), query positions \(i\), and distractor pool scope (`pool_scope: "video"` vs. legacy `"window"`).
+3. **Column Data Dictionary**: Documents every column, data type, and mathematical definition, cross-referencing the master dictionary at [`docs/experiments/field_dictionary.md`](file:///home/yoavh/code/antigravity/caption_reconstruction/docs/experiments/field_dictionary.md).
+4. **Automated Generation**:
+   - CLI companion builder: `scripts/generate_csv_metadata_companion.py`
+   - In-App companion export: In `scripts/evaluation_explorer_app.py` (Tab 5), clicking "Download Codebook & Column Explanation (.md)" automatically exports the corresponding companion markdown alongside the downloaded CSV.
 
 ---
 

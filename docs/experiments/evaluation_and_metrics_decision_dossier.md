@@ -57,34 +57,90 @@ All findings are computed over the full, clean combined benchmark of **335 video
 | **H4: At $W=12$, does visual dynamism correlate with continuous $\Delta \text{MRR}$?** | Spearman Rank Corr | $N=322$ | $\rho = -0.063$ | **$p = 0.260$ (n.s.)** | **NOT Significant**. Visual motion does not alter MRR margin. |
 | **H5: Does text redundancy (`APCS_T`) correlate with raw `cos_sim_mean`?** | Spearman Rank Corr | $N=335$ ($W=6$) | $\rho = +0.613$ | **$6.9 \times 10^{-36}$** | **Massive Confounder**. `cos_sim_mean` mostly measures caption repetition. |
 
-### 2.1 Chance-Level Reference (added 2026-10-04)
+### 2.1 Chance-Level Reference & Metric Formulations (Updated 2026-10-05)
 
-Under a uniformly random ranking of the target among $N$ candidates, the expected value of each metric is:
+Under a uniformly random ranking of the target among \(N\) candidates, the expected value of each metric is:
 
-| Metric | Chance formula | $N = 60$ | $N = 31$ |
-| :--- | :--- | :---: | :---: |
-| MRR | $H_N / N = \frac{1}{N}\sum_{r=1}^{N} \frac{1}{r}$ | **0.078** | 0.130 |
-| Mean Rank | $(N+1)/2$ | 30.5 | 16.0 |
-| Recall@$k$ | $k/N$ | R@1 = 0.017, R@5 = 0.083 | R@1 = 0.032, R@5 = 0.161 |
-| AUC $= (N-r)/(N-1)$ | 0.5 (any $N$) | 0.5 | 0.5 |
-| Calibrated $c = 2\,\text{AUC} - 1$ | 0 (any $N$) | 0 | 0 |
+| Metric | Chance formula | \(N = 60\) | \(N = 31\) | \(N = 3\) (Window Pool) |
+| :--- | :--- | :---: | :---: | :---: |
+| MRR | \(H_N / N = \frac{1}{N}\sum_{r=1}^{N} \frac{1}{r}\) | **0.078** | 0.130 | **0.611** |
+| Mean Rank | \((N+1)/2\) | 30.5 | 16.0 | **2.00** |
+| Recall@\(k\) | \(k/N\) | R@1 = 0.017, R@5 = 0.083 | R@1 = 0.032, R@5 = 0.161 | R@1 = 0.333, R@5 = 1.000 |
+| ROC-AUC \(= (N-r)/(N-1)\) | 0.5 (any \(N\)) | 0.5 | 0.5 | 0.5 |
+| Calibrated \(c = 2\,\text{AUC} - 1\) | 0 (any \(N\)) | 0 | 0 | 0 |
 
 > [!WARNING]
-> Earlier versions of this dossier and related docs stated MRR chance as $1/60 \approx 0.0167$. That is the chance level of **Recall@1**, not MRR. MRR chance for $N=60$ is $\approx 0.078$, i.e. 4.7× higher.
+> Earlier versions of this dossier and related docs stated MRR chance as \(1/60 \approx 0.0167\). That is the chance level of **Recall@1**, not MRR. MRR chance for \(N=60\) is \(\approx 0.078\), i.e. 4.7× higher.
 
-**Llama-3.1-8B vs. chance** (source: `results/benchmark_wild4_wild5_combined_per_video.csv`, one-sample $t$-tests against the chance value, per-video means):
+#### Complete Mathematical Derivation of ROC-AUC and Calibrated AUC:
+When evaluating candidate retrieval for a missing slot, we have 1 positive (ground-truth caption) and \(K = N - 1\) negatives (distractor captions in the video pool).
+1. **The ROC Curve (Receiver Operating Characteristic)**:
+   - Varying the decision threshold \(\tau\) from \(+\infty\) down to \(-\infty\), True Positive Rate (TPR) steps from 0 to 1 when \(\tau\) crosses the target's score.
+   - False Positive Rate (FPR) increments by \(\frac{1}{N - 1}\) for every distractor scored higher than the target.
+   - For target rank \(r \in [1, N]\), exactly \(r - 1\) distractors are ranked above the target, and \(N - r\) distractors are ranked below it:
+     \[ \text{ROC-AUC} = \frac{\text{distractors ranked below target}}{\text{total distractors}} = \frac{N - r}{N - 1} \]
+   - This is identically the **Mann-Whitney \(U\) / Wilcoxon rank-sum statistic**: the probability that the ground-truth target is scored higher than a randomly drawn distractor:
+     \[ \text{ROC-AUC} = P(\text{Score}_{\text{target}} > \text{Score}_{\text{distractor}}) \]
+2. **The Cumulative Recall@\(k\) Step Curve**:
+   - If we plot \(\text{Recall}@k\) on the y-axis (which steps from 0 to 1 at \(k = r\)) against normalized candidate list depth \(x = \frac{k - 1}{N - 1} \in [0, 1]\) on the x-axis, the integral of this curve from \(x = 0\) to \(x = 1\) is:
+     \[ \int_{0}^{1} \text{Recall}(x) \, dx = 1 - \frac{r - 1}{N - 1} = \frac{N - r}{N - 1} \]
+3. **Calibrated AUC (\(c\)) via Somers' \(D\) / Gini**:
+   - Raw ROC-AUC gives \(0.5\) for random guessing and \(1.0\) for perfect retrieval.
+   - To provide an intuitive, pool-size-invariant scale centered at zero:
+     \[ c = 2 \cdot \text{ROC-AUC} - 1 = 1 - \frac{2(r - 1)}{N - 1} \]
+     where \(c = +1.0\) (+100%) represents rank 1, \(c = 0.0\) (0%) represents random chance, and \(c = -1.0\) (-100%) represents inverted ranking (rank \(N\)).
 
-| $W$ | Mean MRR | $p$ (MRR vs 0.078) | Mean Rank | $p$ (Rank vs 30.5) | R@1 | R@5 |
+#### Why RBP (Rank-Biased Precision) and Full Recall Curves Were Considered:
+- **Full Recall@\(k\) Curves**: Plotting \(\text{Recall}@k\) for \(k \in [1, N]\) produces the complete Empirical Cumulative Distribution Function (CDF) of retrieval. AUC summarizes this entire curve without setting arbitrary top-\(k\) thresholds.
+- **Rank-Biased Precision (RBP)** (Moffat & Zobel, 2008): In a 1-target retrieval setup, RBP simplifies to:
+  \[ \text{RBP}(p) = (1 - p) \cdot p^{r - 1} \]
+  where \(p \in (0, 1)\) is the persistence parameter. RBP was evaluated because MRR's harmonic decay (\(1/r\)) has an extreme drop-off between rank 1 (1.0) and rank 2 (0.50), becoming completely flat at ranks \(\ge 10\). RBP allows configuring user tolerance (e.g., \(p=0.8\) vs \(p=0.95\)).
+- **Why Calibrated AUC was favored as primary macro metric**: Both MRR and RBP have non-zero, variable chance baselines that depend on \(N\) and \(p\). In contrast, Calibrated AUC maintains an invariant \(0.0\%\) chance baseline across any candidate pool size \(N\).
+
+---
+
+### 2.2 Root Cause of the Wild4 \(W=3\) Anomaly
+In early benchmark summaries, an apparent anomaly appeared where Llama's performance jumped dramatically at \(W=3\) (MRR \(\approx 0.558\), Recall@5 \(= 100\%\), Mean Rank \(= 2.235\)).
+- **Root Cause**: The early run `wild4_llama_w3_window_v3` was accidentally evaluated under `pool_scope: "window"` (\(N = 3\) masked candidates only) rather than `pool_scope: "video"` (\(N = 60\)).
+- **Expected Values under \(N=3\)**:
+  - Random chance MRR is \(H_3/3 = \frac{1 + 1/2 + 1/3}{3} = \frac{1.833}{3} \approx 0.611\). Llama's score of \(0.558\) was actually **below random chance**.
+  - Random chance Mean Rank is \((3+1)/2 = 2.0\). Llama's mean rank of \(2.235\) was below chance.
+  - Recall@5 is mathematically \(1.0\) (\(100\%\)) because there are only 3 candidates in total.
+- **Resolution**: Clean evaluation on Wild5 with `pool_scope: "video"` (\(N=60\)) yields the true performance: Mean MRR \(\approx 0.123\), Mean Rank \(= 24.56\), perfectly consistent with the degradation curves.
+
+---
+
+### 2.3 Clarification on `Visual_SigLIP_MeanClosest` (Midpoint LERP)
+- The visual baseline `Visual_SigLIP_MeanClosest` is a **boundary midpoint linear interpolation (fixed LERP at \(\alpha = 0.5\))**:
+  \[ \hat{v}_t = \frac{v_{\text{before}} + v_{\text{after}}}{2} \]
+  where \(v_{\text{before}} = v_{i-1}\) and \(v_{\text{after}} = v_{i+W}\) are the unmasked frame vectors immediately adjacent to the gap boundaries.
+- It is **not** a rolling moving average or dynamic time-weighted LERP.
+- `Visual_SigLIP_RepeatClosest` simply copies the nearest boundary frame:
+  \[ \hat{v}_t = \begin{cases} v_{i-1} & \text{if } t - (i - 1) \le (i + W) - t \\ v_{i+W} & \text{otherwise} \end{cases} \]
+
+---
+
+### 2.4 Horizon Scaling Dynamics: Why Llama's Win Rate Rises at Large \(W\)
+In paired comparisons between Llama-3.1-8B and `Visual_SigLIP_MeanClosest`, Llama's win rate rises from \(19.6\%\) at \(W=3\) to \(39.1\%\) at \(W=12\), and the MRR gap shrinks from \(-0.091\) to \(-0.009\).
+- **The True Mechanism**: This convergence is **not** because Llama performs better over longer horizons. Llama's MRR stays relatively flat near the chance floor (\(0.119 \to 0.088 \to 0.083 \to 0.076\)).
+- Instead, **the visual baseline collapses toward chance** as the gap widens (SigLIP MRR decays from \(0.175 \to 0.129 \to 0.092\)) because visual continuity and frame correlation degrade sharply over 12–16 second intervals.
+- The shrinking margin reflects the collapse of visual continuity rather than language model mastery.
+
+---
+
+**Llama-3.1-8B vs. chance** (source: `results/benchmark_wild4_wild5_combined_per_video.csv`, one-sample \(t\)-tests against the chance value, per-video means):
+
+| \(W\) | Mean MRR | \(p\) (MRR vs 0.078) | Mean Rank | \(p\) (Rank vs 30.5) | R@1 | R@5 |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| 1 | 0.119 | $2 \times 10^{-4}$ | 23.0 | $5 \times 10^{-16}$ | 3.4% | 16.6% |
-| 3 | 0.088 | 0.12 (n.s.) | 27.6 | $9 \times 10^{-5}$ | 2.0% | 10.2% |
-| 6 | 0.090 | 0.002 | 27.6 | $3 \times 10^{-8}$ | 1.8% | 10.8% |
+| 1 | 0.119 | \(2 \times 10^{-4}\) | 23.0 | \(5 \times 10^{-16}\) | 3.4% | 16.6% |
+| 3 | 0.088 | 0.12 (n.s.) | 27.6 | \(9 \times 10^{-5}\) | 2.0% | 10.2% |
+| 6 | 0.090 | 0.002 | 27.6 | \(3 \times 10^{-8}\) | 1.8% | 10.8% |
 | 12 | 0.083 | 0.23 (n.s.) | 29.5 | 0.007 | 1.9% | 8.8% |
 | 16 | 0.076 | 0.38 (n.s.) | 30.2 | 0.39 (n.s.) | 1.6% | 8.0% |
 
 **Takeaways**:
-1. Llama is only marginally above chance for $W \ge 3$ and **at chance for $W = 16$** on every metric.
-2. **Mean rank (linear in rank, equivalent to AUC) detects above-chance performance far more reliably than MRR** (e.g. $W=3$: $p = 9 \times 10^{-5}$ vs $p = 0.12$). MRR's $1/r$ weighting compresses all non-top-3 ranks into a narrow band near the floor, where most Llama queries live.
+1. Llama is only marginally above chance for \(W \ge 3\) and **at chance for \(W = 16\)** on every metric.
+2. **Mean rank (linear in rank, equivalent to AUC) detects above-chance performance far more reliably than MRR** (e.g. \(W=3\): \(p = 9 \times 10^{-5}\) vs \(p = 0.12\)). MRR's \(1/r\) weighting compresses all non-top-3 ranks into a narrow band near the floor, where most Llama queries live.
 3. Near-zero correlations between MRR and the a-priori scores (`experiment_protocol_current.md` §4) must be read with this in mind: when the outcome is mostly noise around chance, correlations are attenuated toward zero regardless of the true relationship.
 
 ---

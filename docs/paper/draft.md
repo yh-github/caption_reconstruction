@@ -47,9 +47,9 @@ To rigorously test whether the LLM predicts state progression ("what must happen
 
 #### 2.2.2 Temporal Continuity (Visual Pathway)
 Given observed frame vectors \(V_{\text{obs}} = \{v_t \mid t \notin M\}\):
-* **Visual LERP (`Visual_SigLIP_MeanClosest`)**: Linearly interpolates between boundary vectors:
+* **Visual LERP (`Visual_SigLIP_MeanClosest`)**: Midpoint linear interpolation between boundary vectors:
 \[
-\hat{v}_t = (1 - \alpha_t) v_{t_{\text{start}}-1} + \alpha_t v_{t_{\text{end}}+1}, \quad \alpha_t = \frac{t - t_{\text{start}} + 1}{w + 1}
+\hat{v}_t = \frac{v_{t_{\text{start}}-1} + v_{t_{\text{end}}+1}}{2}
 \]
 normalized to unit length: \(\hat{e}_{\text{vis}} = \hat{v}_t / \|\hat{v}_t\|\).
 * **Visual Repeat (`Visual_SigLIP_RepeatClosest`)**: Copies the nearest observed boundary frame vector.

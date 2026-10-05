@@ -92,13 +92,33 @@ Used when configured as `evaluation.type: "emb_retrieval"` (implemented in [`cal
   \text{MRR} = \frac{1}{M} \sum_{i=1}^{M} \frac{1}{\text{rank}_i}
   \]
 * **Recall@1 (`recall_at_1`) & Recall@5 (`recall_at_5`)**: Fraction of masked positions where the true clip is ranked 1st or within the top 5 among candidate distractors.
-* **Mean Rank (`mean_rank`)**: Average rank assigned to the true target.
+* **Mean Rank (`mean_rank`)**: Average rank assigned to the true target. Lower is better (1 = perfect match). Chance level is \((N+1)/2 = 30.5\) for \(N=60\).
+* **Area Under the ROC Curve (`roc_auc` / `auc`)**:
+  In a 1-target vs. \(N-1\) distractors retrieval setting, varying the similarity threshold produces a step ROC curve whose area equals:
+  \[
+  \text{ROC-AUC} = \frac{N - r}{N - 1} = P(\text{Score}_{\text{target}} > \text{Score}_{\text{distractor}})
+  \]
+  This is identically the normalized **Mann-Whitney \(U\) / Wilcoxon rank-sum statistic** and represents the area under the cumulative normalized Recall@\(k\) step curve:
+  \[
+  \int_{0}^{1} \text{Recall}(x) \, dx = \frac{N - r}{N - 1}
+  \]
+* **Calibrated AUC (\(c\)) via Somers' \(D\) / Gini**:
+  Rescales raw ROC-AUC to a symmetric, zero-centered scale where chance is identically \(0.0\%\) regardless of pool size \(N\):
+  \[
+  c = 2 \cdot \text{ROC-AUC} - 1 = 1 - \frac{2(r - 1)}{N - 1} \in [-1.0, +1.0]
+  \]
+* **Rank-Biased Precision (`rbp`)** (Moffat & Zobel, 2008):
+  In a single-relevant-item setting, RBP models user persistence with decay parameter \(p \in (0, 1)\):
+  \[
+  \text{RBP}(p) = (1 - p) \cdot p^{r - 1}
+  \]
+  Unlike MRR's steep cliff between rank 1 and 2, RBP allows parameterizing search tolerance (e.g. \(p=0.80\) for top-heavy inspection, \(p=0.95\) for deep search).
 
 * **PROs**:
   * **Scale-invariant**: Evaluates relative discriminative power against candidate distractors rather than raw dot-product magnitudes.
-  * Measures whether the reconstructed representation is fine-grained enough to identify the specific target event among adjacent events.
+  * **Chance-Invariance of Calibrated AUC**: Calibrated AUC provides a stable metric where random guessing is always identically \(0.0\%\) across varying candidate pool sizes.
 * **CONs**:
-  * **Pool size sensitivity**: The metric depends heavily on the distractor pool size (e.g., retrieving from a pool of 3 masked clips vs. 60 video clips). To ensure comparability across language models and vector baselines, all evaluations are harmonized under `pool_scope: "video"`, where each query is ranked against all 60 frames/clips in the video (see [`baseline_framework_standardization.md`](file:///home/yoavh/code/antigravity/caption_reconstruction/docs/theory/baseline_framework_standardization.md)).
+  * **Pool size sensitivity**: MRR and Recall@\(k\) chance levels shift with pool size \(N\) (\(\text{MRR}_{\text{chance}} = H_N/N \approx 0.078\) for \(N=60\), but \(0.611\) for \(N=3\)). All evaluations must be harmonized under identical pool scopes (standardized to `pool_scope: "video"`, \(N=60\)).
   * Discrete and non-smooth: Small shifts in vector space can cause sharp ranking drops.
 
 ---
@@ -246,9 +266,9 @@ The repository was explicitly designed around this limitation:
 ### Disambiguation: Did This Codebase Use CLIP?
 **No. OpenAI's CLIP was not used in this codebase.** 
 * The term **"clip"** throughout the codebase refers strictly to a **1-second video segment** (e.g., `CaptionedVideo.clips`, `clip_size=1`, `Welker-Farms-Inc_3-clip-4`).
-* The visual embeddings were extracted using an ImageNet-pretrained vision transformer via `timm`: [`vit_small_patch16_224`](file:///home/yoavh/code/antigravity/caption_reconstruction/src/data/video_embeddings.py#L35) (768-dimensional features).
-* The text embeddings were extracted using [`GeminiEmbedder`](file:///home/yoavh/code/antigravity/caption_reconstruction/src/llm/embedder.py) (`gemini-embedding-001`, 512 dimensions) or [`LocalEmbedder`](file:///home/yoavh/code/antigravity/caption_reconstruction/src/llm/local_embedder.py) (`all-mpnet-base-v2`, 768 dimensions).
-* These encoders produce **disjoint, incompatible vector spaces**.
+* In current benchmarks (`wild4` and `wild5`), visual embeddings are extracted using **Google's SigLIP** (`google/siglip-base-patch16-224`, 768-dimensional features), replacing legacy ImageNet ViT (`vit_small_patch16_224`).
+* Text embeddings for caption evaluation are extracted using [`LocalEmbedder`](file:///home/yoavh/code/antigravity/caption_reconstruction/src/llm/local_embedder.py) (`sentence-transformers/all-mpnet-base-v2`, 768-dimensional features).
+* Although SigLIP has a joint text-vision pre-training objective, in the standard cloze benchmark Llama's generated captions are encoded via MPNet, while visual interpolation operates directly on SigLIP visual vectors. Thus, the primary evaluations take place within **modality-specific distractor pools**, harmonized via rank metrics (MRR, Calibrated AUC). Direct cross-modal projection into SigLIP text-vision space is supported via `SiglipTextEmbedder` as an alternative probe (Section 4).
 
 ---
 
