@@ -23,6 +23,8 @@ Usage (from repo root)
     .venv/bin/python scripts/forced_choice_gap.py baselines
     # GPU: LLM scoring (resumable; --limit for a pilot)
     python scripts/forced_choice_gap.py llm --model-key llama-3.1-8b [--limit 40] [--upload]
+        [--worker-id i --total-workers n] [--resume-from-hf] [--max-runtime-hours h]
+    (scripts/kaggle_forced_choice.py launches one worker per GPU on Kaggle)
     # local: fetch GPU scores from HF (if uploaded) and report
     .venv/bin/python scripts/forced_choice_gap.py report [--download]
 """
@@ -135,7 +137,9 @@ def run_baselines():
 
 
 # ----------------------------------------------------------------------------- LLM
-def run_llm(model_key: str, limit: int | None, upload: bool):
+def run_llm(model_key: str, limit: int | None, upload: bool, worker_id: int = 0, total_workers: int = 1,
+            upload_every: int = 100, max_runtime_hours: float | None = None, resume_from_hf: bool = False):
+    import time
     import torch
     from data.data_loaders import WildLoader
     from llm.local_llm import HuggingFaceModelAdapter
@@ -152,15 +156,27 @@ def run_llm(model_key: str, limit: int | None, upload: bool):
     tok, model = adapter.tokenizer, adapter.model
     dev = model.device
 
-    out_path = OUT / f"llm_{model_key}.jsonl"
     OUT.mkdir(parents=True, exist_ok=True)
+    if resume_from_hf:
+        download_llm_files(model_key)
+    out_path = OUT / f"llm_{model_key}__w{worker_id}of{total_workers}.jsonl"
     done = set()
-    if out_path.exists():
-        done = {json.loads(l)["item"] for l in open(out_path)}
-    items = [it for it in build_items() if it["item"] not in done and it["vid"] in videos]
+    for f in OUT.glob(f"llm_{model_key}*.jsonl"):
+        done |= {json.loads(l)["item"] for l in open(f) if l.strip()}
+    items = [it for n, it in enumerate(build_items()) if n % total_workers == worker_id]
+    items = [it for it in items if it["item"] not in done and it["vid"] in videos]
     if limit:
         items = items[:limit]
-    print(f"{len(done)} already scored; scoring {len(items)} items with {model_key}")
+    print(f"[worker {worker_id}/{total_workers}] {len(done)} already scored; scoring {len(items)} items with {model_key}")
+
+    def push():
+        if upload and out_path.exists():
+            from huggingface_hub import HfApi
+            HfApi().upload_file(path_or_fileobj=str(out_path), path_in_repo=f"{HF_DIR}/{out_path.name}",
+                                repo_id=HF_REPO, repo_type="dataset")
+            print(f"[worker {worker_id}] uploaded {out_path.name}", flush=True)
+
+    t0 = time.time()
 
     def prompt_ids(video: CaptionedVideo, mask: set[int], gap: list[int]) -> list[int]:
         clips = [c.masked_copy() if c.index in mask else c for c in video.clips[:60]]
@@ -198,28 +214,37 @@ def run_llm(model_key: str, limit: int | None, upload: bool):
                                     n_tok=[c[1] for c in cond])) + "\n")
             f.flush()
             if n % 25 == 0:
-                print(f"  {n}/{len(items)}", flush=True)
+                print(f"  [worker {worker_id}] {n}/{len(items)} ({(time.time() - t0) / 60:.1f} min)", flush=True)
+            if upload_every and (n + 1) % upload_every == 0:
+                push()
+            if max_runtime_hours and time.time() - t0 > max_runtime_hours * 3600:
+                print(f"[worker {worker_id}] runtime cap reached; stopping (resumable)", flush=True)
+                break
     print(f"done -> {out_path}")
-    if upload:
-        from huggingface_hub import HfApi
-        HfApi().upload_file(path_or_fileobj=str(out_path), path_in_repo=f"{HF_DIR}/{out_path.name}",
-                            repo_id=HF_REPO, repo_type="dataset")
-        print(f"uploaded to {HF_REPO}/{HF_DIR}/{out_path.name}")
+    push()
+
+
+def download_llm_files(model_key: str | None = None):
+    from huggingface_hub import HfApi, hf_hub_download
+    OUT.mkdir(parents=True, exist_ok=True)
+    prefix = f"{HF_DIR}/llm_{model_key}" if model_key else f"{HF_DIR}/llm_"
+    for p in HfApi().list_repo_files(HF_REPO, repo_type="dataset"):
+        if p.startswith(prefix) and p.endswith(".jsonl"):
+            local = hf_hub_download(HF_REPO, p, repo_type="dataset", force_download=True)
+            (OUT / Path(p).name).write_bytes(Path(local).read_bytes())
+            print(f"downloaded {p}")
 
 
 # ----------------------------------------------------------------------------- report
 def report(download: bool):
     if download:
-        from huggingface_hub import HfApi, hf_hub_download
-        for p in HfApi().list_repo_files(HF_REPO, repo_type="dataset"):
-            if p.startswith(f"{HF_DIR}/llm_"):
-                local = hf_hub_download(HF_REPO, p, repo_type="dataset")
-                (OUT / Path(p).name).write_bytes(Path(local).read_bytes())
+        download_llm_files()
     base = pd.read_json(OUT / "baselines.jsonl", lines=True)
     methods = ["text_copy", "text_copy_assign", "vis_copy", "vis_copy_assign"]
-    for lf in sorted(OUT.glob("llm_*.jsonl")):
-        llm = pd.read_json(lf, lines=True)
-        tag = lf.stem.replace("llm_", "")
+    files = sorted(OUT.glob("llm_*.jsonl"))
+    all_llm = pd.concat([pd.read_json(f, lines=True) for f in files]) if files else pd.DataFrame(columns=["model"])
+    for tag, llm in all_llm.groupby("model"):
+        llm = llm.drop_duplicates("item")
         llm[f"{tag}_pmi"] = [list(np.subtract(c, u)) for c, u in zip(llm.lp_cond, llm.lp_uncond)]
         llm[f"{tag}_sum"] = llm.lp_cond
         llm[f"{tag}_mean"] = [list(np.divide(c, n)) for c, n in zip(llm.lp_cond, llm.n_tok)]
@@ -239,7 +264,7 @@ def report(download: bool):
     def table(df_idx, label):
         sub = base.loc[df_idx]
         point = sub[ok].mean()
-        bs = pd.DataFrame([base.loc[np.intersect1d(b, df_idx)][ok].mean() for b in boots])
+        bs = pd.DataFrame([base.loc[b[np.isin(b, df_idx)]][ok].mean() for b in boots])
         t = pd.DataFrame({"n": sub[ok].notna().sum(), "acc": point, "lo": bs.quantile(0.025),
                           "hi": bs.quantile(0.975)}).round(3)
         print(f"\n{label} (chance {1 / K:.2f})")
@@ -257,9 +282,16 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("mode", choices=["baselines", "llm", "report"])
     ap.add_argument("--model-key", default="llama-3.1-8b")
-    ap.add_argument("--limit", type=int)
+    ap.add_argument("--limit", type=int, help="max items per worker (pilot)")
+    ap.add_argument("--worker-id", type=int, default=0)
+    ap.add_argument("--total-workers", type=int, default=1)
+    ap.add_argument("--upload-every", type=int, default=100, help="upload partial results every N items")
+    ap.add_argument("--max-runtime-hours", type=float)
+    ap.add_argument("--resume-from-hf", action="store_true", help="download this model's scores from HF first")
     ap.add_argument("--upload", action="store_true")
     ap.add_argument("--download", action="store_true")
     a = ap.parse_args()
-    {"baselines": run_baselines, "llm": lambda: run_llm(a.model_key, a.limit, a.upload),
+    {"baselines": run_baselines,
+     "llm": lambda: run_llm(a.model_key, a.limit, a.upload, a.worker_id, a.total_workers, a.upload_every,
+                            a.max_runtime_hours, a.resume_from_hf),
      "report": lambda: report(a.download)}[a.mode]()
