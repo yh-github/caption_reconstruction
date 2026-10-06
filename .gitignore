@@ -59,3 +59,6 @@ debug_config_validation.py
 
 # Generated Kaggle Kernels
 kaggle_kernel*/
+.agents/skills/literature_search_arxiv
+.agents/skills/literature_search_openalex
+.claude/skills/developing-with-streamlit

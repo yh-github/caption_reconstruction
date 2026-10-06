@@ -75,6 +75,8 @@ def load_all_llama_evaluations() -> pd.DataFrame:
         RESULTS_DIR / "reconstruction" / "wild4_llama_w6",
         RESULTS_DIR / "recon" / "manual_download" / "reconstruction" / "wild4_llama_multi_width",
         RESULTS_DIR / "recon" / "manual_download" / "reconstruction" / "wild4_llama_w6",
+        # wild4 W=3, re-scored with pool_scope "video" (scripts/rescore_window_pool_run.py)
+        RESULTS_DIR / "recon" / "manual_download" / "reconstruction" / "wild4_llama_w3_window_v3_videopool",
         RESULTS_DIR / "recon" / "manual_download" / "reconstruction" / "wild5_llama_w3_w6",
         RESULTS_DIR / "recon" / "manual_download" / "reconstruction" / "wild5_llama_multi_width",
     ]

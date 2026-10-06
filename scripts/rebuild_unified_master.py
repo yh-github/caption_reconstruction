@@ -113,7 +113,9 @@ def main():
     # 2. Llama-3.1-8B runs from all directories
     llama_dirs = [
         (REPO_ROOT / "results/reconstruction/wild4_llama_w6", "Wild4"),
-        (REPO_ROOT / "results/recon/manual_download/reconstruction/wild4_llama_w3_window_v3", "Wild4"),
+        # v3 was scored with the legacy pool_scope "window"; use the video-pool re-score
+        # produced by scripts/rescore_window_pool_run.py instead.
+        (REPO_ROOT / "results/recon/manual_download/reconstruction/wild4_llama_w3_window_v3_videopool", "Wild4"),
         (REPO_ROOT / "results/recon/manual_download/reconstruction/wild4_llama_w6", "Wild4"),
         (REPO_ROOT / "results/recon/manual_download/reconstruction/wild4_llama_multi_width", "Wild4"),
         (REPO_ROOT / "results/recon/manual_download/reconstruction/wild5_llama_w3_w6", "Wild5"),
