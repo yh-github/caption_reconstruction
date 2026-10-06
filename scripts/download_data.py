@@ -1,4 +1,7 @@
+"""Download the remote zip bundle and merge disk_cache/ and local/wild_videos_embs_siglip/ into place, resuming via local/.download_state.json.
 
+Datasets are tracked in the repo and are not downloaded here.
+"""
 import json
 import logging
 import shutil
@@ -42,7 +45,8 @@ def is_done(key: str) -> bool:
 def download_folder(url: str, output_dir: Path):
     if not output_dir.exists():
         output_dir.mkdir(parents=True)
-    gdown.download_folder(url=url, output=str(output_dir), quiet=False, use_cookies=False)
+    # resume=True skips files that were already fully downloaded
+    gdown.download_folder(url=url, output=str(output_dir), quiet=False, use_cookies=False, resume=True)
 
 def extract_zip(zip_path: Path, output_dir: Path):
     logger.info(f"Extracting {zip_path} to {output_dir}")
@@ -133,22 +137,29 @@ def main():
         logger.error("remote_cache_url not found in config/system.yaml (under 'paths')")
         return
 
+    # Mapping: Zip Name -> (Target Dir, Merge Function)
+    tasks = [
+        ("disk_cache.zip", Path(config["paths"]["disk_cache"]), merge_disk_caches),
+        ("wild_videos_embs_siglip.zip", Path("local/wild_videos_embs_siglip"), process_file_dir_merge),
+        # Legacy 384-dim embeddings, superseded by SigLIP; uncomment to fetch them.
+        # ("wild_videos_embs.zip", Path("local/wild_videos_embs"), process_file_dir_merge),
+        # ("results.zip", Path(config["paths"]["results"]), process_file_dir_merge)
+    ]
+
     # 1. Download
     temp_download_dir = Path("local/temp_downloads")
     temp_download_dir.mkdir(parents=True, exist_ok=True)
-    if not is_done("download_complete"):
-        logger.info("Starting Download...")
+    # Re-download if a zip added since the last download is missing locally
+    missing_zips = [
+        zip_name for zip_name, _, _ in tasks
+        if not is_done(f"processed_{zip_name}") and not (temp_download_dir / zip_name).exists()
+    ]
+    if not is_done("download_complete") or missing_zips:
+        logger.info(f"Starting Download... (missing: {missing_zips})")
         download_folder(remote_url, temp_download_dir)
         update_state("download_complete")
     else:
         logger.info("Download already complete (found in state).")
-
-    # Mapping: Zip Name -> (Target Dir, Merge Function)
-    tasks = [
-        ("disk_cache.zip", Path(config["paths"]["disk_cache"]), merge_disk_caches),
-        ("wild_videos_embs.zip", Path("local/wild_videos_embs"), process_file_dir_merge)
-        # ("results.zip", Path(config["paths"]["results"]), process_file_dir_merge)
-    ]
 
     for zip_name, target_path, merge_func in tasks:
         zip_file = temp_download_dir / zip_name

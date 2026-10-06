@@ -23,7 +23,7 @@ pip install -e .
 The project relies on specific directories for caching, local data, and results.
 
 ### Automatic Setup (Recommended)
-You can automatically download and configure the necessary data dictionaries using the provided script. This will fetch the cache, local embeddings, and result history.
+You can automatically download and configure the necessary data using the provided script. This will fetch the LLM/embedding cache (`disk_cache/`) and the SigLIP video embeddings (`local/wild_videos_embs_siglip/`). The caption datasets are tracked in the repo under `datasets/`.
 
 ```bash
 python scripts/download_data.py
@@ -43,7 +43,7 @@ mkdir -p results
 
 *   **`disk_cache/`**: Stores cached LLM responses and embeddings to save costs and time. The system will automatically populate this.
 *   **`local/`**: Intended for large, local-only assets (e.g., video embeddings) that are not kept in git.
-    *   **Action Required**: If you are planning to run analysis on the "Wild" dataset, create `local/wild_videos_embs` and populate it with the necessary `.npy` files.
+    *   **Action Required**: If you are planning to run analysis on the "Wild" dataset without the download script, populate `local/wild_videos_embs_siglip/` with the SigLIP `.npy` files (or extract them with `scripts/calc_siglip_embeddings.py`). The legacy 384-dim `local/wild_videos_embs/` is no longer needed.
 *   **`results/`**: The output destination for experiment runs.
 *   **`results/for_analysis/`**: A staging area for aggregate analysis. You may manually copy result CSVs here to compare them.
 

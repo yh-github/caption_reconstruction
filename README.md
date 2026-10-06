@@ -48,7 +48,7 @@ This project relies on specific datasets and pre-computed embeddings. Use the pr
 ```bash
 python scripts/download_data.py
 ```
-This will download and extract datasets into the `local/` and `datasets/` directories.
+This will download and extract the cache into `disk_cache/` and the SigLIP video embeddings into `local/wild_videos_embs_siglip/`. The caption datasets are already tracked in the repo under `datasets/`.
 
 ## 🚀 Usage
 

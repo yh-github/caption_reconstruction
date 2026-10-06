@@ -12,7 +12,7 @@ All commands run from the repo root, because config paths such as `config/system
 
 ```bash
 pip install -r requirements.txt && pip install -e .     # setup
-python scripts/download_data.py                          # fetch disk_cache/, local/, datasets from remote
+python scripts/download_data.py                          # fetch disk_cache/ and SigLIP embs (local/) from remote; datasets are in-repo
 
 python src/main.py <config.yaml> --dry-run --verbose     # list runs that would execute, no API/model calls
 python src/main.py <config.yaml>                         # full run
