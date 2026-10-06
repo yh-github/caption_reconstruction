@@ -1,3 +1,4 @@
+"""Extract per-second SigLIP frame embeddings from raw videos into .npy files (default local/wild_videos_embs_siglip)."""
 import argparse
 import logging
 import sys

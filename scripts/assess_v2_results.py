@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Legacy (Phi-3): compare wild4 reconstructions from the V1 vs V2 prompt, quantitatively and with side-by-side examples."""
 import json
 import re
 from pathlib import Path

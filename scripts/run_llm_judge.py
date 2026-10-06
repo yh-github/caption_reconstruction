@@ -1,3 +1,4 @@
+"""Gemini judge: assess whether QA-inspection reconstructions recover the evidence for each question; resumable JSONL output in results/qa_inspection/."""
 import os
 import json
 import time

@@ -1,3 +1,4 @@
+"""Smoke-test LocalEmbedder with all-MiniLM-L6-v2 (expects 384-dim output)."""
 import transformers
 from llm.local_embedder import LocalEmbedder
 import logging

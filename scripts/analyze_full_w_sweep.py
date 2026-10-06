@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Legacy (Phi-3 v2 prompt): print length/flowery-language stats and side-by-side samples of wild4 reconstructions across window widths."""
 import json
 import re
 from pathlib import Path

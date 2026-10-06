@@ -1,3 +1,4 @@
+"""Print the parent/child hierarchy of MLflow runs found under an experiment directory."""
 import argparse
 import os
 from collections import defaultdict

@@ -1,3 +1,4 @@
+"""Aggregate per-video Llama-3.1-8B reconstruction JSONs into results/llama_all_experiments_aggregated.csv and print mean MRR/cos_sim per config."""
 import json
 from pathlib import Path
 import pandas as pd

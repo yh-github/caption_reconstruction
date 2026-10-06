@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Legacy (Phi-3 v2): print all-mpnet-base-v2 semantic similarity for wild4 v2 reconstructions per strategy."""
 import json
 from pathlib import Path
 import numpy as np

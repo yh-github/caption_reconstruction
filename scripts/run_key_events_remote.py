@@ -1,3 +1,4 @@
+"""Reconstruct gaps placed on key events (wild_key_events.csv) with a local LLM into results/key_events_<model>/."""
 import argparse
 import pandas as pd
 import json

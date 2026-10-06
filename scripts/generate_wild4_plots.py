@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Legacy: plot text vs vector MRR/Recall@1 by width, position and category from wild4_reconstruction_master.csv."""
 from pathlib import Path
 import pandas as pd
 import numpy as np

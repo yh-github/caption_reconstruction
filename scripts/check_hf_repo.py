@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Summarize file counts per reconstruction folder in the HF dataset repo, with optional path filter."""
 import argparse
 from collections import defaultdict
 from huggingface_hub import HfApi

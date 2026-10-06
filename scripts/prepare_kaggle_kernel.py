@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Generate a Kaggle CLI kernel directory that runs an experiment config (optionally one worker per GPU) and syncs to HF."""
 import argparse
 import json
 import os

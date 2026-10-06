@@ -1,4 +1,4 @@
-
+"""Legacy: parse aggregated per-config metrics out of two run logs into results/combined_analysis_data.csv."""
 import re
 import json
 import numpy as np

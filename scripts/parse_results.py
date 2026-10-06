@@ -1,3 +1,4 @@
+"""Legacy: join pasted per-question BERTScore F1 log lines with WildQA questions from a config's dataset."""
 import sys
 from collections import defaultdict
 from pathlib import Path

@@ -1,4 +1,4 @@
-
+"""Report Gemini embedding-cache coverage for a config's dataset without making API calls."""
 import sys
 import argparse
 from pathlib import Path

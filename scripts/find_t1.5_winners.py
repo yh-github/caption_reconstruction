@@ -1,4 +1,4 @@
-
+"""Legacy (Phi-3): list videos where temperature 1.5 ties for best Recall@1 (temporal_metrics_final.csv); writes results/t1.5_winners.txt."""
 import pandas as pd
 
 INPUT_CSV = "results/temporal_metrics_final.csv"

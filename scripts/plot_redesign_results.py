@@ -1,3 +1,4 @@
+"""Plot the redesign text-headroom curve and shared-target arm summary into docs/paper/figures/."""
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np

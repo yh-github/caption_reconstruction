@@ -1,4 +1,4 @@
-
+"""Legacy (Phi-3): recompute temporal NDCG/recall metrics from stored similarity matrices into results/temporal_metrics_final.csv."""
 import os
 import re
 import json

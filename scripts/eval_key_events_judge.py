@@ -1,3 +1,4 @@
+"""Score key-event reconstructions 0-2 against ground truth with a local LLM judge; writes a CSV next to the inputs."""
 import argparse
 import pandas as pd
 import json

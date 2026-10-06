@@ -1,3 +1,4 @@
+"""Correlate a-priori scores with aggregated Llama metrics (w=6, i=29) into results/analysis_correlations_w6_i29.csv."""
 import pandas as pd
 import scipy.stats
 

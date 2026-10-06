@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Legacy: merge wild4 text-v2 and vector reconstruction metrics with categories into results/wild4_reconstruction_master.csv."""
 import json
 import re
 from pathlib import Path

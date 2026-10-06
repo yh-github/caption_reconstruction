@@ -1,3 +1,4 @@
+"""Print the LLM prompt each `llm` strategy in a config would build for one video. Usage: try_prompts.py <config> <video_index>"""
 import sys
 
 from data.data_loaders import get_data_loader

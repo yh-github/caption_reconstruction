@@ -1,4 +1,4 @@
-
+"""Check global metric statistics aggregation on a few mock MetricsRecordRaw entries."""
 import numpy as np
 from evaluations.evaluation import ReconstructionEvaluator
 from evaluations.metrics import MetricsRecordRaw, MetricsMetadata

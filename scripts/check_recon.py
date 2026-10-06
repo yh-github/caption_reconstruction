@@ -1,3 +1,7 @@
+"""Inspect one video from an MLflow run's all_recon_videos.jsonl: list runs, compare original vs reconstructed clips, or evaluate.
+
+Usage: check_recon.py <config> <mlflow_run_path> [ls | i=<index> | <video_id>] ...
+"""
 import sys
 
 from pydantic import ValidationError, BaseModel, Field, ConfigDict

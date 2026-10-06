@@ -1,3 +1,4 @@
+"""Merge visual, textual and NLL a-priori scores into results/apriori_full_scores.csv."""
 import pandas as pd
 import json
 from pathlib import Path

@@ -1,3 +1,4 @@
+"""Smoke-test the SigLIP text and video embedders (768-dim, unit norm)."""
 import sys
 import numpy as np
 import torch

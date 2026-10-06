@@ -1,4 +1,4 @@
-
+"""Legacy (384-dim embs): compute mean-closest vector baseline retrieval metrics over many widths/positions into results/baseline_full_metrics.csv."""
 import os
 import numpy as np
 import pandas as pd

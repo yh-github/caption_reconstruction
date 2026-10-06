@@ -1,4 +1,4 @@
-
+"""Legacy (Phi-3): merge temporal, Euclidean, surprisal and baseline metrics and plot correlations into results/plots/correlations/."""
 import pandas as pd
 import json
 import seaborn as sns

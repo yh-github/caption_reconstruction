@@ -1,3 +1,4 @@
+"""Kaggle variant: reconstruct gaps placed on key events (wild_key_events.csv) with a local LLM into results/key_events_reconstruction/."""
 import pandas as pd
 import json
 import os

@@ -1,4 +1,4 @@
-
+"""Legacy (Phi-3): print ground truth vs Phi-3 reconstructions at t=0.1 and t=1.5 for two hardcoded videos."""
 import json
 import sys
 import glob

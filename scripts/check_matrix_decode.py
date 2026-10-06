@@ -1,4 +1,4 @@
-
+"""Decode and inspect the base64 similarity matrix stored in one hardcoded result JSON."""
 import json
 import numpy as np
 import base64

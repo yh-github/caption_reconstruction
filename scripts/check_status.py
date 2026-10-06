@@ -1,4 +1,4 @@
-
+"""Report per-runner completion (done locally, done on HF, pending) for an experiment config without running it."""
 import sys
 from pathlib import Path
 import logging

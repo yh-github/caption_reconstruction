@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Report how many videos of a run have been uploaded to the HF repo (valid vs skipped, per position)."""
 import os
 import sys
 import argparse

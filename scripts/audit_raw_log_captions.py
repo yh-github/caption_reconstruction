@@ -1,3 +1,4 @@
+"""Download two run logs from the HF repo and print Llama's rejected ("Bad indices") captions next to wild4 ground truth."""
 import re
 import json
 from pathlib import Path

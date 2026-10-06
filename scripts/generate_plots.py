@@ -1,4 +1,4 @@
-
+"""Legacy (Phi-3): plot Phi-3 MRR/rank vs width and index from deep_analysis_final.csv into results/plots/."""
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt

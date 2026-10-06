@@ -1,3 +1,4 @@
+"""Legacy (Phi-3): correlate a-priori dynamism scores with phi_vs_video_integration_summary.csv; writes results/analysis/*.csv."""
 import pandas as pd
 import numpy as np
 import os

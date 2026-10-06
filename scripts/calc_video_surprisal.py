@@ -1,4 +1,4 @@
-
+"""Legacy (384-dim embs): compute per-video visual surprisal (cosine-distance stats) into results/video_surprisal_scores.csv."""
 import os
 import glob
 import numpy as np

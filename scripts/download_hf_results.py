@@ -1,4 +1,4 @@
-
+"""Download reconstruction results from the HF repo, for one config's run or (by default) everything into results/recon/manual_download."""
 import argparse
 import sys
 from pathlib import Path

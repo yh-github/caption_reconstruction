@@ -1,3 +1,4 @@
+"""Print a markdown table of sample captions for each video in the wild2 caption dataset."""
 import os
 import json
 import glob

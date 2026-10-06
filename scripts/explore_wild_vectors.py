@@ -1,3 +1,4 @@
+"""Print the shape of every video-embedding .npy in a directory and assert frame counts match a hardcoded table."""
 import numpy as np
 from pathlib import Path
 

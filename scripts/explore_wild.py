@@ -1,3 +1,4 @@
+"""Explore the WildQA video list: duration/domain stats and Dropbox download links (currently prints links for dev.json)."""
 import yaml
 from collections import Counter
 from pathlib import Path

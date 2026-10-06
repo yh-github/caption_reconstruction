@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Legacy (Phi-3 v2): score wild4 reconstructions with all-mpnet-base-v2 loaded via raw transformers (no sentence-transformers)."""
 import json
 import re
 from pathlib import Path

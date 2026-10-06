@@ -1,4 +1,4 @@
-
+"""Legacy (Phi-3): plot and summarize metrics by temperature and width from temporal_metrics_final.csv into results/plots/temperature_analysis/."""
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt

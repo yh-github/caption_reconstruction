@@ -1,3 +1,4 @@
+"""Compute caption-based a-priori scores (text dynamism, APCS_T) for wild4+wild5 into results/apriori_textual_dynamism.csv."""
 import json
 from pathlib import Path
 import numpy as np

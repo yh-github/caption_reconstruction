@@ -1,4 +1,4 @@
-
+"""Legacy: print summary stats of "Evaluation metrics" records parsed from one hardcoded run log."""
 import re
 import json
 import numpy as np

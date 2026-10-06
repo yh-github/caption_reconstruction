@@ -1,3 +1,4 @@
+"""Compute visual a-priori scores (dynamism, APCS_V) from SigLIP frame embeddings into results/apriori_dynamism_scores.csv."""
 import os
 import glob
 import numpy as np

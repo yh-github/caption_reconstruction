@@ -1,4 +1,4 @@
-
+"""Legacy (Phi-3, 384-dim embs): compute Euclidean distances between Phi-3 reconstructions and video embeddings into results/euclidean_metrics.csv."""
 import os
 import sys
 import json

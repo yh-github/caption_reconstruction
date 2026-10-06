@@ -1,3 +1,4 @@
+"""Streamlit explorer for unified_benchmark_master.csv and apriori_full_scores.csv: compare methods and inspect captions per video."""
 import streamlit as st
 import pandas as pd
 import numpy as np

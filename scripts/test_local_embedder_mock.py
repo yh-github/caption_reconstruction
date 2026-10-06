@@ -1,3 +1,4 @@
+"""Check LocalEmbedder caching logic with sentence-transformers mocked out (no model download)."""
 import sys
 from unittest.mock import MagicMock, patch
 import logging

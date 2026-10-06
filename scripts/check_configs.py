@@ -1,4 +1,4 @@
-
+"""List the Phi-3 (t, w, i) configurations that have results in the HF dataset repo."""
 from huggingface_hub import HfApi
 import re
 

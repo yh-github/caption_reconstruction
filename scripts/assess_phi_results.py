@@ -1,3 +1,4 @@
+"""Legacy (Phi-3): print a qualitative and aggregate report of Phi-3 reconstructions vs ground-truth captions by width and temperature."""
 import json
 import glob
 import os

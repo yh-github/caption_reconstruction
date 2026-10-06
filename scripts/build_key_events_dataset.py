@@ -1,3 +1,4 @@
+"""Find each wild4 video's "climax" second (peak SigLIP-text distance from the mean caption) and write results/wild_key_events.csv."""
 import json
 import glob
 import pandas as pd

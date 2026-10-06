@@ -1,3 +1,4 @@
+"""Check the batch runner's HF download/skip logic against the real repo (read-only), with model and evaluator mocked."""
 import logging
 import sys
 from pathlib import Path
