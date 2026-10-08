@@ -6,7 +6,15 @@ Working draft, started 2026-10-08. Supersedes `draft.md` (the reconstruction-fir
 
 ## Abstract
 
-**TODO** (write last). Points to cover: dense captions as a stand-in for video; a no-masking audit of captions against SigLIP 2 frames (grounding, shared variation, change timing); the ~2 s lead; where grounding is weak, caption copy trails frame copy more; gap reconstruction from text (Llama-3.1-8B) loses to copy on every metric, including a forced-choice test.
+Dense per-second captions from video LLMs are increasingly used as a stand-in for the video itself: for retrieval, for question answering, and as training data. We test how much of a video such captions actually carry. We caption 335 one-minute clips from 40 YouTube channels once per second with Gemini 3 Flash, then compare each caption with SigLIP 2 embeddings of the matching frames.
+
+The captions keep a video's topic but not its timeline:
+- Against frames from other videos, a caption identifies its own frame well (calibrated AUC 0.80; a copy of a neighboring frame reaches 0.94).
+- Against frames from the surrounding ten seconds, it falls to 0.18, no better than the caption of a neighboring second, while frames keep 0.52.
+- Captions run 1–2 s ahead of the frames in every channel. Correcting this lead recovers only a third of the gap.
+- Caption change and visual change are uncorrelated.
+
+These properties cap text-only recovery of missing seconds. An 8B LLM that in-fills masked captions loses to copying the nearest caption, and both lose badly to copying the nearest frame, on per-second retrieval and on a forced-choice test (35%, 52% and 85% accuracy; chance 25%). Videos with better-grounded captions show smaller caption-to-frame gaps.
 
 ## 1. Introduction
 
@@ -140,7 +148,45 @@ Where captions are better grounded, caption copy gets closer to frame copy, and 
 
 ## 5. Related work
 
-**TODO.** Dense video captioning and temporal grounding; caption-as-proxy pipelines (caption-then-reason video QA); hallucination and temporal misalignment in video LLMs; vision-language embedding spaces (SigLIP 2). Candidates in `sources.md`.
+**Dense captioning and temporal grounding.** Dense video captioning asks a model to localize events and describe them [Krishna et al. 2017]. Moment retrieval asks the reverse: find the span that matches a sentence [Gao et al. 2017; Anne Hendricks et al. 2017]. Both treat timing as part of the target and score it against human annotations. We ask instead whether timing survives when a frontier video LLM is asked for per-second captions with no localization objective. We score it against frame embeddings, so no human annotation is needed.
+
+**Captions as a proxy for video.** A common recipe turns video into text and reasons over the text:
+- Socratic Models compose pretrained models through language [Zeng et al. 2023].
+- LLoVi captions short clips and lets an LLM answer long-video questions from the captions alone [Zhang et al. 2024].
+- Large caption corpora are built the same way, to train video models: Panda-70M [Chen et al. 2024b] and ShareGPT4Video [Chen et al. 2024a]. The ShareGPT4Video authors note that naive multi-frame captioning gives temporally confused descriptions, and they design around it.
+
+Our results put a number on what such pipelines lose: topic survives, the second-to-second timeline mostly does not.
+
+**Temporal failures of video LLMs.** Benchmarks show that video LLMs perceive temporal properties poorly:
+- speed and direction [TempCompass; Liu et al. 2024];
+- actions, temporal order and scene transitions [VidHalluc; Li et al. 2025].
+
+Timestamp-aware architectures target localization directly [TimeChat; Ren et al. 2024]. We find a related failure in a frontier model's *output* format: per-second timestamps that are consistently 1–2 s early, which a QA benchmark would not expose.
+
+**Information loss across modalities.** Li et al. [2025] show that the connector that projects visual features into an LLM's embedding space loses information that predicts downstream errors. We measure a coarser bottleneck, the caption itself, and compare it with the visual embedding it was produced from.
+
+**Encoders.** Frames and text are compared in SigLIP 2 [Tschannen et al. 2025]; text-to-text comparisons use MPNet sentence embeddings [Song et al. 2020; Reimers and Gurevych 2019]. The clips come from WildQA [Castro et al. 2022]. The text arm is Llama-3.1-8B [Grattafiori et al. 2024].
+
+### References
+
+Verified 2026-10-08 against the venue pages (search results); entries marked † were cited from memory and should be checked before submission.
+
+- † Anne Hendricks, L., Wang, O., Shechtman, E., Sivic, J., Darrell, T., Russell, B. 2017. Localizing Moments in Video with Natural Language. ICCV.
+- Castro, S., Deng, N., Huang, P., Burzo, M., Mihalcea, R. 2022. In-the-Wild Video Question Answering. COLING, 5613–5635.
+- Chen, L., Wei, X., Li, J., et al. 2024a. ShareGPT4Video: Improving Video Understanding and Generation with Better Captions. NeurIPS Datasets and Benchmarks.
+- Chen, T.-S., et al. 2024b. Panda-70M: Captioning 70M Videos with Multiple Cross-Modality Teachers. CVPR, 13320–13331.
+- † Gao, J., Sun, C., Yang, Z., Nevatia, R. 2017. TALL: Temporal Activity Localization via Language Query. ICCV.
+- † Grattafiori, A., et al. 2024. The Llama 3 Herd of Models. arXiv:2407.21783.
+- † Krishna, R., Hata, K., Ren, F., Fei-Fei, L., Niebles, J. C. 2017. Dense-Captioning Events in Videos. ICCV.
+- Li, C., Im, E. W., Fazli, P. 2025. VidHalluc: Evaluating Temporal Hallucinations in Multimodal Large Language Models for Video Understanding. CVPR, 13723–13733.
+- Li, W., Tang, R., Li, C., Zhang, C., Vulić, I., Søgaard, A. 2025. Lost in Embeddings: Information Loss in Vision-Language Models. Findings of EMNLP. (From `sources.md`.)
+- Liu, Y., Li, S., Liu, Y., Wang, Y., Ren, S., Li, L., Chen, S., Sun, X., Hou, L. 2024. TempCompass: Do Video LLMs Really Understand Videos? Findings of ACL, 8731–8772.
+- † Reimers, N., Gurevych, I. 2019. Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks. EMNLP-IJCNLP.
+- Ren, S., Yao, L., Li, S., Sun, X., Hou, L. 2024. TimeChat: A Time-sensitive Multimodal Large Language Model for Long Video Understanding. CVPR, 14313–14323.
+- † Song, K., Tan, X., Qin, T., Lu, J., Liu, T.-Y. 2020. MPNet: Masked and Permuted Pre-training for Language Understanding. NeurIPS.
+- Tschannen, M., et al. 2025. SigLIP 2: Multilingual Vision-Language Encoders with Improved Semantic Understanding, Localization, and Dense Features. arXiv:2502.14786.
+- Zeng, A., et al. 2023. Socratic Models: Composing Zero-Shot Multimodal Reasoning with Language. ICLR.
+- Zhang, C., Lu, T., et al. 2024. A Simple LLM Framework for Long-Range Video Question-Answering. EMNLP, 21715–21737.
 
 ## 6. Discussion and limitations
 

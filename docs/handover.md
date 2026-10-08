@@ -55,9 +55,10 @@ Source: `scripts/caption_lag_robustness.py` → `results/caption_audit/lag_{prof
 
 1. Done: the near pool with lag-corrected captions (`caption_lag_robustness.py` part 5). The true caption goes from 0.17 to 0.28 at +2 s, against 0.20 for caption copy and 0.52 for frame copy, so the lead explains about a third of the near-second gap.
 2. §4.1 of `captions_vs_frames.md` is filled. Llama trails caption copy by 3.9 ranks [3.1, 4.8], and only at W = 1 does it tie. Caption copy trails frame copy by 10.6 ranks [9.3, 12.0].
-3. Done: figures 1 to 4 (`scripts/make_paper_figures.py`; list in `captions_vs_frames.md` "Figures"). Still to write: related work and the abstract.
-4. Doc reconciliation (TODO §1): now mostly moot, since `draft.md` is frozen. Just make sure the new draft uses the right counts.
-5. Q4 caption correctness and the re-captioning control: waiting on the API budget decision.
+3. Done: figures 1 to 4 (`scripts/make_paper_figures.py`; list in `captions_vs_frames.md` "Figures").
+4. Done: the abstract and related work. References marked † were cited from memory; the rest were checked. Next for the paper: tighten to 4 pages, LaTeX template, pick two figures.
+5. Doc reconciliation (TODO §1): now mostly moot, since `draft.md` is frozen. Just make sure the new draft uses the right counts.
+6. Q4 caption correctness and the re-captioning control: waiting on the API budget decision.
 
 ---
 
