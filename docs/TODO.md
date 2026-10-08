@@ -25,7 +25,11 @@ Legend: (Claude) = can be done locally; (GPU) = Claude prepares the config and h
   - **Q2, shared variation:** within-video R² ≈ 0.02 in every direction.
   - **Q3, change timing:** caption change and frame change are uncorrelated.
   - **Link:** Q1 and Q2 predict where caption copy trails frame copy (partial ρ ≈ −0.36 to −0.39, controlling for change rates) and where Llama trails caption copy (partial ρ ≈ +0.25).
-- [ ] (Claude) Caption-lag robustness: by channel, by position in the video (drift or constant offset), and whether shifting captions by +1 to +2 s improves caption copy and LLM scores against frames. Re-check Q3 with the lag corrected.
+- [x] Caption-lag robustness (`scripts/caption_lag_robustness.py`; details in `docs/paper/captions_vs_frames.md` §3.2):
+  - Peak at +1 or +2 s in 39 of 40 channels (+3 in one, none at 0 or earlier). The same holds in wild4 and wild5 and in every caption-length tertile.
+  - Mostly a constant offset; the lead shrinks slightly late in the clip (slope −0.33 s per minute).
+  - Re-aligning by +2 s improves the oracle caption's frame rank (22.9 → 20.2) but not caption copy (+0.4, CI touches 0) or Llama (28.5, about chance).
+  - Q3 with the lag corrected: event coincidence is 33% against 27% chance; Spearman ≈ 0.
 - [ ] (Claude) Shared-target evaluation: re-run with SigLIP 2 text or retire it, and mark its old results invalid.
 - [ ] (Claude or API) Q4: caption correctness audit (hallucinations such as the "runner" camera-holder) on about 50 sampled seconds, manually or with a VLM judge.
 - [ ] (Claude) Check whether the lag and grounding findings generalize to how the captions were produced (single Gemini call over the whole video), e.g. by re-captioning a few videos per second as a control (API).
@@ -63,7 +67,7 @@ Legend: (Claude) = can be done locally; (GPU) = Claude prepares the config and h
 
 ## 5. Paper
 
-- [ ] Rewrite `docs/paper/draft.md` around the captions-vs-frames thesis (section 0), with reconstruction as the consequence (LLM loses to copy everywhere). Cut H2 and the Δ/N spectrum to one paragraph (scene continuity explains it). Every mention of the visual encoder must say SigLIP 2.
+- [ ] (in progress: `docs/paper/captions_vs_frames.md` replaces `draft.md`, which stays as the record of the old thesis) Write the paper around the captions-vs-frames thesis (section 0), with reconstruction as the consequence (LLM loses to copy everywhere). Cut H2 and the Δ/N spectrum to one paragraph (scene continuity explains it). Every mention of the visual encoder must say SigLIP 2.
 - [ ] Figure 1: caption-to-frame lag profile (Q1). Figure 2: forced-choice accuracy by modality and width. Figure 3: per-video caption grounding against the caption-copy deficit to frame copy.
 - [ ] Move to the venue's 4-page LaTeX template.
 
