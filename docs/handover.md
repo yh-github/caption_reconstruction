@@ -76,7 +76,42 @@ Source: `scripts/caption_lag_robustness.py` → `results/caption_audit/lag_{prof
 - 9 items: all valid JSON, 1 turn each, 2–6 s per call, sensible captions, choice 3/3. The 3-gap scores mean nothing yet.
 - Pilot outputs are in `results/blind_llm/pilot/` (before effort pinning). The current `recon__haiku.jsonl` holds 3 items.
 
-**Planned runs** (not started; they spend the user's quota, so confirm first):
+**Saving and re-running rules** (the user asked that no paid-for output is ever lost or re-bought):
+- Every call is saved in full to `results/blind_llm/<task>__<model>__events.jsonl`, before any parsing. That includes the prompt, every stream-json event (thinking blocks included, when the model emits any), stderr and the return code.
+- The compact row in `<task>__<model>.jsonl` carries a status: ok, invalid, error or timeout.
+- Items with any saved row are never re-run. `--retry invalid|error|timeout` re-runs only the chosen statuses.
+- `reparse` re-derives rows from the saved calls after a parser fix, with no calls. It already recovered one Sonnet answer where the model wrote a draft array, then "Correction, here is the full valid array". The parser now takes the last JSON block that is a valid answer.
+- An earlier parser crash lost one call's output, before the raw call was saved first. That's fixed.
+
+**Sampling options:**
+- `--shuffle` takes a seeded sample. Without it, items run in video order, so the first 40 forced-choice items came from 10 videos and only 4 channels.
+- `--pool llama` (default) uses only the 180 items Llama scored, which cover 14 channels. `--pool all` uses all 1,325 items, which cover 40 channels and have copy baselines but no Llama score.
+- Task `choice_nohint` drops the sentence "the other candidates belong to the other missing intervals". That sentence turns the task into a jigsaw (match each candidate to its slot), which Llama's PMI scoring never used.
+
+**Small Sonnet run (2026-10-08; 80 calls, ~0.38M input tokens, effort medium):**
+- **Forced choice, first 40 Llama-scored items (10 videos, 4 channels), all on the same items:**
+
+  | Method | Accuracy |
+  |---|---|
+  | Sonnet | **92.5%** |
+  | Frame copy | 92.5% |
+  | Caption copy | 45% |
+  | Caption copy, assignment-aware | 40% |
+  | Llama PMI | 42.5% |
+
+  If this holds, the forced-choice cap was the 8B model, not the captions. It is **not yet trustworthy**: 4 channels, the jigsaw hint, and direct choice against PMI.
+- **Reconstruction, 10 videos × W ∈ {1, 4, 8, 16}** (rank of the true second among 60; lower is better):
+  - Sonnet beats Llama at every width.
+  - Against caption copy it is roughly level: better in MPNet text rank at W = 1 and 4 (15.2 vs. 32.4; 19.4 vs. 21.5), worse in SigLIP 2 frame rank at every width.
+- **Tentative reading:** a strong model can *recognize* which content fits a gap, but cannot *generate* second-level content much better than copying a neighbor. That fits "captions keep topic, lose timing" better than "the LLM is the cap".
+
+**Next Sonnet runs proposed** (80 calls, waiting for the user's go-ahead):
+- `run --task choice --model sonnet --pool all --shuffle --limit 40`: 38 videos, 23 channels.
+- `run --task choice_nohint --model sonnet --limit 40`: the same 40 items as the first run, without the hint.
+
+After each run, `check` prints the baselines on the same items.
+
+**Original full-run plan** (on hold until the small runs show the effect is real):
 
 | Model | Run | Calls |
 |---|---|---|
@@ -95,7 +130,10 @@ After each run: `check --task <t> --model <m>` (validity, turns, tokens, choice 
 2. §4.1 of `captions_vs_frames.md` is filled. Llama trails caption copy by 3.9 ranks [3.1, 4.8], and only at W = 1 does it tie. Caption copy trails frame copy by 10.6 ranks [9.3, 12.0].
 3. Done: figures 1 to 4 (`scripts/make_paper_figures.py`; list in `captions_vs_frames.md` "Figures").
 4. Done: the abstract and related work. References marked † were cited from memory; the rest were checked. Next for the paper: tighten to 4 pages, LaTeX template, pick two figures.
-5. **Main open threat to the thesis:** is the near-pool 0.18 a property of the captions, or of SigLIP's text-to-image link? Control: captions that are aligned by construction, either from a free local per-frame captioner (Florence-2 or BLIP, about 30 videos) or from the image mode of the blind runner. If those also score about 0.18, soften the timing claim.
+5. **Main open threat to the thesis:** is the near-pool 0.18 a property of the captions, or of SigLIP's text-to-image link? `scripts/bridge_ceiling.py` tests it with Florence-2 per-frame captions, which are time-aligned by construction, on 30 videos from 30 channels.
+   - **Done locally:** `extract` wrote 1,800 frames to `results/bridge_ceiling/frames/` (60 MB).
+   - **`caption` needs the GPU.** On this CPU, Florence-2 takes about 30 s per frame, so about 15 hours. Copy the frames folder over, run `python scripts/bridge_ceiling.py caption --device cuda`, copy `captions.jsonl` back, then run `eval` locally.
+   - **Reading:** if per-frame captions also score about 0.18 near, soften the timing claim. If they score well above it, Gemini's captions lack timing.
 6. Run the planned Claude text-only runs (section D), after the user confirms.
 7. Doc reconciliation (TODO §1): now mostly moot, since `draft.md` is frozen. Just make sure the new draft uses the right counts.
 8. Q4 caption correctness and the re-captioning control: no longer blocked on an API budget. They can use the blind runner's image mode (section D) on the subscription.
