@@ -7,6 +7,7 @@ Latest session summary and decisions: `docs/handover.md` (newest session at the 
 
 **Current state of the thesis (2026-10-08):**
 - **Reconstruction as the paper's core: NO-GO at 8B.** Llama loses to copying on every metric, including forced choice (35% against 52% for caption copy).
+- **But a frontier text model changes the forced-choice picture (2026-10-08):** with captions only, Sonnet 5.5 picks the right gap content 77% of the time (caption copy 46%, frame copy 88%; 160 items, 36 channels). For recognition, the 8B model was a large part of the cap. Captions carry more than copy extracts, but still less than frames. Generation (reconstruction) by Sonnet is only about level with caption copy on a 10-video sample.
 - **New direction: GO.** The paper becomes "what dense LLM captions keep and lose relative to visual embeddings, and why that caps text-based reconstruction" (section 0). Captions share topic with the frames but barely track second-to-second change, and they run 1–2 s early in every channel (Gemini 3 Flash, one call per video). Videos where captions are better grounded show smaller caption-copy deficits.
 - Topic is kept, timing is lost. In frame space, the true caption scores c = 0.80 against other videos but 0.18 against nearby seconds, no better than a neighboring caption; frames keep 0.52 there. Correcting the lead brings it to 0.28 (§0, shared-target item).
 - **Main open threat:** is the near-second weakness the captions', or SigLIP's text-to-image link? See the bridge-ceiling item in section 0.
@@ -84,8 +85,15 @@ Legend: (Claude) = can be done locally; (GPU) = Claude prepares the config and h
     - On 40 items across 23 channels: Sonnet 75%, caption copy 47.5%, frame copy 87.5%.
     - Without the jigsaw hint: 85% vs. 92.5% on the first 40 items.
     - So a strong model recognizes the gap content far better than copy or Llama, but stays below frames.
-  - **Quota:** about 7 points of the 5-hour limit per 40 Sonnet calls (handover §D).
-  - Next options: a larger no-hint Sonnet sample on `--pool all` for a real estimate (160 calls ≈ 30 points of a 5-hour window); a small Opus batch to measure its cost; more reconstruction.
+  - **Quota:** about 6 points of the 5-hour limit per 40 Sonnet calls (handover §D).
+  - [x] **Main estimate, no hint, 160 items across 36 channels:**
+    - Sonnet **76.9% [69.6, 83.0]**, caption copy 45.6%, frame copy 87.5%.
+    - Paired: Sonnet − caption copy +31 [+21, +42]; Sonnet − frame copy −11 [−18, −3].
+    - Flat across widths.
+  - [ ] Next options:
+    - a small Opus batch (about 20 calls) to measure its cost, then Opus on the same 160 items;
+    - Sonnet reconstruction on more videos, to test "recognizes but can't generate";
+    - Llama direct choice on GPU, to make the protocol comparison exact.
   - Caveat: forced choice is direct choice here, while Llama's was PMI.
 
 ## 5. Paper

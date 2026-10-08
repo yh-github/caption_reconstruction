@@ -124,6 +124,22 @@ Source: `scripts/caption_lag_robustness.py` → `results/caption_audit/lag_{prof
   - The thesis survives in a revised form: the remaining gap to frames is real, but "the LLM loses to copy everywhere" is an 8B finding.
 - **Thinking:** blocks are emitted (at medium effort on some calls), but their text is empty in the CLI output. Only the token count is visible, so the reasoning can't be saved.
 
+**Main Sonnet estimate (run 2026-10-08):** `run --task choice_nohint --model sonnet --pool all --shuffle --limit 160`. No hint; 160 items, 136 videos, 36 channels; 95% CIs by channel bootstrap.
+
+| Method | Accuracy |
+|---|---|
+| **Sonnet** | **76.9% [69.6, 83.0]** |
+| Caption copy | 45.6% [37.7, 53.8] |
+| Caption copy, assignment-aware | 53.7% [47.3, 60.2] |
+| Frame copy | 87.5% [81.6, 92.3] |
+| Frame copy, assignment-aware | 95.6% |
+
+- **Paired differences:** Sonnet − caption copy = **+31.2 points [+20.7, +41.6]**; Sonnet − frame copy = **−10.6 [−18.3, −2.9]**.
+- **Flat across width:** 78%, 77%, 77% and 76% at W = 1, 2, 4, 8 (about 40 items each). Caption copy is 33–51% and frame copy 78–95%.
+- **Errors partly complement frames:** Sonnet is right and frame copy wrong on 11 items, the reverse on 28, both wrong on 9.
+- **Quota:** 160 calls moved the 5-hour figure from 49% to 73% and the 7-day figure from 22% to 23%.
+- **The paper's §4.2 now carries this result.** The "LLM loses to copy everywhere" claim is now limited to the 8B model, at least for recognition.
+
 **Quota cost, measured.** Each row records the account's 5-hour and 7-day usage reported with the call; `run` prints them at the start and end of a batch, and `--max-5h` (default 0.8) stops a batch at that share. These are account-wide figures, so run batches with nothing else active.
 - Each 40-call Sonnet batch (~195k input tokens) cost about **6–8 points of the 5-hour limit** and **~0.5 point of the 7-day limit**.
 - That's roughly 500–600 Sonnet calls per 5-hour window, and several thousand per week.
@@ -156,9 +172,10 @@ After each run: `check --task <t> --model <m>` (validity, turns, tokens, choice 
    - **Then locally:** `bridge_ceiling.py pull-captions`, then `eval`.
    - **Risk:** the runner installs `transformers==5.14.1` (verified locally for Florence-2) on top of Kaggle's torch. If that combination fails, the error shows up at install or model load.
    - **Reading:** if per-frame captions also score about 0.18 near, soften the timing claim. If they score well above it, Gemini's captions lack timing.
-6. Run the planned Claude text-only runs (section D), after the user confirms.
-7. Doc reconciliation (TODO §1): now mostly moot, since `draft.md` is frozen. Just make sure the new draft uses the right counts.
-8. Q4 caption correctness and the re-captioning control: no longer blocked on an API budget. They can use the blind runner's image mode (section D) on the subscription.
+6. Claude text-only runs (section D): Sonnet forced choice is done (77%). Next: an Opus cost probe (about 20 calls), Opus on the same 160 items, and Sonnet reconstruction on more videos. All of these spend quota, so confirm with the user first.
+7. The user is running `scripts/kaggle_bridge_ceiling.py` on Kaggle (started 2026-10-08). When it finishes: `bridge_ceiling.py pull-captions`, then `eval`.
+8. Doc reconciliation (TODO §1): now mostly moot, since `draft.md` is frozen. Just make sure the new draft uses the right counts.
+9. Q4 caption correctness and the re-captioning control: no longer blocked on an API budget. They can use the blind runner's image mode (section D) on the subscription.
 
 ---
 

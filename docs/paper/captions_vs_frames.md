@@ -134,6 +134,21 @@ Source: `scripts/forced_choice_gap.py`. The gap plus 3 same-length distractor sp
 
 Over all 1,325 items: caption copy 47% (assignment-aware 54%), frame copy 86% (94%). Llama's errors are independent of caption copy's, but fusion gives no gain (51%, leave-one-channel-out weight). Continuity-matched distractors do not exist in enough numbers to remove the copy advantage (`scripts/forced_choice_matched_feasibility.py`).
 
+**A frontier text model** (preliminary; `scripts/blind_llm_runner.py`):
+- **Setup:** Claude Sonnet 5.5 answered each item directly, one isolated session per item, seeing only the captions (the same masked context Llama saw, with the 4 candidates in random order). The prompt didn't say that the other candidates fill the other gaps.
+- **Sample:** 160 items, 36 channels; channel-bootstrap CIs.
+
+| Method | Accuracy |
+|---|---|
+| **Sonnet 5.5** | **76.9% [69.6, 83.0]** |
+| Caption copy | 45.6% |
+| Frame copy | 87.5% |
+
+- **Paired:** Sonnet beats caption copy by 31 points [21, 42] and trails frame copy by 11 [3, 18]. It's flat across W.
+- **So the 8B result does not generalize.** A strong reader recovers much of what tells a gap apart from its distractors, which caption copy cannot, but frames still carry more.
+- **Protocol caveat:** this is direct choice, while Llama's is PMI scoring. Getting Llama's direct choice would need a GPU run.
+- **Generation is a different story so far.** On 10 videos, Sonnet's free-text reconstructions are only about level with caption copy (§4.1). That is consistent with captions carrying topic and event order, but little second-level detail to generate from. **TODO:** a larger reconstruction sample, and Opus as a scaling point.
+
 ### 4.3 Grounding predicts the gaps
 
 Per video, Spearman with channel-bootstrap CIs; partial = controlling for the rates of visual and caption change.
