@@ -57,7 +57,7 @@ Gotchas:
 
 ## Research conventions that affect code
 
-- **Current standard:** the text arm is `llama-3.1-8b` with prompt dir `prompts/dense_window/`, temperature 0.6, and repetition penalty 1.05. The evaluation embedder is `all-mpnet-base-v2`. The visual arm is SigLIP `google/siglip-base-patch16-224` (768-dim) with `Visual_SigLIP_MeanClosest`/`RepeatClosest`. The benchmark uses wild4 (100 videos) + wild5 (235 videos) = 335 videos, W ∈ {1,2,3,4,6,8,12,16}, and gap start i=29. W > 16 is excluded.
+- **Current standard:** the text arm is `llama-3.1-8b` with prompt dir `prompts/dense_window/`, temperature 0.6, and repetition penalty 1.05. The evaluation embedder is `all-mpnet-base-v2`. The visual arm is **SigLIP 2** (768-dim; timm `vit_base_patch16_siglip_224.v2_webli`) with `Visual_SigLIP_MeanClosest`/`RepeatClosest`. `local/wild_videos_embs_siglip/metadata.yaml` wrongly says `google/siglip-base-patch16-224` (SigLIP 1). Any text-vs-frame comparison must embed text with `SiglipTextEmbedder("google/siglip2-base-patch16-224")`; the default SigLIP 1 text tower is not in the frames' space (cosine ≈ 0), so results from it are invalid. The benchmark uses wild4 (100 videos) + wild5 (235 videos) = 335 videos, W ∈ {1,2,3,4,6,8,12,16}, and gap start i=29. W > 16 is excluded.
 - Retrieval must use `pool_scope: "video"` (all 60 timestamps). `pool_scope: "window"` produced the bogus `wild4_llama_w3_window` result.
 - **Legacy, do not use for new analyses:** Phi-3 runs, the 384-dim embeddings in `local/wild_videos_embs/`, `phi_vs_video_integration_summary.csv`, and `temporal_metrics_final.csv`.
 - **Joining datasets:** captions use `Olly's-Farm` while files on disk use `Olly_s-Farm`, so normalize before joining.

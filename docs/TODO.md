@@ -3,13 +3,32 @@
 Full reasoning, verified numbers and the evaluation design are in the paper-readiness assessment (2026-10-05):
 https://claude.ai/code/artifact/26353452-f893-49df-85ac-d3a85c9becd2
 
-**Current state of the thesis:** on direct (per-second similarity) metrics, LLM in-filling loses to copying the nearest caption. The downstream WildQA result looked like a win, but controls show it measures video topic, not gap content, and WildQA questions barely localize their evidence even for the oracle. The lead candidate is now the forced-choice gap test (section 4). The old "procedural vs. stochastic" thesis (H1/H2 in `docs/paper/draft.md`) was rejected by our own tests; `draft.md` needs a rewrite.
+Latest session summary and decisions: `docs/handover.md` (2026-10-07).
+
+**Current state of the thesis (2026-10-07):**
+- **Reconstruction as the paper's core: NO-GO at 8B.** Llama loses to copying on every metric, including forced choice (35% against 52% for caption copy).
+- **New direction: GO.** The paper becomes "what dense LLM captions keep and lose relative to visual embeddings, and why that caps text-based reconstruction" (section 0). Captions share topic with the frames but barely track second-to-second change, and they run about 2 s early. Videos where captions are better grounded show smaller caption-copy deficits.
+- The old "procedural vs. stochastic" thesis (H1/H2 in `docs/paper/draft.md`) was rejected by our own tests; `draft.md` needs a rewrite.
+
+**Correction (2026-10-07):** the frame embeddings are **SigLIP 2** (timm `v2_webli`), not SigLIP 1. Text compared against frames must use `SiglipTextEmbedder("google/siglip2-base-patch16-224")`. Earlier text-vs-frame results made with SigLIP 1 text are invalid (details in `docs/handover.md` §1).
 
 **Video-based arms:** must match the text arm's size (Llama-3.1-8B → a ~7B text+video model). On hold until the API budget decision.
 
 **Goal for new evaluations:** show the LLM beats simple baselines, and compare it fairly with video baselines. Normalize each arm to its own modality: recovery = (arm − masked) / (oracle − masked), and content-specific gain = arm − shuffled control.
 
 Legend: (Claude) = can be done locally; (GPU) = Claude prepares the config and hands over the exact command, the user runs it on the remote GPU; (API) = waiting on the API LLM budget.
+
+## 0. Captions vs. frames (new core direction)
+
+- [x] Audit with no masking (`scripts/caption_vs_siglip_audit.py` → `results/caption_audit/`):
+  - **Q1, grounding:** MRR 0.142 against 0.079 chance. Captions run **about 2 s early**: caption t best matches frame t+1 or t+2 in 222 of 335 videos. Frame timing was verified with `scripts/check_frame_timestamps.py`.
+  - **Q2, shared variation:** within-video R² ≈ 0.02 in every direction.
+  - **Q3, change timing:** caption change and frame change are uncorrelated.
+  - **Link:** Q1 and Q2 predict where caption copy trails frame copy (partial ρ ≈ −0.36 to −0.39, controlling for change rates) and where Llama trails caption copy (partial ρ ≈ +0.25).
+- [ ] (Claude) Caption-lag robustness: by channel, by position in the video (drift or constant offset), and whether shifting captions by +1 to +2 s improves caption copy and LLM scores against frames. Re-check Q3 with the lag corrected.
+- [ ] (Claude) Shared-target evaluation: re-run with SigLIP 2 text or retire it, and mark its old results invalid.
+- [ ] (Claude or API) Q4: caption correctness audit (hallucinations such as the "runner" camera-holder) on about 50 sampled seconds, manually or with a VLM judge.
+- [ ] (Claude) Check whether the lag and grounding findings generalize to how the captions were produced (single Gemini call over the whole video), e.g. by re-captioning a few videos per second as a control (API).
 
 ## 1. Data cleanup
 
@@ -20,8 +39,8 @@ Legend: (Claude) = can be done locally; (GPU) = Claude prepares the config and h
 ## 2. E1: question-conditioned evidence retrieval (demoted: cannot anchor the paper)
 
 - [x] Shuffled-reconstruction control (`scripts/downstream_shuffle_control.py`). MPNet: recon 0.237 against shuffled 0.143 and repeat 0.137 (MRR, 176 questions), so the gain is content-specific. SigLIP: shuffled alone reaches 0.213, so "recon beats oracle" is a style artifact. Use MPNet as primary.
-- [x] Full control set (`scripts/e1_evidence_retrieval.py`): Llama text from a *different gap of the same video* scores the same as the real reconstruction (MPNet 0.238 vs 0.237), so the gain is video topic, not gap content (that control leaks the evidence captions, but see the next item). Frames from another video beat the frame oracle (0.354 vs 0.246): per-video similarity offsets make within-video retrieval reward anything unusual.
-- [x] Symmetric design (`scripts/e1_symmetric_feasibility.py`, evidence + 2 decoys, 297 questions): even the oracle is near chance (MPNet 0.671, frames 0.618, chance 0.611). WildQA questions are video-level, so E1 and E2 lack temporal headroom. Not worth a decoy GPU run.
+- [x] Full control set (`scripts/e1_evidence_retrieval.py`): Llama text from a *different gap of the same video* scores the same as the real reconstruction (MPNet 0.238 vs 0.237), so the gain is video topic, not gap content (that control leaks the evidence captions, but see the next item). Frame arms re-run with SigLIP 2 text (2026-10-07): oracle 0.333, repeat 0.217, other-video 0.219. The earlier "other-video frames beat the oracle" was an artifact of mixing SigLIP 1 text with SigLIP 2 frames. In SigLIP 2 text, recon (0.322) still beats the oracle (0.272), so this is a style artifact; MPNet stays primary.
+- [x] Symmetric design (`scripts/e1_symmetric_feasibility.py`, evidence + 2 decoys, 297 questions), re-run with SigLIP 2 text: the oracle has little headroom (frames 0.707, MPNet 0.671, chance 0.611). WildQA questions are video-level, so E1 and E2 lack temporal headroom. Not worth a decoy GPU run.
 
 ## 3. Prompt ablation
 
@@ -35,8 +54,8 @@ Legend: (Claude) = can be done locally; (GPU) = Claude prepares the config and h
   - On evidence gaps, per-second rank still favors copy (25.8 against 21.4).
   - Llama's win rate against visual copy doubles (8% → 17%) under high visual boundary disagreement (scene changes).
 - [x] Forced-choice gap test (`scripts/forced_choice_gap.py`): gap + 3 same-length distractor spans masked jointly; every method picks the gap's content among 4 candidates (chance 25%). Baselines (1,325 items): caption copy 47%, assignment-aware 54%; frame copy 86%, assignment-aware 94%. Pre-registered LLM score: PMI (conditional minus no-context log-prob).
-- [ ] (GPU) LLM scoring for the forced-choice test: `python scripts/forced_choice_gap.py llm --model-key llama-3.1-8b --upload` (pilot with `--limit 40` first). Then locally: `.venv/bin/python scripts/forced_choice_gap.py report --download`.
-- [ ] (Claude) If the LLM clears the text baselines: harder distractors (spans near the gap) so frames no longer saturate, to look for regimes where text beats video.
+- [x] (GPU) LLM scoring for the forced-choice test, stopped at 180 of 1,325 items (`scripts/kaggle_forced_choice.py`). On the same items: Llama PMI 35% (CI 28–42), caption copy 52%, assignment-aware 59%, frame copy 85%. Llama's errors are independent of copy's, but fusion gives no gain. Report: `.venv/bin/python scripts/forced_choice_gap.py report --download`.
+- [x] Continuity-matched distractors (`scripts/forced_choice_matched_feasibility.py`): **NO-GO**. Frame continuity is too strong for matched distractors to exist; with both modalities matched, frame copy is still 65% on 286 items. Caption-only matching (675 items, caption copy 16%, frames 87%) remains possible as a supporting experiment.
 - [ ] (Claude) E4: set-level (best-of-gap) matching across all widths, as a diagnostic.
 - [ ] (API) E3: gap QA probes (now the main generation-based alternative, since WildQA questions are video-level). Generate 3–5 questions per gap from the true gap captions, answer them from each arm's transcript, and judge. Pilot on 50 gaps first.
 - [ ] (API or GPU) E2: reader QA on WildQA questions, with a text reader for the text arms and a video LLM reader for the frame arms. Pre-registered strata: visual boundary disagreement and gap width. Open decision: API model, or a local Qwen2-VL-7B.
@@ -44,8 +63,8 @@ Legend: (Claude) = can be done locally; (GPU) = Claude prepares the config and h
 
 ## 5. Paper
 
-- [ ] Rewrite `docs/paper/draft.md` around the new thesis. Cut H2 and the Δ/N spectrum to one paragraph (scene continuity explains it).
-- [ ] Figure 1: direct-similarity curves for the text arms. Figure 2: E1/E2 recovery and content-specific gain, text arms against video arms.
+- [ ] Rewrite `docs/paper/draft.md` around the captions-vs-frames thesis (section 0), with reconstruction as the consequence (LLM loses to copy everywhere). Cut H2 and the Δ/N spectrum to one paragraph (scene continuity explains it). Every mention of the visual encoder must say SigLIP 2.
+- [ ] Figure 1: caption-to-frame lag profile (Q1). Figure 2: forced-choice accuracy by modality and width. Figure 3: per-video caption grounding against the caption-copy deficit to frame copy.
 - [ ] Move to the venue's 4-page LaTeX template.
 
 ## Done (infrastructure)

@@ -26,7 +26,7 @@ This document establishes the authoritative ground truth for datasets, experimen
    - Evaluation embedding model: `all-mpnet-base-v2` (`768-dim`, `pool_scope: "video"`)
    - Completed Benchmark: 335 videos (100 `wild4` + 235 `wild5`) across gap widths \(W \in [1, 2, 3, 4, 6, 8, 12, 16]\) at \(i=29\).
    - Gap widths \(W > 16\) (\(W=24\) with \(N=4\), \(W=30\) with \(N=17\)) are excluded from the official benchmark due to prompt context window limits causing widespread caption truncation and video skipping.
-2. **Visual Representation Baseline**: **Google SigLIP** (`google/siglip-base-patch16-224`, `768-dim`).
+2. **Visual Representation Baseline**: **SigLIP 2** (`768-dim`; timm `vit_base_patch16_siglip_224.v2_webli`, text tower `google/siglip2-base-patch16-224`). Correction (2026-10-07): earlier docs and `metadata.yaml` say `google/siglip-base-patch16-224` (SigLIP 1), but timm's untagged name resolved to SigLIP 2 weights. Frame-only and text-only results are unaffected; any analysis that scored SigLIP 1 text against these frames is invalid.
    - Strategy: `Visual_SigLIP_MeanClosest` (boundary midpoint linear interpolation LERP at \(\alpha = 0.5\): \(\frac{v_{i-1} + v_{i+W}}{2}\)) and `Visual_SigLIP_RepeatClosest`.
    - Distractor pool: `pool_scope: "video"` (queries ranked against all 60 timestamps in the video).
 3. **Harmonized Distractor Pool**:
