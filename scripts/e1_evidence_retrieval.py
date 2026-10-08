@@ -10,7 +10,7 @@ Text arms (captions, embedded with MPNet; SigLIP-text reported for reference):
     oracle, masked, repeat (nearest boundary), lerp (positional), recon (Llama),
     recon_other_video (Llama text from a different video of the same domain),
     recon_same_video (Llama text for a different, non-overlapping gap of the same video)
-Frame arms (SigLIP frames, queried with SigLIP-text):
+Frame arms (SigLIP 2 frames, queried with SigLIP 2 text; the "sg_" text arms also use SigLIP 2 text):
     oracle, masked, repeat, lerp, other_video (frames of a different same-domain video)
 
 Two normalisations make text and frame arms comparable:
@@ -108,7 +108,8 @@ def cycle(texts: list[str], n: int) -> list[str]:
 
 def main():
     rng = np.random.default_rng(2025)
-    mpnet, sig = LocalEmbedder("all-mpnet-base-v2"), SiglipTextEmbedder()
+    # SigLIP 2 text: the stored frames are SigLIP 2 (timm v2_webli). SigLIP 1 text made the frame arms meaningless.
+    mpnet, sig = LocalEmbedder("all-mpnet-base-v2"), SiglipTextEmbedder("google/siglip2-base-patch16-224")
     same_video = {}
     for run in SAME_VIDEO_RUNS:
         for vid, recs in load_recon(run).items():

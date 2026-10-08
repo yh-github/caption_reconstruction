@@ -42,7 +42,10 @@ class VideoEmbedder:
 
         model_to_load = self.model_name
         if "siglip-base-patch16-224" in model_to_load:
-            model_to_load = "vit_base_patch16_siglip_224"
+            # timm's untagged name resolves to SigLIP 2 weights (v2_webli), which is what produced
+            # local/wild_videos_embs_siglip. Pinned so re-embedding stays consistent; the matching
+            # text encoder is google/siglip2-base-patch16-224, not google/siglip-base-patch16-224.
+            model_to_load = "vit_base_patch16_siglip_224.v2_webli"
         elif '/' in model_to_load and not (model_to_load.startswith('hf-hub:') or model_to_load.startswith('hf_hub:') or model_to_load.startswith('local-dir:')):
             model_to_load = f"hf-hub:{model_to_load}"
 

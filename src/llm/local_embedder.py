@@ -92,19 +92,27 @@ class SiglipTextEmbedder(BaseEmbedder):
         model_name: Name of the SigLIP model
         """
         self.model_name = model_name
-        self.device = device or device_setup.get_device()
-        
+        # str(): get_device() returns a torch.device, which never equals "cpu", so the checks below
+        # would load float16 weights on CPU (correct but ~50x slower).
+        self.device = str(device or device_setup.get_device())
+
         logger.info(f"Initializing SiglipTextEmbedder with {model_name} on {self.device}")
         
-        from transformers import AutoTokenizer, SiglipTextModel
+        # SigLIP 2 (e.g. google/siglip2-base-patch16-224) matches the stored frame embeddings in
+        # local/wild_videos_embs_siglip, which timm produced with vit_base_patch16_siglip_224.v2_webli.
+        # Its text tower is used through the full model's get_text_features, on lowercased text.
+        self.is_siglip2 = "siglip2" in model_name.lower()
+        from transformers import AutoModel, AutoTokenizer, SiglipTextModel
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        model_cls = AutoModel if self.is_siglip2 else SiglipTextModel
         if self.device != "cpu":
-            self.model = SiglipTextModel.from_pretrained(model_name, torch_dtype=torch.float16, attn_implementation="sdpa").to(self.device)
+            self.model = model_cls.from_pretrained(model_name, torch_dtype=torch.float16, attn_implementation="sdpa").to(self.device)
         else:
-            self.model = SiglipTextModel.from_pretrained(model_name).to(self.device)
+            self.model = model_cls.from_pretrained(model_name).to(self.device)
         self.model.eval()
-        
-        out_dim = getattr(self.model.config, "hidden_size", 768)
+
+        text_config = getattr(self.model.config, "text_config", self.model.config)
+        out_dim = getattr(text_config, "hidden_size", 768)
         
         cache_dir = get_cache_dir(model_name + "_text")
         super().__init__(cache_dir, out_dim)
@@ -117,12 +125,17 @@ class SiglipTextEmbedder(BaseEmbedder):
         
         if self.device == "cpu":
             torch.set_num_threads(4)
-            torch.set_num_interop_threads(1)
+            try:
+                torch.set_num_interop_threads(1)
+            except RuntimeError:  # allowed once per process, before any parallel work
+                pass
             
         batch_size = 32
         embeddings_list = []
         for i in range(0, len(texts), batch_size):
             chunk = texts[i:i + batch_size]
+            if self.is_siglip2:
+                chunk = [t.lower() for t in chunk]
             inputs = self.tokenizer(
                 chunk,
                 padding="max_length",
@@ -136,8 +149,11 @@ class SiglipTextEmbedder(BaseEmbedder):
                 inputs = {k: v.to(self.device) for k, v in inputs.items()}
             
             with torch.no_grad():
-                outputs = self.model(**inputs)
-                raw_embeds = outputs.pooler_output
+                if self.is_siglip2:
+                    outputs = self.model.get_text_features(**inputs)
+                    raw_embeds = getattr(outputs, "pooler_output", outputs)
+                else:
+                    raw_embeds = self.model(**inputs).pooler_output
                 emb = torch.nn.functional.normalize(raw_embeds, p=2, dim=-1)
                 
             embeddings_list.append(emb.cpu().numpy())

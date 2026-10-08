@@ -76,7 +76,8 @@ def rr(q, filled, spans):
 
 def main():
     rng = np.random.default_rng(2025)
-    mp, sg = LocalEmbedder("all-mpnet-base-v2"), SiglipTextEmbedder()
+    # SigLIP 2 text: the stored frames are SigLIP 2 (timm v2_webli); SigLIP 1 text is not in their space.
+    mp, sg = LocalEmbedder("all-mpnet-base-v2"), SiglipTextEmbedder("google/siglip2-base-patch16-224")
     rows = []
     for split in ["dev", "test"]:
         cap_dir = Path(f"datasets/wildQA/captions__wild{4 if split == 'dev' else 5}")
