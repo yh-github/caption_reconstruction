@@ -30,6 +30,7 @@ Gotchas:
 - `--override` keys use `/` as the path separator, not `.` (see `set_nested_key` in `src/experiment_executor/config_loader.py`). List indices are numeric parts, e.g. `recon_strategy/0/temperature=0.6`. Some docs show `.`, which is wrong.
 - A real (non-dry) run fails if the git tree is dirty, including untracked files, because the commit hash is logged to MLflow for reproducibility. Pass `--ignore-unsafe` (or `--debug`) to bypass this.
 - `src/` modules import each other as top-level packages (`from experiment_executor...`, `from llm...`), not `src.xxx`. Scripts in `scripts/` add `src/` to `sys.path` themselves.
+- Frontier LLM arms (Claude Haiku/Sonnet/Opus) run on the user's Claude Code subscription, not the API, through `scripts/blind_llm_runner.py`: one isolated `claude -p` session per item, with no tools and no MCP. These calls spend the user's usage quota, so pilot with `--limit` and confirm before large runs. Details are in `docs/handover.md` (2026-10-08 §D).
 - There is no lint or CI config. CONTRIBUTING says loose PEP 8 with type hints; black/flake8 are optional.
 
 ## Architecture

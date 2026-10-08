@@ -8,7 +8,11 @@ Latest session summary and decisions: `docs/handover.md` (newest session at the 
 **Current state of the thesis (2026-10-08):**
 - **Reconstruction as the paper's core: NO-GO at 8B.** Llama loses to copying on every metric, including forced choice (35% against 52% for caption copy).
 - **New direction: GO.** The paper becomes "what dense LLM captions keep and lose relative to visual embeddings, and why that caps text-based reconstruction" (section 0). Captions share topic with the frames but barely track second-to-second change, and they run 1–2 s early in every channel (Gemini 3 Flash, one call per video). Videos where captions are better grounded show smaller caption-copy deficits.
-- The old "procedural vs. stochastic" thesis (H1/H2 in `docs/paper/draft.md`) was rejected by our own tests; `draft.md` needs a rewrite.
+- Topic is kept, timing is lost. In frame space, the true caption scores c = 0.80 against other videos but 0.18 against nearby seconds, no better than a neighboring caption; frames keep 0.52 there. Correcting the lead brings it to 0.28 (§0, shared-target item).
+- **Main open threat:** is the near-second weakness the captions', or SigLIP's text-to-image link? See the bridge-ceiling item in section 0.
+- The old "procedural vs. stochastic" thesis (H1/H2 in `docs/paper/draft.md`) was rejected by our own tests. `draft.md` is frozen; the paper is now `docs/paper/captions_vs_frames.md`.
+
+**No API key needed for LLM arms (2026-10-08):** `scripts/blind_llm_runner.py` runs Claude models through `claude -p` on the Claude Code subscription, one isolated session per item (handover §D). Items marked (API) below can mostly use it now: (Sub) = runs on the subscription via this driver, spending usage quota, so confirm before large runs.
 
 **Correction (2026-10-07):** the frame embeddings are **SigLIP 2** (timm `v2_webli`), not SigLIP 1. Text compared against frames must use `SiglipTextEmbedder("google/siglip2-base-patch16-224")`. Earlier text-vs-frame results made with SigLIP 1 text are invalid (details in `docs/handover.md` §1).
 
@@ -37,8 +41,9 @@ Legend: (Claude) = can be done locally; (GPU) = Claude prepares the config and h
 - [x] Near-pool comparison with lag-corrected captions (`caption_lag_robustness.py` part 5):
   - The true caption goes from c = 0.17 to 0.28 at +2 s (+0.11 [0.07, 0.15]), so it now beats caption copy (0.20) but stays far below frame copy (0.52).
   - The lead explains about a third of the near-second gap.
-- [ ] (Claude or API) Q4: caption correctness audit (hallucinations such as the "runner" camera-holder) on about 50 sampled seconds, manually or with a VLM judge.
-- [ ] (Claude) Check whether the lag and grounding findings generalize to how the captions were produced (single Gemini call over the whole video), e.g. by re-captioning a few videos per second as a control (API).
+- [ ] (Claude or Sub) Q4: caption correctness audit (Opus judge via the blind runner's image mode, with planted wrong captions as a check) (hallucinations such as the "runner" camera-holder) on about 50 sampled seconds, manually or with a VLM judge.
+- [ ] (Claude, high priority) **Bridge ceiling:** caption individual frames of about 30 videos with a free local captioner (Florence-2 or BLIP) and score them in the near pool. If time-aligned captions also score about 0.18, the limit is SigLIP's text-to-image link, not Gemini's captions, and the timing claim must be softened.
+- [ ] (Sub) Re-caption about 30 videos with Claude Sonnet, per second (isolated calls, ~600) against whole minute (30 calls). This tests whether whole-video captioning causes the lead and the lost timing, and whether the findings generalize beyond Gemini. It needs an image mode in `blind_llm_runner.py` (frames extracted from `local/wild_videos_raw`).
 
 ## 1. Data cleanup
 
@@ -69,7 +74,11 @@ Legend: (Claude) = can be done locally; (GPU) = Claude prepares the config and h
 - [ ] (Claude) E4: set-level (best-of-gap) matching across all widths, as a diagnostic.
 - [ ] (API) E3: gap QA probes (now the main generation-based alternative, since WildQA questions are video-level). Generate 3–5 questions per gap from the true gap captions, answer them from each arm's transcript, and judge. Pilot on 50 gaps first.
 - [ ] (API or GPU) E2: reader QA on WildQA questions, with a text reader for the text arms and a video LLM reader for the frame arms. Pre-registered strata: visual boundary disagreement and gap width. Open decision: API model, or a local Qwen2-VL-7B.
-- [ ] (API) A stronger text model as a scaling point, on direct similarity, E1 and E3.
+- [ ] (Sub) A stronger text model as a scaling point. `scripts/blind_llm_runner.py` is built and piloted (Haiku, 10 calls; isolation verified; scorer matches the master CSV). Planned:
+  - Sonnet 5.5: choice (180 calls) and recon (400 calls);
+  - Opus 5.5: choice (180 calls) and recon `--limit 200`.
+
+  Commands are in handover §D. Caveat: forced choice is direct choice here, while Llama's was PMI.
 
 ## 5. Paper
 

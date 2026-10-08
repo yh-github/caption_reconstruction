@@ -51,14 +51,54 @@ Source: `scripts/caption_lag_robustness.py` → `results/caption_audit/lag_{prof
   - The "headroom" sweep printout is uninformative (every CI spans [0, 1.9]); ignore it.
 - **Paper value.** This table is the cleanest single statement of the thesis and a candidate main table.
 
-## D. Next
+## D. Frontier text-only arm through Claude Code (no API key)
+
+**Why.** Is the reconstruction cap in the captions or in the 8B model? A frontier model that sees only captions answers that. The model being multimodal doesn't matter, because it never sees frames. Running Claude through `claude -p` uses the user's Claude Code subscription (usage limits), not the API, so it needs no budget.
+
+**Driver:** `scripts/blind_llm_runner.py`, one fresh isolated `claude -p` session per item:
+- no built-in tools (`--tools ""`) and no MCP servers (`--strict-mcp-config` with an empty config);
+- `--system-prompt` replaces the agent prompt;
+- `--no-session-persistence`;
+- a fixed, empty working directory outside the repo, checked before every call;
+- refuses to run if `ANTHROPIC_API_KEY` is set (that would bill the API);
+- `--effort` pinned (default `medium`) and recorded, because the models think adaptively;
+- prompt caching off (`DISABLE_PROMPT_CACHING=1`). In the pilot, Claude Code's own cache breakpoints meant nothing was ever read back, so every call just wrote a 1-hour cache entry. With caching off, each call costs about 5k input tokens.
+- `--bare` can't be used: it accepts only an API key and ignores the subscription login.
+
+**Tasks:**
+- `recon`: the exact Llama prompt (`prompts/dense_window` via `JSONPromptBuilder`, `FixedFillMasking(w, i=29)`). Items: a seeded sample of 100 videos × W ∈ {1, 4, 8, 16}, 400 items in video-major order, so `--limit 200` = 50 videos × 4 widths.
+- `choice`: the 180 forced-choice items Llama scored. The context has all 4 spans masked, as in the Llama run, and the 4 candidates appear in seeded random order. The correct letters are balanced (A 43, B 48, C 39, D 50). The prompt was checked: the true captions don't appear outside the candidate list.
+  - **Protocol caveat:** Llama was scored by log-prob (PMI). Claude makes a direct choice. The paper must say so. Getting Llama's direct choice would need a GPU run.
+- `score`: MPNet rank among the video's 60 captions (as in the master CSV) and SigLIP 2 frame rank, for Claude, Llama and caption copy on the same gaps. Verified against the master CSV on 61 Llama gaps: mean |diff| 0.01 ranks.
+
+**Pilot (Haiku 5.5, 10 calls in total):**
+- `probe`: tools `[]`, mcp_servers `[]`, 1 turn. ISOLATION OK.
+- 9 items: all valid JSON, 1 turn each, 2–6 s per call, sensible captions, choice 3/3. The 3-gap scores mean nothing yet.
+- Pilot outputs are in `results/blind_llm/pilot/` (before effort pinning). The current `recon__haiku.jsonl` holds 3 items.
+
+**Planned runs** (not started; they spend the user's quota, so confirm first):
+
+| Model | Run | Calls |
+|---|---|---|
+| Sonnet 5.5 | `run --task choice --model sonnet` | 180 |
+| Sonnet 5.5 | `run --task recon --model sonnet` | 400 |
+| Opus 5.5 | `run --task choice --model opus` | 180 |
+| Opus 5.5 | `run --task recon --model opus --limit 200` | 200 |
+
+After each run: `check --task <t> --model <m>` (validity, turns, tokens, choice accuracy), then `score --model <m>` for recon. Runs resume: valid items are skipped. A long run can go in the background, with a `--limit` per sitting to spread quota.
+
+**Later, same driver, image mode** (to add): per-second captioning versus whole-minute captioning of about 30 videos with Sonnet. It tests whether whole-video captioning causes the lead and the lost timing, and whether the 0.18 is the captions or SigLIP's text-to-image link. It's also the Q4 judge (Opus, with planted wrong captions as a check).
+
+## E. Next
 
 1. Done: the near pool with lag-corrected captions (`caption_lag_robustness.py` part 5). The true caption goes from 0.17 to 0.28 at +2 s, against 0.20 for caption copy and 0.52 for frame copy, so the lead explains about a third of the near-second gap.
 2. §4.1 of `captions_vs_frames.md` is filled. Llama trails caption copy by 3.9 ranks [3.1, 4.8], and only at W = 1 does it tie. Caption copy trails frame copy by 10.6 ranks [9.3, 12.0].
 3. Done: figures 1 to 4 (`scripts/make_paper_figures.py`; list in `captions_vs_frames.md` "Figures").
 4. Done: the abstract and related work. References marked † were cited from memory; the rest were checked. Next for the paper: tighten to 4 pages, LaTeX template, pick two figures.
-5. Doc reconciliation (TODO §1): now mostly moot, since `draft.md` is frozen. Just make sure the new draft uses the right counts.
-6. Q4 caption correctness and the re-captioning control: waiting on the API budget decision.
+5. **Main open threat to the thesis:** is the near-pool 0.18 a property of the captions, or of SigLIP's text-to-image link? Control: captions that are aligned by construction, either from a free local per-frame captioner (Florence-2 or BLIP, about 30 videos) or from the image mode of the blind runner. If those also score about 0.18, soften the timing claim.
+6. Run the planned Claude text-only runs (section D), after the user confirms.
+7. Doc reconciliation (TODO §1): now mostly moot, since `draft.md` is frozen. Just make sure the new draft uses the right counts.
+8. Q4 caption correctness and the re-captioning control: no longer blocked on an API budget. They can use the blind runner's image mode (section D) on the subscription.
 
 ---
 
