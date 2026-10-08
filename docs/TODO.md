@@ -3,11 +3,11 @@
 Full reasoning, verified numbers and the evaluation design are in the paper-readiness assessment (2026-10-05):
 https://claude.ai/code/artifact/26353452-f893-49df-85ac-d3a85c9becd2
 
-Latest session summary and decisions: `docs/handover.md` (2026-10-07).
+Latest session summary and decisions: `docs/handover.md` (newest session at the top; 2026-10-08). Working paper draft: `docs/paper/captions_vs_frames.md`.
 
-**Current state of the thesis (2026-10-07):**
+**Current state of the thesis (2026-10-08):**
 - **Reconstruction as the paper's core: NO-GO at 8B.** Llama loses to copying on every metric, including forced choice (35% against 52% for caption copy).
-- **New direction: GO.** The paper becomes "what dense LLM captions keep and lose relative to visual embeddings, and why that caps text-based reconstruction" (section 0). Captions share topic with the frames but barely track second-to-second change, and they run about 2 s early. Videos where captions are better grounded show smaller caption-copy deficits.
+- **New direction: GO.** The paper becomes "what dense LLM captions keep and lose relative to visual embeddings, and why that caps text-based reconstruction" (section 0). Captions share topic with the frames but barely track second-to-second change, and they run 1–2 s early in every channel (Gemini 3 Flash, one call per video). Videos where captions are better grounded show smaller caption-copy deficits.
 - The old "procedural vs. stochastic" thesis (H1/H2 in `docs/paper/draft.md`) was rejected by our own tests; `draft.md` needs a rewrite.
 
 **Correction (2026-10-07):** the frame embeddings are **SigLIP 2** (timm `v2_webli`), not SigLIP 1. Text compared against frames must use `SiglipTextEmbedder("google/siglip2-base-patch16-224")`. Earlier text-vs-frame results made with SigLIP 1 text are invalid (details in `docs/handover.md` §1).
@@ -30,7 +30,11 @@ Legend: (Claude) = can be done locally; (GPU) = Claude prepares the config and h
   - Mostly a constant offset; the lead shrinks slightly late in the clip (slope −0.33 s per minute).
   - Re-aligning by +2 s improves the oracle caption's frame rank (22.9 → 20.2) but not caption copy (+0.4, CI touches 0) or Llama (28.5, about chance).
   - Q3 with the lag corrected: event coincidence is 33% against 27% chance; Spearman ≈ 0.
-- [ ] (Claude) Shared-target evaluation: re-run with SigLIP 2 text or retire it, and mark its old results invalid.
+- [x] Shared-target evaluation re-run with SigLIP 2 text (`configs/eval_shared_target.yaml` fixed; old frame-home text results in `results/invalid_siglip1_text/`). All gates pass.
+  - **Topic kept, timing lost.** In frame space the true caption scores c = 0.80 against other-channel frames, but only 0.18 against frames within ±10 s. There it equals caption copy (0.19), while frame copy reaches 0.52. Llama is 0.05 near and 0.70 against other channels.
+  - C1–C4: Llama is INFERIOR to both caption baselines.
+  - Details: `docs/paper/captions_vs_frames.md` §3.5.
+- [ ] (Claude) Near-pool comparison with lag-corrected captions (+1 to +2 s): how much of the 0.18 the lead explains.
 - [ ] (Claude or API) Q4: caption correctness audit (hallucinations such as the "runner" camera-holder) on about 50 sampled seconds, manually or with a VLM judge.
 - [ ] (Claude) Check whether the lag and grounding findings generalize to how the captions were produced (single Gemini call over the whole video), e.g. by re-captioning a few videos per second as a control (API).
 

@@ -1,4 +1,70 @@
-# Handover: 2026-10-07 → next session
+# Handover
+
+The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
+
+# 2026-10-08 → next session
+
+**Goal:** firm up the caption lag, settle the shared-target evaluation, and start the paper in a new file.
+
+## A. Housekeeping
+
+- Committed the 2026-10-07 work in three commits (SigLIP 2 fixes, new scripts, docs). `.gitignore` now ignores `.test_lock*`.
+- **New paper file: `docs/paper/captions_vs_frames.md`.** It is the working draft around the captions-vs-frames thesis. `draft.md` stays untouched as the record of the old thesis.
+- **Caption provenance corrected.** `draft.md` §2.1 says Gemini 1.5 Flash on isolated 1-s clips. That is wrong. The configs (`config/gen_captions/wild{4,5}.yaml`) show `gemini-3-flash-preview`: one call per 60-s video, 1 fps, temperature 0.8, thinking on, prompt `prompts/yt_video_processing/one_minute.txt`. Seeing the whole clip in one call is a plausible cause of the lead.
+
+## B. Caption lag robustness: the lead is real and universal
+
+Source: `scripts/caption_lag_robustness.py` → `results/caption_audit/lag_{profiles,shift_ranks,q3}.csv`. Full numbers are in `captions_vs_frames.md` §3.2.
+
+- **Size:** the lag profile is flat between +1 and +2, so the lead is about 1.5 s.
+- **Universal:** the peak is at +1 or +2 in 39 of 40 channels (+3 in one); no channel peaks at 0 or earlier. The profile is the same for wild4 and wild5 and in every caption-length tertile.
+- **Mostly a constant offset.** The peak is +2 in each third of the clip. The lead shrinks somewhat late in the clip (slope −0.33 s per minute, CI [−0.61, −0.04]).
+- **Re-alignment** (fill at slot t scored against frame t+s, SigLIP 2, rank among 60):
+
+  | Fill | s = 0 | s = +2 |
+  |---|---|---|
+  | Oracle caption | 22.9 | 20.2 |
+  | Caption copy | 23.9 | 23.5 (CI touches 0) |
+  | Llama | 28.5 | 28.8 (about chance) |
+
+  Gap fills carry no second-level timing to re-align. In frame space, caption copy is within one rank of the oracle.
+- **Q3 with the lag corrected:** event coincidence rises to 33% against 27% chance; Spearman stays ≈ 0.
+
+## C. Shared-target evaluation: re-run with SigLIP 2 text
+
+- **Old outputs moved.** The outputs containing frame-home text-arm numbers (frame-home `T_Oracle` c ≈ 0) were moved to `results/invalid_siglip1_text/`, with a README:
+  - the whole old `redesign_*` run;
+  - `wild4_sweep_shared_target.csv` and `wild4_sweep_summary.csv`.
+- **Outputs left in place.** Caption-home-only and visual-only outputs stay where they were, and so do all figures in `docs/paper/figures/`. None of the plots uses frame-home text arms.
+- **Config fixes.** `configs/eval_shared_target.yaml` now uses `google/siglip2-base-patch16-224`, and `analyze_wild4_sweep.py` takes the model from that config instead of the SigLIP 1 default.
+- **Results** (335 videos, mid gaps, W = 3 and 6; full table in `captions_vs_frames.md` §3.5). All gates pass; frame-home `T_Oracle` is now 0.32, where it was about 0. In frame space, by distractor pool:
+
+  | Arm | ±10 s, same video | other channel |
+  |---|---|---|
+  | True caption | 0.18 | 0.80 |
+  | Caption copy | 0.19 | 0.81 |
+  | Llama | 0.05 | 0.70 |
+  | Frame copy | 0.52 | 0.94 |
+
+  - **Topic is kept, timing is lost.** Against nearby seconds, the true caption is no better than the boundary caption copied into the gap.
+  - C1–C4: Llama is INFERIOR to both caption baselines at W = 3 and 6 (Holm p < 0.001).
+  - The "headroom" sweep printout is uninformative (every CI spans [0, 1.9]); ignore it.
+- **Paper value.** This table is the cleanest single statement of the thesis and a candidate main table.
+
+## D. Next
+
+1. Re-run the near-pool comparison with captions shifted by +1 to +2 s, to see how much of the near-pool gap the lead explains. This is cheap: shift the frame index in the stratum scoring, or reuse `caption_lag_robustness.py`'s shifted ranks restricted to ±10 s.
+2. Fill the remaining sections of `captions_vs_frames.md`:
+   - §4.1, per-second numbers from the master CSV;
+   - related work;
+   - the abstract.
+   Then make Figures 1 to 3 (and maybe the §3.5 table as a figure).
+3. Doc reconciliation (TODO §1): now mostly moot, since `draft.md` is frozen. Just make sure the new draft uses the right counts.
+4. Q4 caption correctness and the re-captioning control: waiting on the API budget decision.
+
+---
+
+# 2026-10-07 → next session
 
 **Today's goal:** a GO/NO-GO on reconstruction as the paper's core, and a test of the "captions vs. SigLIP" direction against criteria set before running it.
 

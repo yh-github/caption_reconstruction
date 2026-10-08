@@ -64,7 +64,31 @@ Source: `scripts/caption_lag_robustness.py` → `results/caption_audit/lag_*.csv
 - Per-video Spearman between caption change and frame change: −0.04. Top-10% change events coincide (±1 s) 29% of the time vs. 26% by chance.
 - **With the lag corrected** (caption change at t against frame change at t+s): coincidence rises to 33% at s = +1 or +2, against 27% by chance (shuffled caption changes). Per-video Spearman stays at about 0.01. So correcting the lag recovers only a little event alignment, and the two change signals stay essentially unrelated.
 
-### 3.5 Caption correctness (Q4)
+### 3.5 Topic vs. timing, by distractor pool
+
+Source: `scripts/eval_shared_target.py` (config `configs/eval_shared_target.yaml`, re-run 2026-10-08 with SigLIP 2 text) → `results/redesign_shared_target*.csv`. Setup:
+- Each arm's prediction for a masked second is scored in frame space: SigLIP 2 text or frame against the true frame.
+- The score is calibrated AUC c = 2·AUC − 1 (0 = chance, 1 = perfect) against distractor frames from different pools.
+- Mid gaps (i = 29), W = 3 and 6, 335 videos; per-video means.
+- All pre-registered sanity gates pass.
+
+| Arm (frame space) | same video, ±10 s | same video, far | other video, same channel | other channel |
+|---|---|---|---|---|
+| True caption | 0.18 | 0.33 | 0.72 | 0.80 |
+| Caption copy (nearest boundary) | 0.19 | 0.35 | 0.72 | 0.81 |
+| Llama-3.1-8B | 0.05 | 0.14 | 0.58 | 0.70 |
+| Frame copy | 0.52 | 0.76 | 0.93 | 0.94 |
+| Random caption / frame | ≈ 0 | ≈ 0 | ≈ 0 | ≈ 0 |
+
+- **Topic survives.** Against other videos, the true caption reaches 0.80, not far below frame copy (0.94).
+- **Timing does not.** Against nearby seconds of the same video, the true caption falls to 0.18, and it is no better than the boundary caption copied into the gap (0.19).
+  - The caption written for second t carries no more information about which nearby frame is second t than a caption written for a neighboring second does.
+  - Frames keep 0.52 there.
+  - The far-minus-near drop is 0.16 [0.13, 0.19] for the true caption and 0.24 [0.22, 0.26] for frame copy (channel bootstrap).
+  - This pool uses unshifted captions, so the 1–2 s lead (§3.2) accounts for part of the near-pool weakness.
+- **Llama is below copy in every pool**, so it loses topic as well as timing. Pre-registered C1–C4 (Llama against caption copy and caption mean, W = 3 and 6): all INFERIOR, paired difference −0.19 to −0.23, Holm p < 0.001.
+
+### 3.6 Caption correctness (Q4)
 
 **TODO** (needs API budget or manual pass): about 50 sampled seconds, labeled correct / wrong time / hallucinated (e.g. the "runner" camera-holder).
 
