@@ -10,7 +10,7 @@ Latest session summary and decisions: `docs/handover.md` (newest session at the 
 - **But a frontier text model changes the forced-choice picture (2026-10-08):** with captions only, Sonnet 5.5 picks the right gap content 77% of the time (caption copy 46%, frame copy 88%; 160 items, 36 channels). For recognition, the 8B model was a large part of the cap. Captions carry more than copy extracts, but still less than frames. Generation (reconstruction) by Sonnet is only about level with caption copy on a 10-video sample.
 - **New direction: GO.** The paper becomes "what dense LLM captions keep and lose relative to visual embeddings, and why that caps text-based reconstruction" (section 0). Captions share topic with the frames but barely track second-to-second change, and they run 1–2 s early in every channel (Gemini 3 Flash, one call per video). Videos where captions are better grounded show smaller caption-copy deficits.
 - Topic is kept, timing is lost. In frame space, the true caption scores c = 0.80 against other videos but 0.18 against nearby seconds, no better than a neighboring caption; frames keep 0.52 there. Correcting the lead brings it to 0.28 (§0, shared-target item).
-- **Main open threat:** is the near-second weakness the captions', or SigLIP's text-to-image link? See the bridge-ceiling item in section 0.
+- **Resolved threat:** is the near-second weakness the captions' or SigLIP's text-to-image link? It's the captions'. Florence-2 per-frame captions reach near c 0.47 through the same link, against Gemini's 0.16, and they peak at lag 0 (bridge-ceiling item in section 0).
 - The old "procedural vs. stochastic" thesis (H1/H2 in `docs/paper/draft.md`) was rejected by our own tests. `draft.md` is frozen; the paper is now `docs/paper/captions_vs_frames.md`.
 
 **No API key needed for LLM arms (2026-10-08):** `scripts/blind_llm_runner.py` runs Claude models through `claude -p` on the Claude Code subscription, one isolated session per item (handover §D). Items marked (API) below can mostly use it now: (Sub) = runs on the subscription via this driver, spending usage quota, so confirm before large runs.
@@ -43,9 +43,10 @@ Legend: (Claude) = can be done locally; (GPU) = Claude prepares the config and h
   - The true caption goes from c = 0.17 to 0.28 at +2 s (+0.11 [0.07, 0.15]), so it now beats caption copy (0.20) but stays far below frame copy (0.52).
   - The lead explains about a third of the near-second gap.
 - [ ] (Claude or Sub) Q4: caption correctness audit (Opus judge via the blind runner's image mode, with planted wrong captions as a check) (hallucinations such as the "runner" camera-holder) on about 50 sampled seconds, manually or with a VLM judge.
-- [ ] (GPU, high priority) **Bridge ceiling** (`scripts/bridge_ceiling.py`): Florence-2 per-frame captions on 30 videos from 30 channels, scored in the near pool.
-  - Frames are extracted and uploaded to the private HF repo. Paste `scripts/kaggle_bridge_ceiling.py` into a Kaggle GPU notebook; then locally run `pull-captions` and `eval`.
-  - If time-aligned captions also score about 0.18, the limit is SigLIP's text-to-image link, not Gemini's captions, and the timing claim must be softened.
+- [x] **Bridge ceiling** (`scripts/bridge_ceiling.py` + `scripts/kaggle_bridge_ceiling.py`; draft §3.6). Florence-2 per-frame captions on 30 videos from 30 channels:
+  - near c **0.47** [0.39, 0.54] against Gemini 0.16 (0.21 shifted +2 s) and frame copy 0.65;
+  - lag peak 0 in 28 of 30 videos.
+  - The encoder can carry timing, so the timing loss is in the Gemini captions. The thesis threat is resolved.
 - [ ] (Sub) Re-caption about 30 videos with Claude Sonnet, per second (isolated calls, ~600) against whole minute (30 calls). This tests whether whole-video captioning causes the lead and the lost timing, and whether the findings generalize beyond Gemini. It needs an image mode in `blind_llm_runner.py` (frames extracted from `local/wild_videos_raw`).
 
 ## 1. Data cleanup

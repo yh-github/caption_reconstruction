@@ -173,7 +173,10 @@ After each run: `check --task <t> --model <m>` (validity, turns, tokens, choice 
    - **Risk:** the runner installs `transformers==5.14.1` (verified locally for Florence-2) on top of Kaggle's torch. If that combination fails, the error shows up at install or model load.
    - **Reading:** if per-frame captions also score about 0.18 near, soften the timing claim. If they score well above it, Gemini's captions lack timing.
 6. Claude text-only runs (section D): Sonnet forced choice is done (77%). Next: an Opus cost probe (about 20 calls), Opus on the same 160 items, and Sonnet reconstruction on more videos. All of these spend quota, so confirm with the user first.
-7. The user is running `scripts/kaggle_bridge_ceiling.py` on Kaggle (started 2026-10-08). When it finishes: `bridge_ceiling.py pull-captions`, then `eval`.
+7. **Done: the bridge ceiling** (Kaggle captioning, then local `eval`; details in `captions_vs_frames.md` §3.6). It resolves item 5.
+   - Florence-2 per-frame captions score near c = 0.47 [0.39, 0.54] through the same SigLIP 2 link, against 0.16 for Gemini (0.21 shifted +2 s) and 0.65 for frame copy.
+   - Per-frame captions peak at lag 0 in 28 of 30 videos.
+   - So the lost timing is in the Gemini captions, not the encoder, and the lead isn't a measurement artifact.
 8. Doc reconciliation (TODO §1): now mostly moot, since `draft.md` is frozen. Just make sure the new draft uses the right counts.
 9. Q4 caption correctness and the re-captioning control: no longer blocked on an API budget. They can use the blind runner's image mode (section D) on the subscription.
 

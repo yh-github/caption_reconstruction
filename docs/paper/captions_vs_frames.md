@@ -96,7 +96,28 @@ Source: `scripts/eval_shared_target.py` (config `configs/eval_shared_target.yaml
   - **With the lead corrected** (`caption_lag_robustness.py` part 5: slot t scored against frame t+s, pool built around the shifted gap), the true caption rises from 0.17 at s = 0 to 0.25 at s = +1 and 0.28 at s = +2. The gain at +2 is +0.11 [+0.07, +0.15]. It then beats caption copy (0.20) but stays far below frame copy (0.52). Caption copy (+0.01) and Llama (−0.02) don't gain. The lead accounts for about a third of the caption-to-frame gap on nearby seconds; the rest is timing information the captions don't carry.
 - **Llama is below copy in every pool**, so it loses topic as well as timing. Pre-registered C1–C4 (Llama against caption copy and caption mean, W = 3 and 6): all INFERIOR, paired difference −0.19 to −0.23, Holm p < 0.001.
 
-### 3.6 Caption correctness (Q4)
+### 3.6 Is it the captions or the encoder? A time-aligned ceiling
+
+Source: `scripts/bridge_ceiling.py` → `results/bridge_ceiling/`. The near-pool weakness could come from SigLIP 2's text-to-image link rather than from the captions. To test that, we captioned each frame on its own with Florence-2 base (`<DETAILED_CAPTION>`), which gives captions that are time-aligned by construction. Setup:
+- 30 videos from 30 channels, every second;
+- the same SigLIP 2 text tower;
+- near pool: frames 2–10 s from the target, t ∈ [10, 50);
+- 95% CIs by video bootstrap (one video per channel).
+
+| Captions | near c | other-video c | Q1 MRR | Lag-profile peak |
+|---|---|---|---|---|
+| Florence-2, per frame | **0.47** [0.39, 0.54] | 0.99 | **0.27** | **0** (28/30 videos) |
+| Gemini, whole minute | 0.16 [0.12, 0.21] | 0.92 | 0.14 | +2 |
+| Gemini, shifted +2 s | 0.21 [0.16, 0.27] | 0.93 | — | — |
+| Frame copy (frame t−1) | 0.65 | 0.98 | — | — |
+
+- **The text-to-image link can carry second-level information.** Per-frame captions beat Gemini's on nearby frames by +0.31 [0.24, 0.37], and still by +0.25 [0.19, 0.31] after correcting Gemini's lead.
+- **The weak timing is a property of the Gemini captions, not of the encoder.**
+- **The lag method is validated.** Per-frame captions peak at lag 0, so Gemini's +1 to +2 s lead is not an artifact of the measurement.
+- **Text loses something even when aligned.** Per-frame captions still fall short of frame copy (0.47 vs. 0.65), which bounds what any caption can carry through this encoder.
+- **Caveat:** Florence-2 is a different captioner, and its captions are more literal and visual, often near-duplicates across adjacent seconds. So this isolates "aligned, frame-specific text" rather than "the same captioner, aligned". Per-second re-captioning with the same kind of model is the remaining control (TODO).
+
+### 3.7 Caption correctness (Q4)
 
 **TODO** (needs API budget or manual pass): about 50 sampled seconds, labeled correct / wrong time / hallucinated (e.g. the "runner" camera-holder).
 
