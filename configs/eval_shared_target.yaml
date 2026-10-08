@@ -13,8 +13,10 @@ dataset:
     Wild4_w6: "reconstruction/wild4_llama_w6"
     Wild5_w3: "reconstruction/wild5_llama_w3_w6"
     Wild5_w6: "reconstruction/wild5_llama_w3_w6"
-  siglip_model: "google/siglip-base-patch16-224"
-  siglip_text_cache: "disk_cache/local_google_siglip-base-patch16-224_text"
+  # SigLIP 2: the stored frames are SigLIP 2 (timm v2_webli). The original SigLIP 1 text tower is not in
+  # their space (frame-home T_Oracle came out at c ~ 0); results from it were moved to results/invalid_siglip1_text/.
+  siglip_model: "google/siglip2-base-patch16-224"
+  siglip_text_cache: "disk_cache/local_google_siglip2-base-patch16-224_text"
 
 arms:
   text:

@@ -79,7 +79,7 @@ def run_wild4_sweep(
     gt_frames = load_all_frames(cfg["dataset"]["visual_embs_dir"], w4_meta)
     
     print("3. Pre-embedding ground-truth captions with SigLIP...")
-    embedder = SiglipTextEmbedder()
+    embedder = SiglipTextEmbedder(model_name=cfg["dataset"]["siglip_model"])  # SigLIP 2, to match the frames
     gt_caption_embs = {}
     for vid, caps in tqdm(gt_captions.items(), desc="Embedding GT Captions"):
         embs = embedder.get_embeddings(f"siglip_gt_{vid}", caps)
