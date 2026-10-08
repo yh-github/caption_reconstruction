@@ -34,7 +34,9 @@ Legend: (Claude) = can be done locally; (GPU) = Claude prepares the config and h
   - **Topic kept, timing lost.** In frame space the true caption scores c = 0.80 against other-channel frames, but only 0.18 against frames within ±10 s. There it equals caption copy (0.19), while frame copy reaches 0.52. Llama is 0.05 near and 0.70 against other channels.
   - C1–C4: Llama is INFERIOR to both caption baselines.
   - Details: `docs/paper/captions_vs_frames.md` §3.5.
-- [ ] (Claude) Near-pool comparison with lag-corrected captions (+1 to +2 s): how much of the 0.18 the lead explains.
+- [x] Near-pool comparison with lag-corrected captions (`caption_lag_robustness.py` part 5):
+  - The true caption goes from c = 0.17 to 0.28 at +2 s (+0.11 [0.07, 0.15]), so it now beats caption copy (0.20) but stays far below frame copy (0.52).
+  - The lead explains about a third of the near-second gap.
 - [ ] (Claude or API) Q4: caption correctness audit (hallucinations such as the "runner" camera-holder) on about 50 sampled seconds, manually or with a VLM judge.
 - [ ] (Claude) Check whether the lag and grounding findings generalize to how the captions were produced (single Gemini call over the whole video), e.g. by re-captioning a few videos per second as a control (API).
 

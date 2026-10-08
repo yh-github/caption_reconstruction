@@ -12,10 +12,12 @@ matches frame t+1..t+2). No masking for parts 1-2; part 3 re-scores existing gap
    Text-to-text (MPNet) scores are unchanged by a shift, so frames are the only place a shift can show.
 4. Q3 with the lag: per-video Spearman(caption change at t, frame change at t+s), and top-10% event
    coincidence (+-1 s) with caption changes shifted by s.
+5. The shared-target near pool (scripts/eval_shared_target.py, same video +-10 s) with the gap shifted by s:
+   how much of the true caption's weak near-pool score (c ~ 0.18) the lead explains.
 
 Usage (from repo root):
     .venv/bin/python scripts/caption_lag_robustness.py
-Outputs: results/caption_audit/lag_{profiles,shift_ranks,q3}.csv and a printed summary.
+Outputs: results/caption_audit/lag_{profiles,shift_ranks,q3,near_pool}.csv and a printed summary.
 """
 import json
 import re
@@ -30,6 +32,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 from caption_vs_siglip_audit import OUT, T, channel, coincidence, load_videos, unit
 from llm.local_embedder import SiglipTextEmbedder
+from shared_target.metrics import compute_calibrated_score, compute_mid_rank
+from shared_target.pools import build_same_video_near_candidates
 
 LAGS = list(range(-5, 6))
 SHIFTS = list(range(-2, 5))
@@ -171,6 +175,42 @@ def part3(data):
     print(by_w["gain"].unstack("W").round(1).to_string())
 
 
+def part5(data):
+    """Shared-target near pool (same video, +-10 s, gap and boundaries excluded) with the gap shifted by s:
+    the fill at slot t is scored against frame t+s, and the pool is built around the shifted gap."""
+    fills = {k: v for k, v in gap_fills(data).items() if k[1] in (3, 6)}
+    sg = SiglipTextEmbedder("google/siglip2-base-patch16-224")
+    rows = []
+    for (vid, w), slots in fills.items():
+        V, ts = data[vid]["V"], sorted(slots)
+        embs = {m: data[vid]["S"][ts] if m == "oracle" else
+                unit(sg.get_embeddings(f"{vid}_lag_{m}_w{w}", [slots[t][m] for t in ts]))
+                for m in ["oracle", "caption_copy", "llama"]}
+        embs["frame_copy"] = V[[ts[0] - 1 if t - (ts[0] - 1) <= (ts[-1] + 1) - t else ts[-1] + 1 for t in ts]]
+        for s in [0, 1, 2, 3]:
+            gap = [t + s for t in ts]
+            if gap[-1] + 1 >= T:
+                continue
+            pool = [c.second for c in build_same_video_near_candidates(vid, gap, window_sec=10, total_seconds=T)]
+            for m, E in embs.items():
+                if m == "frame_copy" and s:
+                    continue
+                for j, t in enumerate(ts):
+                    sim = E[j] @ V.T
+                    r, _ = compute_mid_rank(sim[t + s], sim[pool])
+                    rows.append(dict(vid=vid, chan=channel(vid), W=w, method=m, shift=s,
+                                     c=compute_calibrated_score(r, len(pool) + 1)))
+    df = pd.DataFrame(rows)
+    df.to_csv(OUT / "lag_near_pool.csv", index=False)
+    pv = df.groupby(["method", "shift", "vid", "chan"], as_index=False).c.mean()
+    print("\n=== 5. Shared-target near pool (+-10 s), calibrated c, gap shifted by s (W = 3, 6) ===")
+    print(pv.pivot_table(index="method", columns="shift", values="c").round(3).to_string())
+    for m in ["oracle", "caption_copy", "llama"]:
+        wide = pv[pv.method == m].pivot_table(index=["vid", "chan"], columns="shift", values="c").reset_index()
+        r = boot_chan(wide, lambda g: (g[2] - g[0]).mean())
+        print(f"  {m:12s} c(s=+2) - c(s=0): {r[0]:+.3f} [{r[1]:+.3f}, {r[2]:+.3f}]")
+
+
 def part4():
     ps = pd.read_csv(OUT / "per_second.csv").sort_values(["vid", "t"])
     rows = []
@@ -195,6 +235,7 @@ def main():
     part1_2(data)
     part3(data)
     part4()
+    part5(data)
 
 
 if __name__ == "__main__":

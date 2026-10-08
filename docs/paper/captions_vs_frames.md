@@ -85,7 +85,7 @@ Source: `scripts/eval_shared_target.py` (config `configs/eval_shared_target.yaml
   - The caption written for second t carries no more information about which nearby frame is second t than a caption written for a neighboring second does.
   - Frames keep 0.52 there.
   - The far-minus-near drop is 0.16 [0.13, 0.19] for the true caption and 0.24 [0.22, 0.26] for frame copy (channel bootstrap).
-  - This pool uses unshifted captions, so the 1–2 s lead (§3.2) accounts for part of the near-pool weakness.
+  - **With the lead corrected** (`caption_lag_robustness.py` part 5: slot t scored against frame t+s, pool built around the shifted gap), the true caption rises from 0.17 at s = 0 to 0.25 at s = +1 and 0.28 at s = +2. The gain at +2 is +0.11 [+0.07, +0.15]. It then beats caption copy (0.20) but stays far below frame copy (0.52). Caption copy (+0.01) and Llama (−0.02) don't gain. The lead accounts for about a third of the caption-to-frame gap on nearby seconds; the rest is timing information the captions don't carry.
 - **Llama is below copy in every pool**, so it loses topic as well as timing. Pre-registered C1–C4 (Llama against caption copy and caption mean, W = 3 and 6): all INFERIOR, paired difference −0.19 to −0.23, Holm p < 0.001.
 
 ### 3.6 Caption correctness (Q4)
@@ -98,7 +98,20 @@ Setup: mask W ∈ {1,2,3,4,6,8,12,16} seconds centered at t = 29. Text arm: Llam
 
 ### 4.1 Per-second retrieval
 
-- **TODO:** numbers from `results/unified_benchmark_master.csv` (MPNet for text arms, SigLIP 2 for frame arms; rank among 60). Llama's within-gap ordering is at chance (calibrated c ≈ 0), so gap-level evaluation is the fair one.
+Source: `results/unified_benchmark_master.csv`, i = 29, 335 videos. Each arm is scored in its own modality: text arms in MPNet against the true caption, frame arms in SigLIP 2 against the true frame. The metric is the mean rank of the true second among the video's 60 (chance 30.5; lower is better).
+
+| Arm | W=1 | 2 | 3 | 4 | 6 | 8 | 12 | 16 | mean |
+|---|---|---|---|---|---|---|---|---|---|
+| Llama-3.1-8B | 23.0 | 26.3 | 27.5 | 27.4 | 27.6 | 28.0 | 29.5 | 30.2 | 27.4 |
+| Caption copy | 23.4 | 23.1 | 22.3 | 22.7 | 22.7 | 23.5 | 24.4 | 25.6 | 23.5 |
+| Caption mean | 22.7 | 22.6 | 22.8 | 23.0 | 24.1 | 25.4 | 27.1 | 28.6 | 24.5 |
+| Frame copy | 7.4 | 8.2 | 10.3 | 11.1 | 13.7 | 14.9 | 17.6 | 19.5 | 12.8 |
+| Frame mean | 6.9 | 8.9 | 10.8 | 12.4 | 15.5 | 17.6 | 21.3 | 23.9 | 14.7 |
+
+- **Llama trails caption copy** by 3.9 ranks [3.1, 4.8] (per video, averaged over widths, channel bootstrap). It wins in 32% of videos.
+- **The only exception is W = 1.** There Llama roughly ties copy (23.0 vs. 23.4; MRR 0.119 vs. 0.107).
+- **Caption copy trails frame copy** by 10.6 ranks [9.3, 12.0]. It wins in 9% of videos.
+- **Gap-level evaluation is the fair one.** Llama's within-gap ordering is at chance (calibrated c ≈ 0), which is why the forced-choice test (§4.2) scores whole gaps.
 
 ### 4.2 Forced choice
 
