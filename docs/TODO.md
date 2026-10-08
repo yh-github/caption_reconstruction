@@ -43,7 +43,7 @@ Legend: (Claude) = can be done locally; (GPU) = Claude prepares the config and h
   - The lead explains about a third of the near-second gap.
 - [ ] (Claude or Sub) Q4: caption correctness audit (Opus judge via the blind runner's image mode, with planted wrong captions as a check) (hallucinations such as the "runner" camera-holder) on about 50 sampled seconds, manually or with a VLM judge.
 - [ ] (GPU, high priority) **Bridge ceiling** (`scripts/bridge_ceiling.py`): Florence-2 per-frame captions on 30 videos from 30 channels, scored in the near pool.
-  - Frames are already extracted locally. The caption step needs the GPU (about 30 s per frame on CPU); then `eval` runs locally.
+  - Frames are extracted and uploaded to the private HF repo. Paste `scripts/kaggle_bridge_ceiling.py` into a Kaggle GPU notebook; then locally run `pull-captions` and `eval`.
   - If time-aligned captions also score about 0.18, the limit is SigLIP's text-to-image link, not Gemini's captions, and the timing claim must be softened.
 - [ ] (Sub) Re-caption about 30 videos with Claude Sonnet, per second (isolated calls, ~600) against whole minute (30 calls). This tests whether whole-video captioning causes the lead and the lost timing, and whether the findings generalize beyond Gemini. It needs an image mode in `blind_llm_runner.py` (frames extracted from `local/wild_videos_raw`).
 
@@ -80,8 +80,12 @@ Legend: (Claude) = can be done locally; (GPU) = Claude prepares the config and h
   - **Small Sonnet run (80 calls):**
     - Forced choice: **92.5%**, equal to frame copy (92.5%), against caption copy 45% and Llama 42.5%. Only 4 channels, and the prompt carried a jigsaw hint.
     - Reconstruction (10 videos): Sonnet beats Llama and is roughly level with caption copy.
-  - **Next (80 calls, waiting for the go-ahead):** choice on 40 shuffled items from all 23+ channels (`--pool all --shuffle`), and `choice_nohint` on the first 40 items.
-  - Only then the larger Sonnet and Opus runs.
+  - **Two checks (80 calls):**
+    - On 40 items across 23 channels: Sonnet 75%, caption copy 47.5%, frame copy 87.5%.
+    - Without the jigsaw hint: 85% vs. 92.5% on the first 40 items.
+    - So a strong model recognizes the gap content far better than copy or Llama, but stays below frames.
+  - **Quota:** about 7 points of the 5-hour limit per 40 Sonnet calls (handover §D).
+  - Next options: a larger no-hint Sonnet sample on `--pool all` for a real estimate (160 calls ≈ 30 points of a 5-hour window); a small Opus batch to measure its cost; more reconstruction.
   - Caveat: forced choice is direct choice here, while Llama's was PMI.
 
 ## 5. Paper

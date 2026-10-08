@@ -18,8 +18,11 @@ Steps (videos: one per channel, seeded, up to N_VIDEOS):
 
 Usage (from repo root):
     .venv/bin/python scripts/bridge_ceiling.py extract
-    python scripts/bridge_ceiling.py caption [--device cuda] [--batch 16]     # needs only the frames folder
+    .venv/bin/python scripts/bridge_ceiling.py push-frames          # zip -> private HF repo, for Kaggle
+    (Kaggle: paste scripts/kaggle_bridge_ceiling.py into a notebook; it runs pull-frames, caption, push-captions)
+    .venv/bin/python scripts/bridge_ceiling.py pull-captions
     .venv/bin/python scripts/bridge_ceiling.py eval
+    Any GPU machine with the frames folder: python scripts/bridge_ceiling.py caption [--device cuda] [--batch 16]
 """
 from __future__ import annotations
 
@@ -109,6 +112,45 @@ def cmd_caption(args):
             print(f"  {min(i + args.batch, len(todo))}/{len(todo)}", flush=True)
 
 
+HF_REPO, HF_DIR = "Y3/dense_video_captions", "bridge_ceiling"  # private dataset repo
+
+
+def cmd_push_frames(_):
+    """Zip the extracted frames and upload them to the private HF dataset repo (for the Kaggle GPU run)."""
+    import shutil
+    from huggingface_hub import HfApi
+    zp = shutil.make_archive(str(OUT / "frames"), "zip", root_dir=FRAMES)
+    HfApi().upload_file(path_or_fileobj=zp, path_in_repo=f"{HF_DIR}/frames.zip", repo_id=HF_REPO,
+                        repo_type="dataset")
+    print(f"uploaded {zp} ({Path(zp).stat().st_size / 1e6:.0f} MB) to {HF_REPO}/{HF_DIR}/frames.zip")
+
+
+def cmd_pull_frames(_):
+    """On the GPU machine: download and unpack the frames from HF."""
+    import shutil
+    from huggingface_hub import hf_hub_download
+    zp = hf_hub_download(HF_REPO, f"{HF_DIR}/frames.zip", repo_type="dataset")
+    FRAMES.mkdir(parents=True, exist_ok=True)
+    shutil.unpack_archive(zp, FRAMES)
+    print(f"{len(list(FRAMES.glob('*/*.jpg')))} frames in {FRAMES}")
+
+
+def cmd_push_captions(_):
+    from huggingface_hub import HfApi
+    HfApi().upload_file(path_or_fileobj=str(CAPTIONS), path_in_repo=f"{HF_DIR}/captions.jsonl", repo_id=HF_REPO,
+                        repo_type="dataset")
+    print(f"uploaded {CAPTIONS} to {HF_REPO}/{HF_DIR}/captions.jsonl")
+
+
+def cmd_pull_captions(_):
+    import shutil
+    from huggingface_hub import hf_hub_download
+    p = hf_hub_download(HF_REPO, f"{HF_DIR}/captions.jsonl", repo_type="dataset", force_download=True)
+    OUT.mkdir(parents=True, exist_ok=True)
+    shutil.copy(p, CAPTIONS)
+    print(f"{sum(1 for _ in open(CAPTIONS))} captions in {CAPTIONS}")
+
+
 def cmd_eval(_):
     import numpy as np
     import pandas as pd
@@ -184,8 +226,12 @@ def main():
     c.add_argument("--device", default=None)
     c.add_argument("--batch", type=int, default=16)
     sub.add_parser("eval")
+    for name in ["push-frames", "pull-frames", "push-captions", "pull-captions"]:
+        sub.add_parser(name)
     args = ap.parse_args()
-    {"extract": cmd_extract, "caption": cmd_caption, "eval": cmd_eval}[args.cmd](args)
+    {"extract": cmd_extract, "caption": cmd_caption, "eval": cmd_eval, "push-frames": cmd_push_frames,
+     "pull-frames": cmd_pull_frames, "push-captions": cmd_push_captions,
+     "pull-captions": cmd_pull_captions}[args.cmd](args)
 
 
 if __name__ == "__main__":

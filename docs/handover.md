@@ -105,11 +105,29 @@ Source: `scripts/caption_lag_robustness.py` → `results/caption_audit/lag_{prof
   - Against caption copy it is roughly level: better in MPNet text rank at W = 1 and 4 (15.2 vs. 32.4; 19.4 vs. 21.5), worse in SigLIP 2 frame rank at every width.
 - **Tentative reading:** a strong model can *recognize* which content fits a gap, but cannot *generate* second-level content much better than copying a neighbor. That fits "captions keep topic, lose timing" better than "the LLM is the cap".
 
-**Next Sonnet runs proposed** (80 calls, waiting for the user's go-ahead):
-- `run --task choice --model sonnet --pool all --shuffle --limit 40`: 38 videos, 23 channels.
-- `run --task choice_nohint --model sonnet --limit 40`: the same 40 items as the first run, without the hint.
+**Two 40-call checks (run 2026-10-08 with quota tracking):**
+- **Broad sample** (`--pool all --shuffle --limit 40`: 38 videos, 23 channels):
 
-After each run, `check` prints the baselines on the same items.
+  | Method | Accuracy |
+  |---|---|
+  | Sonnet | **75%** |
+  | Caption copy | 47.5% |
+  | Caption copy, assignment-aware | 52.5% |
+  | Frame copy | 87.5% |
+
+  By width, Sonnet scores 62%, 75%, 100% and 71% at W = 1, 2, 4, 8 (only 7–10 items per width). The first run's 92.5% came from 4 channels and was optimistic.
+- **No hint** (`choice_nohint`, the first 40 items): 85% (34/40), against 92.5% (37/40) with the hint. The jigsaw hint adds a little; most of Sonnet's skill doesn't depend on it.
+- **Reading so far:**
+  - From captions alone, a strong model recognizes the right gap content far better than caption copy or Llama (≈75–85% vs. ≈45%), but below frame copy (≈88–92%).
+  - So for *recognition*, the 8B model was a large part of the cap; the captions carry more than copy or Llama extract.
+  - *Generation* (reconstruction) is still only about level with caption copy (10 videos).
+  - The thesis survives in a revised form: the remaining gap to frames is real, but "the LLM loses to copy everywhere" is an 8B finding.
+- **Thinking:** blocks are emitted (at medium effort on some calls), but their text is empty in the CLI output. Only the token count is visible, so the reasoning can't be saved.
+
+**Quota cost, measured.** Each row records the account's 5-hour and 7-day usage reported with the call; `run` prints them at the start and end of a batch, and `--max-5h` (default 0.8) stops a batch at that share. These are account-wide figures, so run batches with nothing else active.
+- Each 40-call Sonnet batch (~195k input tokens) cost about **6–8 points of the 5-hour limit** and **~0.5 point of the 7-day limit**.
+- That's roughly 500–600 Sonnet calls per 5-hour window, and several thousand per week.
+- Opus will cost more per call. Measure it on a small batch before planning.
 
 **Original full-run plan** (on hold until the small runs show the effect is real):
 
@@ -132,7 +150,11 @@ After each run: `check --task <t> --model <m>` (validity, turns, tokens, choice 
 4. Done: the abstract and related work. References marked † were cited from memory; the rest were checked. Next for the paper: tighten to 4 pages, LaTeX template, pick two figures.
 5. **Main open threat to the thesis:** is the near-pool 0.18 a property of the captions, or of SigLIP's text-to-image link? `scripts/bridge_ceiling.py` tests it with Florence-2 per-frame captions, which are time-aligned by construction, on 30 videos from 30 channels.
    - **Done locally:** `extract` wrote 1,800 frames to `results/bridge_ceiling/frames/` (60 MB).
-   - **`caption` needs the GPU.** On this CPU, Florence-2 takes about 30 s per frame, so about 15 hours. Copy the frames folder over, run `python scripts/bridge_ceiling.py caption --device cuda`, copy `captions.jsonl` back, then run `eval` locally.
+   - **`caption` needs the GPU.** On this CPU, Florence-2 takes about 30 s per frame, so about 15 hours.
+   - **Frames are uploaded** to the private HF repo (`Y3/dense_video_captions/bridge_ceiling/frames.zip`).
+   - **Kaggle:** paste `scripts/kaggle_bridge_ceiling.py` into a notebook (GPU T4, Internet on, `HF_TOKEN` secret). It downloads the frames, captions them, and uploads `captions.jsonl`; a re-run resumes.
+   - **Then locally:** `bridge_ceiling.py pull-captions`, then `eval`.
+   - **Risk:** the runner installs `transformers==5.14.1` (verified locally for Florence-2) on top of Kaggle's torch. If that combination fails, the error shows up at install or model load.
    - **Reading:** if per-frame captions also score about 0.18 near, soften the timing claim. If they score well above it, Gemini's captions lack timing.
 6. Run the planned Claude text-only runs (section D), after the user confirms.
 7. Doc reconciliation (TODO §1): now mostly moot, since `draft.md` is frozen. Just make sure the new draft uses the right counts.

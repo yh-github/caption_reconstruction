@@ -208,6 +208,8 @@ def record(item: dict, task: str, model: str, effort: str, out: dict) -> dict:
         status = "error"
     else:
         status = "ok" if parsed is not None else "invalid"
+    rl = next((e.get("rate_limit_info", {}) for e in out["events"] if e.get("type") == "rate_limit_event"), {})
+    windows = rl.get("unifiedWindows", {})
     thinking = [b.get("thinking", "") for e in out["events"] if e.get("type") == "assistant"
                 for b in e.get("message", {}).get("content", []) if b.get("type") == "thinking"]
     return dict(item=item["item"], vid=item["vid"], w=item["w"], gap=item["gap"], task=task, model=model, effort=effort,
@@ -215,6 +217,9 @@ def record(item: dict, task: str, model: str, effort: str, out: dict) -> dict:
                 error=(res.get("subtype") if status == "error" else None) or (out["stderr"][-1000:] or None
                                                                               if status != "ok" else None),
                 num_turns=res.get("num_turns"), usage=res.get("usage"), model_usage=res.get("modelUsage"),
+                # account-wide share of the subscription limits used, as reported with this call (all sessions)
+                util_5h=windows.get("five_hour", {}).get("utilization"),
+                util_7d=windows.get("seven_day", {}).get("utilization"),
                 seconds=out["seconds"], time=time.strftime("%Y-%m-%dT%H:%M:%S"))
 
 
@@ -257,6 +262,8 @@ def cmd_run(args):
             print(f"--- {it['item']} (answer {it.get('answer')})\n{it['prompt']}\n")
         return
     OUT.mkdir(parents=True, exist_ok=True)
+    first = last = None
+    tokens = {"in": 0, "out": 0}
     with open(path, "a") as f, open(events_path(args.task, args.model), "a") as fe:
         for n, it in enumerate(todo):
             out = call_claude(it["prompt"], args.model, args.effort)
@@ -268,13 +275,23 @@ def cmd_run(args):
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
             f.flush()
             u = r["usage"] or {}
+            tokens["in"] += u.get("input_tokens") or 0
+            tokens["out"] += u.get("output_tokens") or 0
+            if r["util_5h"] is not None:
+                first, last = first or (r["util_5h"], r["util_7d"]), (r["util_5h"], r["util_7d"])
             print(f"  [{n + 1}/{len(todo)}] {it['item']}: {r['status']} turns={r['num_turns']} "
-                  f"in={u.get('input_tokens')} out={u.get('output_tokens')} "
-                  f"thinking_blocks={len(r['thinking'])} {r['seconds']}s", flush=True)
+                  f"in={u.get('input_tokens')} out={u.get('output_tokens')} thinking_blocks={len(r['thinking'])} "
+                  f"quota 5h={r['util_5h']} 7d={r['util_7d']} {r['seconds']}s", flush=True)
             if r["status"] in ("error", "timeout"):
                 print(f"    {r['status']}: {r['error'] or r['raw'][:300]}")
                 if n == 0:
                     sys.exit("first call failed; stopping before spending more quota")
+            if r["util_5h"] is not None and r["util_5h"] >= args.max_5h:
+                print(f"5-hour quota use reached {r['util_5h']:.0%} (limit --max-5h {args.max_5h:.0%}); stopping")
+                break
+    if first:
+        print(f"quota (account-wide, all sessions): 5h {first[0]:.0%} -> {last[0]:.0%}, "
+              f"7d {first[1]:.0%} -> {last[1]:.0%}; tokens this batch: in {tokens['in']:,}, out {tokens['out']:,}")
 
 
 def cmd_reparse(args):
@@ -418,6 +435,8 @@ def main():
     r.add_argument("--effort", default=EFFORT, help="claude --effort (thinking budget); pinned for reproducibility")
     r.add_argument("--limit", type=int, default=None)
     r.add_argument("--dry-run", action="store_true", help="print prompts, make no calls")
+    r.add_argument("--max-5h", type=float, default=0.8,
+                   help="stop when the account's 5-hour quota use (reported with each call) reaches this share")
     r.add_argument("--pool", choices=["llama", "all"], default="llama",
                    help="choice tasks: only the 180 items Llama scored (default), or all 1,325 (40 channels)")
     r.add_argument("--shuffle", action="store_true",
