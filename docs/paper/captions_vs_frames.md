@@ -150,6 +150,15 @@ Where captions are better grounded, caption copy gets closer to frame copy, and 
 
 ## Figures
 
-1. Caption-to-frame lag profile (Q1), overall and by thirds of the clip.
-2. Forced-choice accuracy by modality and width.
-3. Per-video grounding (Q1 MRR) vs. caption copy's deficit to frame copy.
+Made by `scripts/make_paper_figures.py` → `docs/paper/figures/fig{1..4}_*.{pdf,png}`. All CIs are 95% channel bootstrap. Each arm keeps one color across figures.
+
+1. `fig1_lag`:
+   - (a) the caption-to-frame lag profile (§3.1, §3.2);
+   - (b) the near-pool score against caption shift (§3.5).
+2. `fig2_topic_timing`: calibrated c by distractor pool, frame space (§3.5). Candidate main figure.
+3. `fig3_forced_choice` (§4.2):
+   - (a) the copy baselines by width (W ∈ {1, 2, 4, 8} in the item set);
+   - (b) Llama against both copies on the 180 items Llama scored.
+4. `fig4_grounding`: per-video grounding (Q1 MRR) against caption copy's rank deficit to frame copy, ρ = −0.51 [−0.60, −0.42], 323 videos with outcomes (§4.3).
+
+A 4-page paper probably fits two of these. Fig 2 and Fig 1 carry the thesis; Fig 3 and Fig 4 could become a table and a sentence.

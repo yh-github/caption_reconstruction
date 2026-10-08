@@ -74,7 +74,8 @@ Legend: (Claude) = can be done locally; (GPU) = Claude prepares the config and h
 ## 5. Paper
 
 - [ ] (in progress: `docs/paper/captions_vs_frames.md` replaces `draft.md`, which stays as the record of the old thesis) Write the paper around the captions-vs-frames thesis (section 0), with reconstruction as the consequence (LLM loses to copy everywhere). Cut H2 and the Δ/N spectrum to one paragraph (scene continuity explains it). Every mention of the visual encoder must say SigLIP 2.
-- [ ] Figure 1: caption-to-frame lag profile (Q1). Figure 2: forced-choice accuracy by modality and width. Figure 3: per-video caption grounding against the caption-copy deficit to frame copy.
+- [x] Figures (`scripts/make_paper_figures.py` → `docs/paper/figures/fig{1..4}_*`): lag profile + near-pool shift, topic vs. timing by pool, forced choice, grounding vs. deficit. Choose which two fit in 4 pages.
+- [ ] Abstract and related work for `captions_vs_frames.md`.
 - [ ] Move to the venue's 4-page LaTeX template.
 
 ## Done (infrastructure)
