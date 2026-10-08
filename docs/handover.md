@@ -163,7 +163,7 @@ After each run: `check --task <t> --model <m>` (validity, turns, tokens, choice 
 1. Done: the near pool with lag-corrected captions (`caption_lag_robustness.py` part 5). The true caption goes from 0.17 to 0.28 at +2 s, against 0.20 for caption copy and 0.52 for frame copy, so the lead explains about a third of the near-second gap.
 2. §4.1 of `captions_vs_frames.md` is filled. Llama trails caption copy by 3.9 ranks [3.1, 4.8], and only at W = 1 does it tie. Caption copy trails frame copy by 10.6 ranks [9.3, 12.0].
 3. Done: figures 1 to 4 (`scripts/make_paper_figures.py`; list in `captions_vs_frames.md` "Figures").
-4. Done: the abstract and related work. References marked † were cited from memory; the rest were checked. Next for the paper: tighten to 4 pages, LaTeX template, pick two figures.
+4. Done: the abstract and related work. References marked † were cited from memory; the rest were checked. **The target is now 8 pages** (user, 2026-10-08), so all four figures stay. Next for the paper: notes to prose, using the page budget at the end of `captions_vs_frames.md`, then the LaTeX template.
 5. **Main open threat to the thesis:** is the near-pool 0.18 a property of the captions, or of SigLIP's text-to-image link? `scripts/bridge_ceiling.py` tests it with Florence-2 per-frame captions, which are time-aligned by construction, on 30 videos from 30 channels.
    - **Done locally:** `extract` wrote 1,800 frames to `results/bridge_ceiling/frames/` (60 MB).
    - **`caption` needs the GPU.** On this CPU, Florence-2 takes about 30 s per frame, so about 15 hours.

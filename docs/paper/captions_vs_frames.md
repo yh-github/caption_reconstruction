@@ -1,6 +1,6 @@
 # What Dense Video Captions Keep and Lose: Topic Without Timing
 
-Working draft, started 2026-10-08. Supersedes `draft.md` (the reconstruction-first thesis, whose H1/H2 our own tests rejected). Numbers come from the scripts named in each section; anything not yet verified is marked **TODO**.
+Working draft, started 2026-10-08. **Target: 8 pages** (decided 2026-10-08). The page budget is at the end of this file. Supersedes `draft.md` (the reconstruction-first thesis, whose H1/H2 our own tests rejected). Numbers come from the scripts named in each section; anything not yet verified is marked **TODO**.
 
 **Thesis.** Dense per-second captions written by a frontier video LLM share a video's *topic* with its frame embeddings, but barely track *what changes second to second*, and they are systematically 1–2 s early, in every channel. That gap caps any text-only method that tries to recover missing seconds: an 8B LLM in-filling captions loses to simply copying the nearest caption, and both lose badly to copying the nearest frame.
 
@@ -243,4 +243,27 @@ Made by `scripts/make_paper_figures.py` → `docs/paper/figures/fig{1..4}_*.{pdf
    - (b) Llama against both copies on the 180 items Llama scored.
 4. `fig4_grounding`: per-video grounding (Q1 MRR) against caption copy's rank deficit to frame copy, ρ = −0.51 [−0.60, −0.42], 323 videos with outcomes (§4.3).
 
-A 4-page paper probably fits two of these. Fig 2 and Fig 1 carry the thesis; Fig 3 and Fig 4 could become a table and a sentence.
+With 8 pages, all four fit. Updates to make:
+- Fig 2: add the Florence-2 per-frame ceiling as a reference.
+- Fig 3: add Sonnet (and later Opus and Haiku) as model-scale points.
+
+## Page budget (8 pages + references)
+
+The draft is about 3,500 words in note form; 8 pages is roughly 5,500–6,500 words of prose with 4 figures and 2–3 tables.
+
+| Section | Pages | Content | Status |
+|---|---|---|---|
+| Abstract + 1 Introduction | 1.0 | Motivation (captions as a stand-in for video), the questions, the findings list, contributions | Points written; needs prose |
+| 2 Related work | 0.6 | As drafted | Drafted; check the † references |
+| 3 Data and setup | 0.8 | Clips, captioner, encoders, metrics (calibrated c, ranks), channel-clustered statistics | Short; expand the metric definitions |
+| 4 Captions vs. frames | 2.3 | Grounding and lag (Fig 1), lag robustness, Q2/Q3, topic vs. timing (Fig 2), bridge ceiling (table) | Results done; needs prose |
+| 5 Consequences for reconstruction | 2.0 | Per-second table, forced choice across model scale (Fig 3), grounding vs. deficit (Fig 4), recognize vs. generate | Needs the scaling points and more Sonnet reconstruction |
+| 6 Discussion and limitations | 0.8 | One captioner, encoder-based reference, 60-s clips, subscription models, PMI vs. direct choice | Needs writing |
+| Appendix (no page limit at most venues) | — | Prompts, isolation protocol of the blind runner, per-channel lag table, extra widths | To assemble |
+
+**Experiments that would strengthen the 8-page version** (cheapest first):
+1. Haiku on the same 160 forced-choice items. Cheap; it gives a three-point model-scale curve with Sonnet and Opus.
+2. Opus on the same 160 items, after a 20-call cost probe.
+3. Sonnet reconstruction on about 50 videos (200 calls), to back "recognizes but can't generate".
+4. Q4 correctness audit, about 50 seconds: manual, or an Opus judge with planted wrong captions.
+5. Gemini per-second re-captioning of a few videos (the same-captioner control for §3.6). This needs an image mode in the runner, or Gemini CLI.

@@ -100,10 +100,10 @@ Legend: (Claude) = can be done locally; (GPU) = Claude prepares the config and h
 ## 5. Paper
 
 - [ ] (in progress: `docs/paper/captions_vs_frames.md` replaces `draft.md`, which stays as the record of the old thesis) Write the paper around the captions-vs-frames thesis (section 0), with reconstruction as the consequence (LLM loses to copy everywhere). Cut H2 and the Δ/N spectrum to one paragraph (scene continuity explains it). Every mention of the visual encoder must say SigLIP 2.
-- [x] Figures (`scripts/make_paper_figures.py` → `docs/paper/figures/fig{1..4}_*`): lag profile + near-pool shift, topic vs. timing by pool, forced choice, grounding vs. deficit. Choose which two fit in 4 pages.
+- [x] Figures (`scripts/make_paper_figures.py` → `docs/paper/figures/fig{1..4}_*`): lag profile + near-pool shift, topic vs. timing by pool, forced choice, grounding vs. deficit. All four stay in the 8-page version. Update Fig 2 (Florence-2 ceiling) and Fig 3 (model-scale points).
 - [x] Abstract and related work drafted in `captions_vs_frames.md`, with a reference list. Most entries were checked against venue pages; those marked † were cited from memory and need checking before submission.
-- [ ] Polish: tighten to 4 pages and move to the venue's LaTeX template (below). Decide which two figures to keep.
-- [ ] Move to the venue's 4-page LaTeX template.
+- [ ] **Target is 8 pages** (decided 2026-10-08), so all four figures stay. The page budget and the list of strengthening experiments are at the end of `captions_vs_frames.md`. Next: turn the notes into prose, section by section, then move to the venue's LaTeX template.
+- [ ] Move to the venue's 8-page LaTeX template (main text 8 pages + references; appendix as the venue allows).
 
 ## Done (infrastructure)
 
