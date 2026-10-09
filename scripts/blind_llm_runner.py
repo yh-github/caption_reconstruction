@@ -248,11 +248,20 @@ def cmd_run(args):
     path = out_path(args.task, args.model)
     prev = latest(path)
     retry = set(args.retry or [])
+    if args.shuffle:  # seeded, so a --limit sample spreads over videos and channels and is reproducible
+        # Shuffle the full list *before* dropping saved items, so the order is the same for every model whatever
+        # it already has on disk. (Before 2026-10-09 the shuffle ran after the filter, so models with different
+        # saved items drew different samples; --match recovers another model's exact items.)
+        random.Random(f"{SEED}|shuffle").shuffle(items)
     todo = [it for it in items if it["item"] not in prev or prev[it["item"]]["status"] in retry]
     if args.pool == "llama":  # forced-choice items that Llama-3.1-8B also scored (180 items, 14 channels)
         todo = [it for it in todo if it.get("llama_scored", True)]
-    if args.shuffle:  # seeded, so a --limit sample spreads over videos and channels and is reproducible
-        random.Random(f"{SEED}|shuffle").shuffle(todo)
+    if args.match:  # only items another model has a valid answer for, for paired comparisons
+        matched = {k for k, r in latest(out_path(args.task, args.match)).items() if r["status"] == "ok"}
+        todo = [it for it in todo if it["item"] in matched]
+    if args.items:  # only the item ids listed in a JSON file
+        wanted = set(json.loads(Path(args.items).read_text()))
+        todo = [it for it in todo if it["item"] in wanted]
     todo = todo[: args.limit]
     print(f"{args.task}: {len(items)} items, {len(prev)} with a saved result "
           f"({sum(r['status'] == 'ok' for r in prev.values())} ok), running {len(todo)} with {args.model}"
@@ -443,6 +452,9 @@ def main():
                    help="seeded shuffle before --limit (items are otherwise in video order: few channels per batch)")
     r.add_argument("--retry", nargs="+", choices=["invalid", "error", "timeout"],
                    help="re-run items whose latest saved status is one of these (default: never re-run saved items)")
+    r.add_argument("--match", metavar="MODEL",
+                   help="only items MODEL has a valid saved answer for on this task (paired comparisons)")
+    r.add_argument("--items", metavar="FILE", help="only the item ids in this JSON list")
     c = sub.add_parser("check")
     c.add_argument("--task", choices=TASKS, required=True)
     c.add_argument("--model", required=True)
