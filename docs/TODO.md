@@ -8,6 +8,7 @@ Latest session summary and decisions: `docs/handover.md` (newest session at the 
 **Current state of the thesis (2026-10-08):**
 - **Reconstruction as the paper's core: NO-GO at 8B.** Llama loses to copying on every metric, including forced choice (35% against 52% for caption copy).
 - **But a frontier text model changes the forced-choice picture (2026-10-08):** with captions only, Sonnet 5.5 picks the right gap content 77% of the time (caption copy 46%, frame copy 88%; 160 items, 36 channels). For recognition, the 8B model was a large part of the cap. Captions carry more than copy extracts, but still less than frames. Generation (reconstruction) by Sonnet is only about level with caption copy on a 10-video sample.
+- **Model scale (2026-10-09):** forced choice on the same 160 items is 51% for Haiku, 77% for Sonnet and **85% for Opus, level with frame copy (88%)**. Generation doesn't scale the same way: on 50 videos, Sonnet's reconstructions are level with caption copy in text rank and worse in frame rank. So the cap holds for timing and generation, not recognition. That framing is a decision for the author (handover 2026-10-09).
 - **New direction: GO.** The paper becomes "what dense LLM captions keep and lose relative to visual embeddings, and why that caps text-based reconstruction" (section 0). Captions share topic with the frames but barely track second-to-second change, and they run 1–2 s early in every channel (Gemini 3 Flash, one call per video). Videos where captions are better grounded show smaller caption-copy deficits.
 - Topic is kept, timing is lost. In frame space, the true caption scores c = 0.80 against other videos but 0.18 against nearby seconds, no better than a neighboring caption; frames keep 0.52 there. Correcting the lead brings it to 0.28 (§0, shared-target item).
 - **Resolved threat:** is the near-second weakness the captions' or SigLIP's text-to-image link? It's the captions'. Florence-2 per-frame captions reach near c 0.47 through the same link, against Gemini's 0.16, and they peak at lag 0 (bridge-ceiling item in section 0).
@@ -91,8 +92,12 @@ Legend: (Claude) = can be done locally; (GPU) = Claude prepares the config and h
     - Sonnet **76.9% [69.6, 83.0]**, caption copy 45.6%, frame copy 87.5%.
     - Paired: Sonnet − caption copy +31 [+21, +42]; Sonnet − frame copy −11 [−18, −3].
     - Flat across widths.
+  - [x] **Haiku on the same 160 (2026-10-09):** 51.2% [44.3, 58.2], level with caption copy (+5.6 [−4.4, +16.6]), −25.6 [−33.7, −17.3] vs Sonnet. Recognition scales with model size. Fixed a shuffle bug in the runner on the way (handover 2026-10-09); `scripts/blind_choice_compare.py` gives the paired table.
+  - [x] **Opus cost probe (20 calls):** about 0.2 points of the 5-hour quota per call (Sonnet 0.15). 17/20 correct vs Sonnet 13/20 and Haiku 8/20 on the same items.
+  - [x] **Opus on the full 160 (2026-10-09):** 85.0% [78.7, 90.7], level with frame copy (−2.5 [−10.1, +5.6]), +8.1 [+4.1, +12.4] over Sonnet. Recognition from captions alone reaches the frame-copy baseline at the frontier. **Thesis decision pending** (handover 2026-10-09): the cap now holds for timing and, so far, generation, not recognition.
   - [ ] Next options:
-    - a small Opus batch (about 20 calls) to measure its cost, then Opus on the same 160 items;
+    - [x] Sonnet reconstruction on 50 videos (2026-10-09): level with caption copy in text rank (−1.4 [−3.0, +0.5]), worse in frame rank (+3.3 [+1.5, +5.1]), better than Llama on both. "Recognizes but can't generate" holds.
+    - **Most important now:** finish Opus reconstruction on the same 50 videos (`run --task recon --model opus --limit 200`; 26 of 200 done, stopped by the 80% quota guard on 2026-10-09). Early read on 7 videos is the same as Sonnet: text rank 20.5 vs copy 22.9, frame rank 23.9 vs copy 18.4;
     - Sonnet reconstruction on more videos, to test "recognizes but can't generate";
     - Llama direct choice on GPU, to make the protocol comparison exact.
   - Caveat: forced choice is direct choice here, while Llama's was PMI.
@@ -103,6 +108,8 @@ Legend: (Claude) = can be done locally; (GPU) = Claude prepares the config and h
 - [x] Figures (`scripts/make_paper_figures.py` → `docs/paper/figures/fig{1..4}_*`): lag profile + near-pool shift, topic vs. timing by pool, forced choice, grounding vs. deficit. All four stay in the 8-page version. Update Fig 2 (Florence-2 ceiling) and Fig 3 (model-scale points).
 - [x] Abstract and related work drafted in `captions_vs_frames.md`, with a reference list. Most entries were checked against venue pages; those marked † were cited from memory and need checking before submission.
 - [ ] **Target is 8 pages** (decided 2026-10-08), so all four figures stay. The page budget and the list of strengthening experiments are at the end of `captions_vs_frames.md`. Next: turn the notes into prose, section by section, then move to the venue's LaTeX template.
+  - [x] Whole draft in prose (2026-10-09): abstract, §1–4 and §6; about 5,200 words + 7 tables. The tables are over budget (see the page budget).
+  - [ ] Fill the remaining TODOs in the draft: Opus reconstruction (§4.2), Q4 (§3.7, needs the runner's image mode). (WildQA domains cited in §2, from the WildQA paper's appendix: agriculture, geography, human survival, natural disasters, military.)
 - [ ] Move to the venue's 8-page LaTeX template (main text 8 pages + references; appendix as the venue allows).
 
 ## Done (infrastructure)

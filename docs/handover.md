@@ -140,6 +140,67 @@ Source: `scripts/caption_lag_robustness.py` → `results/caption_audit/lag_{prof
 - **Quota:** 160 calls moved the 5-hour figure from 49% to 73% and the 7-day figure from 22% to 23%.
 - **The paper's §4.2 now carries this result.** The "LLM loses to copy everywhere" claim is now limited to the 8B model, at least for recognition.
 
+**Haiku and an Opus probe (2026-10-09):**
+- **Shuffle bug, fixed.** `run --shuffle` used to shuffle only the items *not yet saved*, so the "seeded" sample depended on what a model already had on disk. Sonnet's main 160 were drawn after its 40 earlier no-hint items were saved, and Haiku's after a 10-item pilot, so the two `--pool all --shuffle --limit 160` runs overlapped on only 33 items.
+  - Fix: the full list is now shuffled before saved items are dropped.
+  - New `--match MODEL` restricts a run to the items MODEL has valid answers for.
+  - Sonnet's main estimate = its `choice_nohint` rows after the first 40 distinct items. That split reproduces 76.9% exactly, and `scripts/blind_choice_compare.py` uses it.
+- **Haiku, all 200 Sonnet no-hint items plus 137 others** (337 calls, ~1.6M input tokens). On Sonnet's main 160 (136 videos, 36 channels):
+
+  | Method | Accuracy |
+  |---|---|
+  | **Haiku** | **51.2% [44.3, 58.2]** |
+  | Sonnet | 76.9% [70.1, 82.9] |
+  | Caption copy | 45.6% |
+  | Frame copy | 87.5% |
+
+  - Paired: Haiku − caption copy +5.6 [−4.4, +16.6]; Haiku − Sonnet −25.6 [−33.7, −17.3].
+  - Haiku is level with copy, so recognition grows with scale.
+- **Opus probe** (`--pool all --shuffle --match sonnet --limit 20`; 15 of the 20 items are in the main 160):
+  - Opus 17/20, Sonnet 13/20, Haiku 8/20 on the same items.
+  - All calls valid, 1 turn, 3–7 s each.
+- **Cost, measured against the account's 5-hour figure** (account-wide, so other sessions add noise):
+  - Haiku: about 1 point per 160 calls.
+  - Opus: 4 points per 20 calls, so about 0.2 per call against Sonnet's 0.15.
+  - Opus on the remaining 145 main items ≈ 29 points of the 5-hour window and ~2 points of the 7-day one.
+- **Opus on the full main 160 (done, same day).**
+  - Command: `run --task choice_nohint --model opus --pool all --shuffle --items results/blind_llm/sonnet_main160_items.json`. The new `--items FILE` option restricts a run to a JSON list of ids; the file was written from `blind_choice_compare.sonnet_main_items()`.
+  - Cost: 145 calls took the 5-hour figure from 31% to 54%, about 0.16 points per call, close to Sonnet.
+
+  | Method | Accuracy |
+  |---|---|
+  | Haiku | 51.2% [44.3, 58.2] |
+  | Sonnet | 76.9% [70.1, 82.9] |
+  | **Opus** | **85.0% [78.7, 90.7]** |
+  | Caption copy | 45.6% |
+  | Frame copy | 87.5% (assignment-aware 95.6%) |
+
+  - Paired: Opus − frame copy = **−2.5 [−10.1, +5.6]**, i.e. level; Opus − Sonnet = +8.1 [+4.1, +12.4].
+  - Flat across width (83–88%).
+- **Thesis implication (for the user to decide):**
+  - "Captions cap text-only recovery" no longer holds for *recognition*: a frontier reader matches the frame-copy baseline from captions alone. It still holds for second-level timing (§3), and so far for *generation* (Sonnet ≈ caption copy on 10 videos).
+  - The draft's abstract, §1, §4.2 and §6 now say this, with an author note in §4.2.
+- **Sonnet reconstruction on 50 videos** (done, same day). `run --task recon --model sonnet --limit 200` (video-major, so 50 videos × W ∈ {1, 4, 8, 16}, 28 channels), then `score --model sonnet`. 199 valid of 200; `reparse` couldn't recover the last one. Over the 191 gaps all three arms filled, with per-video means and channel-bootstrap CIs:
+
+  | Comparison | MPNet text rank | SigLIP 2 frame rank |
+  |---|---|---|
+  | Sonnet − caption copy | −1.4 [−3.0, +0.5], level | **+3.3 [+1.5, +5.1], worse** |
+  | Sonnet − Llama | −4.8 [−6.7, −2.9] | −3.1 [−5.4, −1.0] |
+
+  - **"Recognizes but can't generate" holds** at 50 videos: 77% on forced choice, yet no better than the boundary caption at writing the gap.
+  - Cost: 160 new calls took the 5-hour figure from 55% to 74%.
+- **Opus reconstruction, partial.** `run --task recon --model opus --limit 200` hit the `--max-5h 0.8` stop after 26 items (7 videos; 75% → 80%). On those 26 gaps, mean rank:
+
+  | Arm | Text rank | Frame rank |
+  |---|---|---|
+  | Opus | 20.5 | 23.9 |
+  | Sonnet | 21.3 | 21.3 |
+  | Caption copy | 22.9 | 18.4 |
+  | Llama | 22.2 | 24.1 |
+
+  - Same pattern as Sonnet: about level in text rank, worse than copy in frame rank. Too few items for CIs, but no sign yet that generation scales.
+  - **To finish:** re-run the same command in a fresh 5-hour window. It resumes past the 26; ~174 calls at ~0.2 points each.
+
 **Quota cost, measured.** Each row records the account's 5-hour and 7-day usage reported with the call; `run` prints them at the start and end of a batch, and `--max-5h` (default 0.8) stops a batch at that share. These are account-wide figures, so run batches with nothing else active.
 - Each 40-call Sonnet batch (~195k input tokens) cost about **6–8 points of the 5-hour limit** and **~0.5 point of the 7-day limit**.
 - That's roughly 500–600 Sonnet calls per 5-hour window, and several thousand per week.
