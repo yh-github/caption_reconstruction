@@ -199,7 +199,19 @@ Source: `scripts/caption_lag_robustness.py` → `results/caption_audit/lag_{prof
   | Llama | 22.2 | 24.1 |
 
   - Same pattern as Sonnet: about level in text rank, worse than copy in frame rank. Too few items for CIs, but no sign yet that generation scales.
-  - **To finish:** re-run the same command in a fresh 5-hour window. It resumes past the 26; ~174 calls at ~0.2 points each.
+- **Opus reconstruction, 32 videos (same day, later).** `run --task recon --model opus --limit 100` added 100 items, all valid, for 126 in total. The 5-hour figure went from 15% to 41% (~0.26 points per call; recon prompts are longer) and the 7-day one from 36% to 37%. Then `score --model opus`, and `scripts/blind_recon_compare.py sonnet opus` (new; per-video means, channel bootstrap). It reproduces Sonnet's 50-video numbers when run as `blind_recon_compare.py sonnet`. On the 120 gaps all four arms filled (32 videos, 24 channels):
+
+  | Comparison | MPNet text rank | SigLIP 2 frame rank |
+  |---|---|---|
+  | **Opus − Sonnet** | **−0.7 [−2.7, +1.0], level** | **−0.1 [−1.4, +1.2], level** |
+  | Opus − caption copy | −2.3 [−4.6, +0.2], borderline | **+2.6 [+0.9, +4.4], worse** |
+  | Sonnet − caption copy | −1.5 [−4.0, +1.2] | +2.7 [+0.7, +4.6] |
+  | Opus − Llama | −4.9 [−7.6, −1.9] | −3.8 [−6.4, −1.7] |
+
+  - **Generation doesn't scale from Sonnet to Opus**, while recognition went from 77% to 85%. "Recognizes but can't generate" now holds at the largest model. The draft's §1, §4.2 and §6 now say this.
+  - Opus's text-rank edge over copy is almost all at W = 1 (−7.6). At W = 4–16 it's −1.4 to +1.1.
+  - Caveat for the frame-rank deficit: caption copy is the captioner's own text, so it matches the true captions' style and Claude's text doesn't. Part of the deficit may be style. A style-matched copy baseline (copy rephrased by Claude) would test this.
+  - The other 74 items (videos 33–50) are optional. They would only tighten Opus − caption copy in text rank: `run --task recon --model opus --limit 74`, about 20 points of the 5-hour window.
 
 **Quota cost, measured.** Each row records the account's 5-hour and 7-day usage reported with the call; `run` prints them at the start and end of a batch, and `--max-5h` (default 0.8) stops a batch at that share. These are account-wide figures, so run batches with nothing else active.
 - Each 40-call Sonnet batch (~195k input tokens) cost about **6–8 points of the 5-hour limit** and **~0.5 point of the 7-day limit**.

@@ -26,7 +26,7 @@ We test the assumption directly. We take 335 one-minute clips from 40 YouTube ch
 
 The answer is that captions keep the topic and lose the timeline. Against frames from other videos, a caption identifies its own frame almost as well as a copy of the neighboring frame does. Against frames from the surrounding ten seconds, it is no better than the caption of a neighboring second. Captions also run one to two seconds ahead of the frames they describe, in every one of the 40 channels, and correcting this lead recovers only a third of the timing gap. A control with per-frame captions from a much smaller model shows that the text encoder can carry second-level timing, so the loss lies in the captions themselves.
 
-We then ask what this loss costs a text-only attempt to recover masked seconds. With a gap of W seconds masked, an 8B LLM that in-fills the missing captions from their context loses to copying the nearest caption, which in turn loses badly to copying the nearest frame, on per-second retrieval and on a forced-choice test. Recognition scales with the reader: on the forced-choice test, the largest frontier model we tried matches the frame-copy baseline from captions alone. Generation does not, on the evidence so far, which is what a loss of timing rather than of content predicts. Across videos, the better a video's captions are grounded, the closer caption-based gap filling gets to frame-based gap filling.
+We then ask what this loss costs a text-only attempt to recover masked seconds. With a gap of W seconds masked, an 8B LLM that in-fills the missing captions from their context loses to copying the nearest caption, which in turn loses badly to copying the nearest frame, on per-second retrieval and on a forced-choice test. Recognition scales with the reader: on the forced-choice test, the largest frontier model we tried matches the frame-copy baseline from captions alone. Generation does not: the same model writes the missing captions no better than a smaller one, which is what a loss of timing rather than of content predicts. Across videos, the better a video's captions are grounded, the closer caption-based gap filling gets to frame-based gap filling.
 
 Our contributions are:
 1. An annotation-free protocol that scores a caption track against frame embeddings, separating topic from timing by the choice of distractor pool.
@@ -195,7 +195,7 @@ On paired items, Sonnet beats caption copy by 31 points [21, 42] and trails fram
 
 Recognition grows steeply with model scale. On the same 160 items and with the same protocol, the smaller Claude Haiku 5.5 scores 51.2% [44.3, 58.2], level with caption copy (+5.6 [−4.4, +16.6]). Claude Opus 5.5 scores 85.0% [78.7, 90.7], 8.1 points [4.1, 12.4] above Sonnet and statistically level with frame copy (−2.5 [−10.1, +5.6]). Its accuracy is flat across widths (83–88%). Frame copy is a crude reader of the frames, and its assignment-aware variant reaches 95.6%, so this is not parity with what the frames contain. It does show that, from captions alone, a frontier reader can tell which span belongs in the gap about as well as the nearest frame can. Topic and the order of events, which §3 found the captions keep, are enough for that.
 
-> **Note for the authors (2026-10-09):** this weakens "captions cap text-only recovery" for *recognition*. The cap now holds for second-level timing (§3) and for *generation*: on 50 videos Sonnet's reconstructions are no better than caption copy, and worse in frame space (below). The abstract and §6 are worded accordingly, but the framing is a decision to make. Opus reconstruction is the remaining check that generation does not also scale.
+> **Note for the authors (2026-10-09):** this weakens "captions cap text-only recovery" for *recognition*. The cap now holds for second-level timing (§3) and for *generation*: on 50 videos Sonnet's reconstructions are no better than caption copy, and worse in frame space, and Opus is level with Sonnet on 32 of them (below). The abstract and §6 are worded accordingly, but the framing is a decision to make.
 
 <!-- Haiku/Sonnet/Opus comparison: scripts/blind_choice_compare.py haiku sonnet [opus]. -->
 
@@ -213,9 +213,13 @@ Recognition is not generation. We asked Sonnet to write the missing captions wit
 - It only draws level with caption copy in text rank (22.3 against 23.6; −1.4 [−3.0, +0.5]).
 - It is *worse* than caption copy in frame rank (25.8 against 22.5; +3.3 [+1.5, +5.1]).
 
-The same model that picks the right span 77% of the time cannot write the span better than the boundary caption does. This is what §3 predicts. The captions carry the topic and the order of events, which is enough to recognize the right span, but they carry little second-level detail to generate from. **TODO:** Opus reconstruction on the same 50 videos (about 200 calls, roughly 30 points of the 5-hour quota).
+The same model that picks the right span 77% of the time cannot write the span better than the boundary caption does. This is what §3 predicts. The captions carry the topic and the order of events, which is enough to recognize the right span, but they carry little second-level detail to generate from.
 
-<!-- Source: blind_llm_runner.py run --task recon --model sonnet --limit 200 (video-major, 50 videos × 4 widths); score --model sonnet → results/blind_llm/recon__sonnet__scores.csv; paired CIs computed ad hoc (2026-10-09). 1 of 200 items invalid. -->
+Generation also does not scale. Opus, which gained 8 points over Sonnet on recognition, wrote the gaps for the first 32 of the same videos (24 channels; 120 gaps that all four arms filled). It is level with Sonnet in both spaces: text rank −0.7 [−2.7, +1.0], frame rank −0.1 [−1.4, +1.2]. Against caption copy it shows the same pattern as Sonnet: borderline better in text rank (−2.3 [−4.6, +0.2]), and that edge comes almost entirely from W = 1. In frame rank it is worse (+2.6 [+0.9, +4.4]). Scaling the reader moves recognition from 77% to 85% and leaves generation where it was.
+
+One caveat applies to the frame-space deficit of both models. Caption copy reuses the captioner's own text, so it matches the style of the true captions, while Claude's reconstructions do not. Part of the deficit may be stylistic. The text-rank result, level with copy at best, does not depend on this.
+
+<!-- Source: blind_llm_runner.py run --task recon --model {sonnet,opus} (video-major; Sonnet 50 videos × 4 widths, 1 of 200 invalid; Opus the first 126 items, all valid); score --model <m> → results/blind_llm/recon__<m>__scores.csv; paired CIs: scripts/blind_recon_compare.py sonnet [opus]. -->
 
 | Arm (50 videos, mean rank; chance 30.5) | MPNet text rank | SigLIP 2 frame rank |
 |---|---|---|
@@ -279,7 +283,7 @@ Verified 2026-10-08 against the venue pages (search results); entries marked †
 
 ## 6. Discussion and limitations
 
-Dense captions from a frontier video LLM are a good record of what a video is about and a poor record of when things happen in it. Topic survives almost intact. Second-level timing is mostly lost, and what remains is shifted one to two seconds early. For pipelines that use captions as a stand-in for video, this means that questions about content are safe and questions about timing, order at the scale of seconds, or the moment of a change are not, and that the failure will not show up in the text itself. For reconstruction, the picture splits by task. Recognizing which content belongs in a gap scales with the reader, and the largest model we tried matches the frame-copy baseline from captions alone. Generating the missing seconds does not scale, on the evidence so far. The 8B model loses to copying a neighbor, and a frontier model draws level with it in text space and falls behind it in frame space. What the captions lose is the timeline, and no reader can put back a timeline the text never recorded.
+Dense captions from a frontier video LLM are a good record of what a video is about and a poor record of when things happen in it. Topic survives almost intact. Second-level timing is mostly lost, and what remains is shifted one to two seconds early. For pipelines that use captions as a stand-in for video, this means that questions about content are safe and questions about timing, order at the scale of seconds, or the moment of a change are not, and that the failure will not show up in the text itself. For reconstruction, the picture splits by task. Recognizing which content belongs in a gap scales with the reader, and the largest model we tried matches the frame-copy baseline from captions alone. Generating the missing seconds does not scale. The 8B model loses to copying a neighbor, and two frontier models, Sonnet and Opus, draw level with it in text space, fall behind it in frame space, and are level with each other. What the captions lose is the timeline, and no reader can put back a timeline the text never recorded.
 
 **Limitations.**
 - **One captioner, one prompt.** All captions come from a single model, prompted once for the whole minute. The lead and the lost timing may be properties of this setup (whole-clip captioning with timestamps) rather than of video LLMs in general. The Florence-2 ceiling (§3.6) shows that aligned text can carry timing, but with a different captioner. Re-captioning a sample one second at a time with a frontier model is the direct control (**TODO**).
@@ -316,13 +320,13 @@ As of 2026-10-09 the whole draft is prose: about 5,200 words (abstract to discus
 | 2 Related work | 0.6 | As drafted | Drafted; check the † references |
 | 3 Data and setup | 0.8 | Clips, captioner, encoders, metrics (calibrated c, ranks), channel-clustered statistics | Prose done 2026-10-09 |
 | 4 Captions vs. frames | 2.3 | Grounding and lag (Fig 1), lag robustness, Q2/Q3, topic vs. timing (Fig 2), bridge ceiling (table) | Prose done 2026-10-09 (draft §3, ~2,000 words + 3 tables ≈ 3 pages: over budget). Trim candidates: move the re-alignment table to §5 or the appendix, shorten Q2/Q3 to one paragraph |
-| 5 Consequences for reconstruction | 2.0 | Per-second table, forced choice across model scale (Fig 3), grounding vs. deficit (Fig 4), recognize vs. generate | Prose done 2026-10-09; still needs the Haiku/Opus scale points and more Sonnet reconstruction |
+| 5 Consequences for reconstruction | 2.0 | Per-second table, forced choice across model scale (Fig 3), grounding vs. deficit (Fig 4), recognize vs. generate | Prose done 2026-10-09, with Haiku/Sonnet/Opus forced choice and Sonnet/Opus reconstruction; Fig 3 still needs the scale points |
 | 6 Discussion and limitations | 0.8 | One captioner, encoder-based reference, 60-s clips, subscription models, PMI vs. direct choice | Prose done 2026-10-09 |
 | Appendix (no page limit at most venues) | — | Prompts, isolation protocol of the blind runner, per-channel lag table, extra widths | To assemble |
 
 **Experiments that would strengthen the 8-page version** (cheapest first):
-1. Haiku on the same 160 forced-choice items. Cheap; it gives a three-point model-scale curve with Sonnet and Opus.
-2. Opus on the same 160 items, after a 20-call cost probe.
-3. Sonnet reconstruction on about 50 videos (200 calls), to back "recognizes but can't generate".
+1. ~~Haiku on the same 160 forced-choice items.~~ Done 2026-10-09 (51.2%).
+2. ~~Opus on the same 160 items.~~ Done 2026-10-09 (85.0%).
+3. ~~Sonnet reconstruction on about 50 videos~~ (done 2026-10-09), ~~and Opus on the same videos~~ (32 of 50 done 2026-10-09: level with Sonnet). The remaining 74 Opus items would only tighten Opus − caption copy in text rank.
 4. Q4 correctness audit, about 50 seconds: manual, or an Opus judge with planted wrong captions.
 5. Gemini per-second re-captioning of a few videos (the same-captioner control for §3.6). This needs an image mode in the runner, or Gemini CLI.
