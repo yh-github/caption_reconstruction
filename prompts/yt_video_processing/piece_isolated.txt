@@ -1,0 +1,6 @@
+Describe the attached 5-second video clip.
+
+* The description should describe what is visible during the clip.
+* Write 1-2 concise sentences focusing on the primary activity and visible entities.
+* Include enough details so someone who hasn't seen the video could understand what's happening.
+* If a description cannot be generated, write "ERROR".
