@@ -47,6 +47,7 @@ from llm.llm_interaction import LLM_Manager_Builder, LLM_ResponseBlocked, LLM_Re
 from llm.parsers import parse_llm_response_list
 
 N_PIECES, PIECE_S = 12, 5
+RETRY_WAITS_S = [30, 60, 120, 240]
 VIDEO_DIRS = [ROOT / "local/wild_videos_raw/Videos1", ROOT / "local/wild_videos_raw/Videos2"]
 OUT = ROOT / "results/piece_captions"
 CALLS_LOG = OUT / "calls.jsonl"
@@ -186,7 +187,13 @@ def main() -> None:
             continue
         start, dur = (0.0, N_PIECES * PIECE_S) if p is None else (p * PIECE_S, PIECE_S)
         t0 = time.time()
-        res = llm.call(content(cut(src, start, dur), prompt))
+        video = cut(src, start, dur)
+        for wait in [*RETRY_WAITS_S, None]:  # 503/500 (overload) are unbilled; retry them with backoff
+            res = llm.call(content(video, prompt))
+            if not (isinstance(res, LLM_ResponseError) and re.search(r"\b(500|503)\b", str(res.exception))) or wait is None:
+                break
+            print(f"server busy, retrying in {wait} s")
+            time.sleep(wait)
         n_calls += 1
 
         raw = res.raw_response
