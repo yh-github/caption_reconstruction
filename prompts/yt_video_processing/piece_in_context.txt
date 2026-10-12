@@ -1,9 +1,9 @@
-For the attached video, create 1 caption per 5-second segment of the first 60 seconds of the video.
+For the attached video, describe what happens in each 5-second segment of the first 60 seconds of the video, in one or two sentences of at most 45 words in total per segment.
 
-* Each caption should describe what is visible during that 5-second segment.
 * For example, the segments for a video that starts 00:11:38.512 would be 00:11:38.512-00:11:43.512, 00:11:43.512-00:11:48.512, 00:11:48.512-00:11:53.512, up to the last (12th) 00:12:33.512-00:12:38.512
-* Do not reference information from other segments, captions must be self-contained
-* Write 1-2 concise sentences per caption, focusing on the primary activity and visible entities.
+* Start with what happens: what the people, animals or machines do, or, if nothing in the segment acts, how the scene or the camera view changes.
+* Then add the details that set this moment apart: the setting, the key objects and any on-screen text.
+* Describe what is seen, not what is heard.
 * Include enough details so someone who hasn't seen the video could understand what's happening.
 * Per segment, output the start and end timestamps and the caption text.
 * Timestamps are in HH:MM:SS.mmm format
