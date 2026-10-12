@@ -6,9 +6,10 @@ Two modes, same output format (one 1-2 sentence description per 5 s piece):
   isolated    one call per piece: the model sees only that 5 s piece and is not told where it comes from
               (prompts/yt_video_processing/piece_isolated.txt)
 
-Generation settings match the original captions (config/gen_captions/wild4.yaml): gemini-3-flash-preview,
-temperature 0.8, dynamic thinking, seed 0x5EED, 1 fps, local mp4s sent as inline bytes. Pieces are
-re-encoded so they start exactly on the second (stream copy would snap to keyframes).
+Model: --model (default gemini-3.8-flash); outputs go to results/piece_captions/<model>/<mode>/. Other
+settings match the original captions (config/gen_captions/wild4.yaml): temperature 0.8, dynamic thinking,
+seed 0x5EED, 1 fps, local mp4s sent as inline bytes. Pieces are re-encoded so they start exactly on the
+second (stream copy would snap to keyframes).
 
 Auth: reads GEMINI_PAID_API_KEY only, never GEMINI_API_KEY. Spending is capped by --max-usd, summed over
 every call logged in results/piece_captions/calls.jsonl (all modes), at the --usd-in/--usd-out prices.
@@ -19,6 +20,7 @@ every call logged in results/piece_captions/calls.jsonl (all modes), at the --us
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import random
@@ -56,7 +58,7 @@ PROMPTS = {
     "isolated": ROOT / "prompts/yt_video_processing/piece_isolated.txt",
 }
 SCHEMAS = {"in_context": "list[CaptionedInterval]", "isolated": "text/plain"}
-LLM_CONFIG = dict(model_name="gemini-3-flash-preview", system_instructions=None, temperature=0.8,
+LLM_CONFIG = dict(model_name="gemini-3.8-flash", system_instructions=None, temperature=0.8,
                   thought_budget=-1, seed=0x5EED, fps=1)
 
 
@@ -136,6 +138,7 @@ def main() -> None:
     sel.add_argument("--videos", nargs="+", help="video ids")
     sel.add_argument("--pilot", type=int, help="n benchmark videos spread over channels")
     ap.add_argument("--pilot-seed", type=int, default=0)
+    ap.add_argument("--model", default=LLM_CONFIG["model_name"])
     ap.add_argument("--pieces", type=int, nargs="+", help="isolated mode: only these piece indices (0-11)")
     ap.add_argument("--max-usd", type=float, default=1.0, help="stop when logged spend reaches this")
     ap.add_argument("--usd-in", type=float, default=0.50, help="$ per 1M input tokens")
@@ -152,10 +155,10 @@ def main() -> None:
         if _normalize_name(v) not in paths:
             sys.exit(f"no local video for {v}")
         if args.mode == "in_context":
-            jobs.append((v, None, OUT / "in_context" / f"{v}.json"))
+            jobs.append((v, None, OUT / args.model / "in_context" / f"{v}.json"))
         else:
             for p in args.pieces or range(N_PIECES):
-                jobs.append((v, p, OUT / "isolated" / v / f"{p:02d}.json"))
+                jobs.append((v, p, OUT / args.model / "isolated" / v / f"{p:02d}.json"))
     todo = [j for j in jobs if not j[2].exists()]
     print(f"{args.mode}: {len(videos)} videos, {len(jobs)} calls, {len(todo)} to do, "
           f"spent so far ${spent_usd():.4f} of ${args.max_usd}")
@@ -169,7 +172,8 @@ def main() -> None:
         sys.exit("GEMINI_PAID_API_KEY is not set (run: source ~/.secrets)")
     client = genai.Client(api_key=key)
     cache = diskcache.Cache(str(ROOT / "disk_cache/piece_captions"))
-    llm = LLM_Manager_Builder(client, cache).from_config({**LLM_CONFIG, "response_schema": SCHEMAS[args.mode]})
+    llm = LLM_Manager_Builder(client, cache).from_config(
+        {**LLM_CONFIG, "model_name": args.model, "response_schema": SCHEMAS[args.mode]})
     prompt = PROMPTS[args.mode].read_text()
 
     n_calls = 0
@@ -202,7 +206,7 @@ def main() -> None:
         n_out = usage.get("candidates_token_count", 0) + usage.get("thoughts_token_count", 0)
         usd = (n_in * args.usd_in + n_out * args.usd_out) / 1e6
         rec = dict(time=datetime.now(timezone.utc).isoformat(timespec="seconds"), mode=args.mode, video_id=v,
-                   piece=p, model=LLM_CONFIG["model_name"], model_version=raw.model_version if raw else None,
+                   piece=p, model=args.model, model_version=raw.model_version if raw else None,
                    cached=raw is None and not isinstance(res, LLM_ResponseError), usage=usage,
                    usd=round(usd, 6), secs=round(time.time() - t0, 1), error=None)
 
@@ -231,6 +235,7 @@ def main() -> None:
         out.parent.mkdir(parents=True, exist_ok=True)
         dest = out if ok else out.with_suffix(".invalid.json")
         dest.write_text(json.dumps(dict(video_id=v, mode=args.mode, prompt=str(PROMPTS[args.mode].relative_to(ROOT)),
+                                        prompt_sha256=hashlib.sha256(prompt.encode()).hexdigest()[:16],
                                         model_version=rec["model_version"], pieces=pieces,
                                         thoughts=res.thoughts, raw_text=res.text), indent=1))
         time.sleep(args.sleep)
