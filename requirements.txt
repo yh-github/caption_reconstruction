@@ -25,6 +25,7 @@ tiktoken~=0.11.0
 sentencepiece~=0.2.1
 
 # --- Video Processing ---
+imageio-ffmpeg~=0.6.0                # Static ffmpeg binary for cutting clips (scripts/caption_pieces.py)
 # opencv-python-headless==4.12.0.88  # Optional: For video frame extraction (conflicts with numpy)
 # timm==1.0.22                       # Optional: For ViT models
 
