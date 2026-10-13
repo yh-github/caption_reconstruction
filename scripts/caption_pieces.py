@@ -127,6 +127,13 @@ def log_call(rec: dict) -> None:
         f.write(json.dumps(rec) + "\n")
 
 
+def is_transient(err: str) -> bool:
+    """500/503 overload, or a bare 429 (capacity). A 429 that names a quota (free tier, per-day limits) is not."""
+    if re.search(r"\b(500|503)\b", err):
+        return True
+    return bool(re.search(r"\b429\b", err)) and not re.search(r"quota_?id|FreeTier|PerDay|quotaMetric", err, re.I)
+
+
 def is_error(caption: str) -> bool:
     """The prompts ask for "ERROR" when no description can be made."""
     return caption.strip(" \"'.").upper() == "ERROR"
@@ -198,9 +205,9 @@ def main() -> None:
         start, dur = (0.0, N_PIECES * PIECE_S) if p is None else (p * PIECE_S, PIECE_S)
         t0 = time.time()
         video = cut(src, start, dur)
-        for wait in [*RETRY_WAITS_S, None]:  # 503/500 (overload) are unbilled; retry them with backoff
+        for wait in [*RETRY_WAITS_S, None]:  # overload errors are unbilled; retry them with backoff
             res = llm.call(content(video, prompt))
-            if not (isinstance(res, LLM_ResponseError) and re.search(r"\b(500|503)\b", str(res.exception))) or wait is None:
+            if not (isinstance(res, LLM_ResponseError) and is_transient(str(res.exception))) or wait is None:
                 break
             print(f"server busy, retrying in {wait} s")
             time.sleep(wait)
@@ -231,7 +238,11 @@ def main() -> None:
             items = parse_llm_response_list(list[CaptionedInterval], res.text or "")
             pieces = [dict(piece=i, start_s=i * PIECE_S, end_s=(i + 1) * PIECE_S, caption=c.caption.strip(),
                            model_start=c.start, model_end=c.end) for i, c in enumerate(items)]
-            ok = len(items) == N_PIECES and all(abs(ts_seconds(c.start) - i * PIECE_S) < 0.5 for i, c in enumerate(items))
+            # A segment is aligned if its start or its end is on the 5 s grid, so one timestamp typo
+            # (e.g. 00:10:00.000 for 00:00:10.000) doesn't void a run; both off = misaligned.
+            ok = len(items) == N_PIECES and all(
+                abs(ts_seconds(c.start) - i * PIECE_S) < 0.5 or abs(ts_seconds(c.end) - (i + 1) * PIECE_S) < 0.5
+                for i, c in enumerate(items))
         ok = ok and not any(is_error(pc["caption"]) for pc in pieces)
         if not ok:
             rec["error"] = f"invalid output ({len(pieces)} pieces)"
