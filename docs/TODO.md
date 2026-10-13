@@ -15,7 +15,8 @@ Step numbers refer to `docs/new_direction/experiment_kickoff_plan.md`.
 - [x] Step 0.1–0.2: paid tier confirmed (Prepay, ₪15 credit; 21 test calls passed).
 - [ ] Step 0.3 (user, from 2026-10-14): Cloud Billing report shows a Gemini cost line; check whether the ₪30.71 of Cloud credits are applied, and compare with `sum(usd)` in `calls.jsonl`.
 - [x] Step 1: Stage 1 on 2 videos, read against frames; prompt revised once (v2) and frozen; `scripts/piece_caption_check.py` written.
-- [ ] Step 2: 30-video pilot (364 new calls, about $1.50), then the check and a 20-piece spot read. Needs the user's go.
+- [x] Stage 1b: 5 more pilot videos chosen for untested failure modes, read against frames; v2 holds (handover 2026-10-13 §C).
+- [ ] Step 2: the other 23 pilot videos (299 calls, about $1.00), then the check and a 20-piece spot read. Needs the user's go.
 - [ ] Step 3.5 first: commit `docs/new_direction/unshuffle_pilot_preregistration.md` (primary metric, primary contrast, orderability arm) before any arm runs.
 - [ ] Step 3: build `scripts/unshuffle/` (pieces, puzzles, arms, score) with tests; Llama pairwise scoring on Kaggle.
 - [ ] Literature review: hand `docs/new_direction/literature_review_plan.md` to a research agent (no paid APIs) → `docs/new_direction/related_work.md`.

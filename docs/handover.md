@@ -62,6 +62,16 @@ Read against frames (3 frames per piece; full resolution for disputed claims):
 - **Orderability:** canyon pieces 0–3 and 8–11 are near-identical static shots, so their order can't be recovered from either modality. They are a ready example for the orderability measure.
 - **Lead:** about 0 for every set, including the original captions (+0.01), whose 1–2 s lead is known. At 5 s pieces and 2 videos the metric can't detect it; re-check on the pilot before relying on it.
 
+**Stage 1b: 5 more videos with v2, chosen for untested failure modes** (all from the 30-video pilot list, so they count toward it; 65 calls, all valid, $0.22): `Weathershot_1-clip-0` (storm compilation), `Military-Archive_6-clip-0` (archival, cuts), `Disaster-Compilations_6-clip-2` (phone and TV footage), `TreadmillTV_3-clip-12` (a near-uniform forest walk), `Olly's-Farm_11-clip-1` (cab-view farm work; the `'` file-name join works).
+- **Check:** isolated MRR 0.57, in-context 0.54, original 0.48 (60 captions each).
+- **No v3 needed.**
+  - No clocks, subtitles or numbering were transcribed, and a TV channel logo ("PTQ") was correctly left out.
+  - Aircraft numbers ("31086", "21066") were transcribed. They are object identifiers that link pieces of the same shot, not order cues, so they are allowed; watch their frequency in the pilot.
+- **The leak again:** in-context captions narrate across pieces ("the overturned car skids", "the truck comes to a stop", "re-enters the shed", "another heavy load").
+- **The isolation cost again:** one tilted frame from a camera jolt (Olly's piece 8) became "the vehicle suddenly tips over onto its right side" in the isolated caption, while the in-context caption reads it correctly ("the camera jolts"). One case in 60, so the prompt is not changed.
+- **Orderability:** TreadmillTV's isolated captions are near-identical (repetition 0.84), as the footage is, apart from the pond in pieces 8–10.
+- **Remaining pilot:** 23 videos (299 calls, about $1.00). The command in E.2 skips the 7 videos already done.
+
 ## D. Code (all committed on `main`, not pushed)
 
 - `scripts/caption_pieces.py`: audio removed; `audio: false` in outputs; an `ERROR` caption or an in-context run whose segments don't start at 0 s is saved as `*.invalid.json`.
