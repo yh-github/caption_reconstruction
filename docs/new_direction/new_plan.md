@@ -8,7 +8,7 @@ We propose to stop measuring reconstruction by **generation** (an LLM writes the
 
 Three results drive the switch. Generation cannot be scored without the scoring choice deciding the answer. Beyond Sonnet it stops improving with a stronger model, while recognition keeps improving (51% → 77% → 85% for Haiku, Sonnet, Opus). And what the models get wrong is *when* things happen, not *what* happens, which is exactly what an ordering task measures.
 
-The switch also forces a fix we need anyway. The existing captions were written by a model that saw the whole minute, so they leak information about the masked parts. We re-caption every 5 s piece in isolation, from the pictures only (no audio), with Gemini 3.8 Flash, for about $15–20 in total. A local open-weights text model (Llama-3.1-8B, run on Kaggle) and the frame baselines run for free; frontier models only on subsets.
+The switch also forces a fix we need anyway. The existing captions were written by a model that saw the whole minute, so they leak information about the masked parts. We re-caption every 5 s piece in isolation, from the pictures only (no audio), with Gemini 3.8 Flash, for about $15 in total. A local open-weights text model (Llama-3.1-8B, run on Kaggle) and the frame baselines run for free; frontier models only on subsets.
 
 ## Why we are moving away from generation
 
@@ -102,31 +102,33 @@ Every piece is captioned by a model that sees only that piece and is not told wh
 **Two captioning conditions, same model, same instructions, same output format** (one description of at most 45 words per piece):
 
 - **Isolated:** one call per piece. This is the main data for the unshuffling study.
-- **In-context:** one call per video, the model sees the whole minute and describes each of the 12 pieces. It exists only to measure the leak. If readers order in-context captions better than isolated ones, the difference is the *context advantage*: the leak plus whatever the captioner gets right from seeing the whole minute (in piece 1 below, the in-context caption is the correct one). In-context captions with the cue words removed split the explicit cue words from the rest.
+- **In-context:** one call per video, the model sees the whole minute and describes each of the 12 pieces. It exists only to measure the leak. If readers order in-context captions better than isolated ones, the difference is the *context advantage*: the leak plus whatever the captioner gets right, or wrong, from seeing the whole minute. In-context captions with the cue words removed split the explicit cue words from the rest.
 
-**Prompt design.** The prompt asks for what happens in the piece (what people, animals or machines do, or how the scene or camera changes), then the details that set the moment apart (setting, key objects, on-screen text). It does not transcribe subtitles, clocks, timestamps, dates or numbering such as day or step numbers, which would hand the text readers an order the frame arms cannot use. It describes what is seen, not heard: narration often states the order, and the frame arm cannot hear it. A prompt instruction alone does not ensure this, so the audio track is removed before upload. We deliberately do **not** tell the captioner to avoid inference. Inference from inside the piece (time of day from the light, an intent from a visible tool) is fair, and narrative inference is the ability the readers are tested on. Isolation, not the prompt, removes outside information. Prompts: `prompts/yt_video_processing/piece_isolated.txt` and `piece_in_context.txt`.
+**Prompt design.** The prompt asks for what happens in the piece (what people, animals or machines do, or how the scene or camera changes), then the details that set the moment apart (key objects, on-screen text), with the setting in a few words at most. It does not transcribe subtitles, clocks, timestamps, dates or numbering such as day or step numbers, which would hand the text readers an order the frame arms cannot use, and it leaves out watermarks and channel logos. It mentions camera movement only when the camera clearly moves. It describes what is seen, not heard: narration often states the order, and the frame arm cannot hear it. A prompt instruction alone does not ensure this, so the audio track is removed before upload. We deliberately do **not** tell the captioner to avoid inference. Inference from inside the piece (time of day from the light, an intent from a visible tool) is fair, and narrative inference is the ability the readers are tested on. Isolation, not the prompt, removes outside information. Prompts: `prompts/yt_video_processing/piece_isolated.txt` and `piece_in_context.txt`.
 
-**First examples (Stage 1, gemini-3.8-flash, `Joe-Robinet_9-clip-2`).** These were captioned with audio and before the on-screen text rule; Stage 1 is being redone.
+**Examples (Stage 1, gemini-3.8-flash, frozen prompt v2; checked against the frames):**
 
 | Piece | Isolated | In-context |
 | --- | --- | --- |
-| 7 (35–40 s) | "A man stands beside an overturned canoe and a green tarp shelter at a forest campsite. He looks up at the trees and sky before looking down to adjust his waistband." | "The man **continues** adjusting gear on his belt, glancing up at the sky and surrounding trees as clouds pass overhead." |
-| 3 (15–20 s) | "A close-up of a person's bare feet resting on camouflage fabric cuts to a wide shot of them sitting in a green tent … putting on socks" | "The camera **lingers on** the bare feet before cutting to a wide shot of the campsite …" |
-| 5 (25–30 s) | "A man stands up outside his small tarp tent … and adjusts a knife on his belt." | "The man stands up from the tent and adjusts his pants …" |
+| `Joe-Robinet_9-clip-2` 1 (5–10 s) | "The camera tilts downward looking out from beside a yellow tent at a sunny campsite, revealing a stone campfire pit, a stack of firewood logs, and a lake bordered by trees in the background." | "The camera tilts downward past the fire pit and firewood **to reveal a camper resting on a camouflage mat**." |
+| `Joe-Robinet_9-clip-2` 8 (40–45 s) | "A man stands in a forest campsite and takes a small object out of his pocket. …" | "The man **continues** speaking as he adjusts his pants and inspects something in his hands at the campsite." |
+| `4k-Relaxation_4-clip-4` 8 (40–45 s) | "A shallow river flows through a narrow canyon between towering, steep rock walls. In the distance, sunlight brightens the canyon walls …" | "Shallow water ripples downstream through the canyon corridor. **Far in the distance, tiny figures of hikers wade** along the sunlit path between the soaring cliffs." |
 
-"Continues" and "lingers on" only make sense if the captioner saw the previous piece. Words that describe a change inside the piece ("stands up") are legitimate: both before and after are visible, to frames as well.
+The leak takes three forms here. The camper first appears in piece 2, so the in-context caption of piece 1 runs ahead into the next piece. "Continues" only makes sense to a captioner who saw the previous piece. And piece 8 of the canyon clip has no hikers in its frames (checked at full resolution): the in-context captioner carried them over from pieces 4–7. So the leak moves content between pieces, not only cue words. Words that describe a change inside the piece ("stands up") are legitimate: both before and after are visible, to frames as well.
 
-**What isolation does not fix.** Isolated captions can still be wrong: in piece 1 the isolated caption has a person zipping a tent door that is never touched (we checked the frames), while the in-context caption is correct. They also repeat the whole setting in every piece. Both are measured in the pilot.
+**What isolation does not fix.** Isolated captions can still be wrong or vague: in the canyon clip's piece 4 the isolated caption calls a cut a pan, and in Joe's piece 9 neither condition can tell from the frames whether he eats or wipes his face. They still restate the setting (canoe, tarp, boulders, firewood) when the scene doesn't change, even with the "few words" rule (repetition 0.67, against 0.54 for in-context captions). Both are measured in the pilot.
+
+**Prompt v2, frozen.** On the same 2 videos, the first prompt's isolated captions named a constant watermark in all 12 canyon pieces and listed the whole setting every time, and its in-context captions invented a forward camera glide over static shots. Prompt v2 fixed all three. Isolated retrieval of the true piece among 12 (SigLIP 2) rose from MRR 0.44 to 0.58 (chance 0.26), on 24 captions, so the size of the gain is uncertain.
 
 ## Plan and status
 
-We go up in small, checked steps; nothing larger runs until the step before it has been read by hand. Stage 1 is being redone without audio and is waiting on billing.
+We go up in small, checked steps; nothing larger runs until the step before it has been read by hand. Stages 0 and 1 are done and the prompt is frozen (v2); the 30-video pilot is next.
 
 | Stage | What | Size | Status |
 | --- | --- | --- | --- |
 | 0. Smoke test | One isolated piece, check auth, model, output format | 1 call | Done |
-| 1. Two videos | `Joe-Robinet_9-clip-2` (a person acting) and `4k-Relaxation_4-clip-4` (scenery), both conditions, read by hand + SigLIP retrieval check | 26 calls | 10 of 26 were done with audio before the free-tier limit stopped them (see Cost); set aside, all 26 to be redone without audio |
-| 2. Pilot | 30 videos from 30 different channels, both conditions | 390 calls | Not started |
+| 1. Two videos | `Joe-Robinet_9-clip-2` (a person acting) and `4k-Relaxation_4-clip-4` (scenery), both conditions, read by hand + SigLIP retrieval check | 26 calls | Done 2026-10-13, without audio; prompt revised once (v2) and frozen |
+| 2. Pilot | 30 videos from 30 different channels, both conditions | 390 calls (364 new) | Next, after a go |
 | 3. Unshuffle pilot | Matched text and frame arms (similarity chaining, order probe, Llama-8B) on the pilot pieces, all three puzzle versions; captions: isolated, in-context, in-context with cue words removed, original, original with cue words removed | local and Kaggle, free | Not started |
 | 4. Full run | All 335 videos, then Claude on a subset | ~4,355 Gemini calls | After Stage 3 |
 
@@ -140,18 +142,18 @@ We go up in small, checked steps; nothing larger runs until the step before it h
 
 ## Cost and infrastructure
 
-The whole re-captioning costs about $15–20 at the prices we assume, inside the $60 of Google Cloud credits available ($10 redeemed so far). Measured token counts come from the Stage 1 calls (made with audio; re-measured when Stage 1 is redone); prices are from third-party listings and still need checking against the billing report.
+The whole re-captioning costs about $15 at the prices we assume. Measured token counts come from the Stage 1 calls with the frozen setup (no audio, prompt v2); prices are from third-party listings and still need checking against the billing report.
 
 | Call | Tokens per call (measured) | Cost per call | Pilot (30 videos) | Full (335 videos) |
 | --- | --- | --- | --- | --- |
-| Isolated piece | ~590 in, ~900 out (mostly thinking) | ~$0.003 | 360 calls, ~$1.10 | 4,020 calls, ~$12 |
-| In-context video | ~5,800 in, ~3,100–3,700 out | ~$0.013 | 30 calls, ~$0.40 | 335 calls, ~$4.50 |
+| Isolated piece | 517 in, ~810 out (mostly thinking) | ~$0.0027 | 360 calls, ~$1.00 | 4,020 calls, ~$11 |
+| In-context video | 4,347 in, ~2,800–3,100 out | ~$0.011 | 30 calls, ~$0.35 | 335 calls, ~$3.70 |
 
 Assumed prices: $0.50 per million input tokens, $3 per million output tokens including thinking.
 
 - **Model:** `gemini-3.8-flash`, a stable (non-preview) release. Temperature 0.8, dynamic thinking, seed 0x5EED, 1 frame per second, the same settings as the original captions, except that the audio track is removed.
 - **Runner:** `scripts/caption_pieces.py`. Uses only the paid key, removes the audio track, stops at a dollar cap summed over a call log, retries Google's unbilled overload errors, resumes where it stopped, and saves the model version and a prompt hash with every output.
-- **Blocker:** the key's project has left the free tier and is on a paid billing account in Prepay mode, but its balance is zero, so every call fails with 402 (checked 2026-10-13). Under Prepay, Google Cloud promotional credits apply only after at least $5 of prepaid credit is bought in AI Studio, and not all Cloud credits cover the Gemini API ([billing docs](https://ai.google.dev/gemini-api/docs/billing)). Next: buy $5 of prepay credit, or switch to Postpay.
+- **Billing:** resolved 2026-10-13. The project is on a paid billing account in Prepay mode, with ₪15 of prepaid credit; 21 test calls in a row passed, which the free tier would refuse. Under Prepay, Google Cloud promotional credits apply only after funds are added, and not all Cloud credits cover the Gemini API ([billing docs](https://ai.google.dev/gemini-api/docs/billing)); the billing report will show whether the ₪30.71 of credits are used. The full run needs more credit than ₪15.
 - **Routes ruled out:** the Gemini CLI no longer accepts Google AI Pro logins (replaced by the Antigravity CLI in June 2026), and the free tier is too slow. Google's Batch API would halve the cost but loses the per-call controls; worth it only for much larger runs.
 - **Free arms:** Llama-3.1-8B (open weights, on Kaggle), SigLIP 2, MPNet and the order probes run locally. Claude runs only on subsets, on the subscription, after a small pilot.
 
@@ -176,5 +178,5 @@ The main risk is that the comparison, not the task, has to carry the paper; the 
 
 - [ ] Agree to drop generation as the headline and keep it as a short negative result in the paper
 - [ ] Agree to unshuffling with isolated 5 s captions as the main study
-- [ ] Approve the re-captioning budget (about $20, from existing credits)
+- [ ] Approve the re-captioning budget (about $15; ₪15 is prepaid so far, so the full run needs more)
 - [ ] Choose which frontier models get a subset run (Sonnet only, or Sonnet and Opus)

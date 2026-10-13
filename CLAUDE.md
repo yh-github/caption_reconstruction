@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Research codebase for a paper on *caption reconstruction*: mask a contiguous gap of 1-second clips in a 60-second video, then reconstruct it either from **text** (an LLM in-fills the missing captions from surrounding captions) or from **vision** (interpolate SigLIP frame embeddings across the gap). Comparing the two measures how predictable a video's events are without seeing them. The current experimental standard, which results are legacy, and the key findings so far are in `docs/experiments/experiment_protocol_current.md`. Read it before designing or interpreting experiments.
 
+**New direction (2026-10-13): unshuffling.** The main study is moving from generation to ordering: 12 pieces of 5 s per clip, re-captioned in isolation by Gemini, ordered from captions vs. frames. The why and the design are in `docs/new_direction/new_plan.md`; the steps, gates and commands are in `docs/new_direction/experiment_kickoff_plan.md`. Where the work stands and what comes next is at the top of `docs/handover.md`.
+
 ## Commands
 
 All commands run from the repo root, because config paths such as `config/system.yaml` and `config/recon/...` are relative. Use the project venv (`.venv/bin/python`, Python 3.13; the package requires >=3.11).
@@ -31,6 +33,7 @@ Gotchas:
 - A real (non-dry) run fails if the git tree is dirty, including untracked files, because the commit hash is logged to MLflow for reproducibility. Pass `--ignore-unsafe` (or `--debug`) to bypass this.
 - `src/` modules import each other as top-level packages (`from experiment_executor...`, `from llm...`), not `src.xxx`. Scripts in `scripts/` add `src/` to `sys.path` themselves.
 - Frontier LLM arms (Claude Haiku/Sonnet/Opus) run on the user's Claude Code subscription, not the API, through `scripts/blind_llm_runner.py`: one isolated `claude -p` session per item, with no tools and no MCP. These calls spend the user's usage quota, so pilot with `--limit` and confirm before large runs. Details are in `docs/handover.md` (2026-10-08 §D).
+- Gemini piece captioning (`scripts/caption_pieces.py`) reads only `GEMINI_PAID_API_KEY` (from `~/.secrets`), on Prepay billing, so every call spends real money. `--max-usd` is a cumulative cap over `results/piece_captions/calls.jsonl`, not a per-run one. Run `--dry-run` first and confirm with the user before any run beyond the current gate in the kickoff plan.
 - There is no lint or CI config. CONTRIBUTING says loose PEP 8 with type hints; black/flake8 are optional.
 
 ## Architecture

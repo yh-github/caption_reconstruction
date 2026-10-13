@@ -4,18 +4,27 @@ Written 2026-10-13, revised the same day after review. Companion to `docs/new_di
 
 ## Where things stand
 
-- **Prompts:** `prompts/yt_video_processing/piece_isolated.txt` and `piece_in_context.txt`. Revised after review: on-screen text is still described, but subtitles, clocks, timestamps, dates and numbering are not transcribed (the same sentence in both files). Commit before Step 1.
+- **Prompts (v2, frozen):** `prompts/yt_video_processing/piece_isolated.txt` and `piece_in_context.txt`, with the same rule sentences in both files:
+  - on-screen text is described, but subtitles, clocks, timestamps, dates and numbering are not transcribed, and watermarks and channel logos are left out;
+  - the setting gets a few words at most;
+  - camera movement is mentioned only when the camera clearly moves.
+
+  v2 is the one revision round of the Step 1 gate. It fixes what the first prompt (v1) showed on Stage 1: isolated captions listed the whole setting in every piece and named a constant watermark in all 12, and in-context captions invented a forward glide over static shots.
 - **Runner:** `scripts/caption_pieces.py`.
   - Defaults: `gemini-3.8-flash`, temperature 0.8, dynamic thinking, seed 0x5EED, 1 fps.
   - **No audio:** pieces are cut with the audio track removed (`-an`), so the captioner sees what the frame arm sees and cannot hear narration. Each output records `audio: false`.
   - Auth: reads only `GEMINI_PAID_API_KEY` (exported in `~/.secrets`, sourced by `~/.bashrc`).
   - Outputs: `results/piece_captions/<model>/<mode>/`; call log with token usage and estimated cost: `results/piece_captions/calls.jsonl`.
   - **Spend cap:** `--max-usd` is cumulative. It is compared with the sum over every call in `calls.jsonl` (all modes and runs; $0.053 logged so far, from free-tier calls), not with the current run's spend.
-- **Stage 1 starts over.** The 10 outputs from 2026-10-12 (in-context for `Joe-Robinet_9-clip-2` and `4k-Relaxation_4-clip-4`, isolated Joe pieces 0–7) were captioned **with audio** and the old prompt. They are moved, with the Stage 0 smoke test, to `results/piece_captions/_with_audio/` and kept only for comparison.
-- **Blocker:**
+- **Stage 1 history** (outputs set aside are kept for comparison; `piece_caption_check.py` reads them as `<mode>_<tag>` sets):
+  - 2026-10-12, with audio, prompt v0: 10 outputs (in-context for `Joe-Robinet_9-clip-2` and `4k-Relaxation_4-clip-4`, isolated Joe pieces 0–7), with the Stage 0 smoke test, in `results/piece_captions/_with_audio/`.
+  - 2026-10-13, no audio, prompt v1: all 26 calls, in `results/piece_captions/_prompt_v1/`.
+  - 2026-10-13, no audio, prompt v2: all 26 calls, in `results/piece_captions/gemini-3.8-flash/`. This is the frozen setup.
+- **Billing (resolved 2026-10-13):**
   - On 2026-10-12 the key's project was on Google's **free tier**. The 429 named `generate_content_free_tier_requests`, limit 20, quotaId `GenerateRequestsPerDayPerProjectPerModel-FreeTier`.
-  - On 2026-10-13 the first call of 0.2 failed at once with **402** "Your prepayment credits are depleted". The project is no longer on the free tier: it is on a paid billing account in Prepay mode, with a zero balance.
-  - Per [Google's billing docs](https://ai.google.dev/gemini-api/docs/billing): under Prepay, Google Cloud promotional credits apply only after funds are added (minimum $5, bought on the AI Studio Billing page), and not all Cloud credits (e.g. the Welcome credit) cover the Gemini API. So the ₪30.71 (~$10) of credits may not be usable without buying at least $5 first. Postpay is the alternative; the docs contradict themselves on whether Prepay → Postpay is supported.
+  - On 2026-10-13 the first call of 0.2 failed with **402** "Your prepayment credits are depleted": a paid billing account in Prepay mode with a zero balance.
+  - After ₪15 of prepay credit was added, all 21 calls of 0.2 passed (about 2 s each), which proves the paid tier.
+  - Per [Google's billing docs](https://ai.google.dev/gemini-api/docs/billing), under Prepay the Google Cloud promotional credits apply only after funds are added, and not all Cloud credits cover the Gemini API. Whether the ₪30.71 of credits are used shows in the billing report (0.3).
 - **Frame embeddings:** `local/wild_videos_embs_siglip/<video_id>.npy`, shape (T, 768), SigLIP 2, row t = frame at t s.
 - **Compute:** no local GPU. Llama-3.1-8B runs on Kaggle (see `scripts/kaggle_forced_choice.py`, `scripts/prepare_kaggle_kernel.py`).
 
@@ -27,7 +36,7 @@ Written 2026-10-13, revised the same day after review. Companion to `docs/new_di
 - [ ] Confirm the project now shows a paid tier (e.g. "Tier 1"), not "Free".
 - [ ] Check whether the billing account has a card attached. If it does, usage beyond the credits would be charged to it. Optionally set a budget alert (e.g. $15) in Cloud Billing.
 
-**0.2 Proof by volume: 21 tiny text-only calls (a fraction of a cent in total).** The free tier allows 20 calls a day per model, so 21 successful calls in one day prove the paid tier. Use the same key and model, no video:
+**0.2 Proof by volume: 21 tiny text-only calls (a fraction of a cent in total). Passed 2026-10-13.** The free tier allows 20 calls a day per model, so 21 successful calls in one day prove the paid tier. Use the same key and model, no video:
 
 ```bash
 source ~/.secrets && .venv/bin/python -c "
@@ -73,6 +82,7 @@ source ~/.secrets && .venv/bin/python scripts/caption_pieces.py isolated \
 - **Order cues:** share of captions with the cue words, using the regex lists from the 2026-10-12 count (continuity / onset-progress / temporal adverbs).
 - **On-screen text:** share of captions with digits, a clock or date pattern (e.g. `\d{1,2}:\d{2}`) or quoted text, each listed for reading. The prompt says not to transcribe subtitles, clocks, timestamps, dates or numbering; this checks that it worked.
 - **Repetition:** mean pairwise MPNet cosine between a video's 12 captions. High means the captions repeat the setting.
+- **Lead:** SigLIP similarity of caption p to piece p+1 minus to piece p−1. Above 0 means the captions run ahead into the next piece, as the original captions do by 1–2 s; for in-context captions that would be a timing leak.
 
 Caption sets to compare:
 - (a) **isolated** (3.8 Flash)
@@ -85,7 +95,7 @@ Caption sets to compare:
 **Gate (user review):** show the user the check table and examples. Decide whether to tighten the prompt for "repeats the setting", hallucinated actions or leftover on-screen text.
 - Any prompt change must be applied to **both** prompt files identically.
 - Commit it, then re-run Stage 1 into a fresh output folder: rename the old folder, because the runner skips existing outputs.
-- At most one revision round, then freeze.
+- At most one revision round, then freeze. **Used on 2026-10-13: prompt v2** (see "Where things stand"), re-run into a fresh folder, then frozen.
 
 ## Step 2: 30-video pilot (390 calls, about $1.50)
 

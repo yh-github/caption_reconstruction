@@ -2,6 +2,91 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
+# 2026-10-13 → next session
+
+**Goal:** move the main study from generation to unshuffling, make the re-captioning leak-free, pay for it, and freeze the captioning setup on 2 videos before the 30-video pilot.
+
+**Start here:**
+- `docs/new_direction/new_plan.md`: why generation is demoted, the unshuffling design, risks. It is the export of the live plan doc (https://claude.ai/code/artifact/a0d1b4ac-8b80-42f6-8935-7183326d43a3); edit both together.
+- `docs/new_direction/experiment_kickoff_plan.md`: the steps, gates, commands and stop rules. The next step is in section E below.
+- `docs/new_direction/literature_review_plan.md`: a brief for a research agent; not yet run.
+- Checklist: `docs/TODO.md` section U.
+
+## A. Review of the plans (applied and committed)
+
+The three docs were reviewed and fixed before any spending:
+- **Audio:** `caption_pieces.py` kept the audio track, so the captioner heard narration despite "describe what is seen". Pieces are now cut with `-an`; outputs record `audio: false`. The in-context input fell from 5,816 to 4,339 tokens, confirming the audio had been processed.
+- **On-screen text:** clocks, timestamps, dates, numbering and subtitles are not transcribed; they would give the text arm an order the frame arms cannot use.
+- **Matched arms:** the original main contrast (Llama vs. SigLIP edge chaining) was reader vs. non-reader, so "pixels lose on gapped puzzles" would follow from the design. Both modalities now get similarity chaining and a learned order probe; a vision reader is optional.
+- **Metrics:** pairwise order accuracy equals (τ+1)/2, so it is dropped. Kendall τ (global) and adjacent-pair accuracy (local) are both reported, with the primary one fixed in a pre-registration. Symmetric arms get a seeded coin-flip direction, never |τ|.
+- **Puzzles:** a contiguous-6 control (pieces 0–5, 6–11) separates "fewer pieces" from "gaps". Gaps weaken edge matching (edges 6 s apart forward, 14 s back); they don't remove it.
+- **Leak:** in-context − isolated is a "context advantage" (leak plus accuracy). It is split with an "in-context, cue words removed" set; the original captions are descriptive only (different model, length and the 1–2 s lead).
+- **Orderability:** per-video τ is noisy (SD ≈ 0.22 with 12 pieces at chance). Reliability comes from the two gapped puzzles per video; orderability is one pre-specified arm, not the best over arms.
+- **Literature brief:** Sort Story, multimodal instruction-manual sequencing and RecipeQA are now in area A (likely close prior work). VIST's descriptions in isolation vs. in sequence is the precedent for the leak design. Gaps against edge matching are a known device (jigsaw tiles), so the novelty is the graded knob across modalities.
+- **Claims corrected in `new_plan.md`:** generation stops scaling after Sonnet (Llama → Claude does improve; Opus beats Sonnet on order-free rank −1.8 [−3.2, −0.4]). Frame copy (87.5%) is level with Opus on recognition.
+
+## B. Billing and the Gemini API
+
+- **Key:** `GEMINI_PAID_API_KEY` in `~/.secrets`. Never `GEMINI_API_KEY` (free) for this work.
+- **History:** free tier on 2026-10-12 (429, 20 requests per day). On 2026-10-13: 402 "prepayment credits are depleted" (a Prepay billing account with a zero balance). After the user added ₪15 of prepay credit, 21 test calls in a row passed: paid tier confirmed.
+- **Cloud credits:** under Prepay, Google Cloud promotional credits apply only after funds are added, and not all of them cover the Gemini API ([billing docs](https://ai.google.dev/gemini-api/docs/billing)). Whether the ₪30.71 of credits are used is still unknown.
+- **Latency on the paid tier:** median about 11 s per isolated call and about 30 s per in-context call, against 1–7 minutes on the free tier.
+- **Spend:** `calls.jsonl` logs $0.236 (of which $0.053 are free-tier calls from 2026-10-12, never billed), plus about $0.006 for the 21 test calls outside the log. So about $0.19 was billed, all estimated at $0.50/M in and $3/M out. The full run (about $15–20) needs more than the ₪15 (~$4) on the account.
+
+## C. Stage 1 (2 videos: `Joe-Robinet_9-clip-2`, `4k-Relaxation_4-clip-4`)
+
+Three runs, all kept (`piece_caption_check.py` reads every folder):
+- `results/piece_captions/_with_audio/`: 2026-10-12, with audio, prompt v0 (10 outputs).
+- `results/piece_captions/_prompt_v1/`: no audio, prompt v1 (26).
+- `results/piece_captions/gemini-3.8-flash/`: no audio, **prompt v2, frozen** (26; all valid; median 11 s per isolated call; $0.087).
+
+Check (24 captions per set; chance MRR 0.259, so differences of about ±0.1 are noise):
+
+| Set | MRR | Words | Continuity cues | On-screen text | Repetition | Lead |
+|---|---|---|---|---|---|---|
+| isolated v2 (frozen) | 0.58 | 31 | 4% | 0% | 0.67 | 0.00 |
+| isolated v1 | 0.44 | 36 | 8% | 50% (a watermark) | 0.69 | 0.00 |
+| in-context v2 | 0.37 | 23 | 33% | 0% | 0.54 | +0.01 |
+| in-context v1 | 0.44 | 21 | 33% | 0% | 0.51 | +0.02 |
+| original, 5 per-second captions joined | 0.45 | 59 | 42% | 0% | 0.70 | +0.01 |
+
+Read against frames (3 frames per piece; full resolution for disputed claims):
+- **v1 → v2:** v1's isolated captions named the constant "ProArtInc" watermark in all 12 canyon pieces and listed the whole setting each time; v1's in-context captions invented a forward glide over static shots. v2 fixed all three. Isolated captions still restate the setting in Joe's pieces 6–11, where nothing in the scene changes.
+- **The leak, in v2's in-context captions:**
+  - Joe piece 1 "reveals a camper resting on a camouflage mat", who first appears in piece 2 (runs ahead).
+  - Joe piece 8 "continues speaking".
+  - Canyon pieces 8 and 10 have "tiny figures of hikers" that are not in the frames (checked at full resolution), carried over from pieces 4–7.
+
+  So the leak moves content between pieces, not just cue words. These are the examples now in `new_plan.md`.
+- **Errors that isolation does not fix:** the canyon's piece 4 calls a cut a pan; Joe's piece 9 is ambiguous (eating or wiping his face; his hand is at his mouth). The in-context caption of Joe's piece 0 calls the yellow tent green.
+- **Orderability:** canyon pieces 0–3 and 8–11 are near-identical static shots, so their order can't be recovered from either modality. They are a ready example for the orderability measure.
+- **Lead:** about 0 for every set, including the original captions (+0.01), whose 1–2 s lead is known. At 5 s pieces and 2 videos the metric can't detect it; re-check on the pilot before relying on it.
+
+## D. Code (all committed on `main`, not pushed)
+
+- `scripts/caption_pieces.py`: audio removed; `audio: false` in outputs; an `ERROR` caption or an in-context run whose segments don't start at 0 s is saved as `*.invalid.json`.
+- `scripts/piece_caption_check.py` (new): per caption set, SigLIP 2 retrieval of the true piece among 12 (MRR; chance 0.259), length, cue words, on-screen text candidates, repetition (MPNet), and lead (caption p vs. pieces p±1). It reads set-aside folders `results/piece_captions/_<tag>/` as `<mode>_<tag>` sets. Outputs: `results/piece_captions/check/{per_video,flagged}.csv`.
+- The cue-word lists of the 2026-10-12 count were never saved; the check uses a reconstruction (`CUES` in the script).
+
+## E. Next
+
+1. **Step 0.3 (user, from 2026-10-14):** Cloud Console → Billing → Reports for the project. Is there a Gemini cost line, and are the ₪30.71 of Cloud credits applied? Compare with `sum(usd)` in `calls.jsonl`; if they differ by more than 2×, correct `--usd-in`/`--usd-out`.
+2. **Step 2, the 30-video pilot, after the user says go** (about $1.50 and 2 hours; both Stage 1 videos are in the list, so 364 calls are new):
+   ```bash
+   source ~/.secrets && .venv/bin/python scripts/caption_pieces.py in_context --pilot 30 --dry-run
+   source ~/.secrets && .venv/bin/python scripts/caption_pieces.py in_context --pilot 30 --max-usd 3 --sleep 5
+   source ~/.secrets && .venv/bin/python scripts/caption_pieces.py isolated   --pilot 30 --max-usd 3 --sleep 5
+   .venv/bin/python scripts/piece_caption_check.py
+   ```
+   Stop on any 429 or 402, on more than 5% invalid outputs, or at the cap (cumulative). Then a summary table and a hand read of about 20 random pieces against frames.
+3. **Step 3.5 before Step 3:** write and commit `docs/new_direction/unshuffle_pilot_preregistration.md`. Still open: the primary metric (τ or adjacency), the primary contrast (matched-method text − frames, or Llama − edge chaining across contiguous-6 vs. gapped-6), Llama's aggregation (DP or Borda), and the arm that defines orderability.
+4. **Step 3:** build `scripts/unshuffle/` (`build_pieces.py`, `make_puzzles.py`, arms, `score.py`) with tests in `tests/`. Llama pairwise scoring runs on Kaggle (reuse `scripts/kaggle_forced_choice.py`).
+5. **Literature review:** hand `docs/new_direction/literature_review_plan.md` to a research agent (web only, no paid APIs). The deliverable is `docs/new_direction/related_work.md`.
+6. **Partners:** the four decisions at the end of `new_plan.md` are still open.
+7. **Step 4 budget:** about $15–20 of Gemini credit, after the pilot gate.
+
+---
+
 # 2026-10-08 → next session
 
 **Goal:** firm up the caption lag, settle the shared-target evaluation, and start the paper in a new file.

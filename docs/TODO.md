@@ -3,7 +3,24 @@
 Full reasoning, verified numbers and the evaluation design are in the paper-readiness assessment (2026-10-05):
 https://claude.ai/code/artifact/26353452-f893-49df-85ac-d3a85c9becd2
 
-Latest session summary and decisions: `docs/handover.md` (newest session at the top; 2026-10-08). Working paper draft: `docs/paper/captions_vs_frames.md`.
+Latest session summary and decisions: `docs/handover.md` (newest session at the top; 2026-10-13). Working paper draft: `docs/paper/captions_vs_frames.md`.
+
+**New main study (2026-10-13): unshuffling.** Generation is demoted to a short negative result. The main study orders 5 s pieces from leak-free captions vs. frames. The plan is `docs/new_direction/new_plan.md` and the steps are `docs/new_direction/experiment_kickoff_plan.md`; the checklist is section U below. Sections 0–4 are the earlier direction, kept for the record.
+
+## U. Unshuffling (new main study)
+
+Step numbers refer to `docs/new_direction/experiment_kickoff_plan.md`.
+
+- [x] Plan, literature brief and kickoff plan written and reviewed; review fixes applied (no audio, on-screen text rule, matched arms, contiguous-6 control, τ + adjacency, leak split).
+- [x] Step 0.1–0.2: paid tier confirmed (Prepay, ₪15 credit; 21 test calls passed).
+- [ ] Step 0.3 (user, from 2026-10-14): Cloud Billing report shows a Gemini cost line; check whether the ₪30.71 of Cloud credits are applied, and compare with `sum(usd)` in `calls.jsonl`.
+- [x] Step 1: Stage 1 on 2 videos, read against frames; prompt revised once (v2) and frozen; `scripts/piece_caption_check.py` written.
+- [ ] Step 2: 30-video pilot (364 new calls, about $1.50), then the check and a 20-piece spot read. Needs the user's go.
+- [ ] Step 3.5 first: commit `docs/new_direction/unshuffle_pilot_preregistration.md` (primary metric, primary contrast, orderability arm) before any arm runs.
+- [ ] Step 3: build `scripts/unshuffle/` (pieces, puzzles, arms, score) with tests; Llama pairwise scoring on Kaggle.
+- [ ] Literature review: hand `docs/new_direction/literature_review_plan.md` to a research agent (no paid APIs) → `docs/new_direction/related_work.md`.
+- [ ] Partners: the four decisions at the end of `new_plan.md`.
+- [ ] Step 4 needs about $15–20 of credit, more than the ₪15 on the account.
 
 **Current state of the thesis (2026-10-08):**
 - **Reconstruction as the paper's core: NO-GO at 8B.** Llama loses to copying on every metric, including forced choice (35% against 52% for caption copy).
