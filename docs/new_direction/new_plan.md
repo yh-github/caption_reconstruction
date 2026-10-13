@@ -151,7 +151,7 @@ Assumed prices: $0.50 per million input tokens, $3 per million output tokens inc
 
 - **Model:** `gemini-3.8-flash`, a stable (non-preview) release. Temperature 0.8, dynamic thinking, seed 0x5EED, 1 frame per second, the same settings as the original captions, except that the audio track is removed.
 - **Runner:** `scripts/caption_pieces.py`. Uses only the paid key, removes the audio track, stops at a dollar cap summed over a call log, retries Google's unbilled overload errors, resumes where it stopped, and saves the model version and a prompt hash with every output.
-- **Blocker:** the key's project is still on Google's free tier (20 requests per day per model), so the credits are not yet being used. The project has to be linked to the billing account that holds the credits.
+- **Blocker:** the key's project has left the free tier and is on a paid billing account in Prepay mode, but its balance is zero, so every call fails with 402 (checked 2026-10-13). Under Prepay, Google Cloud promotional credits apply only after at least $5 of prepaid credit is bought in AI Studio, and not all Cloud credits cover the Gemini API ([billing docs](https://ai.google.dev/gemini-api/docs/billing)). Next: buy $5 of prepay credit, or switch to Postpay.
 - **Routes ruled out:** the Gemini CLI no longer accepts Google AI Pro logins (replaced by the Antigravity CLI in June 2026), and the free tier is too slow. Google's Batch API would halve the cost but loses the per-call controls; worth it only for much larger runs.
 - **Free arms:** Llama-3.1-8B (open weights, on Kaggle), SigLIP 2, MPNet and the order probes run locally. Claude runs only on subsets, on the subscription, after a small pilot.
 

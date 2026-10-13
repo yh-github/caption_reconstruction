@@ -12,7 +12,10 @@ Written 2026-10-13, revised the same day after review. Companion to `docs/new_di
   - Outputs: `results/piece_captions/<model>/<mode>/`; call log with token usage and estimated cost: `results/piece_captions/calls.jsonl`.
   - **Spend cap:** `--max-usd` is cumulative. It is compared with the sum over every call in `calls.jsonl` (all modes and runs; $0.053 logged so far, from free-tier calls), not with the current run's spend.
 - **Stage 1 starts over.** The 10 outputs from 2026-10-12 (in-context for `Joe-Robinet_9-clip-2` and `4k-Relaxation_4-clip-4`, isolated Joe pieces 0–7) were captioned **with audio** and the old prompt. They are moved, with the Stage 0 smoke test, to `results/piece_captions/_with_audio/` and kept only for comparison.
-- **Blocker:** the key's project was on Google's **free tier**. The 429 on 2026-10-12 named `generate_content_free_tier_requests`, limit 20, quotaId `GenerateRequestsPerDayPerProjectPerModel-FreeTier`. The ₪30.71 (~$10) of credits are on a billing account that the key's project is not linked to.
+- **Blocker:**
+  - On 2026-10-12 the key's project was on Google's **free tier**. The 429 named `generate_content_free_tier_requests`, limit 20, quotaId `GenerateRequestsPerDayPerProjectPerModel-FreeTier`.
+  - On 2026-10-13 the first call of 0.2 failed at once with **402** "Your prepayment credits are depleted". The project is no longer on the free tier: it is on a paid billing account in Prepay mode, with a zero balance.
+  - Per [Google's billing docs](https://ai.google.dev/gemini-api/docs/billing): under Prepay, Google Cloud promotional credits apply only after funds are added (minimum $5, bought on the AI Studio Billing page), and not all Cloud credits (e.g. the Welcome credit) cover the Gemini API. So the ₪30.71 (~$10) of credits may not be usable without buying at least $5 first. Postpay is the alternative; the docs contradict themselves on whether Prepay → Postpay is supported.
 - **Frame embeddings:** `local/wild_videos_embs_siglip/<video_id>.npy`, shape (T, 768), SigLIP 2, row t = frame at t s.
 - **Compute:** no local GPU. Llama-3.1-8B runs on Kaggle (see `scripts/kaggle_forced_choice.py`, `scripts/prepare_kaggle_kernel.py`).
 
@@ -39,6 +42,7 @@ for i in range(21):
 
 Gate: all 21 calls return `ok`.
 - A 429 whose message contains `FreeTier` means the project is **still on the free tier**. Stop and go back to 0.1. The failed loop also uses up the day's free quota, which doesn't matter: nothing else should run until billing is fixed.
+- A 402 "prepayment credits are depleted" means a paid tier in Prepay mode with a zero balance (the state on 2026-10-13). Add credits in AI Studio, or switch the billing account to Postpay, then re-run. Billing changes can take a while to reach the API.
 - These calls bypass the runner, so they are not in `calls.jsonl`. Their cost is negligible.
 
 **0.3 Proof by billing (next day).** Cloud Console → Billing → Reports, filtered to the project. Gate: a Generative Language API (Gemini) cost line appears, with an equal credit against it. Reports lag by several hours.
