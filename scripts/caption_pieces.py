@@ -127,6 +127,11 @@ def log_call(rec: dict) -> None:
         f.write(json.dumps(rec) + "\n")
 
 
+def is_error(caption: str) -> bool:
+    """The prompts ask for "ERROR" when no description can be made."""
+    return caption.strip(" \"'.").upper() == "ERROR"
+
+
 def ts_seconds(ts: str) -> float:
     h, m, s = ts.split(":")
     return int(h) * 3600 + int(m) * 60 + float(s)
@@ -226,8 +231,8 @@ def main() -> None:
             items = parse_llm_response_list(list[CaptionedInterval], res.text or "")
             pieces = [dict(piece=i, start_s=i * PIECE_S, end_s=(i + 1) * PIECE_S, caption=c.caption.strip(),
                            model_start=c.start, model_end=c.end) for i, c in enumerate(items)]
-            ok = len(items) == N_PIECES and all(
-                abs(ts_seconds(c.start) - ts_seconds(items[0].start) - i * PIECE_S) < 0.5 for i, c in enumerate(items))
+            ok = len(items) == N_PIECES and all(abs(ts_seconds(c.start) - i * PIECE_S) < 0.5 for i, c in enumerate(items))
+        ok = ok and not any(is_error(pc["caption"]) for pc in pieces)
         if not ok:
             rec["error"] = f"invalid output ({len(pieces)} pieces)"
         log_call(rec)

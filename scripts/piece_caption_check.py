@@ -9,11 +9,14 @@ For each video and caption set:
   order cues        share of captions with a cue word, per group (CUES below)
   on-screen text    share of captions with digits, quotes or text words (ONSCREEN below), each listed
   repetition        mean pairwise MPNet cosine between the video's captions (high = setting repeated)
+  lead              SigLIP similarity of caption p to piece p+1 minus to piece p-1 (p = 1..10). Above 0 =
+                    captions run ahead into the next piece, as the original captions do by 1-2 s
 
 Caption sets:
-  isolated, in_context              results/piece_captions/<model>/{isolated/<v>/<pp>.json, in_context/<v>.json}
-  isolated_audio, in_context_audio  the same under results/piece_captions/_with_audio/ (made with audio)
-  original                          per-second captions (datasets/wildQA/captions__wild{4,5}), seconds 5p..5p+4 joined
+  isolated, in_context     results/piece_captions/<model>/{isolated/<v>/<pp>.json, in_context/<v>.json}
+  <mode>_<tag>             the same under a set-aside folder results/piece_captions/_<tag>/<model>/
+                           (_with_audio: made with audio; _prompt_v1: the first prompt)
+  original                 per-second captions (datasets/wildQA/captions__wild{4,5}), seconds 5p..5p+4 joined
 
 The cue lists from the 2026-10-12 count were not saved, so CUES is a reconstruction; the original
 captions' share is printed for comparison with that count (25.4% of 20,101 captions).
@@ -56,7 +59,7 @@ def unit(x):
 def load_sets(v: str, model: str) -> dict[str, dict[int, str]]:
     """Caption set -> {piece: caption}, for the sets this video has."""
     sets = {}
-    for prefix, base in [("", PC / model), ("_audio", PC / "_with_audio" / model)]:
+    for prefix, base in [("", PC / model), *((d.name, d / model) for d in sorted(PC.glob("_*")) if d.is_dir())]:
         iso = {}
         for f in sorted((base / "isolated" / v).glob("[0-9][0-9].json")):
             p = json.loads(f.read_text())["pieces"][0]
@@ -99,9 +102,11 @@ def main():
             words = [len(t.split()) for t in texts]
             M = unit(mp.get_embeddings(f"{v}_pieces_{name}", texts))
             rep = np.mean([M[i] @ M[j] for i, j in itertools.combinations(range(len(texts)), 2)]) if len(texts) > 1 else np.nan
+            inner = [(i, p) for i, p in enumerate(pieces) if 0 < p < N_PIECES - 1]
+            lead = np.mean([sim[i, p + 1] - sim[i, p - 1] for i, p in inner]) if inner else np.nan
             row = dict(video_id=v, set=name, n=len(texts), mrr=np.mean(1 / ranks), r1=np.mean(ranks == 1),
                        mean_rank=ranks.mean(), words=np.mean(words), over45w=np.mean(np.array(words) > 45),
-                       over64tok=np.mean(np.array(n_tok) > 64), repetition=rep)
+                       over64tok=np.mean(np.array(n_tok) > 64), repetition=rep, lead=lead)
             for g, rx in CUES.items():
                 row[f"cue_{g}"] = np.mean([bool(re.search(rx, t, re.I)) for t in texts])
             row["cue_any"] = np.mean([any(re.search(rx, t, re.I) for rx in CUES.values()) for t in texts])
@@ -118,7 +123,7 @@ def main():
 
     pd.set_option("display.width", 200, "display.max_colwidth", 200)
     cols = ["mrr", "r1", "mean_rank", "words", "over45w", "over64tok", "cue_any", "cue_continuity",
-            "cue_onset", "cue_adverb", "onscreen", "repetition"]
+            "cue_onset", "cue_adverb", "onscreen", "repetition", "lead"]
     summary = df.groupby("set").agg(videos=("video_id", "nunique"), captions=("n", "sum"), **{c: (c, "mean") for c in cols})
     print(f"Per caption set, mean over videos (chance MRR for {N_PIECES} pieces = {np.mean([1 / k for k in range(1, N_PIECES + 1)]):.3f}):")
     print(summary.round(3).to_string())
