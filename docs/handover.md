@@ -72,6 +72,33 @@ Read against frames (3 frames per piece; full resolution for disputed claims):
 - **Orderability:** TreadmillTV's isolated captions are near-identical (repetition 0.84), as the footage is, apart from the pond in pieces 8–10.
 - **Remaining pilot:** 23 videos (299 calls, about $1.00). The command in E.2 skips the 7 videos already done.
 
+**Step 2, the 30-video pilot: done 2026-10-13** (30 videos, 30 channels; 360 isolated + 30 in-context captions, all valid; about $1.10; `calls.jsonl` logs $1.56 in total).
+- **Runner fixes during the run** (committed):
+  - A bare 429 "Resource has been exhausted" (no quota id; the next call succeeded) stopped the run once. Bare 429s now get the 500/503 backoff; a 429 that names a quota still stops the run.
+  - `Skip-Talbot_0-clip-9` in-context had one timestamp typo (00:10:00.000 for 00:00:10.000). A segment now counts as aligned if its start or its end is on the grid, and the output was rebuilt from the cache at no cost.
+- **Check, paired per-video differences with 95% bootstrap CIs (30 videos = 30 channels):**
+
+  | Metric | in-context − isolated | original − isolated |
+  |---|---|---|
+  | MRR (isolated 0.534) | −0.041 [−0.087, +0.002] | −0.059 [−0.094, −0.024] |
+  | lead | **+0.015 [+0.010, +0.020]** | +0.004 [+0.000, +0.007] |
+  | continuity cues | **+0.139 [+0.075, +0.206]** | +0.386 [+0.281, +0.494] |
+  | repetition (isolated 0.61) | −0.066 [−0.085, −0.048] | +0.047 [+0.017, +0.078] |
+
+  In-context captions run ahead into the next piece and use more continuity words, so the leak is measurable at pilot scale. Isolated captions match their own piece best.
+- **Spot read of 20 random isolated pieces against frames:**
+  - 17 clearly correct, 0 clearly wrong, 2 uncertain at contact-sheet resolution ("hailstones" on gravel; a person in a bamboo shelter).
+  - Watermarks and channel logos were left out in 5 cases.
+  - `Dan-Robinson_6-clip-6` has a burned-in running timecode and "NOT FOR BROADCAST", and nothing of either was transcribed.
+  - In-context lapses: invented vehicle motion over a static storm shot; a dropped boat shot.
+- **Open: title cards and labels are transcribed** in 4 of 30 videos:
+  - an intro sequence ("Into the Breach", "With Erling & Geir": `Norwegian-Explorer_7-clip-0`);
+  - country labels in a compilation ("Colombia", "Israel": `Climate-Change_6-clip-7`);
+  - a chapter card (`BC-Bushcraft_3-clip-0`);
+  - an animated channel intro (`Millennial-Farmer_10-clip-0`).
+
+  These carry editing structure (intro first, credits after), not event dynamics. Decision pending with the user (see E).
+
 ## D. Code (all committed on `main`, not pushed)
 
 - `scripts/caption_pieces.py`: audio removed; `audio: false` in outputs; an `ERROR` caption or an in-context run whose segments don't start at 0 s is saved as `*.invalid.json`.
@@ -81,7 +108,7 @@ Read against frames (3 frames per piece; full resolution for disputed claims):
 ## E. Next
 
 1. **Step 0.3 (user, from 2026-10-14):** Cloud Console → Billing → Reports for the project. Is there a Gemini cost line, and are the ₪30.71 of Cloud credits applied? Compare with `sum(usd)` in `calls.jsonl`; if they differ by more than 2×, correct `--usd-in`/`--usd-out`.
-2. **Step 2, the 30-video pilot, after the user says go** (about $1.50 and 2 hours; both Stage 1 videos are in the list, so 364 calls are new):
+2. **Done: Step 2, the 30-video pilot** (results in §C). Pending decision: how to handle transcribed title cards and labels. Option (a): tag those pieces and pre-register a robustness analysis without them (no re-run). Option (b): prompt v3, "say that text appears but don't quote it" (re-run the pilot, about $1.10). For reference, the pilot commands were:
    ```bash
    source ~/.secrets && .venv/bin/python scripts/caption_pieces.py in_context --pilot 30 --dry-run
    source ~/.secrets && .venv/bin/python scripts/caption_pieces.py in_context --pilot 30 --max-usd 3 --sleep 5
