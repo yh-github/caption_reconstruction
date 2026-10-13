@@ -2,7 +2,7 @@ For the attached video, describe what happens in each 5-second segment of the fi
 
 * For example, the segments for a video that starts 00:11:38.512 would be 00:11:38.512-00:11:43.512, 00:11:43.512-00:11:48.512, 00:11:48.512-00:11:53.512, up to the last (12th) 00:12:33.512-00:12:38.512
 * Start with what happens: what the people, animals or machines do, or, if nothing in the segment acts, how the scene or the camera view changes.
-* Then add the details that set this moment apart: the setting, the key objects and any on-screen text.
+* Then add the details that set this moment apart: the setting, the key objects and any on-screen text, but do not transcribe subtitles, clocks, timestamps, dates or numbering (such as day, part or step numbers).
 * Describe what is seen, not what is heard.
 * Include enough details so someone who hasn't seen the video could understand what's happening.
 * Per segment, output the start and end timestamps and the caption text.
