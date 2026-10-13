@@ -17,7 +17,7 @@ Step numbers refer to `docs/new_direction/experiment_kickoff_plan.md`.
 - [x] Step 1: Stage 1 on 2 videos, read against frames; prompt revised once (v2) and frozen; `scripts/piece_caption_check.py` written.
 - [x] Stage 1b: 5 more pilot videos chosen for untested failure modes, read against frames; v2 holds (handover 2026-10-13 §C).
 - [x] Step 2: 30-video pilot captioned, checked and spot-read (handover 2026-10-13 §C).
-- [ ] Decide how to handle transcribed title cards and labels (4 of 30 videos): tag them and run a robustness analysis, or prompt v3 and re-run the pilot.
+- [x] Title cards and labels: tagged (`text_tags.csv`, 44 of 360 pieces), with a pre-registered robustness analysis without them; no re-caption.
 - [ ] Step 3.5 first: commit `docs/new_direction/unshuffle_pilot_preregistration.md` (primary metric, primary contrast, orderability arm) before any arm runs.
 - [ ] Step 3: build `scripts/unshuffle/` (pieces, puzzles, arms, score) with tests; Llama pairwise scoring on Kaggle.
 - [ ] Literature review: hand `docs/new_direction/literature_review_plan.md` to a research agent (no paid APIs) → `docs/new_direction/related_work.md`.

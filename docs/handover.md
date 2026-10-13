@@ -97,7 +97,9 @@ Read against frames (3 frames per piece; full resolution for disputed claims):
   - a chapter card (`BC-Bushcraft_3-clip-0`);
   - an animated channel intro (`Millennial-Farmer_10-clip-0`).
 
-  These carry editing structure (intro first, credits after), not event dynamics. Decision pending with the user (see E).
+  These carry editing structure (intro first, credits after), not event dynamics.
+  - **Decided (user, 2026-10-13): tag, don't re-caption.** `piece_caption_check.py` writes `results/piece_captions/check/text_tags.csv`, a broad tag (`TEXT_TAG`): quoted text or words like text, title, logo, labeled, marked. It tags 44 of 360 isolated pieces in 11 videos.
+  - The pre-registration (kickoff 3.5) reports every main result again without the tagged pieces. Prompt v2 stays frozen.
 
 ## D. Code (all committed on `main`, not pushed)
 
@@ -108,7 +110,7 @@ Read against frames (3 frames per piece; full resolution for disputed claims):
 ## E. Next
 
 1. **Step 0.3 (user, from 2026-10-14):** Cloud Console → Billing → Reports for the project. Is there a Gemini cost line, and are the ₪30.71 of Cloud credits applied? Compare with `sum(usd)` in `calls.jsonl`; if they differ by more than 2×, correct `--usd-in`/`--usd-out`.
-2. **Done: Step 2, the 30-video pilot** (results in §C). Pending decision: how to handle transcribed title cards and labels. Option (a): tag those pieces and pre-register a robustness analysis without them (no re-run). Option (b): prompt v3, "say that text appears but don't quote it" (re-run the pilot, about $1.10). For reference, the pilot commands were:
+2. **Done: Step 2, the 30-video pilot** (results in §C). Title cards and labels are handled by tagging plus a robustness analysis, with no re-caption. For reference, the pilot commands were:
    ```bash
    source ~/.secrets && .venv/bin/python scripts/caption_pieces.py in_context --pilot 30 --dry-run
    source ~/.secrets && .venv/bin/python scripts/caption_pieces.py in_context --pilot 30 --max-usd 3 --sleep 5

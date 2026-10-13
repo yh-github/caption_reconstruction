@@ -168,6 +168,7 @@ Cue removal is a fixed regex substitution (e.g. "continues to X" → "X"s, drop 
   - the rest, implicit leak plus accuracy: τ(in-context, cues removed) − τ(isolated), with each set's SigLIP retrieval MRR from `piece_caption_check.py` as the accuracy covariate.
 - **Original captions, descriptive only:** τ(original) and τ(original, cues removed) next to τ(isolated). They differ from the new captions in model, in length (five per-second captions per piece) and in the 1–2 s lead, which puts the start of each next piece into the text. No decision rests on them.
 - **Signal check:** each arm vs random on every puzzle version.
+- **Robustness without on-screen text** (decided 2026-10-13): every main result again with the pieces tagged `quotes_text` removed from the puzzles (`results/piece_captions/check/text_tags.csv`; in the pilot, 44 of 360 isolated pieces in 11 videos). These captions quote title cards, location labels or intro logos, which reveal how a video is edited rather than how its events unfold.
 - **Main contrasts** (name one as primary):
   - text − frames within each matched method: similarity chaining (captions vs frame means, both symmetric; undirected adjacency) and the learned probe (τ);
   - Llama on isolated − SigLIP edge chaining, on contiguous-6 vs gapped-6 (same number of pieces). This interaction is expected from the design, because the edge arm relies only on continuity, so it cannot carry the claim alone;

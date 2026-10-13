@@ -23,7 +23,8 @@ captions' share is printed for comparison with that count (25.4% of 20,101 capti
 
 Usage (from repo root):
     .venv/bin/python scripts/piece_caption_check.py [--videos V ...] [--model gemini-3.8-flash]
-Outputs: printed tables, results/piece_captions/check/{per_video,flagged}.csv
+Outputs: printed tables, results/piece_captions/check/{per_video,flagged,text_tags}.csv
+(text_tags: per caption, whether it quotes or names on-screen text; used for the robustness analysis)
 """
 import argparse
 import itertools
@@ -49,6 +50,9 @@ CUES = {
     "adverb": r"\b(after|afterwards?|before|later|earlier|previous\w*|next|meanwhile|finally|eventually|then|now)\b",
 }
 ONSCREEN = r"\d|[\"“”]|\b(text|reads?|subtitles?|captions?|timestamps?|clock|date|title|logo|watermark|sign)\b"
+# Pieces whose caption quotes or names on-screen text (title cards, labels, intro logos). The unshuffle
+# analysis reports every result again without them (decided 2026-10-13: tag, don't re-caption).
+TEXT_TAG = r"[\"“”]|\b(text|title|logo|reads|reading|displays?|labell?ed|marked|printed)\b"
 
 
 def unit(x):
@@ -88,7 +92,7 @@ def main():
 
     # The stored frames are SigLIP 2 (timm v2_webli), so captions must use the SigLIP 2 text tower.
     sg, mp = SiglipTextEmbedder("google/siglip2-base-patch16-224"), LocalEmbedder("all-mpnet-base-v2")
-    rows, flagged = [], []
+    rows, flagged, tags = [], [], []
     for v in videos:
         V = unit(np.load(VIS_DIR / f"{v.replace(chr(39), '_')}.npy"))
         P = unit(np.stack([V[p * PIECE_S:(p + 1) * PIECE_S].mean(0) for p in range(N_PIECES)]))
@@ -113,6 +117,7 @@ def main():
             hits = [(p, t) for p, t in zip(pieces, texts) if re.search(ONSCREEN, t, re.I)]
             row["onscreen"] = len(hits) / len(texts)
             flagged += [dict(video_id=v, set=name, piece=p, caption=t) for p, t in hits]
+            tags += [dict(video_id=v, set=name, piece=p, quotes_text=bool(re.search(TEXT_TAG, t, re.I))) for p, t in zip(pieces, texts)]
             rows.append(row)
 
     df = pd.DataFrame(rows)
@@ -120,6 +125,7 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     df.to_csv(out / "per_video.csv", index=False)
     pd.DataFrame(flagged, columns=["video_id", "set", "piece", "caption"]).to_csv(out / "flagged.csv", index=False)
+    pd.DataFrame(tags).to_csv(out / "text_tags.csv", index=False)
 
     pd.set_option("display.width", 200, "display.max_colwidth", 200)
     cols = ["mrr", "r1", "mean_rank", "words", "over45w", "over64tok", "cue_any", "cue_continuity",
