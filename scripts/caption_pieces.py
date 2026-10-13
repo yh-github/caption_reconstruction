@@ -9,7 +9,8 @@ Two modes, same output format (one 1-2 sentence description per 5 s piece):
 Model: --model (default gemini-3.8-flash); outputs go to results/piece_captions/<model>/<mode>/. Other
 settings match the original captions (config/gen_captions/wild4.yaml): temperature 0.8, dynamic thinking,
 seed 0x5EED, 1 fps, local mp4s sent as inline bytes. Pieces are re-encoded so they start exactly on the
-second (stream copy would snap to keyframes).
+second (stream copy would snap to keyframes). Unlike the original captions, the audio track is removed: the
+captions describe only what is seen, like the frame arm, and narration often states the order.
 
 Auth: reads GEMINI_PAID_API_KEY only, never GEMINI_API_KEY. Spending is capped by --max-usd, summed over
 every call logged in results/piece_captions/calls.jsonl (all modes), at the --usd-in/--usd-out prices.
@@ -92,7 +93,7 @@ def select_pilot(n: int, seed: int) -> list[str]:
 def cut(src: Path, start: float, dur: float) -> bytes:
     with tempfile.NamedTemporaryFile(suffix=".mp4") as tmp:
         cmd = [imageio_ffmpeg.get_ffmpeg_exe(), "-v", "error", "-y", "-ss", str(start), "-i", str(src),
-               "-t", str(dur), "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-c:a", "aac",
+               "-t", str(dur), "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-an",
                "-movflags", "+faststart", tmp.name]
         subprocess.run(cmd, check=True)
         return Path(tmp.name).read_bytes()
@@ -236,7 +237,7 @@ def main() -> None:
         dest = out if ok else out.with_suffix(".invalid.json")
         dest.write_text(json.dumps(dict(video_id=v, mode=args.mode, prompt=str(PROMPTS[args.mode].relative_to(ROOT)),
                                         prompt_sha256=hashlib.sha256(prompt.encode()).hexdigest()[:16],
-                                        model_version=rec["model_version"], pieces=pieces,
+                                        model_version=rec["model_version"], audio=False, pieces=pieces,
                                         thoughts=res.thoughts, raw_text=res.text), indent=1))
         time.sleep(args.sleep)
     print(f"done: {n_calls} calls, total logged spend ${spent_usd():.4f}")
