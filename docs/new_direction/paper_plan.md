@@ -9,9 +9,10 @@ Written 2026-10-14, after the first-pass literature review (`related_work.md`) a
 | Directive (2026-10-14) | What it changes |
 |---|---|
 | Literature review for novelty, pivot if needed | Done (first pass). There is no direct threat, but "language orders better than vision" is already known for models (TempVS, StripCipher, SPLICE, Wu et al. 2022). **Pivot:** from *how much* order each modality recovers to *why*. The paper rests on an information control that only our design has (Prop. 1), and on splitting order into continuity and direction (Props. 2–3). |
-| Go for paid Gemini and Claude Code | Vision readers move from optional to central. The **same model reads frames or captions** (Gemini 3.8 Flash; Claude Haiku, Sonnet and Opus through `claude -p`, which accepts images: probed 2026-10-14). That is the cleanest language-vs-perception test available. |
+| Go for paid Gemini and Claude Code | Vision readers move from optional to central. The **same model reads frames or captions** (Claude Haiku, Sonnet and Opus through `claude -p`, which accepts images: probed 2026-10-14). That is the cleanest language-vs-perception test available. |
 | Rigorous theory + top-tier experiments | Three propositions with predictions, and a pre-registered confirmatory test on a held-out set (the 305 videos outside the pilot). Matched arms at three levels (no reader, learned, reader), an open-weights replication, a second, script-rich dataset, a human baseline and a robustness battery. |
 | Insight into language vs. visual perception | Three experiments aimed at it: verbalization inside one model (E4), structure vs. direction (E1–E3), and which videos language wins on (E6), plus humans (E9). |
+| **Gemini only captions; Claude is the reader (decided 2026-10-14, later the same day)** | Gemini writes the isolated captions and nothing else. The frontier readers are Claude through `claude -p` (subscription quota): **Sonnet is the main reader**; Opus is the top of the scale curve on at least 100 videos (more, or the main reader, if the pilot shows Sonnet near chance on frames and the quota allows); Haiku runs on everything as the bottom of the curve. Consequences: the reader never reads its own captions; E4 needs Sonnet's own isolated captions to stay within one model; the open VLM on Kaggle becomes the required second family; Gemini spend falls to ≈ $25. |
 
 ## 1. Thesis and claims
 
@@ -75,8 +76,8 @@ Generation (the old headline) becomes a short negative result in the appendix: s
 | | Hypothesis | Falsified if |
 |---|---|---|
 | H1 | Structure: on contiguous puzzles, frame similarity chaining recovers undirected adjacency at least as well as caption chaining. Gaps lower both, by the amounts Prop. 3 predicts from the measured profiles. | Captions beat frames on contiguous structure, or the predictions are uncalibrated |
-| H2 | Direction: the same reader recovers direction (reversal test and τ) better from captions than from frames, for Gemini and for Claude | No difference, or frames ≥ captions |
-| H3 | Verbalization: for the same model, frames only < frames with "describe each piece, then order" ≤ isolated captions | Describing first does not help |
+| H2 | Direction: the same reader recovers direction (reversal test and τ) better from captions than from frames, for Claude Sonnet (primary), Haiku and Opus, and for the open VLM | No difference, or frames ≥ captions |
+| H3 | Verbalization: for the same model, frames only < frames with "describe each piece, then order" ≤ isolated captions written by that model | Describing first does not help |
 | H4 | Where language wins: the caption − frame direction advantage per video is larger for videos with agents, goal-directed actions and state changes, and larger on the script-rich dataset | No relation, or the opposite |
 | H5 | Leak: readers order in-context captions better than isolated ones, and part of the advantage survives removing cue words | No difference |
 | H6 (exploratory) | Scale: direction from captions rises with reader scale (Llama-8B < Haiku < Sonnet < Opus) more than direction from frames does | n/a (exploratory) |
@@ -93,24 +94,25 @@ Readers that read pieces in the order given see 2 shuffles per puzzle; position 
 
 | | Question | Arms (frames ↔ captions, matched) | Data | Cost |
 |---|---|---|---|---|
-| **E1 Main comparison** | How much order, structure and direction does each modality give, at each level of reader? | No reader: SigLIP 2 mean chaining ↔ caption chaining (SigLIP 2 text and MPNet); SigLIP edge chaining (directed). Learned, leave-one-channel-out: position probe and pairwise order classifier on frame embeddings ↔ caption embeddings. Readers: Gemini 3.8 Flash, Claude Haiku and Sonnet (frames ↔ captions, listwise); Llama-3.1-8B (captions) and an open VLM such as Qwen2.5-VL-7B (frames ↔ captions), pairwise log-odds on Kaggle | 335 WildQA; confirmatory on the 305 outside the pilot; P12, C6, G6 | Gemini ≈ $35 (Batch API) to $70; Claude quota; Kaggle free |
-| **E2 Direction (reversal test)** | Which end is the start? | Every reader, both modalities: true order vs. reversed order, both presentation orders. Symmetric arms: 0.5 by Prop. 2 (gate) | 335 | Gemini ≈ $8–16 |
-| **E3 Gap knob and continuity profiles** | Does continuity decay as Prop. 3 predicts, per modality? | No-reader and learned arms on all videos; Gemini frames ↔ captions on 100 videos | K4, C6, G6 | ≈ $12 |
-| **E4 Verbalization within one model** | Format or knowledge? | Gemini and Claude Sonnet: (a) frames only; (b) frames, "describe each piece, then order", one call; (c) isolated captions only; (d) frames + captions. Perception check: the same model matches each caption to its frames | 100 videos; P12, G6 | ≈ $12 + quota |
-| **E5 Leak** | Do whole-video captions carry order? | Llama-8B, Claude Haiku and Gemini (P12 only) on isolated / in-context / in-context without cue words / original / original without cue words | 335 (in-context captions for all 335: +$3.40) | ≈ $8 |
+| **E1 Main comparison** | How much order, structure and direction does each modality give, at each level of reader? | No reader: SigLIP 2 mean chaining ↔ caption chaining (SigLIP 2 text and MPNet); SigLIP edge chaining (directed). Learned, leave-one-channel-out: position probe and pairwise order classifier on frame embeddings ↔ caption embeddings. Readers: Claude Sonnet (main) and Haiku on all videos, Opus on ≥ 100 (frames ↔ captions, listwise); Llama-3.1-8B (captions) and an open VLM such as Qwen2.5-VL-7B (frames ↔ captions), pairwise log-odds on Kaggle | 335 WildQA; confirmatory on the 305 outside the pilot; P12, C6, G6 | Claude quota; Kaggle free |
+| **E2 Direction (reversal test)** | Which end is the start? | Every reader, both modalities: the pieces shown in true or in reversed order (frames inside each piece still forward), forward or backward answer. Symmetric arms: 0.5 by Prop. 2 (gate) | 335 | Claude quota |
+| **E3 Gap knob and continuity profiles** | Does continuity decay as Prop. 3 predicts, per modality? | No-reader and learned arms on all videos; Claude Sonnet frames ↔ captions on 100 videos | K4, C6, G6 | Claude quota |
+| **E4 Verbalization within one model** | Format or knowledge? | Claude Sonnet: (a) frames only; (b) frames, "describe each piece, then order", one call; (c) isolated captions written by Sonnet from the same frames with the frozen captioning prompt; (c′) Gemini's isolated captions; (d) frames + captions. Perception check: Sonnet matches each caption to its frames. (c) vs. (c′) also serves as the second-captioner check of E10 | 100 videos; P12, G6 | Claude quota (≈ 1,200 caption calls + readers) |
+| **E5 Leak** | Do whole-video captions carry order? | Llama-8B, Claude Haiku and Sonnet (P12 only) on isolated / in-context / in-context without cue words / original / original without cue words | 335 (in-context captions for all 335: +$3.40) | Claude quota |
 | **E6 Where language wins** | Which videos and events favour captions? | Per-video caption − frame advantage in structure and direction, regressed on: WildQA domain (5), visual change rate, a manual tag of 60 videos (agent, goal-directed, state change, scenic, cyclic), text tags | 335 | free (60 manual tags) |
-| **E7 Scale** | Does knowledge grow the advantage? | On captions: Llama-8B, Haiku, Sonnet, Opus (100-video subset), Gemini Flash. On frames: Gemini, Haiku, Sonnet, Opus (subset) | 100–335 | Opus quota |
-| **E8 Second dataset (script-rich)** | Does the language direction advantage grow with how scripted the video is? | The core of E1 and E2 | about 200 COIN clips of 60 s with ≥3 annotated steps; COIN is also SPLICE's source, so our results are directly comparable | ≈ $25 |
+| **E7 Scale** | Does knowledge grow the advantage? | On captions: Llama-8B, Haiku, Sonnet, Opus (≥ 100-video subset). On frames: open VLM, Haiku, Sonnet, Opus (subset) | 100–335 | Opus quota |
+| **E8 Second dataset (script-rich)** | Does the language direction advantage grow with how scripted the video is? | The core of E1 and E2 | about 200 COIN clips of 60 s with ≥3 annotated steps; COIN is also SPLICE's source, so our results are directly comparable | ≈ $8 of captions + Claude quota |
 | **E9 Human baseline** (decision needed) | Do people show the same split? | Captions only vs. frames (5 s clips, no audio), on C6 and G6 | 40 puzzles × 2 conditions × 15 people (Prolific, about 120 participants) | about £300; ethics approval |
-| **E10 Robustness** | Is it the captioner, the encoder or the text tags? | Without tagged pieces; captions cut to 15 words; a second captioner (Claude Sonnet from the same frames, 60 videos); caption resampling at a new seed (60 videos, test–retest); a second vision encoder (DINOv2) for the no-reader arms | subsets | ≈ $2 + quota |
+| **E10 Robustness** | Is it the captioner, the encoder or the text tags? | Without tagged pieces; captions cut to 15 words; a second captioner (Sonnet's captions from E4, 100 videos); caption resampling at a new seed (60 videos, test–retest); a second vision encoder (DINOv2) for the no-reader arms | subsets | ≈ $2 |
 
 **Reader protocol (all reader arms).**
 - **Inputs:**
   - Pieces get neutral letter labels.
-  - Frames go in as the 5 frames per piece the captioner saw: Gemini gets video segments at 1 fps, Claude gets JPEGs through stream-json.
+  - Frames go in as the 5 frames per piece the captioner saw (the piece cut exactly as for captioning, sampled at 1 fps), as JPEGs 448 px wide through stream-json: about 150 Claude tokens per frame, against about 66 Gemini tokens per frame for the captioner.
   - Captions go in as plain text.
-- **Output:** a permutation in a fixed JSON format, parsed strictly. One retry on a format failure, then the puzzle is scored as invalid, and invalid counts as random.
-- **Pinned settings, recorded per call:** temperature, thinking or effort level, model version.
+  - The prompt states the puzzle's geometry (piece length, and the gap between consecutive pieces), worded identically for both modalities.
+- **Output:** a permutation in a fixed JSON format, parsed strictly. One retry on a format failure, then the puzzle is scored as invalid, and invalid counts as random (its expected score: τ = 0, adjacency 2/n undirected, 1/n directed).
+- **Pinned settings, recorded per call:** full model ID (`claude-sonnet-5-5`, not the `sonnet` alias, which moves when a new version ships), effort level (medium), and the model ID the CLI reports.
 - **Pairwise local readers:** log P(A before B), averaged over both presentation orders, computed once per piece pair and video and reused across all puzzle sets. Aggregated by the exact linear-ordering optimum (Kemeny-style subset DP over all pairs, primary) and by the best Hamiltonian path over adjacent-pair scores (secondary).
 
 ## 4. Measurement and statistics
@@ -137,11 +139,10 @@ Readers that read pieces in the order given see 2 shuffles per puzzle; position 
 **Phase 1: build and pilot (now; mostly free).**
 1. Write `docs/new_direction/unshuffle_pilot_preregistration.md`: the pilot's analysis plan, as in kickoff §3.5, plus E2–E4.
 2. Build `scripts/unshuffle/` with tests: `build_pieces`, `make_puzzles` (P12, C6, G6, K4), the no-reader, learned and pairwise arms, `score`, and the continuity profiles. Run them on the 30 pilot videos.
-3. Write the paid reader runners:
-   - Gemini listwise, with a cost log and a cumulative cap, Batch API optional;
-   - Claude listwise through the blind runner with stream-json image input.
-
-   Pilot them on the 30 videos with `--limit` first: ≈ $3 of Gemini plus some quota. Measure per-call cost and quota, format failures, and position bias.
+3. Write the Claude listwise reader (`scripts/unshuffle/claude_reader.py`, the blind runner's isolation plus stream-json image input) and pilot it:
+   - **Smoke test:** Haiku, 3 puzzles × frames and captions (6 calls): images arrive, labels and JSON parse.
+   - **Calibration:** Haiku, Sonnet and Opus on identical puzzles: the first 10 pilot videos (seeded pilot order) × {P12, G6 even pieces} × 2 shuffles × {frames, isolated captions} = 80 calls per model. At the October rates, about 12 points of the 5-hour window for Sonnet, 13–21 for Opus, under 1 for Haiku. Measures accuracy per model and modality, quota per image call, format failures and position bias.
+   - **Decision rule (fixed before the run):** the main reader is the strongest model whose frame τ is clearly above 0 and whose full run fits the quota the user is willing to spend; Opus covers at least 100 videos for E7. Captions at ceiling mean harder puzzles (G6, K4), not a weaker model.
 4. Kaggle: Llama-8B and open-VLM pairwise scores on the pilot.
 5. Write the theory section (Props. 1–3, proofs, Monte Carlo for Prop. 3).
 
@@ -157,17 +158,16 @@ Readers that read pieces in the order given see 2 shuffles per puzzle; position 
 
 **Phase 4:** writing. Partners choose the venue against current deadlines.
 
-**Budget (Gemini at the assumed $0.50/M input and $3/M output; the pilot measures the real per-call cost):**
+**Budget (Gemini at the measured median $0.0028 per isolated caption call; Gemini only captions, decided 2026-10-14):**
 
 | Item | Estimate |
 |---|---|
 | Spent so far (captions, Stage 1 and the pilot) | $1.56 logged |
 | Captions, remaining 305 videos (isolated + in-context) | ≈ $14 |
-| Readers: E1, E2, E3, E4, E5 | ≈ $75 (≈ $40 with the Batch API) |
-| E8 second dataset (captions + readers) | ≈ $25 |
-| E10 robustness | ≈ $2 |
-| **Total Gemini** | **≈ $80–120**, against about $12 of credit on the account (₪15 prepaid + ₪30.71 Cloud credits) |
-| Claude (subscription quota) | Haiku: everything. Sonnet: everything on captions, frames on all videos if the pilot's quota use allows, otherwise 150. Opus: 100 videos |
+| E8 second dataset (captions) | ≈ $8 |
+| E10 caption resampling | ≈ $2 |
+| **Total Gemini** | **≈ $25**; the credits work (confirmed 2026-10-14) |
+| Claude (subscription quota) | Sonnet (main): E1 and E2 on all 335 videos, roughly 10k calls, about 60 points of the 7-day figure at October's text-call rates (image calls measured in the calibration); E3 and E4 on 100. Haiku: everything (nearly free). Opus: at least 100 videos (about a full week of quota for all 335) |
 | Kaggle (Llama, open VLM) | free |
 | Human study (optional) | about £300 + ethics approval |
 
@@ -184,16 +184,18 @@ Readers that read pieces in the order given see 2 shuffles per puzzle; position 
 | Readers are at ceiling on captions for P12 | G6 and K4 are harder; τ and adjacency are reported per puzzle type |
 | Frame readers fail at *seeing*, not at ordering | Perception check in E4 (caption ↔ frames matching by the same model). Frames at the captioner's resolution. |
 | Position bias in listwise readers | 2 shuffles per puzzle; bias is measured and reported |
-| Findings are about Gemini's captioning style | Second captioner (Claude) on a subset; the readers come from three families |
+| Findings are about Gemini's captioning style | Second captioner (Sonnet, E4) on 100 videos; the reader never reads its own captions |
+| Findings are about Claude | The open VLM (Qwen2.5-VL-7B) and Llama-8B on Kaggle are a second family, so that arm is required |
 | Contamination: models have seen these YouTube clips | Low for the order of random 60 s clips; the held-out design and the human baseline bound it; stated as a limitation |
-| Budget | Batch API for readers; subsets for E3 and E4; the cumulative cap |
+| Quota | The calibration measures quota per image call before any large run; subsets for E3, E4 and Opus; `--max-5h` stop |
 | Ethics delay for E9 | E9 is not on the critical path |
 
 ## 7. Decisions needed
 
 - [ ] **Framing:** the paper's claim is C1–C4 (an information-controlled language-vs-pixels comparison, with structure vs. direction), not "language orders better".
-- [ ] **Gemini budget:** about $80–120 in total, against about $12 of credit now. Decide at Gate 1, with measured costs.
+- [x] **Gemini budget:** Gemini only captions (2026-10-14), ≈ $25 in total; the credits work.
+- [x] **Readers:** Claude through `claude -p`; Sonnet main, Haiku everywhere, Opus on a subset; confirmed at Gate 1 by the calibration's decision rule (2026-10-14).
 - [ ] **Second dataset (E8):** COIN (recommended: script-rich, and SPLICE's source) or none.
 - [ ] **Human baseline (E9):** yes or no; who handles ethics approval.
-- [ ] **Opus subset size** (quota).
+- [ ] **Opus subset size** (quota; at least 100 videos), at Gate 1.
 - [ ] **Target venue and deadline.**
