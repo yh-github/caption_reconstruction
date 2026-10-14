@@ -241,6 +241,22 @@ def claude_tables(cl: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.Data
     return pd.DataFrame(summ), pd.DataFrame(pair), pd.DataFrame(quota)
 
 
+def readers_vs_free(sc: pd.DataFrame, cl: pd.DataFrame) -> pd.DataFrame:
+    """The readers next to the free arms on exactly the readers' puzzles (free arms: one order per puzzle;
+    readers: the mean over shuffles). The edge arm is the continuity-only reference: it gets direction from the
+    frames' order inside each piece plus similarity across the boundary, with no knowledge of events."""
+    puzzles = set(cl.puzzle)
+    d = sc[(sc.variant == "all") & sc.puzzle.isin(puzzles) & sc.arm.isin(MAIN_ARMS[:4])]
+    rows = []
+    for (arm, s), x in d.groupby(["arm", "set"]):
+        rows.append(dict(arm=arm, set=s, videos=x.video.nunique(), tau=ci(per_video(x, "tau")),
+                         adj_und=ci(per_video(x, "adj_und")), local_dir=ci(per_video(x, "local_dir"))))
+    for (m, mod, s), x in cl.groupby(["model", "modality", "set"]):
+        rows.append(dict(arm=f"claude {m} {mod}", set=s, videos=x.video.nunique(), tau=ci(per_video(x, "m_tau")),
+                         adj_und=ci(per_video(x, "m_adj_und")), local_dir=ci(per_video(x, "m_local_dir"))))
+    return pd.DataFrame(rows).sort_values(["set", "arm"])
+
+
 # ----------------------------------------------------------------------------- power
 def power(sc: pd.DataFrame, cl: pd.DataFrame) -> pd.DataFrame:
     """Projected 95% CI half-width with 305 videos in 40 channels, from per-video SDs of paired contrasts.
@@ -292,6 +308,7 @@ def main():
         show("Claude readers (calibration)", summ, "claude_summary")
         show("Claude readers: frames minus captions, paired by puzzle and shuffle", pair, "claude_paired")
         show("Claude quota and tokens (account-wide quota readings)", quota, "claude_quota")
+        show("Readers next to the free arms on the same puzzles", readers_vs_free(sc, cl), "readers_vs_free")
     show("Power: projected CI half-width with 305 videos", power(sc, cl), "power")
     if not args.skip_mc:
         prof, pred = continuity(sc, videos, args.mc_draws)

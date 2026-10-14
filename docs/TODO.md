@@ -17,8 +17,9 @@ Step numbers refer to `docs/new_direction/experiment_kickoff_plan.md`; phases an
 - [x] Literature review, first pass (2026-10-14): `docs/new_direction/related_work.md`. No direct threat; closest is SPLICE (2025). "Language orders better than vision" is already known for models, so the paper is reframed around the information control and structure vs. direction (`paper_plan.md` §0–2).
 - [x] Paper plan: `docs/new_direction/paper_plan.md` (theory, hypotheses H1–H6, experiments E1–E10, statistics, budget, decisions).
 - [x] Claude reads images through `claude -p --input-format stream-json` with no tools (probe, 2026-10-14), so Claude can be a frame reader.
-- [ ] Phase 1: pilot pre-registration (kickoff 3.5 plus E2–E4) → `scripts/unshuffle/` with tests, including K4 puzzles and continuity profiles → free arms on the 30 pilot videos → Gemini and Claude reader runners, piloted with `--limit` (≈ $3 + quota) → Llama and open-VLM pairwise scores on Kaggle → theory write-up (Props. 1–3, Monte Carlo for Prop. 3).
-- [ ] Gate 1: pilot table, measured costs, confirmatory pre-registration draft, budget (≈ $80–120 of Gemini in total; about $12 of credit now).
+- [x] Phase 1 (2026-10-14): pilot pre-registration, `scripts/unshuffle/` with 50 tests, free arms on the 30 pilot videos, Claude listwise reader with frames, smoke test and calibration (Haiku, Sonnet, Opus; 240/240 valid). Results: `docs/new_direction/unshuffle_pilot_results.md`.
+- [ ] Phase 1, still open: Llama and open-VLM pairwise scores on Kaggle; theory write-up (Props. 1–3; Prop. 3 needs a shot-aware version for contiguous frames).
+- [ ] Gate 1 (user): the reframing, the main reader (Opus recommended), the gap-knob reader pilot (K3 d = 5 added; 660 Opus calls), the E2 redesign, 1 or 2 shuffles (`unshuffle_pilot_results.md` §5). Gemini budget settled: ≈ $25, captions only.
 - [ ] Partners: the decisions in `paper_plan.md` §7 (framing, budget, COIN as a second dataset, human baseline, Opus subset, venue).
 - [ ] Second-pass literature review: the areas marked shallow in `related_work.md` §6.
 - [x] Step 1: Stage 1 on 2 videos, read against frames; prompt revised once (v2) and frozen; `scripts/piece_caption_check.py` written.

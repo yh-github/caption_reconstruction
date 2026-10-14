@@ -2,6 +2,34 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
+# 2026-10-14 (afternoon) → next session: Gate 1
+
+**Start here:** `docs/new_direction/unshuffle_pilot_results.md` (the Gate 1 report), then `unshuffle_pilot_preregistration.md` (what was fixed in advance, and its Deviations section).
+
+**Decided (user, 2026-10-14):** Gemini only writes captions; Claude through `claude -p` is the reader to evaluate (Sonnet main, Haiku everywhere, Opus on a subset, confirmed by the calibration's rule). Recorded in `paper_plan.md` §0, E1–E10, budget and §7. Gemini spend falls to ≈ $25.
+
+**Built and committed** (`scripts/unshuffle/`, 50 tests in `tests/test_unshuffle.py`):
+- `core.py`: puzzle sets P12, C6, G6, K4 d = 1–3 with counterbalanced shuffles (shuffle 2 is shuffle 1 reversed); τ, adjacency, local direction, chance values; exact Hamiltonian-path and linear-ordering DPs (and a batched path DP); channel-cluster bootstrap.
+- `cues.py`: rule-based order-cue removal for the leak sets (20 real captions in the tests).
+- `arms.py`, `run_free.py`: chaining, edge, and leave-one-channel-out probe and pairwise arms; writes `results/unshuffle/{puzzles.json, free/}`.
+- `frames.py`: the reader frames, at exactly t = 5p + k, long edge 448 px, in `local/unshuffle_frames/` (aligned with the SigLIP rows: checked).
+- `claude_reader.py`: listwise reader with images through stream-json; blind-runner isolation, pinned model IDs (`claude-{haiku,sonnet,opus}-5-5`), effort medium, one retry on format failure, quota recorded per call. Item sets `smoke` and `calibration`; add new sets in `item_set()`.
+- `analyze.py`: every table in the results doc, plus the Prop. 3 Monte Carlo.
+- Prompts: `prompts/unshuffle/listwise.txt`, `parts.json`.
+
+**Two bugs found and fixed** (logged as deviations): the DPs got pieces in true order, and the index tie-break leaked direction into symmetric arms; the first frame extraction (`fps=1`) was 0.5–1 s late.
+
+**Results in one paragraph:** see the results doc. Frames beat captions for every Claude model, in direction as well as structure (Sonnet P12 τ +0.67 vs +0.18; Opus +0.76 vs +0.26). H2 fails at 0 s and 5 s gaps, and scale helps frames, not captions (H6 reversed). A continuity-only edge arm gets most of the frames' direction on contiguous puzzles. The no-reader structure advantage of frames disappears with 5 s gaps (H1 holds). The leak shows in learned probes and survives cue removal. Prop. 3 is calibrated for captions and gapped frames; contiguous frames need a shot-aware model.
+
+**Quota measured:** Sonnet 0.175 and Opus 0.18–0.19 points of the 5-hour window per call (a 12-piece frame call is 10k input tokens); the 7-day figure moves about 1 point per 80 Sonnet calls and 2 per 80 Opus calls.
+
+**Next (needs the user's go; `unshuffle_pilot_results.md` §5):**
+1. The reframing (continuity has a range; language can only compete beyond it), for the user and partners.
+2. Main reader: Opus recommended (same 5-hour cost per call as Sonnet, stronger on frames, about 2× the 7-day cost).
+3. Gap-knob reader pilot: add K3 d = 5 (20 s gaps) to `core.SETS`, write it into the pre-registration's Deviations section before running, then 660 Opus calls (30 videos × K4 d = 1–3 and K3 d = 5 × 1 shuffle × frames and captions).
+4. Redesign E2 (reversal) around the knob, with the edge arm as the continuity-only reference.
+5. Kaggle pairwise arms (Llama-8B, Qwen2.5-VL-7B) and the theory write-up are still open from Phase 1.
+
 # 2026-10-14 → next session
 
 **Goal:** plan the paper for a top-tier venue after a literature review, now that paid Gemini and Claude Code runs have a go.

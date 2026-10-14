@@ -2,6 +2,8 @@
 
 Written 2026-10-14, after the first-pass literature review (`related_work.md`) and the go for paid Gemini and Claude Code runs. This is the master plan for the paper: the claims, the theory, the experiments, the statistics, the budget and the order of work.
 
+**Pilot results (2026-10-14, `unshuffle_pilot_results.md`):** H1 holds, but H2 fails at 0 s and 5 s gaps (frames beat captions in direction too, for every Claude model) and H6 is reversed. A reframing around the range of visual continuity is proposed there (§5); §1–§3 below are unchanged until the user and partners decide.
+
 `new_plan.md` remains the why (generation → unshuffling) and the captioning design. `experiment_kickoff_plan.md` remains the commands and gates for captioning and the free arms. Where they conflict with this file, this file wins.
 
 ## 0. What changed and why
