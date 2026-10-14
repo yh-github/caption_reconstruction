@@ -1,0 +1,11 @@
+Below are {n} pieces of one continuous video clip. Each piece is {piece_s} seconds long. The pieces are shown in random order and labelled with letters.
+
+{geometry}
+
+{modality}
+
+Put the pieces in the order in which they happened in the video, from earliest to latest.
+
+{pieces}
+
+Answer with JSON only, in this format: {{"order": ["<letter>", "<letter>", ...]}}, listing each of the {n} letters ({letters}) exactly once, earliest first.

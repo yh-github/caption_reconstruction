@@ -1,0 +1,8 @@
+{
+  "system": "You complete one self-contained task. Use only the content of the user's message. Follow its output format exactly and output nothing else.",
+  "geometry_contiguous": "The pieces are consecutive: together they cover {span} seconds of the video, with no time missing between one piece and the next.",
+  "geometry_gapped": "The pieces are evenly spaced: between the end of one piece and the start of the next, {gap} seconds of the video are not shown.",
+  "modality_captions": "Each piece is given as a short description of what can be seen in it. Each description was written by an AI model that watched only that one piece, without sound, and knew nothing about the other pieces.",
+  "modality_frames": "Each piece is shown as {k} frames taken one second apart, in time order within the piece. There is no sound.",
+  "piece_label": "Piece {letter}:"
+}
