@@ -38,6 +38,7 @@ pandas~=2.3.1
 sklearn-compat~=0.1.4
 sklearn-pandas~=2.2.0
 rich~=14.1.0
+markdown~=3.11                  # Report Markdown -> HTML (scripts/md_to_pdf.py)
 
 # --- Command line ---
 argcomplete~=3.6.2

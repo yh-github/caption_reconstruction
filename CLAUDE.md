@@ -26,7 +26,13 @@ python src/main.py <config.yaml> --worker-id 0 --total-workers 4   # shard the v
 pytest tests/                                            # all tests (pyproject puts src/ on pythonpath)
 pytest tests/test_masking.py::test_name                  # single test
 streamlit run scripts/evaluation_explorer_app.py         # interactive results explorer
+
+# Markdown report -> A4 PDF next to the .md (python-markdown + headless google-chrome)
+python scripts/md_to_pdf.py docs/report/status_report_2026-10-14.md \
+    --img-width fig_recognition=100 --img-width fig1_lag=85 --img-width fig2_topic_timing=55 --img-width fig4_grounding=55
 ```
+
+Reports live in `docs/report/` (`.md` source, `.pdf` render, `figures/`). After editing a report's `.md`, re-run `scripts/md_to_pdf.py` with the same `--img-width` flags so the PDF stays in sync. Write lists GitHub-style; the script converts them to python-markdown's stricter nesting rules.
 
 Gotchas:
 - `--override` keys use `/` as the path separator, not `.` (see `set_nested_key` in `src/experiment_executor/config_loader.py`). List indices are numeric parts, e.g. `recon_strategy/0/temperature=0.6`. Some docs show `.`, which is wrong.
