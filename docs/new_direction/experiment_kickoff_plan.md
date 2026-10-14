@@ -2,6 +2,14 @@
 
 Written 2026-10-13, revised the same day after review. Companion to `docs/new_direction/new_plan.md` (the why and the design). This file is the how: concrete steps, commands, checks and stop rules, in order. Each step has a gate; do not start the next step until the gate passes and, where marked, the user has looked at the results.
 
+**Since 2026-10-14, `docs/new_direction/paper_plan.md` is the master plan, and it wins where the two conflict.** Steps 0–2 here are done. The stop rules and the cost and key rules still apply. Step 3 is extended there (Phase 1):
+- K4 puzzles and continuity profiles;
+- a learned pairwise classifier in both modalities;
+- Gemini and Claude readers on frames and captions;
+- a reversal test.
+
+Step 3.5 now pre-registers the pilot only; the confirmatory pre-registration is committed before any arm runs on the 305 held-out videos. Step 4 is Phase 2.
+
 ## Where things stand
 
 - **Prompts (v2, frozen):** `prompts/yt_video_processing/piece_isolated.txt` and `piece_in_context.txt`, with the same rule sentences in both files:

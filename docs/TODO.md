@@ -9,20 +9,26 @@ Latest session summary and decisions: `docs/handover.md` (newest session at the 
 
 ## U. Unshuffling (new main study)
 
-Step numbers refer to `docs/new_direction/experiment_kickoff_plan.md`.
+Step numbers refer to `docs/new_direction/experiment_kickoff_plan.md`; phases and experiments (E1–E10) to `docs/new_direction/paper_plan.md`, the master plan since 2026-10-14.
 
 - [x] Plan, literature brief and kickoff plan written and reviewed; review fixes applied (no audio, on-screen text rule, matched arms, contiguous-6 control, τ + adjacency, leak split).
 - [x] Step 0.1–0.2: paid tier confirmed (Prepay, ₪15 credit; 21 test calls passed).
-- [ ] Step 0.3 (user, from 2026-10-14): Cloud Billing report shows a Gemini cost line; check whether the ₪30.71 of Cloud credits are applied, and compare with `sum(usd)` in `calls.jsonl`.
+- [x] Step 0.3: the Cloud credits apply (user, 2026-10-14). Still worth doing once: compare the billed Gemini cost with `sum(usd)` in `calls.jsonl` ($1.56), to check the assumed prices before the budget decision.
+- [x] Literature review, first pass (2026-10-14): `docs/new_direction/related_work.md`. No direct threat; closest is SPLICE (2025). "Language orders better than vision" is already known for models, so the paper is reframed around the information control and structure vs. direction (`paper_plan.md` §0–2).
+- [x] Paper plan: `docs/new_direction/paper_plan.md` (theory, hypotheses H1–H6, experiments E1–E10, statistics, budget, decisions).
+- [x] Claude reads images through `claude -p --input-format stream-json` with no tools (probe, 2026-10-14), so Claude can be a frame reader.
+- [ ] Phase 1: pilot pre-registration (kickoff 3.5 plus E2–E4) → `scripts/unshuffle/` with tests, including K4 puzzles and continuity profiles → free arms on the 30 pilot videos → Gemini and Claude reader runners, piloted with `--limit` (≈ $3 + quota) → Llama and open-VLM pairwise scores on Kaggle → theory write-up (Props. 1–3, Monte Carlo for Prop. 3).
+- [ ] Gate 1: pilot table, measured costs, confirmatory pre-registration draft, budget (≈ $80–120 of Gemini in total; about $12 of credit now).
+- [ ] Partners: the decisions in `paper_plan.md` §7 (framing, budget, COIN as a second dataset, human baseline, Opus subset, venue).
+- [ ] Second-pass literature review: the areas marked shallow in `related_work.md` §6.
 - [x] Step 1: Stage 1 on 2 videos, read against frames; prompt revised once (v2) and frozen; `scripts/piece_caption_check.py` written.
 - [x] Stage 1b: 5 more pilot videos chosen for untested failure modes, read against frames; v2 holds (handover 2026-10-13 §C).
 - [x] Step 2: 30-video pilot captioned, checked and spot-read (handover 2026-10-13 §C).
 - [x] Title cards and labels: tagged (`text_tags.csv`, 44 of 360 pieces), with a pre-registered robustness analysis without them; no re-caption.
 - [ ] Step 3.5 first: commit `docs/new_direction/unshuffle_pilot_preregistration.md` (primary metric, primary contrast, orderability arm) before any arm runs.
 - [ ] Step 3: build `scripts/unshuffle/` (pieces, puzzles, arms, score) with tests; Llama pairwise scoring on Kaggle.
-- [ ] Literature review: hand `docs/new_direction/literature_review_plan.md` to a research agent (no paid APIs) → `docs/new_direction/related_work.md`.
-- [ ] Partners: the four decisions at the end of `new_plan.md`.
-- [ ] Step 4 needs about $15–20 of credit, more than the ₪15 on the account.
+- [ ] Partners: the four decisions at the end of `new_plan.md` (now part of `paper_plan.md` §7).
+- [ ] Step 4 (Phase 2 in `paper_plan.md`): about $14 for the remaining captions, more than the credit on the account once the readers are added.
 
 **Current state of the thesis (2026-10-08):**
 - **Reconstruction as the paper's core: NO-GO at 8B.** Llama loses to copying on every metric, including forced choice (35% against 52% for caption copy).

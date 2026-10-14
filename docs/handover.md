@@ -2,6 +2,71 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
+# 2026-10-14 → next session
+
+**Goal:** plan the paper for a top-tier venue after a literature review, now that paid Gemini and Claude Code runs have a go.
+
+**The user's directives (2026-10-14):**
+1. Literature review for novelty and contribution; adjust or pivot to get them.
+2. Go for more experiments with Claude Code and the paid Gemini API; the credits work.
+3. A rigorous paper, theory and experiments, with top-tier experiments.
+4. Nice to have: insight into the power of language vs. visual perception.
+
+**Start here:** `docs/new_direction/paper_plan.md` (the master plan; it wins over `new_plan.md` and the kickoff plan where they conflict), then `docs/new_direction/related_work.md`.
+
+## A. Literature review (first pass; `related_work.md`)
+
+- **No direct threat** (no paper meets all three kill criteria). About 40 papers were checked at their abstracts or full text.
+- **Closest:** SPLICE (arXiv 2509.24640, 2025). COIN clips are reordered from video, text or both. Its text is human step labels, and it has no continuity control and no matched non-reader arms.
+- **Also close:** Wu et al. ACL 2022 (instruction manuals: text τ 0.82 vs images 0.16 for models), Sort Story (EMNLP 2016), TempVS (ACL Findings 2025: sentence ordering 86% vs image ordering 54%).
+- **Consequence:** "language orders better than vision" is already known for models, so it cannot be the headline. What no one has: captions made in isolation from exactly the frames the vision arms see (an information control), the gap as a graded knob across modalities, matched arms, and a split into structure vs. direction.
+- **The gap device is known:** VCOP (CVPR 2019) uses a fixed 8-frame interval between clips "to avoid trivial solutions". The novelty is varying it and comparing modalities.
+- **Second pass still to do** (`related_work.md` §6): VIST's descriptions in sequence (DIS), step-order verification in video, current LLM sentence ordering, and the cognitive science of language vs. perception.
+
+## B. The plan (`paper_plan.md`)
+
+- **Reframing:** from *how much* order each modality carries to *why*.
+  - **Prop. 1:** isolated captions are a garbling of the frames, so I(π; captions) ≤ I(π; frames). Any caption advantage is usable information (Xu et al., ICLR 2020), and the in-context leak is formally a break of this chain.
+  - **Prop. 2:** symmetric similarity cannot know direction (E[τ] = 0), so order is measured as structure (undirected adjacency) and direction (a reversal test).
+  - **Prop. 3:** a continuity model predicts how gaps hurt similarity chaining per modality, from measured similarity-decay profiles.
+- **Hypotheses H1–H6:** pixels carry structure at least as well; captions carry direction better for the same reader; verbalization inside one model helps; the advantage grows with agents, goals and scripts; the leak; scale (exploratory).
+- **Experiments E1–E10:**
+  - E1: main comparison, matched no-reader, learned and reader arms.
+  - E2: reversal test.
+  - E3: K4 gap knob (4 pieces, gaps 0, 5 or 10 s) with continuity profiles.
+  - E4: verbalization inside Gemini and Claude.
+  - E5: leak.
+  - E6: where language wins.
+  - E7: scale.
+  - E8: COIN as a second, script-rich dataset.
+  - E9: human baseline.
+  - E10: robustness.
+- **Confirmatory design:** the 30 pilot videos are for development. The confirmatory tests are fixed in a pre-registration and committed before any arm runs on the 305 held-out videos; up to 4 primary tests, Holm-corrected.
+- **Budget:** Gemini ≈ $80–120 in total (≈ $14 captions, ≈ $40–75 readers, ≈ $25 COIN), against about $12 of credit now. Claude runs on subscription quota: Haiku on everything, Sonnet on most, Opus on 100 videos. Kaggle is free.
+
+## C. Facts established this session
+
+- **Claude can read frames:** `claude -p --model haiku --tools "" --input-format stream-json --output-format stream-json --verbose` accepted a base64 PNG in a user message and answered correctly, in one turn with an empty tool list. So `scripts/blind_llm_runner.py` can be given an image mode for frame readers.
+- **The captioner saw low-resolution frames:** in `calls.jsonl`, an isolated call has 330 video tokens for 5 frames (≈ 66 per frame) plus 187 text tokens. Frame readers can get the same frames cheaply: a 12-piece Gemini puzzle is ≈ 4k video tokens, so the cost is mostly thinking output. Giving readers frames at no lower resolution than this keeps Prop. 1 valid.
+- **Billing:** the user confirmed the Cloud credits apply. `calls.jsonl` logs $1.56 in total. A comparison of the billed cost with that estimate is still worth doing once, before the budget decision.
+
+## D. Next (Phase 1 in `paper_plan.md` §5)
+
+1. Write `docs/new_direction/unshuffle_pilot_preregistration.md` (kickoff §3.5, plus E2–E4 on the pilot) and commit it before any arm runs.
+2. Build `scripts/unshuffle/` with tests: pieces, puzzles (P12, C6, G6, K4), no-reader and learned arms, pairwise aggregation (exact subset DP), score, continuity profiles. Run on the 30 pilot videos.
+3. Reader runners:
+   - Gemini listwise, with a cost log and a cumulative cap;
+   - Claude listwise with frames through stream-json.
+
+   Pilot both with `--limit`, then on the 30 videos (≈ $3 + quota). Measure per-call cost, format failures and position bias.
+4. Kaggle: Llama-8B and open-VLM pairwise scores on the pilot pieces.
+5. Theory write-up: Props. 1–3 with proofs, and the Monte Carlo for Prop. 3.
+6. **Gate 1:** report to the user with the pilot table, measured costs, the confirmatory pre-registration draft and the budget ask, plus the partner decisions in `paper_plan.md` §7.
+
+The live plan doc (https://claude.ai/code/artifact/a0d1b4ac-8b80-42f6-8935-7183326d43a3) still matches `new_plan.md` at rev 54. It has neither the pilot results nor this plan. Sync it if the partners will read the plan there.
+
+---
+
 # 2026-10-13 → next session
 
 **Goal:** move the main study from generation to unshuffling, make the re-captioning leak-free, pay for it, and freeze the captioning setup on 2 videos before the 30-video pilot.

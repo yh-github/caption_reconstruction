@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Research codebase for a paper on *caption reconstruction*: mask a contiguous gap of 1-second clips in a 60-second video, then reconstruct it either from **text** (an LLM in-fills the missing captions from surrounding captions) or from **vision** (interpolate SigLIP frame embeddings across the gap). Comparing the two measures how predictable a video's events are without seeing them. The current experimental standard, which results are legacy, and the key findings so far are in `docs/experiments/experiment_protocol_current.md`. Read it before designing or interpreting experiments.
 
-**New direction (2026-10-13): unshuffling.** The main study is moving from generation to ordering: 12 pieces of 5 s per clip, re-captioned in isolation by Gemini, ordered from captions vs. frames. The why and the design are in `docs/new_direction/new_plan.md`; the steps, gates and commands are in `docs/new_direction/experiment_kickoff_plan.md`. Where the work stands and what comes next is at the top of `docs/handover.md`.
+**New direction (2026-10-13): unshuffling.** The main study is moving from generation to ordering: 12 pieces of 5 s per clip, re-captioned in isolation by Gemini, ordered from captions vs. frames. The master plan (theory, hypotheses, experiments E1–E10, statistics, budget) is `docs/new_direction/paper_plan.md`, positioned by the literature review in `docs/new_direction/related_work.md`. Why generation was demoted and how captions are made: `docs/new_direction/new_plan.md`. Captioning commands, gates and stop rules: `docs/new_direction/experiment_kickoff_plan.md`. Where the work stands and what comes next is at the top of `docs/handover.md`.
 
 ## Commands
 

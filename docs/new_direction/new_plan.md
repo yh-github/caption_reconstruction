@@ -2,6 +2,11 @@
 
 As of 2026-10-13. This is an export of the shared plan doc (live version: https://claude.ai/code/artifact/a0d1b4ac-8b80-42f6-8935-7183326d43a3). The pipeline diagram is reproduced as a Mermaid chart below. Revised after review the same day (no audio, on-screen text rule, matched arms, metrics, leak split), in both the live doc and this export.
 
+**2026-10-14:**
+- The literature review (`related_work.md`) and the paper plan (`paper_plan.md`) supersede "Where the novelty is", "Plan and status" and "For partners to decide" below. Stage 2 (the 30-video pilot) is done; results are in `docs/handover.md` (2026-10-13 §C).
+- This file still records why generation was demoted and how the captions are made.
+- The live doc has not been updated with either change.
+
 ## Summary
 
 We propose to stop measuring reconstruction by **generation** (an LLM writes the missing captions) and measure it by **unshuffling** instead: cut each 60 s clip into 12 pieces of 5 s, shuffle them, and ask how much of the original order a reader can recover from captions versus from frames.
