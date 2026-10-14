@@ -2,6 +2,16 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
+# 2026-10-14 (evening) → reframe under review: captions as a one-time index
+
+**Why:** the user's goal is captions as a one-time index that makes later video tasks cheap, so experiments should be judged by accuracy at matched query tokens. The Gate 1 design (a strong reader on frames vs. captions made from the same frames, at 11× the tokens for frames) did not answer that.
+
+**Done:** literature check for the reframe, in `docs/new_direction/related_work_caption_index.md`.
+- The amortized "caption once" setting is published: CFD 2609.11899 and CapMem 2609.17688, on long video.
+- Still open: matched-token curves by task, separating coverage from language, and short videos.
+
+**Next (needs the user's go):** Stage 1 of that doc's §6, the ordering budget curve. It needs ≈ 200 Sonnet calls on the 10 calibration videos and under $1 of Gemini for the terse and single-frame captions. The Stage A Opus run from the section below is on hold.
+
 # 2026-10-14 (afternoon) → next session: Gate 1
 
 **Start here:** `docs/new_direction/unshuffle_pilot_results.md` (the Gate 1 report), then `unshuffle_pilot_preregistration.md` (what was fixed in advance, and its Deviations section).
