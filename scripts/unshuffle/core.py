@@ -123,6 +123,39 @@ def best_path(W: np.ndarray) -> list[int]:
     return path[::-1]
 
 
+def best_path_batch(W: np.ndarray) -> np.ndarray:
+    """best_path for a batch of weight matrices W[b] (B, n, n), vectorised over the batch (for Monte Carlo).
+    Returns (B, n) paths."""
+    B, n, _ = W.shape
+    if n == 1:
+        return np.zeros((B, 1), dtype=np.int64)
+    full = 1 << n
+    dp = np.full((full, B, n), -np.inf)
+    back = np.full((full, B, n), -1, dtype=np.int8)
+    for j in range(n):
+        dp[1 << j, :, j] = 0.0
+    js_all = np.arange(n)
+    Wt = np.transpose(W, (2, 0, 1))  # Wt[j, b, i] = W[b, i, j]
+    for mask in range(1, full):
+        js = js_all[(mask >> js_all) & 1 == 1]
+        if len(js) < 2:
+            continue
+        cand = dp[mask ^ (1 << js)] + Wt[js]          # (len(js), B, n): cand[a, b, i] = dp[mask - j_a, b, i] + W[b, i, j_a]
+        best = cand.argmax(axis=2)
+        dp[mask][:, js] = np.take_along_axis(cand, best[..., None], axis=2)[..., 0].T
+        back[mask][:, js] = best.T
+    rows = np.arange(B)
+    j = dp[full - 1].argmax(axis=1)
+    mask = np.full(B, full - 1)
+    out = np.empty((B, n), dtype=np.int64)
+    for pos in range(n - 1, -1, -1):
+        out[:, pos] = j
+        prev = back[mask, rows, j]
+        mask = mask ^ (1 << j)
+        j = prev.astype(np.int64)
+    return out
+
+
 def path_weight(W: np.ndarray, path: list[int]) -> float:
     return float(sum(W[a, b] for a, b in zip(path, path[1:])))
 

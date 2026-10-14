@@ -96,6 +96,15 @@ def test_best_path_is_optimal(n, seed):
     assert core.path_weight(W, path) == pytest.approx(best)
 
 
+@pytest.mark.parametrize("n,seed", [(2, 0), (4, 1), (6, 2), (7, 3)])
+def test_best_path_batch_matches_single(n, seed):
+    W = np.random.default_rng(seed).normal(size=(9, n, n))
+    batch = core.best_path_batch(W)
+    for b in range(len(W)):
+        assert sorted(batch[b]) == list(range(n))
+        assert core.path_weight(W[b], list(batch[b])) == pytest.approx(core.path_weight(W[b], core.best_path(W[b])))
+
+
 @pytest.mark.parametrize("n,seed", [(2, 0), (3, 1), (5, 2), (6, 3), (7, 4)])
 def test_best_linear_order_is_optimal(n, seed):
     A = np.random.default_rng(seed).normal(size=(n, n))
@@ -110,6 +119,17 @@ def test_best_linear_order_on_a_score_is_sorting():
     s = np.random.default_rng(5).normal(size=8)
     P = s[None, :] - s[:, None]  # P[a, b] > 0 when a has the lower score
     assert core.best_linear_order(P) == list(np.argsort(s))
+
+
+def test_chain_structure_ignores_input_order():
+    # the arms get pieces in presentation order; the undirected path must not depend on it
+    from unshuffle import arms
+    E = np.random.default_rng(7).normal(size=(12, 16))
+    E /= np.linalg.norm(E, axis=1, keepdims=True)
+    edges = lambda o: {frozenset(p) for p in zip(o, o[1:])}
+    a = arms.chain(E, list(range(12)), ("t", 1))
+    b = arms.chain(E, [5, 2, 11, 0, 7, 3, 9, 1, 10, 4, 8, 6], ("t", 2))
+    assert edges(a) == edges(b)
 
 
 def test_best_path_recovers_a_chain():

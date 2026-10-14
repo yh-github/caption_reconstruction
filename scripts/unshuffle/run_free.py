@@ -86,14 +86,15 @@ def main():
         for var, pieces in variants.items():
             base = dict(video=v, channel=core.channel(v), puzzle=pz["puzzle"], set=pz["set"], k=pz["k"],
                         variant=var, gap_s=pz["gap_s"])
+            presented = core.restrict(pz["shuffles"][0], pieces)  # neutral input order (see arms.py)
             preds = {}
             for rep, E in reps.items():
                 key = ":".join(rep)
-                preds[(rep, "chain")] = arms.chain(E[v], pieces, (key, pz["puzzle"], var))
+                preds[(rep, "chain")] = arms.chain(E[v], presented, (key, pz["puzzle"], var))
                 for kind in ("probe", "pairwise"):
-                    preds[(rep, kind)] = arms.order_by_score(learned[(rep, kind)][v][0], pieces)
+                    preds[(rep, kind)] = arms.order_by_score(learned[(rep, kind)][v][0], presented)
             first, last = edges[v]
-            preds[(("frames", "-", "siglip2"), "edge")] = arms.edge_chain(first, last, pieces)
+            preds[(("frames", "-", "siglip2"), "edge")] = arms.edge_chain(first, last, presented)
             for (rep, method), order in preds.items():
                 rows.append(dict(**base, modality=rep[0], caption_set=rep[1], encoder=rep[2], method=method,
                                  arm=f"{rep[0]}:{rep[1]}:{rep[2]}:{method}", pieces=pieces, order=order,

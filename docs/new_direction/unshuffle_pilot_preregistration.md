@@ -88,3 +88,8 @@ Inference: per-video means; 95% CIs by channel-cluster bootstrap (10,000 resampl
 - The primary contrasts, margins and sample sizes of the confirmatory pre-registration.
 
 Changes to this plan after any arm has run are listed in a dated "Deviations" section at the end of this file, with the reason.
+
+## Deviations
+
+- **2026-10-14, implementation fix (free arms re-run).** The first run passed each puzzle's pieces to the chaining DPs and the sort in true order, against §2 ("arms see neutral labels only"). A symmetric path and its reverse always tie exactly, and the DP broke that tie by index, so the unflipped path's direction correlated with the truth (local direction 0.38–0.48 before the coin flip). The coin kept the expectation at 0.5, but 4 of 11 symmetric arms failed the §4 gate. Every arm now gets the pieces in shuffle 1's presentation order (`arms.py`); all 11 pass, and structure scores are unchanged (99.8% of puzzle scores identical; no exact ties exist in the pilot embeddings). The first run's scores are kept outside the repo for reference.
+- **2026-10-14, frames for readers.** The first extraction used ffmpeg's `fps=1` filter, which takes a frame about 0.5 s into each second (most frames matched SigLIP row t + 1). `frames.py` now seeks to exactly t = 5p + k, as `check_frame_timestamps.py` verified for the SigLIP rows (66 of 90 checked frames match row t; median cosine 0.97). No reader had run on the first extraction.

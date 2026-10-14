@@ -25,21 +25,24 @@ def coin(*key) -> bool:
     return random.Random("|".join(map(str, (SEED, "coin", *key)))).random() < 0.5
 
 
-def chain(E: np.ndarray, pieces: list[int], key: tuple) -> list[int]:
+# Every arm gets the pieces in the puzzle's presentation order (shuffle 1), never in true order: the DPs break
+# exact ties by index (a symmetric path and its reverse always tie), and sorting keeps the input order of ties,
+# so a true-order input would leak the answer into those choices.
+def chain(E: np.ndarray, presented: list[int], key: tuple) -> list[int]:
     """Symmetric chaining: E holds one unit row per piece of the clip (row p = piece p)."""
-    X = E[pieces]
-    path = [pieces[i] for i in best_path(X @ X.T)]
+    X = E[presented]
+    path = [presented[i] for i in best_path(X @ X.T)]
     return path[::-1] if coin(*key) else path
 
 
-def edge_chain(first: np.ndarray, last: np.ndarray, pieces: list[int]) -> list[int]:
-    W = last[pieces] @ first[pieces].T  # W[i, j]: piece i's last frame -> piece j's first frame
-    return [pieces[i] for i in best_path(W)]
+def edge_chain(first: np.ndarray, last: np.ndarray, presented: list[int]) -> list[int]:
+    W = last[presented] @ first[presented].T  # W[i, j]: piece i's last frame -> piece j's first frame
+    return [presented[i] for i in best_path(W)]
 
 
-def order_by_score(score: np.ndarray, pieces: list[int]) -> list[int]:
+def order_by_score(score: np.ndarray, presented: list[int]) -> list[int]:
     """Earliest first: higher score = earlier."""
-    return sorted(pieces, key=lambda p: -score[p])
+    return sorted(presented, key=lambda p: -score[p])
 
 
 # ----------------------------------------------------------------------------- learned arms
