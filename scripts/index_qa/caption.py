@@ -142,9 +142,13 @@ def main() -> None:
                    usd=round(usd, 6), secs=round(time.time() - t0, 1), error=None)
         if isinstance(res, cp.LLM_ResponseError):
             rec["error"] = f"{type(res).__name__}: {res.exception}"
+            cand = raw.candidates[0] if raw and raw.candidates else None
+            rec["finish_reason"] = str(cand.finish_reason) if cand else None
+            rec["prompt_feedback"] = str(raw.prompt_feedback) if raw and raw.prompt_feedback else None
             cp.log_call(rec)
-            if isinstance(res, cp.LLM_ResponseBlocked):
-                print(f"blocked: {v} window {p}, continuing")
+            # Blocked, or a candidate with no content parts (seen once in C1): no caption for this window.
+            if isinstance(res, cp.LLM_ResponseBlocked) or (cand and not (cand.content and cand.content.parts)):
+                print(f"no caption: {v} window {p} (finish_reason {rec['finish_reason']}), continuing")
                 continue
             sys.exit(f"API error, stopping: {rec['error']}")
 
