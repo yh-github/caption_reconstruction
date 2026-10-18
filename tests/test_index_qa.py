@@ -7,8 +7,8 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 from index_qa import tempcompass as tc  # noqa: E402
-from index_qa.caption import prompt_for  # noqa: E402
-from index_qa.reader import paired_boot, parse  # noqa: E402
+from index_qa.caption import GEMINI_LEAD, frames_prompt, prompt_for  # noqa: E402
+from index_qa.reader import HIGH, LOW, contrast_boot, paired_boot, parse, retention_boot  # noqa: E402
 
 
 def test_parse_question_plain():
@@ -74,3 +74,32 @@ def test_parse_answer():
 def test_paired_boot():
     est, lo, hi = paired_boot([1, 0, 0, 1, 0, 0, 0, 0, 0, 0])
     assert est == pytest.approx(0.2) and lo <= est <= hi
+
+
+def test_paired_boot_level():
+    d = [1, 0, -1, 1, 0, 0, 1, 0, 0, -1] * 3
+    _, lo95, hi95 = paired_boot(d)
+    _, lo98, hi98 = paired_boot(d, level=1 - 0.05 / 3)
+    assert lo98 <= lo95 and hi98 >= hi95
+
+
+def test_contrast_boot():
+    est, lo, hi = contrast_boot([-1, 0, -1, 0], [0, 0, 1, 0])
+    assert est == pytest.approx(-0.75) and lo <= est <= hi
+
+
+def test_retention_boot():
+    est, lo, hi = retention_boot([1, 1, 0, 0], [1, 1, 1, 0], [0, 0, 0, 0])
+    assert est == pytest.approx(2 / 3) and lo <= est <= hi
+
+
+def test_aspect_groups_partition_the_aspects():
+    assert LOW | HIGH == set(tc.DIMS) and not LOW & HIGH
+
+
+def test_frames_prompt_changes_only_the_lead():
+    p = frames_prompt(3, 2.6)
+    assert GEMINI_LEAD not in p and p.startswith("The attached images are 3 frames from a 3-second video clip")
+    assert p.split("Describe what happens in the clip,", 1)[1] == \
+        prompt_for(tc.ROOT.joinpath("prompts/yt_video_processing/piece_isolated.txt").read_text(), 5).split(
+            GEMINI_LEAD, 1)[1]

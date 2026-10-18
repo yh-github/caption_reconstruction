@@ -7,8 +7,11 @@ Data: the lmms-eval/TempCompass dataset on Hugging Face (ungated, CC BY-NC 4.0),
 t = 5p + k s (k = 0..4, t < duration), the 1 fps instants the captioner samples, saved with the long edge at
 224 px (16:9 sources -> 224x126, 40 Claude image tokens).
 
-    .venv/bin/python scripts/index_qa/tempcompass.py sample   # writes results/index_qa/kill_test_items.json
-    .venv/bin/python scripts/index_qa/tempcompass.py frames   # frames for the sampled videos
+Two question sets (docs/new_direction/research_log.md): "dev", the 100 development questions (K0-K2), and
+"confirm", 60 per aspect on the 310 videos the dev set does not use (C1).
+
+    .venv/bin/python scripts/index_qa/tempcompass.py sample [--set confirm]   # writes the set's items file
+    .venv/bin/python scripts/index_qa/tempcompass.py frames [--set confirm]   # frames for the set's videos
 """
 from __future__ import annotations
 
@@ -29,7 +32,8 @@ TC = ROOT / "local/tempcompass"
 VIDEOS = TC / "videos"
 FRAMES = TC / "frames"
 OUT = ROOT / "results/index_qa"
-ITEMS = OUT / "kill_test_items.json"
+SETS = {"dev": OUT / "kill_test_items.json", "confirm": OUT / "confirm_items.json"}
+ITEMS = SETS["dev"]
 WINDOW_S = 5
 LONG_EDGE = 224
 DIMS = ["action", "speed", "direction", "order", "attribute_change"]
@@ -59,15 +63,21 @@ def load_questions() -> list[dict]:
             for r in df.itertuples()]
 
 
-def sample(per_dim: int = 20, seed: int = 0) -> list[dict]:
+def sample(per_dim: int = 20, seed: int = 0, exclude: frozenset[str] = frozenset(), order: list[str] = DIMS,
+           prefix: str = "tc", single_first: bool = False) -> list[dict]:
     """per_dim questions per dimension, each on a different video (TempCompass asks several near-paraphrases per
-    video, so one question per video keeps the items independent). Seeded; dimensions in a fixed order."""
+    video, so one question per video keeps the items independent), none on an excluded video. Seeded; dimensions
+    are filled in the given order. single_first takes, within a dimension, videos that only that dimension asks
+    about before videos that several dimensions ask about."""
     rng = random.Random(seed)
-    qs = load_questions()
+    qs = [q for q in load_questions() if q["video_id"] not in exclude]
+    n_dims = {v: len({q["dim"] for q in qs if q["video_id"] == v}) for v in {q["video_id"] for q in qs}}
     used, out = set(), []
-    for dim in DIMS:
+    for dim in order:
         pool = [q for q in qs if q["dim"] == dim]
         rng.shuffle(pool)
+        if single_first:
+            pool.sort(key=lambda q: n_dims[q["video_id"]] > 1)
         for q in pool:
             if len([o for o in out if o["dim"] == dim]) == per_dim:
                 break
@@ -75,14 +85,28 @@ def sample(per_dim: int = 20, seed: int = 0) -> list[dict]:
                 used.add(q["video_id"])
                 out.append(q)
     for i, q in enumerate(out):
-        q["item"] = f"tc{i:03d}|{q['video_id']}|{q['dim']}"
+        q["item"] = f"{prefix}{i:03d}|{q['video_id']}|{q['dim']}"
     return out
 
 
-def items() -> list[dict]:
-    if not ITEMS.exists():
-        sys.exit(f"{ITEMS} is missing: run scripts/index_qa/tempcompass.py sample first")
-    return json.loads(ITEMS.read_text())
+def sample_confirm() -> list[dict]:
+    """C1: 60 questions per aspect on the videos the dev set does not use. Aspects are filled rarest first (fewest
+    unused videos) and from single-aspect videos first, so a video with questions in several aspects cannot starve
+    a rare one."""
+    dev = frozenset(q["video_id"] for q in items("dev"))
+    qs = [q for q in load_questions() if q["video_id"] not in dev]
+    order = sorted(DIMS, key=lambda d: (len({q["video_id"] for q in qs if q["dim"] == d}), DIMS.index(d)))
+    out = sample(per_dim=60, seed=1, exclude=dev, order=order, prefix="tcc", single_first=True)
+    short = {d: n for d in DIMS if (n := sum(q["dim"] == d for q in out)) < 60}
+    if short:
+        sys.exit(f"too few unused videos for 60 questions per aspect: {short}")
+    return out
+
+
+def items(set_: str = "dev") -> list[dict]:
+    if not SETS[set_].exists():
+        sys.exit(f"{SETS[set_]} is missing: run scripts/index_qa/tempcompass.py sample --set {set_} first")
+    return json.loads(SETS[set_].read_text())
 
 
 def first_per_dim(qs: list[dict], n: int | None) -> list[dict]:
@@ -159,17 +183,19 @@ def extract(video_id: str) -> int:
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("cmd", choices=["sample", "frames"])
+    ap.add_argument("--set", dest="set_", choices=list(SETS), default="dev")
     args = ap.parse_args()
     if args.cmd == "sample":
-        if ITEMS.exists():
-            sys.exit(f"{ITEMS} exists; the kill-test sample is fixed once drawn")
+        path = SETS[args.set_]
+        if path.exists():
+            sys.exit(f"{path} exists; a sample is fixed once drawn")
         OUT.mkdir(parents=True, exist_ok=True)
-        qs = sample()
-        ITEMS.write_text(json.dumps(qs, indent=1))
+        qs = sample() if args.set_ == "dev" else sample_confirm()
+        path.write_text(json.dumps(qs, indent=1))
         n_win = sum(len(windows(duration_s(q["video_id"]))) for q in qs)
-        print(f"{len(qs)} items on {len({q['video_id'] for q in qs})} videos, {n_win} windows -> {ITEMS.relative_to(ROOT)}")
+        print(f"{len(qs)} items on {len({q['video_id'] for q in qs})} videos, {n_win} windows -> {path.relative_to(ROOT)}")
     else:
-        for q in items():
+        for q in items(args.set_):
             print(f"{q['video_id']}: {extract(q['video_id'])} new frames")
 
 

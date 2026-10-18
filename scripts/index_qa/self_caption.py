@@ -3,11 +3,12 @@
 
 The prompt is the Gemini window-caption prompt (prompts/yt_video_processing/piece_isolated.txt) with its first
 clause, "Describe what happens in the attached 5-second video clip,", replaced by a description of the frames;
-everything else is identical. One isolated `claude -p` call per window (scripts/unshuffle/claude_reader.py's
+everything else is identical (caption.frames_prompt, also used for Gemini's captions of the same frames). One isolated `claude -p` call per window (scripts/unshuffle/claude_reader.py's
 call_claude), never seeing the question. An empty or "ERROR" caption gets one retry.
 
     .venv/bin/python scripts/index_qa/self_caption.py --per-dim 10 --dry-run
     .venv/bin/python scripts/index_qa/self_caption.py --per-dim 10 [--limit 3]
+    .venv/bin/python scripts/index_qa/self_caption.py --set confirm
 Writes results/index_qa/captions/claude-haiku-5-5-self/<video_id>/<pp>.json (read by reader.py's selfcaptions
 arm) and one row per attempt to results/index_qa/self_captions.jsonl.
 """
@@ -25,22 +26,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import caption_pieces as cp  # noqa: E402
 from index_qa import tempcompass as tc  # noqa: E402
-from index_qa.caption import caption_path  # noqa: E402
+from index_qa.caption import caption_path, frames_prompt as prompt_for  # noqa: E402
 from unshuffle.claude_reader import EFFORT, MODELS, call_claude  # noqa: E402
 
 MODEL = "haiku"
 CAPTIONER = "claude-haiku-5-5-self"
 LOG = tc.OUT / "self_captions.jsonl"
-GEMINI_LEAD = "Describe what happens in the attached 5-second video clip,"
-
-
-def prompt_for(n_frames: int, dur: float) -> str:
-    base = cp.PROMPTS["isolated"].read_text()
-    if GEMINI_LEAD not in base:
-        sys.exit("the Gemini caption prompt changed; update GEMINI_LEAD")
-    lead = (f"The attached images are {n_frames} frames from a {max(1, round(dur))}-second video clip, taken one "
-            f"second apart and shown in time order. Describe what happens in the clip,")
-    return base.replace(GEMINI_LEAD, lead)
 
 
 def blocks_for(prompt: str, frames: list[Path]) -> list[dict]:
@@ -51,6 +42,7 @@ def blocks_for(prompt: str, frames: list[Path]) -> list[dict]:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--set", dest="set_", choices=list(tc.SETS), default="dev")
     ap.add_argument("--per-dim", type=int, help="only the videos of the first N questions of each aspect")
     ap.add_argument("--limit", type=int)
     ap.add_argument("--effort", default=EFFORT)
@@ -59,7 +51,7 @@ def main() -> None:
     args = ap.parse_args()
 
     jobs = []
-    for q in tc.first_per_dim(tc.items(), args.per_dim):
+    for q in tc.first_per_dim(tc.items(args.set_), args.per_dim):
         v = q["video_id"]
         for p, ((s, e), frames) in enumerate(zip(tc.windows(tc.duration_s(v)), tc.window_frames(v))):
             if not caption_path(CAPTIONER, v, p).exists():
