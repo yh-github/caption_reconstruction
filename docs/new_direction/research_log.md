@@ -275,3 +275,8 @@ The development results stay in the paper as the exploratory phase; the claims r
 2. Haiku self-captions and all six Haiku reader arms; Sonnet's two primary arms. `--max-5h 0.8`; the isolation and model checks of K0–K2 apply.
 3. Sonnet's secondary arms only if the 7-day quota is below 85% after step 2.
 4. No decision depends on interim accuracy. `reader.py confirm` (committed with this entry) is run once all arms in a step are complete, and its output is reported here in full.
+
+**Amendment 1 (2026-10-18, after the 3-call frame-caption check, before any reader call on Gemini captions).**
+- **Cost.** Gemini encodes each attached image at its default (high) media resolution, about 1,085 tokens per 224-px image, against about 66 tokens per frame for video input. A frame-caption call costs about $0.0099, not $0.0029: the frames run is ≈ $7.6, and C1's Gemini total ≈ $9.8. With the user's approval, the cumulative cap is raised from $7.50 to $13. The default resolution is kept, so the captioner settings stay as tested. A 224-px image carries the same pixels at any encoding resolution.
+- **Correction to the coverage row above.** Gemini's video input is not at full resolution either: it is sampled at 1 fps and encoded at about 66 tokens per frame, from the original-resolution file. So coverage compares *the source video, as Gemini's video encoder sees it* with *the reader's five 224-px JPEGs, as Gemini's image encoder sees them*. The term still isolates what the captioner was given; it is not a pure resolution effect.
+- **The 3-call check:** all three captions described their frames (a forest time-lapse turning golden; a forward camera move along an autumn trail; two static circle outlines on black). The three windows count towards the 772.
