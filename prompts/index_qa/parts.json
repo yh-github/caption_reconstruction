@@ -1,0 +1,8 @@
+{
+  "modality_blind": "You cannot see the video. Give your best guess from the question and options alone.",
+  "modality_captions": "The video was split into windows of 5 seconds (the last one may be shorter). Each window is given as a short description of what can be seen in it, in time order. Each description was written by an AI model that watched only that one window, without sound, and knew nothing about the rest of the video.",
+  "modality_frame1": "The video was split into windows of 5 seconds (the last one may be shorter). Each window is shown as one frame from its middle, in time order.",
+  "modality_frames5": "The video was split into windows of 5 seconds (the last one may be shorter). Each window is shown as its frames taken one second apart, in time order.",
+  "window_label": "{start:g}-{end:g} s:",
+  "frame_label": "Frame at {t:g} s:"
+}

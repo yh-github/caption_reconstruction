@@ -33,6 +33,10 @@ results/*
 !results/phi_vs_video_integration_summary.csv
 !results/prior_vs_post_reconstruction_master.csv
 !results/for_analysis/335/*
+# the fixed development sample of the caption-index study (research_log.md, K0)
+!results/index_qa/
+results/index_qa/*
+!results/index_qa/kill_test_items.json
 test_logs/
 test_results/
 .test_lock*
