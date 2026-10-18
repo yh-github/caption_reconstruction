@@ -159,7 +159,7 @@ By aspect (20 each), Sonnet captions vs. frames: action 1.00 vs. 1.00, attribute
 **Items.** The same 50 questions as K1.
 
 **Arm.** *Self-captions:*
-- **Captioning:** Haiku writes one caption per window, from exactly the 5 frames (224 px) that the 5-frame arm shows. One isolated call per window, never seeing the question. The prompt is the Gemini caption prompt with "the attached 5-second video clip" replaced by a description of the frames (`prompts/index_qa/self_caption.txt`). 138 calls.
+- **Captioning:** Haiku writes one caption per window, from exactly the 5 frames (224 px) that the 5-frame arm shows. One isolated call per window, never seeing the question. The prompt is the Gemini caption prompt with "the attached 5-second video clip" replaced by a description of the frames (built in code: `caption.frames_prompt`, formerly `self_caption.prompt_for`). 138 calls.
 - **Reading:** Haiku answers from these captions, with the same reader prompt and modality text as the Gemini captions. 50 calls.
 
 **What it separates (Haiku as the reader throughout):**
@@ -220,3 +220,58 @@ Targeted at the two candidate claims:
 3. Break-even counts that include the reader downgrade.
 
 **Verdict.** Claim 1 alone is incremental: Prism and LLoVi already treat captioner and reader as separable modules, and LLoVi already reports an accuracy-for-cost choice of reader. The open, defensible contribution is the combination: a decomposition on video into coverage, captioner and format effects, with question-blind captions, at matched cost, per aspect. Our results so far fit the IsoBench finding (format) and a captioner effect (K2 will say which dominates). The paper should cite IsoBench and Prism as the image-domain precedents and position itself as their video, amortized-index counterpart. This was a quick check, not a full review; a final pass is needed before submission.
+
+### C1 — Confirmatory study (pre-registered 2026-10-18, committed before any confirmatory call)
+
+**Why new data.** Two reasons, both about the paper's claims, not about the questions themselves:
+1. **The development questions chose the hypotheses.** The aspect grouping (D1) and the "captioner, not format" reading (K2) came from looking at the 100 development questions. Testing them on the same questions would be circular. New questions on new videos are an independent test.
+2. **Precision.** On 50–100 questions, the key effects (format −0.10, captioner +0.08, caption loss −0.07) all have CIs that reach 0. 300 questions roughly halve the CI widths of K2.
+
+The development results stay in the paper as the exploratory phase; the claims rest on C1.
+
+**Items** (`results/index_qa/confirm_items.json`, committed with this entry). 60 questions per aspect, 300 in total, one per video, on 300 of the 310 TempCompass videos the development set does not use (no overlap); 772 windows, mean chance 0.297. Seed 1; aspects filled rarest first, and from videos that only one aspect asks about before videos several aspects ask about (`tempcompass.py`, `sample_confirm`). *Amendment, before any file was written:* the first rule (rarest first, without the single-aspect preference) reached only 59 action and 59 direction questions and exited without writing; the single-aspect preference was added and the sample drawn once.
+
+**New arm: coverage control.** K2's captioner effect included a difference in input: Gemini watched the video window, Haiku saw 5 JPEGs of 224 px. C1 adds *frame captions*: Gemini captions exactly the 5 JPEGs that the 5-frame arm shows, with the same prompt as the self-captions (`caption.py --input frames`). With Haiku as the reader, the total caption benefit then splits exactly, as in the plan's corollary:
+
+| Term | Difference (Haiku reads) | What differs |
+|---|---|---|
+| Coverage | Gemini video captions − Gemini frame captions | what the captioner saw (video at full resolution vs. the 5 small frames) |
+| Captioner | Gemini frame captions − self-captions | who wrote the caption, from identical input |
+| Format | self-captions − 5 frames | the same model's own words vs. the pixels it saw |
+| Total | Gemini video captions − 5 frames | = coverage + captioner + format |
+
+**Arms and cost.**
+- **Captions:** Gemini 3.8 Flash on the video (772 calls) and on the frames (772 calls), about $4.4 together; cumulative cap `--max-usd 7.5` (spent so far $2.37). Haiku self-captions: 772 calls, the K2 prompt unchanged.
+- **Haiku reads:** question only, Gemini video captions, 1 frame, 5 frames, self-captions, Gemini frame captions: 1,800 calls.
+- **Sonnet reads:** primary arms 5 frames and Gemini video captions (600 calls); secondary arms question only and 1 frame (600 calls).
+- Prompts, isolation, effort (medium) and parsing as in K0–K2. A failed call counts as wrong.
+
+**Primary hypotheses** (Bonferroni over three: 98.33% CIs; pass if the CI excludes 0 in the predicted direction):
+
+| | Hypothesis | Statistic | Prediction | Development value |
+|---|---|---|---|---|
+| P1 | Captions lose continuous quantities, keep discrete content | Sonnet, mean (captions − 5 frames) on {direction, speed} minus the same on {action, order, attribute change} | −0.20 | −0.26 (K1, 100 questions) |
+| P2 | No format advantage: text is not easier than the pixels it came from | Haiku, self-captions − 5 frames | −0.08 | −0.10 (K2, 50) |
+| P3 | A stronger captioner adds usable information | Haiku, Gemini frame captions − self-captions | +0.06 | (new arm; K2's +0.08 included coverage) |
+
+**Secondary** (95% CIs, estimates rather than tests):
+- S1. Sonnet captions − 5 frames: −0.07. Retention, with Sonnet's own question-only arm: 0.85.
+- S2. Coverage, Haiku: Gemini video captions − frame captions: +0.02 (no directional hypothesis).
+- S3. Total, Haiku: Gemini video captions − 5 frames: 0.00 (K0: +0.01).
+- S4. P1's contrast with Haiku as the reader: −0.12 (K0: −0.18).
+- S5. Matched cost, captions (≈ 245 tokens) − 1 frame (≈ 180): Haiku +0.05 (K0: +0.06), Sonnet +0.02.
+- S6. Haiku on captions − Sonnet on 5 frames: −0.13 (K1c).
+
+**Power, stated in advance.** A paired difference on 300 questions with about 30% discordant pairs has SE ≈ 0.032, so the 98.33% CI is about ±0.08. P2 at −0.08 then has about 50% power, and P3 at +0.06 about 30%. P1 (120 vs. 180 questions) has SE ≈ 0.065 and about 75% power at −0.20. **A P2 or P3 that does not pass is not evidence of no effect**; we would report its estimate and CI, and the claim becomes "no evidence of a format advantage (upper bound X)". There are no more unused TempCompass videos, so n cannot grow.
+
+**What each outcome means for the paper.**
+- P1 passes: the headline finding. A question-blind caption keeps *what* happened, in what order and what changed, and loses *how fast* and *which way*. TempCompass's own static/temporal split does not predict this.
+- P2 at or below 0: the IsoBench contrast. The text advantage holds for lossless text and does not hold for question-blind video captions.
+- P3 positive with S2 near 0: the caption index transfers the captioner's knowledge, not its view of the video. P3 near 0 with S2 positive: Gemini helps because it saw more (full-resolution video), not because it knows more.
+- All three fail: a negative paper (captions are a lossy index whose loss is not predicted by aspect). We would decide then whether that is worth writing up.
+
+**Run order and stop rules.**
+1. Gemini video and frame captions (paid). The first 3 frame-caption outputs are read for sanity only (is it a caption of those frames?). Stop and investigate if more than 2% of windows come back invalid or blocked.
+2. Haiku self-captions and all six Haiku reader arms; Sonnet's two primary arms. `--max-5h 0.8`; the isolation and model checks of K0–K2 apply.
+3. Sonnet's secondary arms only if the 7-day quota is below 85% after step 2.
+4. No decision depends on interim accuracy. `reader.py confirm` (committed with this entry) is run once all arms in a step are complete, and its output is reported here in full.

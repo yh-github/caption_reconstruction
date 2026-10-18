@@ -1,0 +1,3733 @@
+[
+ {
+  "video_id": "1098153561_concat_0",
+  "dim": "speed",
+  "stem": "What is the speed that the forest above changing color?",
+  "options": {
+   "A": "faster than the forest below",
+   "B": "at the same speed as the forest below",
+   "C": "slower than the forest below"
+  },
+  "answer": "B",
+  "item": "tcc000|1098153561_concat_0|speed"
+ },
+ {
+  "video_id": "1100319395_concat_0",
+  "dim": "speed",
+  "stem": "Compared to the white circle below, how fast is the rotation of the white circle above?",
+  "options": {
+   "A": "It rotates at the same speed",
+   "B": "It's slower",
+   "C": "It's faster"
+  },
+  "answer": "A",
+  "item": "tcc001|1100319395_concat_0|speed"
+ },
+ {
+  "video_id": "15695290_concat_1",
+  "dim": "speed",
+  "stem": "In the comparison of the speed of drawing, who is considered as faster?",
+  "options": {
+   "A": "The person above",
+   "B": "They draw at an equal rate",
+   "C": "The person below"
+  },
+  "answer": "C",
+  "item": "tcc002|15695290_concat_1|speed"
+ },
+ {
+  "video_id": "1059718130_concat_2",
+  "dim": "speed",
+  "stem": "How does the speed of the sun above compare to the speed of the sun below?",
+  "options": {
+   "A": "The sun above is rising slower than the sun below",
+   "B": "The sun above and the sun below have the same speed",
+   "C": "The sun above is rising faster than the sun below"
+  },
+  "answer": "C",
+  "item": "tcc003|1059718130_concat_2|speed"
+ },
+ {
+  "video_id": "15695290_concat_2",
+  "dim": "speed",
+  "stem": "What is the speed of the person above when drawing a picture?",
+  "options": {
+   "A": "slower than the person below",
+   "B": "at the same speed as the person below",
+   "C": "faster than the person below"
+  },
+  "answer": "C",
+  "item": "tcc004|15695290_concat_2|speed"
+ },
+ {
+  "video_id": "1100058499_concat_2",
+  "dim": "speed",
+  "stem": "How does the man above jump rope, relative to the man below?",
+  "options": {
+   "A": "the same speed",
+   "B": "slower",
+   "C": "faster"
+  },
+  "answer": "C",
+  "item": "tcc005|1100058499_concat_2|speed"
+ },
+ {
+  "video_id": "1075338140_concat_0",
+  "dim": "speed",
+  "stem": "Compared to the ball below, how would you describe the speed of the ball above?",
+  "options": {
+   "A": "slower",
+   "B": "faster",
+   "C": "same"
+  },
+  "answer": "C",
+  "item": "tcc006|1075338140_concat_0|speed"
+ },
+ {
+  "video_id": "1072594556",
+  "dim": "speed",
+  "stem": "How would you describe the speed of the car in the center of the screen?",
+  "options": {
+   "A": "slower than other cars",
+   "B": "faster than other cars",
+   "C": "at the same speed as other cars"
+  },
+  "answer": "B",
+  "item": "tcc007|1072594556|speed"
+ },
+ {
+  "video_id": "1099360359",
+  "dim": "speed",
+  "stem": "What is the relative speed between the two trains?",
+  "options": {
+   "A": "There is no information about their speeds",
+   "B": "They both drive at the same speed",
+   "C": "The train closer to the screen drives faster",
+   "D": "The train further away from the screen drives faster"
+  },
+  "answer": "D",
+  "item": "tcc008|1099360359|speed"
+ },
+ {
+  "video_id": "1098153561_concat_2",
+  "dim": "speed",
+  "stem": "In relation to the speed of the forest below, how does the speed of color change in the forest above appear?",
+  "options": {
+   "A": "Faster",
+   "B": "Slower",
+   "C": "Equally fast"
+  },
+  "answer": "A",
+  "item": "tcc009|1098153561_concat_2|speed"
+ },
+ {
+  "video_id": "1047368344_concat_1",
+  "dim": "speed",
+  "stem": "How would you describe the speed of the girl above relative to the girl below?",
+  "options": {
+   "A": "slower",
+   "B": "faster",
+   "C": "the same speed"
+  },
+  "answer": "A",
+  "item": "tcc010|1047368344_concat_1|speed"
+ },
+ {
+  "video_id": "1092813279_concat_2",
+  "dim": "speed",
+  "stem": "What is the speed of the woman above's push ups compared to the woman below?",
+  "options": {
+   "A": "same speed",
+   "B": "faster",
+   "C": "slower"
+  },
+  "answer": "B",
+  "item": "tcc011|1092813279_concat_2|speed"
+ },
+ {
+  "video_id": "1090578917_concat_1",
+  "dim": "speed",
+  "stem": "In comparison to the man below, how does the speed of the man above jumping look?",
+  "options": {
+   "A": "Faster speed",
+   "B": "The same speed",
+   "C": "Slower speed"
+  },
+  "answer": "C",
+  "item": "tcc012|1090578917_concat_1|speed"
+ },
+ {
+  "video_id": "1059718130_concat_1",
+  "dim": "speed",
+  "stem": "How does the speed of the sun above compare to the speed of the sun below?",
+  "options": {
+   "A": "The sun above is rising faster than the sun below",
+   "B": "The sun above and the sun below have the same speed",
+   "C": "The sun above is rising slower than the sun below"
+  },
+  "answer": "C",
+  "item": "tcc013|1059718130_concat_1|speed"
+ },
+ {
+  "video_id": "315784",
+  "dim": "speed",
+  "stem": "In relation to the speedometer on the left, how does the speedometer in the center appear?",
+  "options": {
+   "A": "stationary",
+   "B": "moving slower",
+   "C": "moving faster"
+  },
+  "answer": "C",
+  "item": "tcc014|315784|speed"
+ },
+ {
+  "video_id": "1056433484_concat_2",
+  "dim": "speed",
+  "stem": "How does the speed of the earth above compare to the speed of the earth below?",
+  "options": {
+   "A": "It is slower.",
+   "B": "It is faster.",
+   "C": "It is the same."
+  },
+  "answer": "B",
+  "item": "tcc015|1056433484_concat_2|speed"
+ },
+ {
+  "video_id": "1092813279_concat_1",
+  "dim": "speed",
+  "stem": "Compared to the woman below, how would you describe the speed of the woman above's push ups?",
+  "options": {
+   "A": "faster",
+   "B": "same speed",
+   "C": "slower"
+  },
+  "answer": "C",
+  "item": "tcc016|1092813279_concat_1|speed"
+ },
+ {
+  "video_id": "1060403198_concat_0",
+  "dim": "speed",
+  "stem": "What is the speed of the tree above?",
+  "options": {
+   "A": "growing slower than the tree below",
+   "B": "growing faster than the tree below",
+   "C": "growing at the same speed as the tree below"
+  },
+  "answer": "C",
+  "item": "tcc017|1060403198_concat_0|speed"
+ },
+ {
+  "video_id": "1062609286_concat_1",
+  "dim": "speed",
+  "stem": "In relation to the charging speed below, how is the charging speed above?",
+  "options": {
+   "A": "the same",
+   "B": "slower",
+   "C": "faster"
+  },
+  "answer": "B",
+  "item": "tcc018|1062609286_concat_1|speed"
+ },
+ {
+  "video_id": "1056433484_concat_1",
+  "dim": "speed",
+  "stem": "What is the speed of the earth above?",
+  "options": {
+   "A": "faster than the earth below",
+   "B": "rotates at the same speed as the earth below",
+   "C": "slower than the earth below"
+  },
+  "answer": "C",
+  "item": "tcc019|1056433484_concat_1|speed"
+ },
+ {
+  "video_id": "1043054206",
+  "dim": "speed",
+  "stem": "In relation to other cars, how can you characterize the speed of the yellow car?",
+  "options": {
+   "A": "Traveling at a slower pace than other cars",
+   "B": "Traveling at a faster pace than other cars",
+   "C": "Currently not in motion",
+   "D": "Traveling at an equivalent speed to other cars"
+  },
+  "answer": "B",
+  "item": "tcc020|1043054206|speed"
+ },
+ {
+  "video_id": "1059072773_concat_2",
+  "dim": "speed",
+  "stem": "In comparison, how would you describe the speed of melting of the ice creams?",
+  "options": {
+   "A": "The ice cream above is melting slower than the ice cream below.",
+   "B": "The ice cream above is melting at the same speed as the ice cream below.",
+   "C": "The ice cream above is melting faster than the ice cream below."
+  },
+  "answer": "C",
+  "item": "tcc021|1059072773_concat_2|speed"
+ },
+ {
+  "video_id": "1077575504_concat_0",
+  "dim": "speed",
+  "stem": "In comparison to the pile of salt below, how fast is the pile of salt above growing?",
+  "options": {
+   "A": "faster",
+   "B": "slower",
+   "C": "at an equal pace"
+  },
+  "answer": "C",
+  "item": "tcc022|1077575504_concat_0|speed"
+ },
+ {
+  "video_id": "1100319395_concat_1",
+  "dim": "speed",
+  "stem": "What is the speed of the white circle above?",
+  "options": {
+   "A": "faster than the white circle below",
+   "B": "rotating at the same speed as the white circle below",
+   "C": "slower than the white circle below"
+  },
+  "answer": "A",
+  "item": "tcc023|1100319395_concat_1|speed"
+ },
+ {
+  "video_id": "1100058499_concat_0",
+  "dim": "speed",
+  "stem": "What is the speed of the man above compared to the man below?",
+  "options": {
+   "A": "jumping rope faster",
+   "B": "jumping rope at the same speed",
+   "C": "jumping rope slower"
+  },
+  "answer": "B",
+  "item": "tcc024|1100058499_concat_0|speed"
+ },
+ {
+  "video_id": "1056433484_concat_0",
+  "dim": "speed",
+  "stem": "Which statement accurately describes the speed of the earth above?",
+  "options": {
+   "A": "It rotates faster than the earth below.",
+   "B": "It rotates slower than the earth below.",
+   "C": "It rotates at the same speed as the earth below."
+  },
+  "answer": "C",
+  "item": "tcc025|1056433484_concat_0|speed"
+ },
+ {
+  "video_id": "1075338140_concat_1",
+  "dim": "speed",
+  "stem": "Compared to the ball below, how would you describe the speed of the ball above?",
+  "options": {
+   "A": "slower",
+   "B": "same",
+   "C": "faster"
+  },
+  "answer": "A",
+  "item": "tcc026|1075338140_concat_1|speed"
+ },
+ {
+  "video_id": "1075338140_concat_2",
+  "dim": "speed",
+  "stem": "Compared to the ball below, how would you describe the speed of the ball above?",
+  "options": {
+   "A": "same",
+   "B": "slower",
+   "C": "faster"
+  },
+  "answer": "C",
+  "item": "tcc027|1075338140_concat_2|speed"
+ },
+ {
+  "video_id": "1096238125_concat_2",
+  "dim": "speed",
+  "stem": "How are the two people above lifting the kettlebell moving in relation to the two people below?",
+  "options": {
+   "A": "at the same speed",
+   "B": "slower",
+   "C": "faster"
+  },
+  "answer": "B",
+  "item": "tcc028|1096238125_concat_2|speed"
+ },
+ {
+  "video_id": "1059462749_concat_2",
+  "dim": "speed",
+  "stem": "What is the speed of the person above compared to the person below?",
+  "options": {
+   "A": "climbing faster",
+   "B": "climbing at the same speed",
+   "C": "climbing slower"
+  },
+  "answer": "A",
+  "item": "tcc029|1059462749_concat_2|speed"
+ },
+ {
+  "video_id": "1047368344_concat_2",
+  "dim": "speed",
+  "stem": "How would you describe the speed of the girl above relative to the girl below?",
+  "options": {
+   "A": "slower",
+   "B": "the same speed",
+   "C": "faster"
+  },
+  "answer": "C",
+  "item": "tcc030|1047368344_concat_2|speed"
+ },
+ {
+  "video_id": "1077575504_concat_1",
+  "dim": "speed",
+  "stem": "What is the speed of the pile of salt above?",
+  "options": {
+   "A": "growing at a faster speed than the pile of salt below",
+   "B": "growing at a slower speed than the pile of salt below",
+   "C": "growing at the same speed as the pile of salt below"
+  },
+  "answer": "B",
+  "item": "tcc031|1077575504_concat_1|speed"
+ },
+ {
+  "video_id": "1062609286_concat_2",
+  "dim": "speed",
+  "stem": "What is happening to the battery charge above?",
+  "options": {
+   "A": "increasing at a faster speed than the battery charge below",
+   "B": "increasing at a slower speed than the battery charge below",
+   "C": "increasing at the same speed as the battery charge below"
+  },
+  "answer": "A",
+  "item": "tcc032|1062609286_concat_2|speed"
+ },
+ {
+  "video_id": "1090578917_concat_0",
+  "dim": "speed",
+  "stem": "What speed is the man above jumping at?",
+  "options": {
+   "A": "Jumping at the same speed as the man below",
+   "B": "Slower than the man below",
+   "C": "Faster than the man below"
+  },
+  "answer": "A",
+  "item": "tcc033|1090578917_concat_0|speed"
+ },
+ {
+  "video_id": "1084518106_concat_0",
+  "dim": "speed",
+  "stem": "What is the speed of the truck above?",
+  "options": {
+   "A": "driving at the same speed as the truck below",
+   "B": "driving faster than the truck below",
+   "C": "driving slower than the truck below"
+  },
+  "answer": "A",
+  "item": "tcc034|1084518106_concat_0|speed"
+ },
+ {
+  "video_id": "1092813279_concat_0",
+  "dim": "speed",
+  "stem": "Which woman is doing push ups slower?",
+  "options": {
+   "A": "the woman below",
+   "B": "two women doing push ups at the same speed",
+   "C": "the woman above"
+  },
+  "answer": "B",
+  "item": "tcc035|1092813279_concat_0|speed"
+ },
+ {
+  "video_id": "1084518106_concat_2",
+  "dim": "speed",
+  "stem": "How does the speed of the truck above compare to the truck below?",
+  "options": {
+   "A": "the same speed",
+   "B": "faster",
+   "C": "slower"
+  },
+  "answer": "C",
+  "item": "tcc036|1084518106_concat_2|speed"
+ },
+ {
+  "video_id": "1086820415_concat_2",
+  "dim": "speed",
+  "stem": "How is the speed of the wave above compared to the wave below?",
+  "options": {
+   "A": "Moving at the same speed as the wave below",
+   "B": "Moving slower than the wave below",
+   "C": "Moving faster than the wave below"
+  },
+  "answer": "B",
+  "item": "tcc037|1086820415_concat_2|speed"
+ },
+ {
+  "video_id": "1086820415_concat_0",
+  "dim": "speed",
+  "stem": "Is the speed of the wave above greater, lesser, or equal to the speed of the wave below?",
+  "options": {
+   "A": "Lesser",
+   "B": "Equal",
+   "C": "Greater"
+  },
+  "answer": "B",
+  "item": "tcc038|1086820415_concat_0|speed"
+ },
+ {
+  "video_id": "1059462749_concat_1",
+  "dim": "speed",
+  "stem": "How is the person above climbing compared to the person below?",
+  "options": {
+   "A": "Climbing slower than the person below",
+   "B": "Climbing faster than the person below",
+   "C": "Climbing at the same speed as the person below"
+  },
+  "answer": "A",
+  "item": "tcc039|1059462749_concat_1|speed"
+ },
+ {
+  "video_id": "1067268406",
+  "dim": "speed",
+  "stem": "What is the speed of the car?",
+  "options": {
+   "A": "at the same speed as the camera",
+   "B": "faster than the camera",
+   "C": "slower than the camera"
+  },
+  "answer": "B",
+  "item": "tcc040|1067268406|speed"
+ },
+ {
+  "video_id": "1047368344_concat_0",
+  "dim": "speed",
+  "stem": "How would you describe the speed of the girl above relative to the girl below?",
+  "options": {
+   "A": "faster",
+   "B": "the same speed",
+   "C": "slower"
+  },
+  "answer": "B",
+  "item": "tcc041|1047368344_concat_0|speed"
+ },
+ {
+  "video_id": "1061017846",
+  "dim": "speed",
+  "stem": "Is the boat on the top of the screen moving at a different speed compared to the boat on the bottom of the screen?",
+  "options": {
+   "A": "no, it's moving at the same speed",
+   "B": "yes, it's moving faster",
+   "C": "yes, it's moving slower"
+  },
+  "answer": "A",
+  "item": "tcc042|1061017846|speed"
+ },
+ {
+  "video_id": "1100319395_concat_2",
+  "dim": "speed",
+  "stem": "Compared to the white circle below, how fast is the rotation of the white circle above?",
+  "options": {
+   "A": "It's faster",
+   "B": "It rotates at the same speed",
+   "C": "It's slower"
+  },
+  "answer": "C",
+  "item": "tcc043|1100319395_concat_2|speed"
+ },
+ {
+  "video_id": "1059462749_concat_0",
+  "dim": "speed",
+  "stem": "What can be said about the speed of the person above and the person below?",
+  "options": {
+   "A": "The person above is moving faster than the person below",
+   "B": "The person above and below are moving at the same speed",
+   "C": "The person above is moving slower than the person below"
+  },
+  "answer": "B",
+  "item": "tcc044|1059462749_concat_0|speed"
+ },
+ {
+  "video_id": "1086820415_concat_1",
+  "dim": "speed",
+  "stem": "Is the speed of the wave above greater, lesser, or equal to the speed of the wave below?",
+  "options": {
+   "A": "Equal",
+   "B": "Lesser",
+   "C": "Greater"
+  },
+  "answer": "C",
+  "item": "tcc045|1086820415_concat_1|speed"
+ },
+ {
+  "video_id": "1077575504_concat_2",
+  "dim": "speed",
+  "stem": "In comparison to the pile of salt below, how fast is the pile of salt above growing?",
+  "options": {
+   "A": "faster",
+   "B": "at an equal pace",
+   "C": "slower"
+  },
+  "answer": "A",
+  "item": "tcc046|1077575504_concat_2|speed"
+ },
+ {
+  "video_id": "1073831006",
+  "dim": "speed",
+  "stem": "What is the speed of the zebras in the video?",
+  "options": {
+   "A": "slow motion",
+   "B": "stationary",
+   "C": "fast motion",
+   "D": "normal speed"
+  },
+  "answer": "A",
+  "item": "tcc047|1073831006|speed"
+ },
+ {
+  "video_id": "1083113449",
+  "dim": "speed",
+  "stem": "In what way is the speed altered in the video?",
+  "options": {
+   "A": "normal speed",
+   "B": "time-lapse",
+   "C": "slow motion"
+  },
+  "answer": "B",
+  "item": "tcc048|1083113449|speed"
+ },
+ {
+  "video_id": "1088279109",
+  "dim": "speed",
+  "stem": "What is the speed of the video?",
+  "options": {
+   "A": "slow motion",
+   "B": "time-lapse",
+   "C": "normal speed"
+  },
+  "answer": "C",
+  "item": "tcc049|1088279109|speed"
+ },
+ {
+  "video_id": "1089201973",
+  "dim": "speed",
+  "stem": "Which word best describes the  velocity of the video?",
+  "options": {
+   "A": "regular speed",
+   "B": "slow motion",
+   "C": "swift speed"
+  },
+  "answer": "B",
+  "item": "tcc050|1089201973|speed"
+ },
+ {
+  "video_id": "1042819039",
+  "dim": "speed",
+  "stem": "In what manner is the video being shown?",
+  "options": {
+   "A": "in real-time",
+   "B": "in time-lapse",
+   "C": "in slow motion"
+  },
+  "answer": "B",
+  "item": "tcc051|1042819039|speed"
+ },
+ {
+  "video_id": "1086286649",
+  "dim": "speed",
+  "stem": "In terms of speed, how would you describe the movement of the armored vehicles?",
+  "options": {
+   "A": "Slowly",
+   "B": "Stationary",
+   "C": "Quickly"
+  },
+  "answer": "A",
+  "item": "tcc052|1086286649|speed"
+ },
+ {
+  "video_id": "1059718130",
+  "dim": "speed",
+  "stem": "What is the pace at which the video is playing?",
+  "options": {
+   "A": "fast-forward",
+   "B": "slow motion",
+   "C": "real-time"
+  },
+  "answer": "A",
+  "item": "tcc053|1059718130|speed"
+ },
+ {
+  "video_id": "1081092839",
+  "dim": "speed",
+  "stem": "What is the rate of the video?",
+  "options": {
+   "A": "regular speed",
+   "B": "slow motion",
+   "C": "time-lapse"
+  },
+  "answer": "C",
+  "item": "tcc054|1081092839|speed"
+ },
+ {
+  "video_id": "1034736653",
+  "dim": "speed",
+  "stem": "What is the speed of the woman closest to the camera?",
+  "options": {
+   "A": "Normal speed",
+   "B": "Slowest speed",
+   "C": "The fastest speed"
+  },
+  "answer": "C",
+  "item": "tcc055|1034736653|speed"
+ },
+ {
+  "video_id": "1040541401",
+  "dim": "speed",
+  "stem": "How fast is the video playing?",
+  "options": {
+   "A": "normal speed",
+   "B": "very slow",
+   "C": "extremely fast"
+  },
+  "answer": "A",
+  "item": "tcc056|1040541401|speed"
+ },
+ {
+  "video_id": "1098982673",
+  "dim": "speed",
+  "stem": "What is the tempo of the video?",
+  "options": {
+   "A": "erratic tempo",
+   "B": "moderate tempo",
+   "C": "brisk tempo",
+   "D": "sluggish tempo"
+  },
+  "answer": "B",
+  "item": "tcc057|1098982673|speed"
+ },
+ {
+  "video_id": "23391142",
+  "dim": "speed",
+  "stem": "Which speed mode is applied to the video?",
+  "options": {
+   "A": "regular speed",
+   "B": "accelerated",
+   "C": "slow motion"
+  },
+  "answer": "C",
+  "item": "tcc058|23391142|speed"
+ },
+ {
+  "video_id": "1103623921",
+  "dim": "speed",
+  "stem": "How would you describe the speed at which the video is playing?",
+  "options": {
+   "A": "Slowly",
+   "B": "Normally",
+   "C": "Rapidly"
+  },
+  "answer": "B",
+  "item": "tcc059|1103623921|speed"
+ },
+ {
+  "video_id": "1072000366",
+  "dim": "action",
+  "stem": "Which action are the girls engaged in?",
+  "options": {
+   "A": "waving at each other",
+   "B": "shaking hands",
+   "C": "giving high five to each other",
+   "D": "elbowing each other"
+  },
+  "answer": "D",
+  "item": "tcc060|1072000366|action"
+ },
+ {
+  "video_id": "1069338034",
+  "dim": "action",
+  "stem": "What activity are the elephants engaged in?",
+  "options": {
+   "A": "swimming and cleaning themselves",
+   "B": "eating and drinking",
+   "C": "swimming and resting"
+  },
+  "answer": "B",
+  "item": "tcc061|1069338034|action"
+ },
+ {
+  "video_id": "1106087175",
+  "dim": "action",
+  "stem": "What is the man doing in the video?",
+  "options": {
+   "A": "wearing a white sneaker",
+   "B": "drawing on a white sneaker",
+   "C": "taking off a white sneaker",
+   "D": "tying shoelaces on a white sneaker"
+  },
+  "answer": "B",
+  "item": "tcc062|1106087175|action"
+ },
+ {
+  "video_id": "1050000214",
+  "dim": "action",
+  "stem": "Which action is the little child engaged in?",
+  "options": {
+   "A": "Reading",
+   "B": "Writing",
+   "C": "Singing",
+   "D": "Water jumping"
+  },
+  "answer": "D",
+  "item": "tcc063|1050000214|action"
+ },
+ {
+  "video_id": "1077388994",
+  "dim": "action",
+  "stem": "What activity is the woman engaged in?",
+  "options": {
+   "A": "cooking dinner",
+   "B": "gardening",
+   "C": "patting the baby"
+  },
+  "answer": "C",
+  "item": "tcc064|1077388994|action"
+ },
+ {
+  "video_id": "1073873933",
+  "dim": "action",
+  "stem": "What is happening in the video?",
+  "options": {
+   "A": "eating",
+   "B": "fighting",
+   "C": "sleeping",
+   "D": "dancing"
+  },
+  "answer": "B",
+  "item": "tcc065|1073873933|action"
+ },
+ {
+  "video_id": "1091526823",
+  "dim": "action",
+  "stem": "What action is the hand performing?",
+  "options": {
+   "A": "opening a book",
+   "B": "writing on a book",
+   "C": "closing a book",
+   "D": "turning over pages of a book"
+  },
+  "answer": "D",
+  "item": "tcc066|1091526823|action"
+ },
+ {
+  "video_id": "1081513610",
+  "dim": "action",
+  "stem": "Which activity is the man engaged in?",
+  "options": {
+   "A": "singing",
+   "B": "playing basketball",
+   "C": "discussing",
+   "D": "painting"
+  },
+  "answer": "C",
+  "item": "tcc067|1081513610|action"
+ },
+ {
+  "video_id": "1055022287",
+  "dim": "action",
+  "stem": "What is the man doing in the video?",
+  "options": {
+   "A": "cooking",
+   "B": "singing",
+   "C": "cleaning a swimming pool"
+  },
+  "answer": "C",
+  "item": "tcc068|1055022287|action"
+ },
+ {
+  "video_id": "1062736174",
+  "dim": "action",
+  "stem": "What is the chef's activity related to the steak?",
+  "options": {
+   "A": "marinating with spices",
+   "B": "sprinkling salt on it",
+   "C": "cutting into slices",
+   "D": "serving with salad"
+  },
+  "answer": "B",
+  "item": "tcc069|1062736174|action"
+ },
+ {
+  "video_id": "5395244",
+  "dim": "action",
+  "stem": "How is the woman interacting with the creek?",
+  "options": {
+   "A": "swimming across it",
+   "B": "canoeing across it",
+   "C": "walking across it",
+   "D": "jumping over it"
+  },
+  "answer": "C",
+  "item": "tcc070|5395244|action"
+ },
+ {
+  "video_id": "1012085909",
+  "dim": "action",
+  "stem": "What is the main activity of the people?",
+  "options": {
+   "A": "rollerblading",
+   "B": "playing basketball",
+   "C": "pushing bikes"
+  },
+  "answer": "C",
+  "item": "tcc071|1012085909|action"
+ },
+ {
+  "video_id": "1083624811",
+  "dim": "action",
+  "stem": "What activity is the woman engaged in?",
+  "options": {
+   "A": "performing alternating leg lift plank",
+   "B": "performing push-ups",
+   "C": "performing a traditional plank hold",
+   "D": "performing side plank variations"
+  },
+  "answer": "A",
+  "item": "tcc072|1083624811|action"
+ },
+ {
+  "video_id": "1079406734",
+  "dim": "action",
+  "stem": "What is the man doing to the car in the video?",
+  "options": {
+   "A": "riding bikes",
+   "B": "taking a shower",
+   "C": "washing the car",
+   "D": "driving the car"
+  },
+  "answer": "C",
+  "item": "tcc073|1079406734|action"
+ },
+ {
+  "video_id": "1089810969",
+  "dim": "action",
+  "stem": "How does the little girl interact with the woman?",
+  "options": {
+   "A": "she runs towards her and hugs her",
+   "B": "she walks towards her and hug her",
+   "C": "she runs towards her and jumps on her back",
+   "D": "she runs towards her and talks to her"
+  },
+  "answer": "A",
+  "item": "tcc074|1089810969|action"
+ },
+ {
+  "video_id": "1104673225",
+  "dim": "action",
+  "stem": "Which action is the woman involved in?",
+  "options": {
+   "A": "drinking vegetable juice",
+   "B": "making salad",
+   "C": "wrapping up salad",
+   "D": "eating salad"
+  },
+  "answer": "D",
+  "item": "tcc075|1104673225|action"
+ },
+ {
+  "video_id": "3402234027",
+  "dim": "action",
+  "stem": "Which activity is the cat engaged in?",
+  "options": {
+   "A": "swimming",
+   "B": "climbing a tree",
+   "C": "eating food"
+  },
+  "answer": "C",
+  "item": "tcc076|3402234027|action"
+ },
+ {
+  "video_id": "15439453",
+  "dim": "action",
+  "stem": "What activities are being performed simultaneously in the video?",
+  "options": {
+   "A": "Tango dancing and playing piano",
+   "B": "Ballet dancing and playing saxophone",
+   "C": "Tango dancing and playing violin",
+   "D": "Tango dancing and playing saxophone"
+  },
+  "answer": "D",
+  "item": "tcc077|15439453|action"
+ },
+ {
+  "video_id": "1064310466",
+  "dim": "action",
+  "stem": "What action is the man performing?",
+  "options": {
+   "A": "planting cocoa seeds",
+   "B": "watering cocoa seeds",
+   "C": "baking cocoa seeds",
+   "D": "peeling cocoa seeds"
+  },
+  "answer": "D",
+  "item": "tcc078|1064310466|action"
+ },
+ {
+  "video_id": "1049434159",
+  "dim": "action",
+  "stem": "What are the parents and daughter doing together?",
+  "options": {
+   "A": "cooking dinner",
+   "B": "playing video games",
+   "C": "reading a book"
+  },
+  "answer": "B",
+  "item": "tcc079|1049434159|action"
+ },
+ {
+  "video_id": "3399348431",
+  "dim": "action",
+  "stem": "What is the person doing with the sauce?",
+  "options": {
+   "A": "mixing it with the vegetables",
+   "B": "squeezing it into a bowl of vegetables",
+   "C": "dipping vegetables in it"
+  },
+  "answer": "B",
+  "item": "tcc080|3399348431|action"
+ },
+ {
+  "video_id": "6165731",
+  "dim": "action",
+  "stem": "How does the scientist feel about the experiment?",
+  "options": {
+   "A": "excited and motivated",
+   "B": "bored and disinterested",
+   "C": "confused and frustrated"
+  },
+  "answer": "C",
+  "item": "tcc081|6165731|action"
+ },
+ {
+  "video_id": "1069593640",
+  "dim": "action",
+  "stem": "Which of the following actions is shown in the video?",
+  "options": {
+   "A": "putting a towel on her neck",
+   "B": "drying hair with a towel",
+   "C": "washing face with a towel"
+  },
+  "answer": "A",
+  "item": "tcc082|1069593640|action"
+ },
+ {
+  "video_id": "1077275024",
+  "dim": "action",
+  "stem": "What activity is the girl engaged in?",
+  "options": {
+   "A": "Sitting and watching a man play the ukulele",
+   "B": "Playing the ukulele alongside the man",
+   "C": "Clapping hands for a man playing ukulele"
+  },
+  "answer": "C",
+  "item": "tcc083|1077275024|action"
+ },
+ {
+  "video_id": "1071214909",
+  "dim": "action",
+  "stem": "What is the video about?",
+  "options": {
+   "A": "drawing a cuttting line on a wood surface",
+   "B": "erasing a line on a wood surface",
+   "C": "carving a pattern on a wood surface",
+   "D": "measuring length on a wood surface"
+  },
+  "answer": "A",
+  "item": "tcc084|1071214909|action"
+ },
+ {
+  "video_id": "3401191309",
+  "dim": "action",
+  "stem": "What action is the athletic man performing?",
+  "options": {
+   "A": "taking off prosthetic running blade",
+   "B": "repairing a prosthetic running blade",
+   "C": "putting on prosthetic running blade"
+  },
+  "answer": "A",
+  "item": "tcc085|3401191309|action"
+ },
+ {
+  "video_id": "1078368947",
+  "dim": "action",
+  "stem": "What is the woman doing in the bathroom?",
+  "options": {
+   "A": "reading a book while taking a shower",
+   "B": "writing letter while taking a bath",
+   "C": "reading a book while taking a bath"
+  },
+  "answer": "C",
+  "item": "tcc086|1078368947|action"
+ },
+ {
+  "video_id": "1033101626",
+  "dim": "action",
+  "stem": "What is the man doing?",
+  "options": {
+   "A": "cooking",
+   "B": "singing",
+   "C": "playing instrument"
+  },
+  "answer": "C",
+  "item": "tcc087|1033101626|action"
+ },
+ {
+  "video_id": "1094259081",
+  "dim": "action",
+  "stem": "What action is the woman engaged in?",
+  "options": {
+   "A": "watching VR movie",
+   "B": "listening to music using VR",
+   "C": "playing VR shooting game",
+   "D": "working out using VR"
+  },
+  "answer": "C",
+  "item": "tcc088|1094259081|action"
+ },
+ {
+  "video_id": "1022260408",
+  "dim": "action",
+  "stem": "What is the squirrel doing in the video?",
+  "options": {
+   "A": "sleeping",
+   "B": "running",
+   "C": "eating food"
+  },
+  "answer": "C",
+  "item": "tcc089|1022260408|action"
+ },
+ {
+  "video_id": "1076180768",
+  "dim": "action",
+  "stem": "What is the knight doing in the video?",
+  "options": {
+   "A": "riding a horse",
+   "B": "wielding a spear",
+   "C": "drawing sword from sheath",
+   "D": "shooting an arrow"
+  },
+  "answer": "C",
+  "item": "tcc090|1076180768|action"
+ },
+ {
+  "video_id": "1107947873",
+  "dim": "action",
+  "stem": "What is the doctor doing in the scenario?",
+  "options": {
+   "A": "writing a prescription",
+   "B": "giving medicine to a patient",
+   "C": "performing a surgery"
+  },
+  "answer": "B",
+  "item": "tcc091|1107947873|action"
+ },
+ {
+  "video_id": "1056491306",
+  "dim": "action",
+  "stem": "What are the passengers doing on the subway?",
+  "options": {
+   "A": "sleeping on the bed",
+   "B": "standing in a room",
+   "C": "taking a seat on subway",
+   "D": "dancing on the stage"
+  },
+  "answer": "C",
+  "item": "tcc092|1056491306|action"
+ },
+ {
+  "video_id": "1107180099",
+  "dim": "action",
+  "stem": "Which activity are the women engaged in?",
+  "options": {
+   "A": "swimming",
+   "B": "playing basketball",
+   "C": "dancing",
+   "D": "gardening"
+  },
+  "answer": "C",
+  "item": "tcc093|1107180099|action"
+ },
+ {
+  "video_id": "1098970151",
+  "dim": "action",
+  "stem": "What is the cat doing in the video?",
+  "options": {
+   "A": "licking its paw",
+   "B": "washing its face",
+   "C": "waving its paw",
+   "D": "licking its belly"
+  },
+  "answer": "A",
+  "item": "tcc094|1098970151|action"
+ },
+ {
+  "video_id": "1094782389",
+  "dim": "action",
+  "stem": "Which action did the dog execute?",
+  "options": {
+   "A": "Licking the woman",
+   "B": "Fetching a ball thrown by the woman",
+   "C": "Digging a hole",
+   "D": "Giving a high five to the woman"
+  },
+  "answer": "D",
+  "item": "tcc095|1094782389|action"
+ },
+ {
+  "video_id": "9537677",
+  "dim": "action",
+  "stem": "What activity is the woman engaged in?",
+  "options": {
+   "A": "reading a book",
+   "B": "watching TV",
+   "C": "playing tablet",
+   "D": "cooking"
+  },
+  "answer": "C",
+  "item": "tcc096|9537677|action"
+ },
+ {
+  "video_id": "1081194848",
+  "dim": "action",
+  "stem": "What is the researcher doing in the video?",
+  "options": {
+   "A": "teaching children how to cook a frog",
+   "B": "teaching children how to feed a frog",
+   "C": "teaching children how to dissect a frog",
+   "D": "teaching children how to catch a frog"
+  },
+  "answer": "C",
+  "item": "tcc097|1081194848|action"
+ },
+ {
+  "video_id": "1088428381",
+  "dim": "action",
+  "stem": "In the video, what action can be observed from the woman?",
+  "options": {
+   "A": "storing items in a gift box",
+   "B": "delivering a gift box",
+   "C": "wrapping a gift box",
+   "D": "opening a gift box"
+  },
+  "answer": "D",
+  "item": "tcc098|1088428381|action"
+ },
+ {
+  "video_id": "1037531786",
+  "dim": "action",
+  "stem": "What sport are the two men participating in?",
+  "options": {
+   "A": "basketball",
+   "B": "football",
+   "C": "boxing",
+   "D": "tennis"
+  },
+  "answer": "C",
+  "item": "tcc099|1037531786|action"
+ },
+ {
+  "video_id": "1076880707",
+  "dim": "action",
+  "stem": "What activity is the bear engaged in?",
+  "options": {
+   "A": "climbing a tree",
+   "B": "taking a nap under the tree",
+   "C": "scratching against a tree"
+  },
+  "answer": "C",
+  "item": "tcc100|1076880707|action"
+ },
+ {
+  "video_id": "1037628617",
+  "dim": "action",
+  "stem": "What is the person doing?",
+  "options": {
+   "A": "Pressing a keyboard key and rotating a jog dial",
+   "B": "clicking button and rolling wheel on a mouse",
+   "C": "Tapping a touchpad and scrolling with two fingers"
+  },
+  "answer": "B",
+  "item": "tcc101|1037628617|action"
+ },
+ {
+  "video_id": "1106899445",
+  "dim": "action",
+  "stem": "What is the main action of the person in the video?",
+  "options": {
+   "A": "removing toothpaste from the toothbrush",
+   "B": "brushing teeth",
+   "C": "squeezing out toothpaste on a toothbrush"
+  },
+  "answer": "C",
+  "item": "tcc102|1106899445|action"
+ },
+ {
+  "video_id": "1066238617",
+  "dim": "action",
+  "stem": "What activity is the woman engaged in?",
+  "options": {
+   "A": "singing",
+   "B": "practising her punches",
+   "C": "swimming"
+  },
+  "answer": "B",
+  "item": "tcc103|1066238617|action"
+ },
+ {
+  "video_id": "1025137214",
+  "dim": "action",
+  "stem": "What action is the man engaged in?",
+  "options": {
+   "A": "reading a book",
+   "B": "smoking cigarette",
+   "C": "writing a letter"
+  },
+  "answer": "B",
+  "item": "tcc104|1025137214|action"
+ },
+ {
+  "video_id": "22100041",
+  "dim": "action",
+  "stem": "When captured on video, what action is the woman engaged in?",
+  "options": {
+   "A": "waving goodbye",
+   "B": "doing an invitation gesture",
+   "C": "pointing towards something",
+   "D": "clapping her hands"
+  },
+  "answer": "B",
+  "item": "tcc105|22100041|action"
+ },
+ {
+  "video_id": "1054717541",
+  "dim": "action",
+  "stem": "What action is demonstrated by the person?",
+  "options": {
+   "A": "grilling dough",
+   "B": "kneading dough",
+   "C": "cutting dough"
+  },
+  "answer": "B",
+  "item": "tcc106|1054717541|action"
+ },
+ {
+  "video_id": "3406661033",
+  "dim": "action",
+  "stem": "Which action is the man performing?",
+  "options": {
+   "A": "running",
+   "B": "propelling himself forward in wheelchair",
+   "C": "jumping"
+  },
+  "answer": "B",
+  "item": "tcc107|3406661033|action"
+ },
+ {
+  "video_id": "1094590221",
+  "dim": "action",
+  "stem": "Which action is being performed by the man?",
+  "options": {
+   "A": "dunking basketball",
+   "B": "dribbling basketball",
+   "C": "painting",
+   "D": "shooting basketball"
+  },
+  "answer": "D",
+  "item": "tcc108|1094590221|action"
+ },
+ {
+  "video_id": "1034419625",
+  "dim": "action",
+  "stem": "Which of the following actions describes the man?",
+  "options": {
+   "A": "dribbling a basketball",
+   "B": "passing a basketball",
+   "C": "dunking a basketball"
+  },
+  "answer": "C",
+  "item": "tcc109|1034419625|action"
+ },
+ {
+  "video_id": "1106280325",
+  "dim": "action",
+  "stem": "What can be seen in the video?",
+  "options": {
+   "A": "woman reading book on the grass",
+   "B": "woman sleeping on the grass",
+   "C": "woman hiking in the wild",
+   "D": "woman drinking water"
+  },
+  "answer": "A",
+  "item": "tcc110|1106280325|action"
+ },
+ {
+  "video_id": "1096238125",
+  "dim": "action",
+  "stem": "Which activity are the man and woman engaged in?",
+  "options": {
+   "A": "playing tennis",
+   "B": "doing bench press",
+   "C": "lifting kettlebell",
+   "D": "doing push-ups"
+  },
+  "answer": "C",
+  "item": "tcc111|1096238125|action"
+ },
+ {
+  "video_id": "3405120819",
+  "dim": "action",
+  "stem": "Which activity is the chef engaging in?",
+  "options": {
+   "A": "shaping dough",
+   "B": "baking dough",
+   "C": "cutting dough"
+  },
+  "answer": "A",
+  "item": "tcc112|3405120819|action"
+ },
+ {
+  "video_id": "1098710341",
+  "dim": "action",
+  "stem": "What action is being performed by the person?",
+  "options": {
+   "A": "washing hands with water",
+   "B": "spilling water on the floor",
+   "C": "drinking water from a glass",
+   "D": "pouring water into a glass"
+  },
+  "answer": "D",
+  "item": "tcc113|1098710341|action"
+ },
+ {
+  "video_id": "1096612823",
+  "dim": "action",
+  "stem": "What is the car doing in the scene?",
+  "options": {
+   "A": "flying in the sky",
+   "B": "swimming in the ocean",
+   "C": "parked on the sidewalk",
+   "D": "driving on the road"
+  },
+  "answer": "D",
+  "item": "tcc114|1096612823|action"
+ },
+ {
+  "video_id": "1034049020",
+  "dim": "action",
+  "stem": "Which of the following actions is the woman performing?",
+  "options": {
+   "A": "standing still and painting a wall",
+   "B": "standing and cleaning a wall",
+   "C": "painting a wall while walking"
+  },
+  "answer": "C",
+  "item": "tcc115|1034049020|action"
+ },
+ {
+  "video_id": "1085910917",
+  "dim": "action",
+  "stem": "What behavior is exhibited by the woman?",
+  "options": {
+   "A": "drinking",
+   "B": "eating",
+   "C": "talking"
+  },
+  "answer": "A",
+  "item": "tcc116|1085910917|action"
+ },
+ {
+  "video_id": "1058907236",
+  "dim": "action",
+  "stem": "What action is the squirrel performing?",
+  "options": {
+   "A": "Running around",
+   "B": "Taking a rest",
+   "C": "Foraging for mushroom",
+   "D": "Foraging for nuts"
+  },
+  "answer": "D",
+  "item": "tcc117|1058907236|action"
+ },
+ {
+  "video_id": "1103088481",
+  "dim": "action",
+  "stem": "What is the person doing in the market?",
+  "options": {
+   "A": "selling vegetables",
+   "B": "packaging vegetables",
+   "C": "cooking vegetables",
+   "D": "buying vegetables"
+  },
+  "answer": "D",
+  "item": "tcc118|1103088481|action"
+ },
+ {
+  "video_id": "1111657885",
+  "dim": "action",
+  "stem": "What sport are the people engaged in?",
+  "options": {
+   "A": "tennis",
+   "B": "soccer",
+   "C": "ice skating"
+  },
+  "answer": "C",
+  "item": "tcc119|1111657885|action"
+ },
+ {
+  "video_id": "1089201973_1086820415_2",
+  "dim": "order",
+  "stem": "What event is shown first in the video?",
+  "options": {
+   "A": "A big wave is shown",
+   "B": "A person is kicking football",
+   "C": "Both events happen simultaneously"
+  },
+  "answer": "A",
+  "item": "tcc120|1089201973_1086820415_2|order"
+ },
+ {
+  "video_id": "1053758117_1055413730_0",
+  "dim": "order",
+  "stem": "What is the order of events in the video?",
+  "options": {
+   "A": "The digital brain is spinning and then the earth is spinning.",
+   "B": "Both events occur at the same time",
+   "C": "The earth is spinning and then the digital brain is spinning."
+  },
+  "answer": "B",
+  "item": "tcc121|1053758117_1055413730_0|order"
+ },
+ {
+  "video_id": "1058907236_1021488277_2",
+  "dim": "order",
+  "stem": "What is the order of events in the video?",
+  "options": {
+   "A": "Both events are happening concurrently",
+   "B": "A person is picking up a pineapple and then a squirrel is foraging",
+   "C": "A squirrel is foraging and then a person is picking up a pineapple"
+  },
+  "answer": "B",
+  "item": "tcc122|1058907236_1021488277_2|order"
+ },
+ {
+  "video_id": "1080990179_1086820415_1",
+  "dim": "order",
+  "stem": "Which event occurs later in the video?",
+  "options": {
+   "A": "An apple is drying out",
+   "B": "A big wave is shown",
+   "C": "Both events occur simultaneously"
+  },
+  "answer": "B",
+  "item": "tcc123|1080990179_1086820415_1|order"
+ },
+ {
+  "video_id": "1041584314",
+  "dim": "order",
+  "stem": "When does the man start to smile?",
+  "options": {
+   "A": "After showing a serious expression",
+   "B": "Before showing a serious expression",
+   "C": "The man doesn't smile"
+  },
+  "answer": "A",
+  "item": "tcc124|1041584314|order"
+ },
+ {
+  "video_id": "1069611487",
+  "dim": "order",
+  "stem": "What happened first in the video?",
+  "options": {
+   "A": "Pizza slices disappear",
+   "B": "A paper box appears",
+   "C": "A paper box disappears"
+  },
+  "answer": "B",
+  "item": "tcc125|1069611487|order"
+ },
+ {
+  "video_id": "1067268406_1067427023_2",
+  "dim": "order",
+  "stem": "What is happening second in the video?",
+  "options": {
+   "A": "a white car is driving",
+   "B": "snow particles are melting",
+   "C": "a white car is driving while snow particles are melting simultaneously"
+  },
+  "answer": "A",
+  "item": "tcc126|1067268406_1067427023_2|order"
+ },
+ {
+  "video_id": "1024867412_1034049020_2",
+  "dim": "order",
+  "stem": "In what sequence do the events occur in the video?A. A dog is driving, followed by a girl walking on the street",
+  "options": {
+   "A": "A girl is walking on the street, followed by a dog driving",
+   "B": "A girl is walking on the street while a dog is driving at the same time"
+  },
+  "answer": "A",
+  "item": "tcc127|1024867412_1034049020_2|order"
+ },
+ {
+  "video_id": "1076877854_1073914229_1",
+  "dim": "order",
+  "stem": "What event happens first in the video?",
+  "options": {
+   "A": "robotic arms are working",
+   "B": "they happen at the same time",
+   "C": "trains are driving"
+  },
+  "answer": "A",
+  "item": "tcc128|1076877854_1073914229_1|order"
+ },
+ {
+  "video_id": "1034736653_1043054206_1",
+  "dim": "order",
+  "stem": "Which event happens last in the video?",
+  "options": {
+   "A": "Cars are racing",
+   "B": "Women are running",
+   "C": "They happen at the same time"
+  },
+  "answer": "A",
+  "item": "tcc129|1034736653_1043054206_1|order"
+ },
+ {
+  "video_id": "1082268005_1063373449_1",
+  "dim": "order",
+  "stem": "What is the first event in the video?",
+  "options": {
+   "A": "planet earth is assembling from toy bricks",
+   "B": "viruses are dissolving",
+   "C": "The events are happening simultaneously"
+  },
+  "answer": "A",
+  "item": "tcc130|1082268005_1063373449_1|order"
+ },
+ {
+  "video_id": "13324343",
+  "dim": "order",
+  "stem": "In which sequence does the man perform the actions?",
+  "options": {
+   "A": "gliding on the skateboard and then jumping",
+   "B": "jumping and then tying his shoelaces",
+   "C": "tying his shoelaces and then gliding on the skateboard",
+   "D": "gliding on the skateboard and then tying his shoelaces"
+  },
+  "answer": "C",
+  "item": "tcc131|13324343|order"
+ },
+ {
+  "video_id": "1058907236_1021488277_1",
+  "dim": "order",
+  "stem": "What is the order of events in the video?",
+  "options": {
+   "A": "Both events are happening concurrently",
+   "B": "A squirrel is foraging and then a person is picking up a pineapple",
+   "C": "A person is picking up a pineapple and then a squirrel is foraging"
+  },
+  "answer": "B",
+  "item": "tcc132|1058907236_1021488277_1|order"
+ },
+ {
+  "video_id": "1061351290",
+  "dim": "order",
+  "stem": "What sequence of actions does the woman follow in the video?",
+  "options": {
+   "A": "measuring her belly with a measuring tape and then touching her pregnant belly",
+   "B": "taking off clothes then measuring her belly with a measuring tape",
+   "C": "touching her pregnant belly and then taking off clothes",
+   "D": "touching her pregnant belly and then measuring her belly with a measuring tape"
+  },
+  "answer": "D",
+  "item": "tcc133|1061351290|order"
+ },
+ {
+  "video_id": "1100350201",
+  "dim": "order",
+  "stem": "What is the order of events in the video?",
+  "options": {
+   "A": "The man is drawn and then the little girl is drawn",
+   "B": "The man is drawn first, then the little girl disappears and is drawn",
+   "C": "The little girl is drawn and then the man is drawn",
+   "D": "The little girl is drawn first, then the man gets erased and drawn"
+  },
+  "answer": "C",
+  "item": "tcc134|1100350201|order"
+ },
+ {
+  "video_id": "1034736653_1043054206_0",
+  "dim": "order",
+  "stem": "Which event happens last in the video?",
+  "options": {
+   "A": "Cars are racing",
+   "B": "Women are running",
+   "C": "They happen at the same time"
+  },
+  "answer": "C",
+  "item": "tcc135|1034736653_1043054206_0|order"
+ },
+ {
+  "video_id": "1058907236_1021488277_0",
+  "dim": "order",
+  "stem": "What is the arrangement of the events in the video?",
+  "options": {
+   "A": "A person picks up a pineapple before a squirrel starts foraging",
+   "B": "They happen at exactly the same time",
+   "C": "A squirrel is foraging before a person picks up a pineapple"
+  },
+  "answer": "B",
+  "item": "tcc136|1058907236_1021488277_0|order"
+ },
+ {
+  "video_id": "8307961",
+  "dim": "order",
+  "stem": "In what sequence do the events occur in the video?",
+  "options": {
+   "A": "Chatting with a woman while walking and then showing something on his tablet to a woman",
+   "B": "Walking and simultaneously showing something on his tablet to a woman",
+   "C": "Showing something on his tablet to a woman and then chatting with a woman while walking"
+  },
+  "answer": "A",
+  "item": "tcc137|8307961|order"
+ },
+ {
+  "video_id": "1086423566_1094782389_1",
+  "dim": "order",
+  "stem": "Which event happens first in the video?",
+  "options": {
+   "A": "Simultaneously, foods are added into a bowl and a dog is giving a high five to a woman",
+   "B": "A dog is giving a high five to a woman",
+   "C": "Foods are added into a bowl"
+  },
+  "answer": "C",
+  "item": "tcc138|1086423566_1094782389_1|order"
+ },
+ {
+  "video_id": "1060403198_1049965795_0",
+  "dim": "order",
+  "stem": "How are the events ordered in the video?",
+  "options": {
+   "A": "A light bulb is lighting up and then the tree is growing up",
+   "B": "Both events happen at the same time",
+   "C": "The tree is growing up and then a light bulb is lighting up"
+  },
+  "answer": "B",
+  "item": "tcc139|1060403198_1049965795_0|order"
+ },
+ {
+  "video_id": "1089201973_1086820415_0",
+  "dim": "order",
+  "stem": "What event is shown first in the video?",
+  "options": {
+   "A": "A big wave is shown",
+   "B": "Both events happen simultaneously",
+   "C": "A person is kicking football"
+  },
+  "answer": "B",
+  "item": "tcc140|1089201973_1086820415_0|order"
+ },
+ {
+  "video_id": "1054717541_1047368344_2",
+  "dim": "order",
+  "stem": "What is the sequence of events in the video?",
+  "options": {
+   "A": "a person is kneading dough followed by a girl jumping into water",
+   "B": "a girl jumping into water followed by a person kneading dough",
+   "C": "a girl jumping into water while a person kneading dough"
+  },
+  "answer": "B",
+  "item": "tcc141|1054717541_1047368344_2|order"
+ },
+ {
+  "video_id": "1082268005_1063373449_0",
+  "dim": "order",
+  "stem": "What is the first event in the video?",
+  "options": {
+   "A": "planet earth is assembling from toy bricks",
+   "B": "viruses are dissolving",
+   "C": "The events are happening simultaneously"
+  },
+  "answer": "C",
+  "item": "tcc142|1082268005_1063373449_0|order"
+ },
+ {
+  "video_id": "1067268403_1064645467_2",
+  "dim": "order",
+  "stem": "What is happening in the first event of the video?",
+  "options": {
+   "A": "A man is doing exercise while wind turbines are rotating",
+   "B": "A man is doing exercise",
+   "C": "Wind turbines are rotating"
+  },
+  "answer": "B",
+  "item": "tcc143|1067268403_1064645467_2|order"
+ },
+ {
+  "video_id": "1024867412_1034049020_0",
+  "dim": "order",
+  "stem": "Which event happens first in the video?",
+  "options": {
+   "A": "A dog is driving",
+   "B": "Both events happen concurrently",
+   "C": "A girl is walking on the street"
+  },
+  "answer": "B",
+  "item": "tcc144|1024867412_1034049020_0|order"
+ },
+ {
+  "video_id": "1069717165_1041584314_2",
+  "dim": "order",
+  "stem": "Which event occurs earlier in the video?",
+  "options": {
+   "A": "The woman showing different expressions",
+   "B": "They both happen together",
+   "C": "The man showing different expressions"
+  },
+  "answer": "C",
+  "item": "tcc145|1069717165_1041584314_2|order"
+ },
+ {
+  "video_id": "1024867412_1034049020_1",
+  "dim": "order",
+  "stem": "What is the order of events in the video?",
+  "options": {
+   "A": "A dog is driving, then a girl is walking on the street",
+   "B": "A girl is walking on the street, then a dog is driving",
+   "C": "A girl is walking on the street while a dog is simultaneously driving"
+  },
+  "answer": "A",
+  "item": "tcc146|1024867412_1034049020_1|order"
+ },
+ {
+  "video_id": "1060403198_1049965795_2",
+  "dim": "order",
+  "stem": "How are the events ordered in the video?",
+  "options": {
+   "A": "A light bulb is lighting up and then the tree is growing up",
+   "B": "The tree is growing up and then a light bulb is lighting up",
+   "C": "Both events happen at the same time"
+  },
+  "answer": "A",
+  "item": "tcc147|1060403198_1049965795_2|order"
+ },
+ {
+  "video_id": "1080990179_1086820415_0",
+  "dim": "order",
+  "stem": "Which event occurs first in the video?",
+  "options": {
+   "A": "A big wave is shown",
+   "B": "Both events occur simultaneously",
+   "C": "An apple is drying out"
+  },
+  "answer": "B",
+  "item": "tcc148|1080990179_1086820415_0|order"
+ },
+ {
+  "video_id": "1091143117_1094219575_2",
+  "dim": "order",
+  "stem": "What is the order of events in the video?",
+  "options": {
+   "A": "An eye is opening first, then a flower is wilting",
+   "B": "Both events happen simultaneously",
+   "C": "A flower is wilting first, then an eye is opening"
+  },
+  "answer": "C",
+  "item": "tcc149|1091143117_1094219575_2|order"
+ },
+ {
+  "video_id": "1055413730_1055973887_2",
+  "dim": "order",
+  "stem": "What is the correct order of events in the video?",
+  "options": {
+   "A": "Simultaneously, the earth is spinning and the fire ball is expanding",
+   "B": "The fire ball is expanding, then the earth is spinning",
+   "C": "The earth is spinning, then the fire ball is expanding"
+  },
+  "answer": "B",
+  "item": "tcc150|1055413730_1055973887_2|order"
+ },
+ {
+  "video_id": "1096238125_1098970151_2",
+  "dim": "order",
+  "stem": "In what order do the events take place in the video?",
+  "options": {
+   "A": "The events happen simultaneously",
+   "B": "Two people are lifting weights followed by a cat licking its paw",
+   "C": "A cat is licking its paw followed by two people lifting weights"
+  },
+  "answer": "C",
+  "item": "tcc151|1096238125_1098970151_2|order"
+ },
+ {
+  "video_id": "1053758117_1055413730_1",
+  "dim": "order",
+  "stem": "What is happening first in the video?",
+  "options": {
+   "A": "The events are happening simultaneously",
+   "B": "The earth is spinning.",
+   "C": "The digital brain is spinning."
+  },
+  "answer": "C",
+  "item": "tcc152|1053758117_1055413730_1|order"
+ },
+ {
+  "video_id": "1022115337",
+  "dim": "order",
+  "stem": "What is the order of events?",
+  "options": {
+   "A": "dancing and then sending an air kiss",
+   "B": "sending an air kiss and then dancing",
+   "C": "dancing at the same time as sending an air kiss"
+  },
+  "answer": "A",
+  "item": "tcc153|1022115337|order"
+ },
+ {
+  "video_id": "1034736653_1043054206_2",
+  "dim": "order",
+  "stem": "Which event happens last in the video?",
+  "options": {
+   "A": "Cars are racing",
+   "B": "They happen at the same time",
+   "C": "Women are running"
+  },
+  "answer": "C",
+  "item": "tcc154|1034736653_1043054206_2|order"
+ },
+ {
+  "video_id": "1086423566_1094782389_0",
+  "dim": "order",
+  "stem": "Which event happens first in the video?",
+  "options": {
+   "A": "Foods are added into a bowl",
+   "B": "Simultaneously, foods are added into a bowl and a dog is giving a high five to a woman",
+   "C": "A dog is giving a high five to a woman"
+  },
+  "answer": "B",
+  "item": "tcc155|1086423566_1094782389_0|order"
+ },
+ {
+  "video_id": "1059072773_1059718130_2",
+  "dim": "order",
+  "stem": "In what sequence do the events occur in the video?",
+  "options": {
+   "A": "Sun rising, ice cream melting",
+   "B": "Ice cream melting, sun rising",
+   "C": "Both events occur at the same time"
+  },
+  "answer": "A",
+  "item": "tcc156|1059072773_1059718130_2|order"
+ },
+ {
+  "video_id": "18416608",
+  "dim": "order",
+  "stem": "What is the first action that the woman does?",
+  "options": {
+   "A": "sampling water in a bottle",
+   "B": "the actions are performed simultaneously",
+   "C": "operating her tablet"
+  },
+  "answer": "A",
+  "item": "tcc157|18416608|order"
+ },
+ {
+  "video_id": "1059072773_1059718130_1",
+  "dim": "order",
+  "stem": "What is the order of events in the video?",
+  "options": {
+   "A": "Sun rising and ice cream melting at the same time",
+   "B": "Sun rising and then ice cream melting",
+   "C": "Ice cream melting and then sun rising"
+  },
+  "answer": "C",
+  "item": "tcc158|1059072773_1059718130_1|order"
+ },
+ {
+  "video_id": "1100074677",
+  "dim": "order",
+  "stem": "What is the order of the events performed by the person?",
+  "options": {
+   "A": "throwing the paper note away and then tearing it apart",
+   "B": "tearing apart the paper note and then throwing it away",
+   "C": "standing the paper note up and then writing something on the paper note",
+   "D": "writing something on the paper note and then standing the paper note up"
+  },
+  "answer": "D",
+  "item": "tcc159|1100074677|order"
+ },
+ {
+  "video_id": "1054717541_1047368344_0",
+  "dim": "order",
+  "stem": "What is happening first in the video?",
+  "options": {
+   "A": "a person is kneading dough",
+   "B": "a girl is jumping into water",
+   "C": "Both events occur at the same time"
+  },
+  "answer": "C",
+  "item": "tcc160|1054717541_1047368344_0|order"
+ },
+ {
+  "video_id": "1067268406_1067427023_0",
+  "dim": "order",
+  "stem": "What is happening first in the video?",
+  "options": {
+   "A": "a white car is driving",
+   "B": "a white car is driving while snow particles are melting simultaneously",
+   "C": "snow particles are melting"
+  },
+  "answer": "B",
+  "item": "tcc161|1067268406_1067427023_0|order"
+ },
+ {
+  "video_id": "1091143117_1094219575_0",
+  "dim": "order",
+  "stem": "Which event happens first in the video?",
+  "options": {
+   "A": "A flower is wilting",
+   "B": "Both events happen at the same time",
+   "C": "An eye is opening"
+  },
+  "answer": "B",
+  "item": "tcc162|1091143117_1094219575_0|order"
+ },
+ {
+  "video_id": "1055413730_1055973887_0",
+  "dim": "order",
+  "stem": "What is the correct order of events in the video?",
+  "options": {
+   "A": "The fire ball is expanding, then the earth is spinning",
+   "B": "The earth is spinning, then the fire ball is expanding",
+   "C": "Simultaneously, the earth is spinning and the fire ball is expanding"
+  },
+  "answer": "C",
+  "item": "tcc163|1055413730_1055973887_0|order"
+ },
+ {
+  "video_id": "1055413730_1055973887_1",
+  "dim": "order",
+  "stem": "What is happening in the first event of the video?",
+  "options": {
+   "A": "The earth is spinning",
+   "B": "Both events happen together",
+   "C": "The fire ball is expanding"
+  },
+  "answer": "A",
+  "item": "tcc164|1055413730_1055973887_1|order"
+ },
+ {
+  "video_id": "1086105089_1085910917_2",
+  "dim": "order",
+  "stem": "In what sequence do the events occur?",
+  "options": {
+   "A": "A building is being constructed comes first, followed by a woman drinking water.",
+   "B": "A woman is drinking water comes first, followed by a building being constructed.",
+   "C": "The events happen simultaneously."
+  },
+  "answer": "B",
+  "item": "tcc165|1086105089_1085910917_2|order"
+ },
+ {
+  "video_id": "1067268406_1067427023_1",
+  "dim": "order",
+  "stem": "What is happening second in the video?",
+  "options": {
+   "A": "a white car is driving",
+   "B": "a white car is driving while snow particles are melting simultaneously",
+   "C": "snow particles are melting"
+  },
+  "answer": "C",
+  "item": "tcc166|1067268406_1067427023_1|order"
+ },
+ {
+  "video_id": "1091090295",
+  "dim": "order",
+  "stem": "What event happens first in the video?",
+  "options": {
+   "A": "A bird flying onto the back of a hippo",
+   "B": "A bird flying away from the back of a hippo",
+   "C": "A hippo pokes its head out of water",
+   "D": "A hippo puts its head into water"
+  },
+  "answer": "A",
+  "item": "tcc167|1091090295|order"
+ },
+ {
+  "video_id": "1089201973_1086820415_1",
+  "dim": "order",
+  "stem": "What is the order of events in the video?",
+  "options": {
+   "A": "The events are shown simultaneously",
+   "B": "A big wave is shown and then a person is kicking football",
+   "C": "A person is kicking football and then a big wave is shown"
+  },
+  "answer": "C",
+  "item": "tcc168|1089201973_1086820415_1|order"
+ },
+ {
+  "video_id": "1096238125_1098970151_1",
+  "dim": "order",
+  "stem": "Which event happens first in the video?",
+  "options": {
+   "A": "Two people are lifting weights",
+   "B": "Both events happen at the same time",
+   "C": "A cat is licking its paw"
+  },
+  "answer": "A",
+  "item": "tcc169|1096238125_1098970151_1|order"
+ },
+ {
+  "video_id": "1076877854_1073914229_0",
+  "dim": "order",
+  "stem": "In what order do the events occur in the video?",
+  "options": {
+   "A": "trains are driving, then robotic arms are working",
+   "B": "they happen at the same time",
+   "C": "robotic arms are working, then trains are driving"
+  },
+  "answer": "B",
+  "item": "tcc170|1076877854_1073914229_0|order"
+ },
+ {
+  "video_id": "1067268403_1064645467_0",
+  "dim": "order",
+  "stem": "What is happening in the first event of the video?",
+  "options": {
+   "A": "A man is doing exercise while wind turbines are rotating",
+   "B": "Wind turbines are rotating",
+   "C": "A man is doing exercise"
+  },
+  "answer": "A",
+  "item": "tcc171|1067268403_1064645467_0|order"
+ },
+ {
+  "video_id": "1096238125_1098970151_0",
+  "dim": "order",
+  "stem": "What is the order of the events in the video?",
+  "options": {
+   "A": "Two people are lifting weights and then a cat is licking its paw",
+   "B": "The events are happening simultaneously, there is no specific order",
+   "C": "A cat is licking its paw and then two people are lifting weights"
+  },
+  "answer": "B",
+  "item": "tcc172|1096238125_1098970151_0|order"
+ },
+ {
+  "video_id": "1067268403_1064645467_1",
+  "dim": "order",
+  "stem": "What is the order of events in the video?",
+  "options": {
+   "A": "A man doing exercise and wind turbines rotating concurrently",
+   "B": "A man doing exercise followed by wind turbines rotating",
+   "C": "Wind turbines are rotating followed by a man doing exercise"
+  },
+  "answer": "C",
+  "item": "tcc173|1067268403_1064645467_1|order"
+ },
+ {
+  "video_id": "1067925569",
+  "dim": "order",
+  "stem": "Which event comes after the other in the video?",
+  "options": {
+   "A": "A cargo train is shown after a container truck is shown",
+   "B": "A container ship is shown after a cargo train is shown",
+   "C": "A cargo train is shown after a container ship is shown",
+   "D": "A container truck is shown before a cargo train is shown"
+  },
+  "answer": "C",
+  "item": "tcc174|1067925569|order"
+ },
+ {
+  "video_id": "27537016",
+  "dim": "order",
+  "stem": "What is the sequence of events involving the man?",
+  "options": {
+   "A": "showing off his car key then pulling back inside the car",
+   "B": "pulling back inside the car then showing off his car key",
+   "C": "throwing away his car key then pulling back inside the car",
+   "D": "pulling back inside the car then throwing away his car key"
+  },
+  "answer": "A",
+  "item": "tcc175|27537016|order"
+ },
+ {
+  "video_id": "1059072773_1059718130_0",
+  "dim": "order",
+  "stem": "What is the order of events in the video?",
+  "options": {
+   "A": "Sun rising and then ice cream melting",
+   "B": "Ice cream melting and then sun rising",
+   "C": "Sun rising and ice cream melting at the same time"
+  },
+  "answer": "C",
+  "item": "tcc176|1059072773_1059718130_0|order"
+ },
+ {
+  "video_id": "1086423566_1094782389_2",
+  "dim": "order",
+  "stem": "What is the correct chronological order of the events in the video?",
+  "options": {
+   "A": "A dog is giving a high five to a woman, and then foods are added into a bowl",
+   "B": "Foods are added into a bowl, while at the same time a dog is giving a high five to a woman",
+   "C": "Foods are added into a bowl, and then a dog is giving a high five to a woman"
+  },
+  "answer": "A",
+  "item": "tcc177|1086423566_1094782389_2|order"
+ },
+ {
+  "video_id": "1086105089_1085910917_0",
+  "dim": "order",
+  "stem": "Which event happens before the other?",
+  "options": {
+   "A": "A building is being constructed happens before a woman is drinking water.",
+   "B": "Both events happen at the same time.",
+   "C": "A woman is drinking water happens before a building is being constructed."
+  },
+  "answer": "B",
+  "item": "tcc178|1086105089_1085910917_0|order"
+ },
+ {
+  "video_id": "1072453637",
+  "dim": "order",
+  "stem": "What did the fighter jet do first in the video?",
+  "options": {
+   "A": "shooting two missiles",
+   "B": "shooting one missile",
+   "C": "shooting three missiles",
+   "D": "shooting four missiles"
+  },
+  "answer": "B",
+  "item": "tcc179|1072453637|order"
+ },
+ {
+  "video_id": "1099116143_reverse",
+  "dim": "attribute_change",
+  "stem": "How is the appearance of the pink liquid affected?",
+  "options": {
+   "A": "White foam appears on the surface",
+   "B": "It becomes blue",
+   "C": "White foam disappears from the surface",
+   "D": "It becomes green"
+  },
+  "answer": "C",
+  "item": "tcc180|1099116143_reverse|attribute_change"
+ },
+ {
+  "video_id": "1098710341_reverse",
+  "dim": "attribute_change",
+  "stem": "In whay way is the glass changing?",
+  "options": {
+   "A": "Water was disappearing from the glass",
+   "B": "The glass was heated",
+   "C": "Water was poured into the glass",
+   "D": "A chemical reaction occurred in the glass"
+  },
+  "answer": "A",
+  "item": "tcc181|1098710341_reverse|attribute_change"
+ },
+ {
+  "video_id": "1099109715",
+  "dim": "attribute_change",
+  "stem": "Which is the most accurate statement about the number of fruits and vegetables?",
+  "options": {
+   "A": "It is getting bigger.",
+   "B": "It is getting smaller.",
+   "C": "It is changing sporadically.",
+   "D": "It is remaining constant."
+  },
+  "answer": "A",
+  "item": "tcc182|1099109715|attribute_change"
+ },
+ {
+  "video_id": "1099738787",
+  "dim": "attribute_change",
+  "stem": "What is the attribute change of the concrete wall?",
+  "options": {
+   "A": "rebuilding",
+   "B": "shrinking",
+   "C": "disappearing",
+   "D": "falling apart"
+  },
+  "answer": "D",
+  "item": "tcc183|1099738787|attribute_change"
+ },
+ {
+  "video_id": "1099811331",
+  "dim": "attribute_change",
+  "stem": "How is the 3d heart transforming?",
+  "options": {
+   "A": "gradually disappearing",
+   "B": "growing in size",
+   "C": "gradually appearing",
+   "D": "Reducing in size"
+  },
+  "answer": "C",
+  "item": "tcc184|1099811331|attribute_change"
+ },
+ {
+  "video_id": "1054494542_reverse",
+  "dim": "attribute_change",
+  "stem": "What is the main change occurring in the background?",
+  "options": {
+   "A": "changing from pink to blue",
+   "B": "changing from pink to green",
+   "C": "changing from blue to pink",
+   "D": "changing from green to pink"
+  },
+  "answer": "C",
+  "item": "tcc185|1054494542_reverse|attribute_change"
+ },
+ {
+  "video_id": "1060403198_reverse",
+  "dim": "attribute_change",
+  "stem": "What term can be used to describe the change happening to the tree?",
+  "options": {
+   "A": "wilting",
+   "B": "growing in size",
+   "C": "falling down",
+   "D": "reducing in size"
+  },
+  "answer": "D",
+  "item": "tcc186|1060403198_reverse|attribute_change"
+ },
+ {
+  "video_id": "1079384099",
+  "dim": "attribute_change",
+  "stem": "What is the final shape of the 3d pixel?",
+  "options": {
+   "A": "A flower",
+   "B": "A star",
+   "C": "A circle",
+   "D": "A square"
+  },
+  "answer": "A",
+  "item": "tcc187|1079384099|attribute_change"
+ },
+ {
+  "video_id": "1077575504",
+  "dim": "attribute_change",
+  "stem": "How is the pile of salt changing?",
+  "options": {
+   "A": "melting",
+   "B": "unchanged",
+   "C": "growing bigger",
+   "D": "becoming smaller"
+  },
+  "answer": "C",
+  "item": "tcc188|1077575504|attribute_change"
+ },
+ {
+  "video_id": "1063373449_reverse",
+  "dim": "attribute_change",
+  "stem": "What occurs to the coronavirus?",
+  "options": {
+   "A": "it assembles together",
+   "B": "it grows larger",
+   "C": "it dissolves",
+   "D": "it replicates"
+  },
+  "answer": "A",
+  "item": "tcc189|1063373449_reverse|attribute_change"
+ },
+ {
+  "video_id": "1079384099_reverse",
+  "dim": "attribute_change",
+  "stem": "What is happening to the 3d pixel?",
+  "options": {
+   "A": "It is transforming from the shape of a heart into a triangle",
+   "B": "It is transforming from a triangle into the shape of a heart",
+   "C": "It is transforming from a white square into the shape of a flower",
+   "D": "It is transforming from the shape of a flower into a white square"
+  },
+  "answer": "D",
+  "item": "tcc190|1079384099_reverse|attribute_change"
+ },
+ {
+  "video_id": "1055973887",
+  "dim": "attribute_change",
+  "stem": "How is the fire ball changing?",
+  "options": {
+   "A": "splitting in half",
+   "B": "expanding out",
+   "C": "contracting into the center"
+  },
+  "answer": "B",
+  "item": "tcc191|1055973887|attribute_change"
+ },
+ {
+  "video_id": "1080990179_reverse",
+  "dim": "attribute_change",
+  "stem": "What is the change in the apple's attributes?",
+  "options": {
+   "A": "swelling and becoming juicy",
+   "B": "shrinking and drying out",
+   "C": "being cut and getting smaller"
+  },
+  "answer": "A",
+  "item": "tcc192|1080990179_reverse|attribute_change"
+ },
+ {
+  "video_id": "1093948229_reverse",
+  "dim": "attribute_change",
+  "stem": "What is happening to the golden particles?",
+  "options": {
+   "A": "melting",
+   "B": "shrinking",
+   "C": "spinning",
+   "D": "exploding"
+  },
+  "answer": "B",
+  "item": "tcc193|1093948229_reverse|attribute_change"
+ },
+ {
+  "video_id": "1093948229",
+  "dim": "attribute_change",
+  "stem": "Which word below represents the transformation taking place on the golden particles?",
+  "options": {
+   "A": "contracting",
+   "B": "melting",
+   "C": "exploding",
+   "D": "condensing"
+  },
+  "answer": "C",
+  "item": "tcc194|1093948229|attribute_change"
+ },
+ {
+  "video_id": "1077575504_reverse",
+  "dim": "attribute_change",
+  "stem": "Which one of the following is an attribute change happening to the pile of salt?",
+  "options": {
+   "A": "shrinking",
+   "B": "growing",
+   "C": "burning",
+   "D": "dissolving"
+  },
+  "answer": "A",
+  "item": "tcc195|1077575504_reverse|attribute_change"
+ },
+ {
+  "video_id": "1025623079",
+  "dim": "attribute_change",
+  "stem": "What is happening to the skyscraper?",
+  "options": {
+   "A": "lighting up",
+   "B": "growing taller",
+   "C": "in construction",
+   "D": "collapsing"
+  },
+  "answer": "D",
+  "item": "tcc196|1025623079|attribute_change"
+ },
+ {
+  "video_id": "1082268005_reverse",
+  "dim": "attribute_change",
+  "stem": "How is the planet earth changing?",
+  "options": {
+   "A": "it is disappearing",
+   "B": "it is assembling from toy bricks",
+   "C": "it is spinning"
+  },
+  "answer": "A",
+  "item": "tcc197|1082268005_reverse|attribute_change"
+ },
+ {
+  "video_id": "1049965795_reverse",
+  "dim": "attribute_change",
+  "stem": "What change occurs in the light bulb?",
+  "options": {
+   "A": "becoming darker",
+   "B": "getting smaller",
+   "C": "light up",
+   "D": "flickering"
+  },
+  "answer": "A",
+  "item": "tcc198|1049965795_reverse|attribute_change"
+ },
+ {
+  "video_id": "1053334574",
+  "dim": "attribute_change",
+  "stem": "How is the black ink transforming?",
+  "options": {
+   "A": "splitting in half",
+   "B": "staying in the same shape",
+   "C": "expanding from the center",
+   "D": "contracting towards the center"
+  },
+  "answer": "C",
+  "item": "tcc199|1053334574|attribute_change"
+ },
+ {
+  "video_id": "1082268005",
+  "dim": "attribute_change",
+  "stem": "How is the planet earth changing?",
+  "options": {
+   "A": "it is spinning",
+   "B": "it is disappearing",
+   "C": "it is assembling from toy bricks"
+  },
+  "answer": "C",
+  "item": "tcc200|1082268005|attribute_change"
+ },
+ {
+  "video_id": "1063373449",
+  "dim": "attribute_change",
+  "stem": "How is the coronavirus responding to antibodies?",
+  "options": {
+   "A": "replicating itself",
+   "B": "dissolving under their attack",
+   "C": "avoiding them by hiding in cells",
+   "D": "assembling together"
+  },
+  "answer": "B",
+  "item": "tcc201|1063373449|attribute_change"
+ },
+ {
+  "video_id": "1055981522",
+  "dim": "attribute_change",
+  "stem": "What is happening to the 3d shapes?",
+  "options": {
+   "A": "disappearing",
+   "B": "turning into triangles",
+   "C": "turning into spheres",
+   "D": "turning into cubes"
+  },
+  "answer": "C",
+  "item": "tcc202|1055981522|attribute_change"
+ },
+ {
+  "video_id": "1093573255_reverse",
+  "dim": "attribute_change",
+  "stem": "What is happening to the plant?",
+  "options": {
+   "A": "wilting",
+   "B": "reviving",
+   "C": "shedding leaves",
+   "D": "turning into buds"
+  },
+  "answer": "A",
+  "item": "tcc203|1093573255_reverse|attribute_change"
+ },
+ {
+  "video_id": "1051211272_reverse",
+  "dim": "attribute_change",
+  "stem": "What alteration is taking place with the cream cheese-covered toast?",
+  "options": {
+   "A": "Gradually emerging piece by piece",
+   "B": "Remaining constant in size",
+   "C": "Slowly diminishing as it is consumed"
+  },
+  "answer": "A",
+  "item": "tcc204|1051211272_reverse|attribute_change"
+ },
+ {
+  "video_id": "1081734740",
+  "dim": "attribute_change",
+  "stem": "What change is occurring in the leaf?",
+  "options": {
+   "A": "It is getting smaller",
+   "B": "It is becoming white",
+   "C": "It is becoming yellow",
+   "D": "It is becoming green"
+  },
+  "answer": "C",
+  "item": "tcc205|1081734740|attribute_change"
+ },
+ {
+  "video_id": "1049965795",
+  "dim": "attribute_change",
+  "stem": "What is happening to the light bulb?",
+  "options": {
+   "A": "turning off",
+   "B": "breaking",
+   "C": "light up",
+   "D": "rapidly changing color"
+  },
+  "answer": "C",
+  "item": "tcc206|1049965795|attribute_change"
+ },
+ {
+  "video_id": "1099109715_reverse",
+  "dim": "attribute_change",
+  "stem": "What is happening to the number of fruits and vegetables?",
+  "options": {
+   "A": "becoming rotten",
+   "B": "increasing",
+   "C": "decreasing",
+   "D": "staying the same"
+  },
+  "answer": "C",
+  "item": "tcc207|1099109715_reverse|attribute_change"
+ },
+ {
+  "video_id": "1055194940_reverse",
+  "dim": "attribute_change",
+  "stem": "What change is occurring in the insect",
+  "options": {
+   "A": "transforming from pupa into butterfly",
+   "B": "transforming from dead to live",
+   "C": "transforming from live to dead",
+   "D": "transforming from butterfly into pupa"
+  },
+  "answer": "D",
+  "item": "tcc208|1055194940_reverse|attribute_change"
+ },
+ {
+  "video_id": "23370985_reverse",
+  "dim": "attribute_change",
+  "stem": "What is happening to the ice crystal?",
+  "options": {
+   "A": "freezing",
+   "B": "melting",
+   "C": "shattering"
+  },
+  "answer": "B",
+  "item": "tcc209|23370985_reverse|attribute_change"
+ },
+ {
+  "video_id": "1086688682",
+  "dim": "attribute_change",
+  "stem": "What is the attribute change occurring to the traffic lights?",
+  "options": {
+   "A": "Changing color sequence",
+   "B": "Dimming brightness",
+   "C": "Switching off",
+   "D": "Blinking rapidly"
+  },
+  "answer": "A",
+  "item": "tcc210|1086688682|attribute_change"
+ },
+ {
+  "video_id": "1067427023_reverse",
+  "dim": "attribute_change",
+  "stem": "Which term best describes the transformation happening to the snow particles?",
+  "options": {
+   "A": "solidifying",
+   "B": "melting",
+   "C": "scattering"
+  },
+  "answer": "A",
+  "item": "tcc211|1067427023_reverse|attribute_change"
+ },
+ {
+  "video_id": "1016172301_reverse",
+  "dim": "attribute_change",
+  "stem": "Which process is the 3D house model going through?",
+  "options": {
+   "A": "being constructed",
+   "B": "being deconstructed",
+   "C": "being repaired"
+  },
+  "answer": "B",
+  "item": "tcc212|1016172301_reverse|attribute_change"
+ },
+ {
+  "video_id": "1070711428",
+  "dim": "attribute_change",
+  "stem": "What is happening to the glacier?",
+  "options": {
+   "A": "breaking and falling in water",
+   "B": "assembling and rising from water",
+   "C": "freezing",
+   "D": "evaporating"
+  },
+  "answer": "A",
+  "item": "tcc213|1070711428|attribute_change"
+ },
+ {
+  "video_id": "1016172301",
+  "dim": "attribute_change",
+  "stem": "What change is occurring to the 3D house model?",
+  "options": {
+   "A": "being renovated",
+   "B": "being constructed",
+   "C": "being dismantled"
+  },
+  "answer": "B",
+  "item": "tcc214|1016172301|attribute_change"
+ },
+ {
+  "video_id": "1051211272",
+  "dim": "attribute_change",
+  "stem": "What alteration is taking place with the cream cheese-covered toast?",
+  "options": {
+   "A": "Gradually emerging piece by piece",
+   "B": "Remaining constant in size",
+   "C": "Slowly diminishing as it is consumed"
+  },
+  "answer": "C",
+  "item": "tcc215|1051211272|attribute_change"
+ },
+ {
+  "video_id": "1099116143",
+  "dim": "attribute_change",
+  "stem": "What can be observed visually on the pink liquid?",
+  "options": {
+   "A": "White foam appears on the surface",
+   "B": "The liquid is turning transparent",
+   "C": "White foam disappears from the surface"
+  },
+  "answer": "A",
+  "item": "tcc216|1099116143|attribute_change"
+ },
+ {
+  "video_id": "1059815936",
+  "dim": "attribute_change",
+  "stem": "How does the paper transform?",
+  "options": {
+   "A": "crumpling into a ball",
+   "B": "tearing apart",
+   "C": "unfolding"
+  },
+  "answer": "C",
+  "item": "tcc217|1059815936|attribute_change"
+ },
+ {
+  "video_id": "1084736389_reverse",
+  "dim": "attribute_change",
+  "stem": "What is happening to the face?",
+  "options": {
+   "A": "Aging",
+   "B": "Morphing from a chimpanzee into a human",
+   "C": "Morphing from a human into a chimpanzee",
+   "D": "Becoming younger"
+  },
+  "answer": "C",
+  "item": "tcc218|1084736389_reverse|attribute_change"
+ },
+ {
+  "video_id": "1093340469_reverse",
+  "dim": "attribute_change",
+  "stem": "How is the attribute of the room changing?",
+  "options": {
+   "A": "becoming darker",
+   "B": "brightening up",
+   "C": "staying unchanged"
+  },
+  "answer": "A",
+  "item": "tcc219|1093340469_reverse|attribute_change"
+ },
+ {
+  "video_id": "1052364490",
+  "dim": "attribute_change",
+  "stem": "What alteration is taking place to the digital bar chart?",
+  "options": {
+   "A": "levelling out",
+   "B": "growing",
+   "C": "disappearing"
+  },
+  "answer": "B",
+  "item": "tcc220|1052364490|attribute_change"
+ },
+ {
+  "video_id": "1086688682_reverse",
+  "dim": "attribute_change",
+  "stem": "What is the attribute change occurring to the traffic lights?",
+  "options": {
+   "A": "Changing color sequence",
+   "B": "Dimming brightness",
+   "C": "Switching off",
+   "D": "Blinking rapidly"
+  },
+  "answer": "A",
+  "item": "tcc221|1086688682_reverse|attribute_change"
+ },
+ {
+  "video_id": "1083113449_reverse",
+  "dim": "attribute_change",
+  "stem": "What is occurring to the sky?",
+  "options": {
+   "A": "staying the same",
+   "B": "getting darker",
+   "C": "brightening"
+  },
+  "answer": "C",
+  "item": "tcc222|1083113449_reverse|attribute_change"
+ },
+ {
+  "video_id": "1055973887_reverse",
+  "dim": "attribute_change",
+  "stem": "How is the fire ball changing?",
+  "options": {
+   "A": "splitting in half",
+   "B": "expanding out",
+   "C": "contracting into the center"
+  },
+  "answer": "C",
+  "item": "tcc223|1055973887_reverse|attribute_change"
+ },
+ {
+  "video_id": "1111601171_reverse",
+  "dim": "attribute_change",
+  "stem": "How is the sphere building transforming?",
+  "options": {
+   "A": "It is staying in the same color.",
+   "B": "It is changing from green to blue.",
+   "C": "It is changing from red to yellow.",
+   "D": "It is changing from blue to green."
+  },
+  "answer": "D",
+  "item": "tcc224|1111601171_reverse|attribute_change"
+ },
+ {
+  "video_id": "1086105089_reverse",
+  "dim": "attribute_change",
+  "stem": "How is the building changing?",
+  "options": {
+   "A": "staying the same",
+   "B": "getting shorter",
+   "C": "growing taller"
+  },
+  "answer": "B",
+  "item": "tcc225|1086105089_reverse|attribute_change"
+ },
+ {
+  "video_id": "1084736389",
+  "dim": "attribute_change",
+  "stem": "Which animal does the face resemble at the beginning?",
+  "options": {
+   "A": "Human",
+   "B": "Giraffe",
+   "C": "Tiger",
+   "D": "Chimpanzee"
+  },
+  "answer": "D",
+  "item": "tcc226|1084736389|attribute_change"
+ },
+ {
+  "video_id": "1093719871",
+  "dim": "attribute_change",
+  "stem": "What is happening to the pink flowers?",
+  "options": {
+   "A": "growing taller",
+   "B": "falling off petals",
+   "C": "turning from withered to full blossom",
+   "D": "turning from full blossom to withered"
+  },
+  "answer": "C",
+  "item": "tcc227|1093719871|attribute_change"
+ },
+ {
+  "video_id": "23370985",
+  "dim": "attribute_change",
+  "stem": "What transformation is taking place in the ice crystal?",
+  "options": {
+   "A": "cracking",
+   "B": "unchanged",
+   "C": "melting",
+   "D": "forming"
+  },
+  "answer": "D",
+  "item": "tcc228|23370985|attribute_change"
+ },
+ {
+  "video_id": "1091143117_reverse",
+  "dim": "attribute_change",
+  "stem": "How is the eye changing?",
+  "options": {
+   "A": "changing color",
+   "B": "from closed to open",
+   "C": "becoming smaller",
+   "D": "from open to closed"
+  },
+  "answer": "D",
+  "item": "tcc229|1091143117_reverse|attribute_change"
+ },
+ {
+  "video_id": "1062609286",
+  "dim": "attribute_change",
+  "stem": "How is the battery charge changing?",
+  "options": {
+   "A": "increasing",
+   "B": "random",
+   "C": "decreasing"
+  },
+  "answer": "A",
+  "item": "tcc230|1062609286|attribute_change"
+ },
+ {
+  "video_id": "1081734740_reverse",
+  "dim": "attribute_change",
+  "stem": "What color is the leaf turning into?",
+  "options": {
+   "A": "White",
+   "B": "Green",
+   "C": "Yellow"
+  },
+  "answer": "B",
+  "item": "tcc231|1081734740_reverse|attribute_change"
+ },
+ {
+  "video_id": "1093719871_reverse",
+  "dim": "attribute_change",
+  "stem": "What is the final appearance of the pink flowers?",
+  "options": {
+   "A": "small buds",
+   "B": "died petals",
+   "C": "fresh leaves",
+   "D": "fully bloomed"
+  },
+  "answer": "B",
+  "item": "tcc232|1093719871_reverse|attribute_change"
+ },
+ {
+  "video_id": "1099811331_reverse",
+  "dim": "attribute_change",
+  "stem": "How is the 3d heart transforming?",
+  "options": {
+   "A": "gradually disappearing",
+   "B": "Reducing in size",
+   "C": "gradually appearing",
+   "D": "growing in size"
+  },
+  "answer": "A",
+  "item": "tcc233|1099811331_reverse|attribute_change"
+ },
+ {
+  "video_id": "1062609286_reverse",
+  "dim": "attribute_change",
+  "stem": "What is happening to the battery charge?",
+  "options": {
+   "A": "decreasing",
+   "B": "staying constant",
+   "C": "increasing"
+  },
+  "answer": "A",
+  "item": "tcc234|1062609286_reverse|attribute_change"
+ },
+ {
+  "video_id": "1059072773_reverse",
+  "dim": "attribute_change",
+  "stem": "What is happening to the ice cream?",
+  "options": {
+   "A": "melting",
+   "B": "freezing",
+   "C": "evaporating",
+   "D": "solidifying"
+  },
+  "answer": "D",
+  "item": "tcc235|1059072773_reverse|attribute_change"
+ },
+ {
+  "video_id": "1052364490_reverse",
+  "dim": "attribute_change",
+  "stem": "What alteration is taking place to the digital bar chart?",
+  "options": {
+   "A": "levelling out",
+   "B": "growing",
+   "C": "disappearing"
+  },
+  "answer": "C",
+  "item": "tcc236|1052364490_reverse|attribute_change"
+ },
+ {
+  "video_id": "1053334574_reverse",
+  "dim": "attribute_change",
+  "stem": "What is happening to the black ink?",
+  "options": {
+   "A": "staying in the same shape",
+   "B": "splitting in half",
+   "C": "shrinking into the the center",
+   "D": "expanding from the center"
+  },
+  "answer": "C",
+  "item": "tcc237|1053334574_reverse|attribute_change"
+ },
+ {
+  "video_id": "1099738787_reverse",
+  "dim": "attribute_change",
+  "stem": "What is the attribute change of the concrete wall?",
+  "options": {
+   "A": "rebuilding",
+   "B": "shrinking",
+   "C": "disappearing",
+   "D": "falling apart"
+  },
+  "answer": "A",
+  "item": "tcc238|1099738787_reverse|attribute_change"
+ },
+ {
+  "video_id": "1086105089",
+  "dim": "attribute_change",
+  "stem": "How is the building changing?",
+  "options": {
+   "A": "growing taller",
+   "B": "staying the same",
+   "C": "getting shorter"
+  },
+  "answer": "A",
+  "item": "tcc239|1086105089|attribute_change"
+ },
+ {
+  "video_id": "1072453637_reverse",
+  "dim": "direction",
+  "stem": "Identify the camera's panning movement in the video.",
+  "options": {
+   "A": "Panning to the back of a fighter jet",
+   "B": "Panning upward around a fighter jet",
+   "C": "Panning downward around a fighter jet",
+   "D": "Panning to the front of a fighter jet"
+  },
+  "answer": "D",
+  "item": "tcc240|1072453637_reverse|direction"
+ },
+ {
+  "video_id": "1021488277",
+  "dim": "direction",
+  "stem": "What is happening in the video?",
+  "options": {
+   "A": "A person drops down the pineapple",
+   "B": "A person pushes forward the pineapple",
+   "C": "A person rotates the pineapple",
+   "D": "A person picks up the pineapple"
+  },
+  "answer": "D",
+  "item": "tcc241|1021488277|direction"
+ },
+ {
+  "video_id": "1021488277_reverse",
+  "dim": "direction",
+  "stem": "What action is taking place in the video?",
+  "options": {
+   "A": "The pineapple is being dropped by a person.",
+   "B": "The pineapple is being rotated by a person.",
+   "C": "The pineapple is being pushed forward by a person.",
+   "D": "The pineapple is being picked up by a person."
+  },
+  "answer": "A",
+  "item": "tcc242|1021488277_reverse|direction"
+ },
+ {
+  "video_id": "1095939659",
+  "dim": "direction",
+  "stem": "What is the direction of the light's movement?",
+  "options": {
+   "A": "Clockwise",
+   "B": "Anticlockwise",
+   "C": "Straight forward",
+   "D": "Downwards"
+  },
+  "answer": "A",
+  "item": "tcc243|1095939659|direction"
+ },
+ {
+  "video_id": "1075338140",
+  "dim": "direction",
+  "stem": "In which direction does the ball travel?",
+  "options": {
+   "A": "straight ahead",
+   "B": "rolling from left to right",
+   "C": "rolling from right to left",
+   "D": "floating in mid-air"
+  },
+  "answer": "B",
+  "item": "tcc244|1075338140|direction"
+ },
+ {
+  "video_id": "1083845854_reverse",
+  "dim": "direction",
+  "stem": "What is the direction in which the clock hands are moving?",
+  "options": {
+   "A": "counterclockwise",
+   "B": "clockwise",
+   "C": "stationary"
+  },
+  "answer": "A",
+  "item": "tcc245|1083845854_reverse|direction"
+ },
+ {
+  "video_id": "1100397435_reverse",
+  "dim": "direction",
+  "stem": "What is the movement pattern of the robot vacuum cleaner?",
+  "options": {
+   "A": "straight line towards the screen",
+   "B": "straight line to the right side of the screen",
+   "C": "straight line to the left side of the screen",
+   "D": "straight line away from the screen"
+  },
+  "answer": "C",
+  "item": "tcc246|1100397435_reverse|direction"
+ },
+ {
+  "video_id": "1058985719",
+  "dim": "direction",
+  "stem": "What is the direction in which the airplane is flying?",
+  "options": {
+   "A": "bottom to top",
+   "B": "right to left",
+   "C": "top to bottom",
+   "D": "left to right"
+  },
+  "answer": "A",
+  "item": "tcc247|1058985719|direction"
+ },
+ {
+  "video_id": "1047368344_reverse",
+  "dim": "direction",
+  "stem": "What is the girl doing?",
+  "options": {
+   "A": "jumping into water",
+   "B": "jumping around water",
+   "C": "swimming in the water",
+   "D": "jumping out of water"
+  },
+  "answer": "D",
+  "item": "tcc248|1047368344_reverse|direction"
+ },
+ {
+  "video_id": "1034736653_reverse",
+  "dim": "direction",
+  "stem": "From which side are the woman athletes entering the screen?",
+  "options": {
+   "A": "right",
+   "B": "top",
+   "C": "left",
+   "D": "bottom"
+  },
+  "answer": "A",
+  "item": "tcc249|1034736653_reverse|direction"
+ },
+ {
+  "video_id": "1073914229_reverse",
+  "dim": "direction",
+  "stem": "In what manner are the trains traveling?",
+  "options": {
+   "A": "stopped",
+   "B": "in the same direction",
+   "C": "towards each other",
+   "D": "away from each other"
+  },
+  "answer": "D",
+  "item": "tcc250|1073914229_reverse|direction"
+ },
+ {
+  "video_id": "1058985719_reverse",
+  "dim": "direction",
+  "stem": "Which way is the airplane moving on the screen?",
+  "options": {
+   "A": "anticlockwise",
+   "B": "upwards",
+   "C": "clockwise",
+   "D": "downwards"
+  },
+  "answer": "D",
+  "item": "tcc251|1058985719_reverse|direction"
+ },
+ {
+  "video_id": "1057163434_reverse",
+  "dim": "direction",
+  "stem": "Which action is the chef performing with the bread?",
+  "options": {
+   "A": "putting it on top of the burger",
+   "B": "picking it up from the burger",
+   "C": "inserting it inside the burger"
+  },
+  "answer": "B",
+  "item": "tcc252|1057163434_reverse|direction"
+ },
+ {
+  "video_id": "1101200293",
+  "dim": "direction",
+  "stem": "In what direction is the camera flying around the aircraft carrier?",
+  "options": {
+   "A": "clockwise",
+   "B": "descending",
+   "C": "ascending",
+   "D": "anti-clockwise"
+  },
+  "answer": "A",
+  "item": "tcc253|1101200293|direction"
+ },
+ {
+  "video_id": "1098785169_reverse",
+  "dim": "direction",
+  "stem": "In which direction is the galaxy rotating?",
+  "options": {
+   "A": "backward",
+   "B": "counter clockwise",
+   "C": "clockwise",
+   "D": "forward"
+  },
+  "answer": "B",
+  "item": "tcc254|1098785169_reverse|direction"
+ },
+ {
+  "video_id": "1073914229",
+  "dim": "direction",
+  "stem": "In what manner are the trains traveling?",
+  "options": {
+   "A": "stopped",
+   "B": "in the same direction",
+   "C": "towards each other",
+   "D": "away from each other"
+  },
+  "answer": "C",
+  "item": "tcc255|1073914229|direction"
+ },
+ {
+  "video_id": "1096612823_reverse",
+  "dim": "direction",
+  "stem": "What is happening to the video?",
+  "options": {
+   "A": "zooming out",
+   "B": "rotating",
+   "C": "panning left",
+   "D": "zooming in"
+  },
+  "answer": "A",
+  "item": "tcc256|1096612823_reverse|direction"
+ },
+ {
+  "video_id": "1096007487",
+  "dim": "direction",
+  "stem": "What is the movement pattern of the 3d cloud as seen from the camera's point of view?",
+  "options": {
+   "A": "from right to left",
+   "B": "rotating clockwise",
+   "C": "rotating counter-clockwise",
+   "D": "from left to right"
+  },
+  "answer": "A",
+  "item": "tcc257|1096007487|direction"
+ },
+ {
+  "video_id": "1082419672_reverse",
+  "dim": "direction",
+  "stem": "In what direction is the entire video moving relative to the ship?",
+  "options": {
+   "A": "forward",
+   "B": "up",
+   "C": "down",
+   "D": "backward"
+  },
+  "answer": "A",
+  "item": "tcc258|1082419672_reverse|direction"
+ },
+ {
+  "video_id": "3411228673",
+  "dim": "direction",
+  "stem": "What is the path of movement in the video?",
+  "options": {
+   "A": "flying downwards",
+   "B": "flying forwards",
+   "C": "flying backwards",
+   "D": "flying upwards"
+  },
+  "answer": "D",
+  "item": "tcc259|3411228673|direction"
+ },
+ {
+  "video_id": "1059462749_reverse",
+  "dim": "direction",
+  "stem": "From a higher point to a lower point, the person is:",
+  "options": {
+   "A": "rotating",
+   "B": "rising",
+   "C": "staying still",
+   "D": "descending"
+  },
+  "answer": "B",
+  "item": "tcc260|1059462749_reverse|direction"
+ },
+ {
+  "video_id": "3411228673_reverse",
+  "dim": "direction",
+  "stem": "In which direction is the camera moving?",
+  "options": {
+   "A": "backwards",
+   "B": "forwards",
+   "C": "downwards",
+   "D": "upwards"
+  },
+  "answer": "C",
+  "item": "tcc261|3411228673_reverse|direction"
+ },
+ {
+  "video_id": "1100319395",
+  "dim": "direction",
+  "stem": "What direction is the circular pattern moving?",
+  "options": {
+   "A": "clockwise",
+   "B": "towards the camera",
+   "C": "counter-clockwise",
+   "D": "away from the camera"
+  },
+  "answer": "A",
+  "item": "tcc262|1100319395|direction"
+ },
+ {
+  "video_id": "3411806181_reverse",
+  "dim": "direction",
+  "stem": "Towards which side is the person moving the charging gun?",
+  "options": {
+   "A": "himself",
+   "B": "the car",
+   "C": "none of both"
+  },
+  "answer": "A",
+  "item": "tcc263|3411806181_reverse|direction"
+ },
+ {
+  "video_id": "1101200293_reverse",
+  "dim": "direction",
+  "stem": "What is the direction of the camera motion relative to the aircraft carrier?",
+  "options": {
+   "A": "counterclockwise",
+   "B": "downward",
+   "C": "upward",
+   "D": "clockwise"
+  },
+  "answer": "A",
+  "item": "tcc264|1101200293_reverse|direction"
+ },
+ {
+  "video_id": "1073831006_reverse",
+  "dim": "direction",
+  "stem": "Which direction are the zebras heading?",
+  "options": {
+   "A": "downward",
+   "B": "leftward",
+   "C": "rightward",
+   "D": "upward"
+  },
+  "answer": "B",
+  "item": "tcc265|1073831006_reverse|direction"
+ },
+ {
+  "video_id": "1100319395_reverse",
+  "dim": "direction",
+  "stem": "What direction is the circular pattern moving?",
+  "options": {
+   "A": "clockwise",
+   "B": "moving towards the camera",
+   "C": "counter-clockwise",
+   "D": "moving away from the camera"
+  },
+  "answer": "C",
+  "item": "tcc266|1100319395_reverse|direction"
+ },
+ {
+  "video_id": "1059632327",
+  "dim": "direction",
+  "stem": "Which direction does the tennis ball move in?",
+  "options": {
+   "A": "moving in a circular path",
+   "B": "floating in mid-air",
+   "C": "moving in a zigzag pattern",
+   "D": "bouncing up and down"
+  },
+  "answer": "D",
+  "item": "tcc267|1059632327|direction"
+ },
+ {
+  "video_id": "1089201973_reverse",
+  "dim": "direction",
+  "stem": "In which direction is the football traveling?",
+  "options": {
+   "A": "Rightwards",
+   "B": "Upwards",
+   "C": "Leftwards",
+   "D": "Downwards"
+  },
+  "answer": "C",
+  "item": "tcc268|1089201973_reverse|direction"
+ },
+ {
+  "video_id": "1075484900_reverse",
+  "dim": "direction",
+  "stem": "What is the orientation of the child with respect to the man?",
+  "options": {
+   "A": "Downwards",
+   "B": "Upwards",
+   "C": "Turning away from the man",
+   "D": "Turning towards the man"
+  },
+  "answer": "D",
+  "item": "tcc269|1075484900_reverse|direction"
+ },
+ {
+  "video_id": "1108534143_reverse",
+  "dim": "direction",
+  "stem": "In which direction is the puppy moving?",
+  "options": {
+   "A": "walking out of a wigwam",
+   "B": "entring a wigwam",
+   "C": "walking around a wigwam"
+  },
+  "answer": "B",
+  "item": "tcc270|1108534143_reverse|direction"
+ },
+ {
+  "video_id": "1094590221_reverse",
+  "dim": "direction",
+  "stem": "From which side of the screen does the basketball start moving?",
+  "options": {
+   "A": "right top",
+   "B": "right bottom",
+   "C": "left bottom",
+   "D": "left top"
+  },
+  "answer": "C",
+  "item": "tcc271|1094590221_reverse|direction"
+ },
+ {
+  "video_id": "1096007487_reverse",
+  "dim": "direction",
+  "stem": "What is the movement pattern of the 3d cloud as seen from the camera's point of view?",
+  "options": {
+   "A": "from right to left",
+   "B": "rotating clockwise",
+   "C": "rotating counter-clockwise",
+   "D": "from left to right"
+  },
+  "answer": "D",
+  "item": "tcc272|1096007487_reverse|direction"
+ },
+ {
+  "video_id": "1100329207_reverse",
+  "dim": "direction",
+  "stem": "What is the direction of the camera movement?",
+  "options": {
+   "A": "moving forward",
+   "B": "tilting up",
+   "C": "tilting down",
+   "D": "moving backward"
+  },
+  "answer": "D",
+  "item": "tcc273|1100329207_reverse|direction"
+ },
+ {
+  "video_id": "1017768724_reverse",
+  "dim": "direction",
+  "stem": "What is the direction of the person's movement?",
+  "options": {
+   "A": "moving upwards",
+   "B": "moving leftwards",
+   "C": "moving downwards",
+   "D": "moving rightwards"
+  },
+  "answer": "B",
+  "item": "tcc274|1017768724_reverse|direction"
+ },
+ {
+  "video_id": "1024867412_reverse",
+  "dim": "direction",
+  "stem": "In which direction is the car moving?",
+  "options": {
+   "A": "Left",
+   "B": "Right",
+   "C": "Backward",
+   "D": "Forward"
+  },
+  "answer": "A",
+  "item": "tcc275|1024867412_reverse|direction"
+ },
+ {
+  "video_id": "1017768724",
+  "dim": "direction",
+  "stem": "In which direction is the person heading?",
+  "options": {
+   "A": "vertically",
+   "B": "backward",
+   "C": "forward",
+   "D": "horizontally"
+  },
+  "answer": "D",
+  "item": "tcc276|1017768724|direction"
+ },
+ {
+  "video_id": "3396473605_reverse",
+  "dim": "direction",
+  "stem": "In which direction do the five stars disappear?",
+  "options": {
+   "A": "from right to left",
+   "B": "from top to bottom",
+   "C": "from left to right",
+   "D": "from bottom to top"
+  },
+  "answer": "A",
+  "item": "tcc277|3396473605_reverse|direction"
+ },
+ {
+  "video_id": "1098785169",
+  "dim": "direction",
+  "stem": "In which direction is the galaxy rotating?",
+  "options": {
+   "A": "backward",
+   "B": "counter clockwise",
+   "C": "clockwise",
+   "D": "forward"
+  },
+  "answer": "C",
+  "item": "tcc278|1098785169|direction"
+ },
+ {
+  "video_id": "1106668103",
+  "dim": "direction",
+  "stem": "How would you describe the primary trajectory in the video?",
+  "options": {
+   "A": "descending",
+   "B": "moving backward",
+   "C": "moving forward"
+  },
+  "answer": "C",
+  "item": "tcc279|1106668103|direction"
+ },
+ {
+  "video_id": "1075484900",
+  "dim": "direction",
+  "stem": "In what direction is the child moving in relation to the man?",
+  "options": {
+   "A": "Backward",
+   "B": "Forward",
+   "C": "Turning away from the man",
+   "D": "Turning towards the man"
+  },
+  "answer": "C",
+  "item": "tcc280|1075484900|direction"
+ },
+ {
+  "video_id": "1106668103_reverse",
+  "dim": "direction",
+  "stem": "How would you describe the primary trajectory in the video?",
+  "options": {
+   "A": "descending",
+   "B": "moving backward",
+   "C": "moving forward"
+  },
+  "answer": "B",
+  "item": "tcc281|1106668103_reverse|direction"
+ },
+ {
+  "video_id": "1081684532_reverse",
+  "dim": "direction",
+  "stem": "Which direction are the asteroids moving?",
+  "options": {
+   "A": "downwards",
+   "B": "towards the camera",
+   "C": "upwards",
+   "D": "away from the camera"
+  },
+  "answer": "D",
+  "item": "tcc282|1081684532_reverse|direction"
+ },
+ {
+  "video_id": "1088279109_reverse",
+  "dim": "direction",
+  "stem": "What is the elevator doing?",
+  "options": {
+   "A": "rising",
+   "B": "going down",
+   "C": "staying still"
+  },
+  "answer": "B",
+  "item": "tcc283|1088279109_reverse|direction"
+ },
+ {
+  "video_id": "1081684532",
+  "dim": "direction",
+  "stem": "Which direction are the asteroids moving?",
+  "options": {
+   "A": "downwards",
+   "B": "towards the camera",
+   "C": "upwards",
+   "D": "away from the camera"
+  },
+  "answer": "B",
+  "item": "tcc284|1081684532|direction"
+ },
+ {
+  "video_id": "1086820415_reverse",
+  "dim": "direction",
+  "stem": "How does the large wave travel across the screen?",
+  "options": {
+   "A": "moving vertically towards the bottom",
+   "B": "contracting towards the center",
+   "C": "moving vertically towards the top",
+   "D": "expanding from the center"
+  },
+  "answer": "C",
+  "item": "tcc285|1086820415_reverse|direction"
+ },
+ {
+  "video_id": "1111657885_reverse",
+  "dim": "direction",
+  "stem": "Which direction are the people skating?",
+  "options": {
+   "A": "towards the camera",
+   "B": "parallel to the screen",
+   "C": "away from the camera"
+  },
+  "answer": "C",
+  "item": "tcc286|1111657885_reverse|direction"
+ },
+ {
+  "video_id": "1067268403",
+  "dim": "direction",
+  "stem": "What is the movement direction of the wind turbines?",
+  "options": {
+   "A": "Stationary",
+   "B": "Rotating clockwise",
+   "C": "Rotating counterclockwise"
+  },
+  "answer": "B",
+  "item": "tcc287|1067268403|direction"
+ },
+ {
+  "video_id": "1108534143",
+  "dim": "direction",
+  "stem": "What action is the puppy taking?",
+  "options": {
+   "A": "entring a wigwam",
+   "B": "walking out of a wigwam",
+   "C": "walking around a wigwam"
+  },
+  "answer": "B",
+  "item": "tcc288|1108534143|direction"
+ },
+ {
+  "video_id": "1084153195_reverse",
+  "dim": "direction",
+  "stem": "If you observe the dolphins, what direction would you notice them heading?",
+  "options": {
+   "A": "towards the shore",
+   "B": "parallel to the shore",
+   "C": "away from the shore"
+  },
+  "answer": "C",
+  "item": "tcc289|1084153195_reverse|direction"
+ },
+ {
+  "video_id": "1095939659_reverse",
+  "dim": "direction",
+  "stem": "What is the direction of the light's movement?",
+  "options": {
+   "A": "Clockwise",
+   "B": "Anticlockwise",
+   "C": "Straight forward",
+   "D": "Downwards"
+  },
+  "answer": "B",
+  "item": "tcc290|1095939659_reverse|direction"
+ },
+ {
+  "video_id": "1076877854_reverse",
+  "dim": "direction",
+  "stem": "What kind of movement does the closest robotic arm exhibit?",
+  "options": {
+   "A": "Shifting to the left side of the screen",
+   "B": "Ascending and descending",
+   "C": "Shifting to the right side of the screen",
+   "D": "Swaying back and forth"
+  },
+  "answer": "A",
+  "item": "tcc291|1076877854_reverse|direction"
+ },
+ {
+  "video_id": "1100117263",
+  "dim": "direction",
+  "stem": "What is the direction of the little lion's motion?",
+  "options": {
+   "A": "downward",
+   "B": "upward",
+   "C": "towards the camera",
+   "D": "rightward"
+  },
+  "answer": "A",
+  "item": "tcc292|1100117263|direction"
+ },
+ {
+  "video_id": "1090578917_reverse",
+  "dim": "direction",
+  "stem": "What direction is the man leaping?",
+  "options": {
+   "A": "to his left",
+   "B": "backward",
+   "C": "forward",
+   "D": "to his right"
+  },
+  "answer": "A",
+  "item": "tcc293|1090578917_reverse|direction"
+ },
+ {
+  "video_id": "1088497853",
+  "dim": "direction",
+  "stem": "What is the direction of the movement in the video?",
+  "options": {
+   "A": "leftwards",
+   "B": "upwards",
+   "C": "rightwards",
+   "D": "downwards"
+  },
+  "answer": "B",
+  "item": "tcc294|1088497853|direction"
+ },
+ {
+  "video_id": "1100117263_reverse",
+  "dim": "direction",
+  "stem": "In what direction is the little lion going?",
+  "options": {
+   "A": "falling down",
+   "B": "climbing up",
+   "C": "walking forward",
+   "D": "walking backward"
+  },
+  "answer": "B",
+  "item": "tcc295|1100117263_reverse|direction"
+ },
+ {
+  "video_id": "1093737353_reverse",
+  "dim": "direction",
+  "stem": "What is the direction of the camera's movement?",
+  "options": {
+   "A": "panning to the left",
+   "B": "panning to the right",
+   "C": "backwards",
+   "D": "forwards"
+  },
+  "answer": "A",
+  "item": "tcc296|1093737353_reverse|direction"
+ },
+ {
+  "video_id": "1080591311_reverse",
+  "dim": "direction",
+  "stem": "Which way is the jellyfish moving?",
+  "options": {
+   "A": "going down",
+   "B": "going away from the screen",
+   "C": "going towards the screen",
+   "D": "going up"
+  },
+  "answer": "A",
+  "item": "tcc297|1080591311_reverse|direction"
+ },
+ {
+  "video_id": "1080591311",
+  "dim": "direction",
+  "stem": "What is the direction of motion for the jellyfish?",
+  "options": {
+   "A": "floating to the right",
+   "B": "floating to the left",
+   "C": "floating downwards",
+   "D": "floating upwards"
+  },
+  "answer": "D",
+  "item": "tcc298|1080591311|direction"
+ },
+ {
+  "video_id": "1099984801_reverse",
+  "dim": "direction",
+  "stem": "In what direction are the clouds heading?",
+  "options": {
+   "A": "towards the camera",
+   "B": "upward",
+   "C": "downward",
+   "D": "away from the camera"
+  },
+  "answer": "D",
+  "item": "tcc299|1099984801_reverse|direction"
+ }
+]
