@@ -34,3 +34,30 @@ Verified for `docs/new_direction/related_work.md`, which has the links, what eac
 | SerialRank: Spectral Ranking using Seriation | Fogel, d'Aspremont, Vojnovic | NeurIPS 2014 | — |
 | TVBench / Lost in Time (arXiv 2410.07752) | Cores et al. | BMVC 2025 | — |
 | Seeing the Arrow of Time in Large Multimodal Models (arXiv 2506.03340) | Xue, Luo, Grauman | arXiv 2025 | — |
+
+## Caption-index direction (2026-10-15)
+
+Verified for `docs/new_direction/related_work_caption_index.md` (third pass), which has the links, findings and how we differ. Closest first; background papers are listed only in that file.
+
+| Paper | Authors | Venue | Local PDF |
+|---|---|---|---|
+| Caption-once, Frames-on-Demand (CFD; arXiv 2609.11899) | Cai et al. | EMNLP 2026 | — |
+| CapMem: Caption-Based Episodic Memory in Egocentric Video (arXiv 2609.17688) | Liang et al. | EMNLP 2026 | — |
+| ViSIL: Information Loss in Multimodal Video Captioning (arXiv 2601.09851) | Li et al. | arXiv 2026 | — |
+| Sprout: Building Dynamic Memory While Reasoning (arXiv 2609.35497) | Chen et al. | arXiv 2026 | — |
+| Rethinking Long-Video Efficiency: Frames, Pixels, and Front-End Latency (LoHi; arXiv 2610.04318) | Dong et al. | NeurIPS 2026 | — |
+| Budget-Constrained Embodied Perception (ASP; arXiv 2608.22975) | Lin et al. | arXiv 2026 | — |
+| Video Evidence Indexing (VEI; arXiv 2610.00757) | Guan et al. | arXiv 2026 | — |
+| Why Is Video Still So Expensive? (survey; arXiv 2609.10355) | Steunou et al. | arXiv 2026 | — |
+| Modality Inflation: Energy of MLLM Inference (arXiv 2512.22695) | Moghadampanah et al. | arXiv 2025 | — |
+| Where Do the Joules Go? (ML.ENERGY v3; arXiv 2601.22076) | Chung et al. | arXiv 2026 | — |
+| CaptionQA (arXiv 2511.21025) | Yang et al. | CVPR 2026 | — |
+| CapQuiz (arXiv 2609.09973) | Wang et al. | ACL 2026 | — |
+| CodecCap / VidCapQA (arXiv 2605.26967) | Lin et al. | arXiv 2026 | — |
+| TempCore: Are Video QA Benchmarks Temporally Grounded? (arXiv 2509.01167) | Ok, Lee | EMNLP 2026 | — |
+| TempCompass (arXiv 2403.00476) | Liu et al. | arXiv 2024 | — |
+| Perception Test (arXiv 2305.13786) | Pătrăucean et al. | NeurIPS 2023 D&B | — |
+| SiLVR: A Simple Language-based Video Reasoning Framework (arXiv 2505.24869) | Zhang et al. | TMLR 2026 | — |
+| AI Agents That Matter (arXiv 2407.01502) | Kapoor et al. | TMLR | — |
+| Efficient compression in color naming and its evolution | Zaslavsky, Kemp, Regier, Tishby | PNAS 2018 | — |
+| Mind Your Step (by Step) (arXiv 2410.21333) | Liu et al. | ICML 2025 | — |
