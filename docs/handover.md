@@ -2,6 +2,43 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
+# 2026-10-18 → TempCompass kill test for the caption index
+
+**The user's stance (2026-10-18):** wrap up quickly and cheaply. Unshuffling is dropped (not a real-world task, and similar work is published). Reconstruction is treated as blocked, since no evaluation showed a benefit over copying the neighbouring caption. "Captions lose timing" is not a finding: the near-constant 1–2 s lead is a captioning convention. The caption-index plan is a "maybe", to be decided on this test.
+
+**Done:**
+- Terms fixed in `research_plan_caption_index.md` (Terms block): **codability** (not "nameability"); a **coverage / captioner / format** split (the "code" term is renamed format, and a captioner term is added). Prop. 1 is reworded: captions cannot add information about the video, but they can add *usable* information for a fixed reader, through the captioner's world knowledge.
+- `scripts/index_qa/` (`tempcompass.py`, `caption.py`, `reader.py`), prompts in `prompts/index_qa/`, tests in `tests/test_index_qa.py`.
+  - TempCompass data is in `local/tempcompass/`: lmms-eval/TempCompass on Hugging Face, ungated, 418 MB zip.
+  - Sample: 100 questions, 20 per aspect, one per video. 283 windows of 5 s.
+  - Captions: Gemini, the WildQA isolated-piece prompt. $0.81 for 283 calls; logged total $2.37.
+  - Reader: Haiku, 400 calls. Quota: 5-hour window 40% → 44%; the 7-day figure stayed at 71%.
+
+**Result (Haiku, 100 questions):** question only 0.36 (chance 0.30), captions **0.71**, 1 frame per window 0.65, 5 frames per window 0.70.
+- Captions − 5 frames: +0.01 [−0.07, +0.09]. Captions − 1 frame: +0.06 [−0.04, +0.16].
+- Video-content input tokens (above the ≈ 1,024 fixed prompt): captions ≈ 245, 1 frame ≈ 180, 5 frames ≈ 560.
+- By aspect (n = 20 each), captions are ahead on attribute change (0.90 vs. 0.80) and order (0.80 vs. 0.65), and behind on speed and direction. Direction is hard for every arm (≤ 0.45).
+
+**Later the same day: K1, K2 and N1.** The full record, with predictions written before each run, is in **`docs/new_direction/research_log.md`** (the user asked for a documented research process; keep it updated). In short:
+- K1 (Sonnet, 100 questions): frames 0.84, captions 0.77. Captions − frames −0.07 [−0.15, 0.00]. The loss is in direction and speed.
+- K2 (Haiku captions its own frames, 50 questions): 0.56. Format effect −0.10, captioner effect +0.08.
+- N1: IsoBench and Prism are the image-domain precedents. Our open contribution is the coverage/captioner/format split on video at matched cost.
+
+**Next:** the user decides on a confirmatory study (log, end of K1).
+
+# 2026-10-15 → literature review (third pass) and a costed research plan
+
+**The user's brief (2026-10-15):** find a niche that is novel, publishable, rigorous and correct; interdisciplinary; resource-aware (time, memory, money, energy, parameters, context, tokens); within the Claude subscription, ≈ $50 of Gemini credits and Kaggle. First a comprehensive literature review, then a research plan with estimated costs that reuses what we have.
+
+**Done (docs only; no runs, no spending):**
+- `docs/new_direction/related_work_caption_index.md` rewritten as a full review: state of the art in 11 threads (caption pipelines, caption memories, visual token budgets, text vs. pixels, caption utility, benchmarks, cost and energy, video databases, coding for machines, theory, cognitive science), closest-work matrix, gaps, corrections to the second pass.
+  - New close papers: Sprout (lazy text memory, 2609.35497), LoHi (dense low-res beats sparse full-res at matched visual budget, NeurIPS 2026), ASP (pre-registered budget-matched evaluation), Modality Inflation and ML.ENERGY v3 (energy per token by modality), CodecCap, TempCore, SwitchMem.
+  - Still open: per-task accuracy–cost curves for captions vs. frames on short video with the same reader; coverage vs. code; a cost account beyond tokens; why some content survives the language channel.
+- `docs/new_direction/research_plan_caption_index.md`: the proposed plan. RQ1–RQ4, Props. 1–4 (garbling bound, break-even Q\*, routing headroom by LP duality, price of task-agnosticism), H1–H7, arms T0–T5 / V0–V5 / H1 with tokens and bytes per 5 s, E0–E7, the cost card, statistics, reuse map, budget, timeline, risks, decisions.
+- Facts checked: Claude image tokens are ⌈w/28⌉×⌈h/28⌉ (448×252 → 144); Gemini 3 video frames 70 tokens at default resolution; our isolated caption is 32 words / 184 bytes, and thinking is ≈ 87% of its Gemini call's cost ($0.0028 median); a 224 px frame JPEG is 7.7 KB.
+
+**Next (needs the user's decisions, plan §12):** adopt the plan or not; Perception Test vs. NExT-QA; then Phase 0 (E0: Gemini thinking-level check for < $0.10, open-VLM energy smoke test on Kaggle, data download, nameability ratings, pre-registration draft).
+
 # 2026-10-14 (evening) → reframe under review: captions as a one-time index
 
 **Why:** the user's goal is captions as a one-time index that makes later video tasks cheap, so experiments should be judged by accuracy at matched query tokens. The Gate 1 design (a strong reader on frames vs. captions made from the same frames, at 11× the tokens for frames) did not answer that.
