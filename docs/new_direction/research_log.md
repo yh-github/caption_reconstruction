@@ -141,6 +141,19 @@ By aspect (20 each), Sonnet captions vs. frames: action 1.00 vs. 1.00, attribute
 
 **Caveat on point 2.** Direction and speed were named as low-codability families in the plan before K0 (2026-10-15, H3: "direction, speed, order of continuous motion, fine appearance"). But the split of TempCompass's five aspects into high and low groups has not been fixed independently of these results. For the confirmatory test it must be fixed by codability ratings made without seeing any results, or stated as the plan's a-priori grouping and nothing else.
 
+### D1 — How the confirmatory aspect hypothesis is fixed (2026-10-18)
+
+**Record keeping.** K1 and K2's predictions were in this file before their runs, but were committed only afterwards (commit a94116c), together with their results. From the confirmatory step on, each entry is committed before the run.
+
+**Question raised by the user.** Why rate questions for codability at all, and how could we know the ratings are right?
+
+**Answer and decision.**
+- **The aspect claim needs no ratings.** The claim that captions lose on direction and speed, and not on action, order or attribute change, can be tested directly on fresh data. That is what the development/confirmatory split is for. The development data suggested the grouping; the 310 unused TempCompass videos test it. A grouping chosen from development data is not circular when the test is on held-out data.
+- **Ratings would only serve the explanation** ("because these are hard to put into words"). Codability has no ground truth. In cognitive science it is *measured* as agreement between people's descriptions, and it is valid insofar as it predicts something. The user's suggestion (let a model predict, then check) is how such a measure would be validated. In this field it is also a known method: CFD's visual-need router predicts from the question whether frames are needed. That is a separate, optional experiment ("can a model tell in advance when the index will fail?"), not a prerequisite.
+- **The original paper's grouping does not match ours.** TempCompass (Liu et al. 2024) treats action as largely solvable from static cues and the other four aspects as temporal. It reports no text-only or caption-input baselines. In our development data, captions keep two temporal aspects (order, attribute change) and lose two (direction, speed). So "temporal vs. static" is not what a caption loses.
+- **The sharper hypothesis** (post hoc, from development data; to be tested on the confirmatory set): a caption keeps discrete content (what happened, in what order, what changed) and loses continuous quantities (how fast, which way).
+- **Decision:** drop the rating step. Use TempCompass's own aspects, with the grouping {direction, speed} vs. {action, order, attribute change} fixed now, before any confirmatory data.
+
 ### K2 — Captioner vs. format: Haiku captions its own frames (pre-registered 2026-10-18)
 
 **Items.** The same 50 questions as K1.
