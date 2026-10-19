@@ -2,6 +2,24 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
+# 2026-10-19 → C1 confirmatory results; C2 robustness check; venue search
+
+**C1 is done** (pre-registered, 297 held-out TempCompass questions; full record and tables in `docs/new_direction/research_log.md`, C1 *Result*):
+- **P3 passed:** Gemini's captions of the reader's own 5 frames beat Haiku's self-captions by +0.15 [+0.09, +0.21] (prediction +0.06).
+- **P2 not passed:** format effect +0.03 [−0.03, +0.09], so at most +0.09, against IsoBench's 15–29 points.
+- **P1 not passed:** aspect contrast −0.10 [−0.23, +0.03]. Speed is the only consistent loss.
+- **S3:** Haiku on Gemini captions beats Haiku on 5 frames by +0.125 with 43% of the video tokens. **S1:** Sonnet loses nothing on captions (−0.007).
+- Sonnet's secondary arms (question only, 1 frame) were skipped by stop rule 3 (7-day quota 86%). Proposed, not yet approved: run them after the weekly reset as an amendment (600 Sonnet calls, ≈ 7–8 points of the 7-day figure).
+
+**Open weakness, found after the run:** Gemini spent ≈ 5,500 visual tokens per window on the frames (image path), Haiku 200, and Gemini's video path 330. So P3 may be "looked harder", not "knows more". **C2** (log) re-captions the same frames as a 1-fps clip through Gemini's video path (≈ 330 tokens), to measure the captioner effect at matched visual tokens. The user approved it on 2026-10-19 (≈ $2 of Gemini, 297 Haiku calls).
+
+**Decided with the user (2026-10-19):** record C1, then run C2. The user wants help choosing a venue, which sets the deadline.
+
+**Proposed, not yet approved:**
+- The paper claim "a strong captioner's knowledge carried to a cheap reader", pending C2.
+- Reorder the literature search brief (`final_search_brief.md`: Q5 and Q1 first, Q3 last) and run it after the reset.
+- A short paper or a workshop, with no second benchmark.
+
 # 2026-10-18 → TempCompass kill test for the caption index
 
 **The user's stance (2026-10-18):** wrap up quickly and cheaply. Unshuffling is dropped (not a real-world task, and similar work is published). Reconstruction is treated as blocked, since no evaluation showed a benefit over copying the neighbouring caption. "Captions lose timing" is not a finding: the near-constant 1–2 s lead is a captioning convention. The caption-index plan is a "maybe", to be decided on this test.

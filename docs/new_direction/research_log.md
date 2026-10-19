@@ -288,3 +288,75 @@ The development results stay in the paper as the exploratory phase; the claims r
   - **Frames, `1058907236_1021488277_1` and `1096238125_1098970151_1`, window 1:** Gemini answered `ERROR`, the prompt's option for "a description cannot be generated". Both are spliced order videos, and each window spans the cut (squirrel → pineapple; kettlebell swings → cat). Gemini's reasoning says it took the hard cut for a corrupted or test input. The video captioner described the same windows.
 - **Rule: the 3 questions are dropped from every arm**, so the paired comparisons stay on the same questions. They are tcc132, tcc153 and tcc169, all order (`EXCLUDED` in `tempcompass.py`; `confirm_items.json` stays as sampled). They are not analysed further. C1 now has **297 questions**: 60 per aspect, and 57 for order.
 - **Possible bias:** two of the three are spliced clips, where the cut is the content. So the exclusion slightly removes the kind of item that a frame captioner finds odd. At 3 questions it cannot move any estimate. We note it and do not correct for it.
+
+**Result (2026-10-19; `reader.py confirm`, run once, after all arms of steps 1–2 were complete).**
+
+*Runs.* Gemini: 1,544 caption calls (Amendment 2). Haiku: 772 self-caption calls and 1,782 reader calls (6 arms × 297 questions; one 5-frame answer needed its format retry). Sonnet: 594 reader calls (the 2 primary arms). No call failed. Quota (account-wide, other sessions included): 7-day 75% → 86%; the 5-hour figure peaked at 62%. **Stop rule 3 applied:** the 7-day figure was 86% after step 2, so Sonnet's secondary arms (question only, 1 frame) were not run, and S1 retention and Sonnet's S5 are missing.
+
+*Accuracy.* Tokens are the median input tokens above the question-only prompt (≈ 1,025), i.e. the video content; Sonnet's are the same within 2 tokens.
+
+| Arm | Haiku | Sonnet | Video-content tokens |
+|---|---|---|---|
+| Question only | 0.411 | — | 0 |
+| 1 frame | 0.582 | — | 164 |
+| 5 frames | 0.613 | 0.798 | 495 |
+| Haiku self-captions | 0.643 | — | 258 |
+| Gemini frame captions | 0.791 | — | 204 |
+| Gemini video captions | 0.737 | 0.791 | 211 |
+
+| By aspect (60 each; order 57) | action | attribute change | direction | order | speed |
+|---|---|---|---|---|---|
+| Haiku, question only | 0.63 | 0.37 | 0.28 | 0.37 | 0.40 |
+| Haiku, 1 frame | 0.88 | 0.55 | 0.32 | 0.65 | 0.52 |
+| Haiku, 5 frames | 0.93 | 0.67 | 0.28 | 0.65 | 0.53 |
+| Haiku, self-captions | 0.90 | 0.70 | 0.38 | 0.82 | 0.42 |
+| Haiku, Gemini frame captions | 1.00 | 0.90 | 0.55 | 1.00 | 0.52 |
+| Haiku, Gemini video captions | 0.95 | 0.82 | 0.43 | 0.93 | 0.57 |
+| Sonnet, 5 frames | 0.97 | 0.82 | 0.58 | 0.91 | 0.72 |
+| Sonnet, Gemini video captions | 1.00 | 0.82 | 0.55 | 0.98 | 0.62 |
+
+*Primary hypotheses* (98.33% CIs):
+
+| | Observed [98.33% CI] | Prediction | Development value | Verdict |
+|---|---|---|---|---|
+| P1 aspect, Sonnet | −0.101 [−0.231, +0.028] | −0.20 | −0.26 | **Not passed.** Right sign, half the size. Captions − frames is −0.067 on {direction, speed} and +0.034 on the rest. The loss is in speed (−0.10); direction lost only −0.03. |
+| P2 format, Haiku | +0.030 [−0.034, +0.094] | −0.08 | −0.10 | **Not passed, and the CI excludes the prediction.** No evidence of a format effect in either direction; it is at most +0.09. |
+| P3 captioner, Haiku | **+0.148 [+0.088, +0.209]** | +0.06 | (+0.08, with coverage) | **Passed**, at 2.5× the predicted size. Positive in every aspect (+0.10 to +0.20). |
+
+*Secondary* (95% CIs):
+
+| | Observed [95% CI] | Prediction |
+|---|---|---|
+| S1 caption loss, Sonnet (captions − 5 frames) | −0.007 [−0.054, +0.040] | −0.07 |
+| S1 retention, Sonnet | not run (stop rule 3) | 0.85 |
+| S2 coverage, Haiku (video captions − frame captions) | −0.054 [−0.098, −0.013] | +0.02 |
+| S3 total, Haiku (video captions − 5 frames) | **+0.125 [+0.071, +0.178]** | 0.00 |
+| S4 aspect contrast, Haiku | −0.055 [−0.172, +0.060] | −0.12 |
+| S5 matched cost, Haiku (captions − 1 frame) | **+0.155 [+0.098, +0.212]** | +0.05 |
+| S5 matched cost, Sonnet | not run (stop rule 3) | +0.02 |
+| S6 Haiku on captions − Sonnet on 5 frames | −0.061 [−0.111, −0.010] | −0.13 |
+
+By aspect, paired differences (descriptive):
+- Sonnet, captions − 5 frames: action +0.03, attribute change +0.00, direction −0.03, order +0.07, speed −0.10.
+- Haiku, format (self-captions − 5 frames): action −0.03, attribute change +0.03, direction +0.10, order +0.18, speed −0.12.
+- Haiku, captioner (frame captions − self-captions): action +0.10, attribute change +0.20, direction +0.17, order +0.18, speed +0.10.
+- Haiku, coverage (video captions − frame captions): action −0.05, attribute change −0.08, direction −0.12, order −0.07, speed +0.05.
+
+**What each comparison held constant, checked after the run.** The visual tokens per 5 s window differ between the arms (Gemini's from `results/piece_captions/calls.jsonl`; Claude's from the image rule, 224×126 → 40 per frame):
+- Gemini video captions: ≈ 330 (5 frames at 1 fps, ≈ 66 tokens each).
+- Gemini frame captions: ≈ 5,500 (≈ 1,100 per image at the default media resolution, Amendment 1).
+- Haiku self-captions: 200.
+- Neither Gemini arm had audio tokens (the audio track is removed). The frame-caption and self-caption prompts are the video prompt with only the first clause changed to describe frames (`caption.frames_prompt`), so the prompts are not a confound.
+
+So **S2 compares 330 with 5,500 visual tokens**, besides the source video with the reader's frames, and cannot be read as "seeing less helps". And **P3 compares Gemini at 5,500 tokens with Haiku at 200**: it shows that Gemini's caption of the same pixels is more useful, but not whether that comes from what Gemini knows or from the 27× larger visual budget it spent on them. C2 tests this.
+
+**Development vs. confirmatory.** Haiku on 5 frames fell from 0.70 (development) to 0.61; Haiku on Gemini captions rose from 0.71 to 0.74; Sonnet moved less (frames 0.84 → 0.80, captions 0.77 → 0.79). Part of S3's +0.125 (development +0.01) comes from Haiku's frame arm doing worse on these videos.
+
+**Predictions against results.** P1 had the right sign and half the size. P2 had the wrong sign. P3 had the right sign and 2.5× the size. Every prediction based on development data was too pessimistic about captions: S1 (−0.07 → −0.01), S3 (0.00 → +0.13), S5 (+0.05 → +0.16), S6 (−0.13 → −0.06). The K2 estimates came from 50 questions and did not replicate.
+
+**Reading, by the outcomes mapped in advance.**
+- **P3 positive, S2 not positive:** the mapped reading is "the caption index transfers the captioner's knowledge, not its view of the video". It stands only if C2 shows the captioner effect at matched visual tokens.
+- **P2:** no format advantage for question-blind video captions: at most +0.09 (98.33% upper bound), against IsoBench's 15–29 points for exact text renderings. This is the IsoBench contrast, stated as a bound.
+- **P1:** not confirmed. Speed is the only aspect where captions lost for Sonnet. The development finding that captions lose direction did not replicate: Haiku even did better on direction from Gemini captions than from frames (0.43 vs. 0.28).
+
+**Proposed claims for the paper (2026-10-19, pending C2):** a strong captioner's question-blind captions carry its knowledge to a cheap reader. Haiku on Gemini captions beats Haiku on 5 frames by 12.5 points with 43% of the video tokens, and comes within 6 points of Sonnet on frames. Sonnet loses nothing on captions (−0.007) with 43% of the video tokens. The text format adds at most a little. P1 is reported as a null, with speed as an exploratory loss.
