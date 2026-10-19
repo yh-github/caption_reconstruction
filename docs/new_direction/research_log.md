@@ -401,3 +401,9 @@ With C1's format term, **C2c + C2a + P2 = S3** exactly, the total caption effect
 2. **Captions:** 761 windows (the 297 questions' videos), ≈ $0.0027 each, ≈ $2.0. Cap `--max-usd 11.5` (logged total $8.98; the approved cap is $13). Stop and investigate if more than 2% of windows get no caption. Otherwise, a question with a window without a caption is dropped from every C2 comparison (`reader.py run --skip-missing`, and `c2` uses only questions all its arms answered), and listed here.
 3. **Reader:** Haiku, 297 calls, `--max-5h 0.8`, the isolation and model checks of K0–C1.
 4. **Analysis:** `reader.py c2` is run once, when both steps are complete, and its output is reported here in full.
+
+**Amendment 1 (2026-10-19, after the 3-call check, before the rest of the run).**
+- **The check:** the three captions describe their frames: two static circle outlines on black; a split-screen forest path turning from green to autumn gold; the same forward walk along the autumn path. They cost $0.011.
+- **Tokens:** they came out at 280 per full window (56 per frame) and 168 for a 3-frame window, not ≈ 330. That breaks rule 1 as written. But the video arm got **exactly the same counts for the same windows** (280, 168, 280). Gemini's tokens per video frame depend on the video's frame size: these are split-screen videos (56 per frame), and most videos get 66. The ≈ 330 in rule 1 was the median over windows, not a per-window target.
+- **What the rule meant:** the frame clip must cost Gemini the same visual tokens as the video for the same window. That holds. **Rule 1 is restated that way, and the run continues.**
+- `reader.py c2` now also prints, per window, whether the two arms' tokens are equal.

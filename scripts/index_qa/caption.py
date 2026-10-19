@@ -75,14 +75,15 @@ def frame_clip(frames: list[Path]) -> bytes:
         return Path(tmp.name).read_bytes()
 
 
-def visual_tokens(mode: str) -> list[int]:
-    """Gemini's video or image input tokens per successful call of a captioning mode, from the calls log."""
-    out = []
+def visual_tokens(mode: str) -> dict[tuple[str, int], int]:
+    """Gemini's video or image input tokens per (video_id, window) of a captioning mode, from the calls log (the
+    latest successful call per window)."""
+    out = {}
     for line in cp.CALLS_LOG.open():
         r = json.loads(line)
         if r["mode"] == mode and not r.get("error") and not r.get("cached"):
-            out.append(sum(d["token_count"] for d in r["usage"].get("prompt_tokens_details", [])
-                           if d["modality"] in ("VIDEO", "IMAGE")))
+            out[r["video_id"], r["piece"]] = sum(d["token_count"] for d in r["usage"].get("prompt_tokens_details", [])
+                                                 if d["modality"] in ("VIDEO", "IMAGE"))
     return out
 
 

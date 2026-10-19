@@ -394,9 +394,14 @@ def cmd_c2(args):
     print(f"{len(qs)} confirmatory questions, {len(x)} answered in every C2 arm; dropped: "
           f"{sorted(set(wide.index) - set(x.index)) or 'none'}")
     print("\nGemini visual tokens per window, median over the logged calls (all sets):")
-    for mode in (MODE, f"{MODE}_frames", f"{MODE}_frameclip"):
-        t = visual_tokens(mode)
-        print(f"  {mode}: {sorted(t)[len(t) // 2] if t else None} (n={len(t)})")
+    tok = {mode: visual_tokens(mode) for mode in (MODE, f"{MODE}_frames", f"{MODE}_frameclip")}
+    for mode, t in tok.items():
+        v = sorted(t.values())
+        print(f"  {mode}: {v[len(v) // 2] if v else None} (n={len(v)})")
+    both = tok[MODE].keys() & tok[f"{MODE}_frameclip"].keys()
+    same = sum(tok[MODE][k] == tok[f"{MODE}_frameclip"][k] for k in both)
+    print(f"  frame clip vs. video, same window: equal tokens in {same} of {len(both)} windows; total "
+          f"{sum(tok[f'{MODE}_frameclip'][k] for k in both)} vs. {sum(tok[MODE][k] for k in both)}")
     print("\naccuracy:")
     print(x.mean().round(3).to_string())
     print("\naccuracy by aspect:")
