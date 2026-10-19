@@ -112,6 +112,7 @@ def main() -> None:
     ap.add_argument("--usd-out", type=float, default=3.00, help="$ per 1M output + thinking tokens")
     ap.add_argument("--sleep", type=float, default=2.0, help="seconds between calls")
     ap.add_argument("--limit-calls", type=int, help="stop after this many API calls")
+    ap.add_argument("--shard", help="K/N: only every N-th window to do, from the K-th (0-based), for parallel runs")
     ap.add_argument("--dry-run", action="store_true", help="list work, no API calls")
     args = ap.parse_args()
 
@@ -123,6 +124,9 @@ def main() -> None:
     if args.input != "video" and (missing := [f for j in jobs for f in j[4] if not f.exists()]):
         sys.exit(f"{len(missing)} frames missing, e.g. {missing[0]}: run tempcompass.py frames --set {args.set_}")
     todo = [j for j in jobs if not caption_path(captioner, j[0], j[1]).exists()]
+    if args.shard:
+        k, n = map(int, args.shard.split("/"))
+        todo = todo[k::n]
     print(f"{len(jobs)} windows, {len(todo)} to do, spent so far ${cp.spent_usd():.4f} of ${args.max_usd}")
     if args.dry_run:
         return
