@@ -34,6 +34,13 @@ FRAMES = TC / "frames"
 OUT = ROOT / "results/index_qa"
 SETS = {"dev": OUT / "kill_test_items.json", "confirm": OUT / "confirm_items.json"}
 ITEMS = SETS["dev"]
+# C1 amendment 2 (research log): questions dropped from every arm, before any reader call on the Gemini captions,
+# because the captioner returned no caption for one of their windows
+EXCLUDED = {
+    "tcc132|1058907236_1021488277_1|order": "frame captions: window 1 answered ERROR (spliced clips)",
+    "tcc153|1022115337|order": "video captions: windows 0-1 blocked (PROHIBITED_CONTENT)",
+    "tcc169|1096238125_1098970151_1|order": "frame captions: window 1 answered ERROR (spliced clips)",
+}
 WINDOW_S = 5
 LONG_EDGE = 224
 DIMS = ["action", "speed", "direction", "order", "attribute_change"]
@@ -104,9 +111,10 @@ def sample_confirm() -> list[dict]:
 
 
 def items(set_: str = "dev") -> list[dict]:
+    """The set's questions, without EXCLUDED ones (the items file itself stays as sampled)."""
     if not SETS[set_].exists():
         sys.exit(f"{SETS[set_]} is missing: run scripts/index_qa/tempcompass.py sample --set {set_} first")
-    return json.loads(SETS[set_].read_text())
+    return [q for q in json.loads(SETS[set_].read_text()) if q["item"] not in EXCLUDED]
 
 
 def first_per_dim(qs: list[dict], n: int | None) -> list[dict]:
