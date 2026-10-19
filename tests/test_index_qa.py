@@ -7,7 +7,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 from index_qa import tempcompass as tc  # noqa: E402
-from index_qa.caption import GEMINI_LEAD, frames_prompt, prompt_for  # noqa: E402
+from index_qa.caption import GEMINI_LEAD, frame_clip, frames_prompt, prompt_for  # noqa: E402
 from index_qa.reader import HIGH, LOW, contrast_boot, paired_boot, parse, retention_boot  # noqa: E402
 
 
@@ -103,3 +103,24 @@ def test_frames_prompt_changes_only_the_lead():
     assert p.split("Describe what happens in the clip,", 1)[1] == \
         prompt_for(tc.ROOT.joinpath("prompts/yt_video_processing/piece_isolated.txt").read_text(), 5).split(
             GEMINI_LEAD, 1)[1]
+
+
+def test_frame_clip_plays_each_frame_for_one_second(tmp_path):
+    import cv2
+    import numpy as np
+    colors = [(0, 0, 255), (0, 255, 0), (255, 0, 0)]
+    frames = []
+    for i, c in enumerate(colors):
+        f = tmp_path / f"{i}.jpg"
+        cv2.imwrite(str(f), np.full((126, 224, 3), c, np.uint8))
+        frames.append(f)
+    clip = tmp_path / "clip.mp4"
+    clip.write_bytes(frame_clip(frames))
+    cap = cv2.VideoCapture(str(clip))
+    assert cap.get(cv2.CAP_PROP_FPS) == pytest.approx(1.0)
+    decoded = []
+    while (got := cap.read())[0]:
+        decoded.append(got[1])
+    assert len(decoded) == 3 and decoded[0].shape == (126, 224, 3)
+    for d, c in zip(decoded, colors):
+        assert np.abs(d.mean((0, 1)) - c).max() < 12

@@ -9,11 +9,16 @@ place of "5-second"; the prompt hash is saved per window. Calls are logged to re
 
 --input frames (C1's coverage control) gives Gemini, instead of the video, exactly the window's JPEG frames that
 the frames5 reader arm shows, with the prompt the self-captions use (frames_prompt). Those captions go to the
-captioner directory <model>-frames (mode "tc_isolated_frames").
+captioner directory <model>-frames (mode "tc_isolated_frames"). Gemini encodes each image at about 1,100 tokens.
+
+--input frameclip (C2) gives Gemini the same JPEG frames played as a 1 fps clip (frame_clip), through the video
+path and with the video prompt, so the visual tokens (about 66 per frame) and the prompt match the video captions.
+Captioner directory <model>-frameclip, mode "tc_isolated_frameclip".
 
     source ~/.secrets && .venv/bin/python scripts/index_qa/caption.py --dry-run
     source ~/.secrets && .venv/bin/python scripts/index_qa/caption.py --limit-calls 3 --max-usd 2.5
     source ~/.secrets && .venv/bin/python scripts/index_qa/caption.py --set confirm --input frames --max-usd 7.5
+    source ~/.secrets && .venv/bin/python scripts/index_qa/caption.py --set confirm --input frameclip --max-usd 11.5
 Writes results/index_qa/captions/<captioner>/<video_id>/<pp>.json.
 """
 from __future__ import annotations
@@ -22,7 +27,9 @@ import argparse
 import hashlib
 import json
 import os
+import subprocess
 import sys
+import tempfile
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -57,6 +64,28 @@ def frames_content(frames: list[Path], prompt: str):
                                      for f in frames), cp.types.Part(text=prompt)])
 
 
+def frame_clip(frames: list[Path]) -> bytes:
+    """The frames as an mp4 at 1 fps, one second each, in the given order; H.264 at the settings of cp.cut, padded
+    to even dimensions if needed (224x126 needs none)."""
+    with tempfile.NamedTemporaryFile(suffix=".mp4") as tmp:
+        cmd = [cp.imageio_ffmpeg.get_ffmpeg_exe(), "-v", "error", "-y", "-f", "image2pipe", "-framerate", "1",
+               "-c:v", "mjpeg", "-i", "-", "-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2", "-c:v", "libx264",
+               "-preset", "veryfast", "-crf", "18", "-pix_fmt", "yuv420p", "-movflags", "+faststart", tmp.name]
+        subprocess.run(cmd, input=b"".join(f.read_bytes() for f in frames), check=True)
+        return Path(tmp.name).read_bytes()
+
+
+def visual_tokens(mode: str) -> list[int]:
+    """Gemini's video or image input tokens per successful call of a captioning mode, from the calls log."""
+    out = []
+    for line in cp.CALLS_LOG.open():
+        r = json.loads(line)
+        if r["mode"] == mode and not r.get("error") and not r.get("cached"):
+            out.append(sum(d["token_count"] for d in r["usage"].get("prompt_tokens_details", [])
+                           if d["modality"] in ("VIDEO", "IMAGE")))
+    return out
+
+
 def caption_path(model: str, video_id: str, p: int) -> Path:
     return CAPTIONS / model / video_id / f"{p:02d}.json"
 
@@ -76,7 +105,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--model", default=cp.LLM_CONFIG["model_name"])
     ap.add_argument("--set", dest="set_", choices=list(tc.SETS), default="dev")
-    ap.add_argument("--input", choices=["video", "frames"], default="video")
+    ap.add_argument("--input", choices=["video", "frames", "frameclip"], default="video")
     ap.add_argument("--max-usd", type=float, default=2.5, help="stop when the spend logged in calls.jsonl reaches this")
     ap.add_argument("--usd-in", type=float, default=0.50, help="$ per 1M input tokens")
     ap.add_argument("--usd-out", type=float, default=3.00, help="$ per 1M output + thinking tokens")
@@ -85,12 +114,12 @@ def main() -> None:
     ap.add_argument("--dry-run", action="store_true", help="list work, no API calls")
     args = ap.parse_args()
 
-    captioner = args.model if args.input == "video" else f"{args.model}-frames"
-    mode = MODE if args.input == "video" else f"{MODE}_frames"
+    captioner = args.model if args.input == "video" else f"{args.model}-{args.input}"
+    mode = MODE if args.input == "video" else f"{MODE}_{args.input}"
     jobs = [(q["video_id"], p, s, e, frames) for q in tc.items(args.set_)
             for p, ((s, e), frames) in enumerate(zip(tc.windows(tc.duration_s(q["video_id"])),
                                                      tc.window_frames(q["video_id"])))]
-    if args.input == "frames" and (missing := [f for j in jobs for f in j[4] if not f.exists()]):
+    if args.input != "video" and (missing := [f for j in jobs for f in j[4] if not f.exists()]):
         sys.exit(f"{len(missing)} frames missing, e.g. {missing[0]}: run tempcompass.py frames --set {args.set_}")
     todo = [j for j in jobs if not caption_path(captioner, j[0], j[1]).exists()]
     print(f"{len(jobs)} windows, {len(todo)} to do, spent so far ${cp.spent_usd():.4f} of ${args.max_usd}")
@@ -119,6 +148,10 @@ def main() -> None:
             prompt = prompt_for(base, e - s)
             t0 = time.time()
             request = cp.content(cp.cut(tc.video_path(v), s, e - s), prompt)
+        elif args.input == "frameclip":
+            prompt = prompt_for(base, e - s)
+            t0 = time.time()
+            request = cp.content(frame_clip(frames), prompt)
         else:
             prompt = frames_prompt(len(frames), e - s)
             t0 = time.time()
@@ -164,7 +197,7 @@ def main() -> None:
         dest.write_text(json.dumps(dict(
             video_id=v, window=p, start_s=s, end_s=e, caption=caption, mode=mode, captioner=args.model,
             prompt=str(cp.PROMPTS["isolated"].relative_to(cp.ROOT)),
-            frames=[str(f.relative_to(tc.ROOT)) for f in frames] if args.input == "frames" else None,
+            frames=[str(f.relative_to(tc.ROOT)) for f in frames] if args.input != "video" else None,
             prompt_sha256=hashlib.sha256(prompt.encode()).hexdigest()[:16], model_version=rec["model_version"],
             audio=False, usage=usage, thoughts=res.thoughts), indent=1))
         time.sleep(args.sleep)

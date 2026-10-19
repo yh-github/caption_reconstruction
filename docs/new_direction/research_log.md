@@ -360,3 +360,44 @@ So **S2 compares 330 with 5,500 visual tokens**, besides the source video with t
 - **P1:** not confirmed. Speed is the only aspect where captions lost for Sonnet. The development finding that captions lose direction did not replicate: Haiku even did better on direction from Gemini captions than from frames (0.43 vs. 0.28).
 
 **Proposed claims for the paper (2026-10-19, pending C2):** a strong captioner's question-blind captions carry its knowledge to a cheap reader. Haiku on Gemini captions beats Haiku on 5 frames by 12.5 points with 43% of the video tokens, and comes within 6 points of Sonnet on frames. Sonnet loses nothing on captions (−0.007) with 43% of the video tokens. The text format adds at most a little. P1 is reported as a null, with speed as an exploratory loss.
+
+### C2 — Does the captioner effect survive at matched visual tokens? (written 2026-10-19, committed before any C2 call)
+
+**Status.** Exploratory robustness check, designed after seeing C1, on the same 297 questions. It cannot change C1's verdicts. Its job is to say whether P3 means "Gemini knows more" or "Gemini looked at the frames with more tokens". The user approved it on 2026-10-19.
+
+**Why.** In C1, Gemini spent ≈ 5,500 visual tokens per window on the reader's frames (image path), while Haiku spent 200 on the same frames for its self-captions. Gemini's video path spends ≈ 330 (66 per frame). So P3 (+0.148) mixes the captioner with a 27× larger visual budget, and S2 (−0.054) mixes the source with a 17× larger budget.
+
+**New arm: frame-clip captions.** Each window's frames (the same JPEGs as the 5-frame arm and the self-captions) are played as a 1 fps clip, one second per frame (`caption.frame_clip`: H.264 at the settings the video arm's cuts use, no audio). Gemini captions the clip through the same video path, with the same video prompt as the video captions (`caption.py --input frameclip`, captioner `gemini-3.8-flash-frameclip`). Gemini then sees exactly the reader's frames, at the video arm's ≈ 66 tokens per frame.
+- In a short last window, the clip lasts one second per frame (e.g. 4 s for a 3.2 s window). The prompt states the window's own length, as in the video arm.
+- Re-encoding changes the frames by about 3 grey levels out of 255 on average (checked on one video's two windows), the same kind of change the video arm's cuts make.
+- Haiku reads the frame-clip captions with the same reader prompt as the other caption arms (`frameclipcaptions`).
+
+**Terms** (all with Haiku as the reader; they extend the *Terms* block in `research_plan_caption_index.md`):
+
+| Term | Difference | Same in both arms | What differs |
+|---|---|---|---|
+| **C2a, captioner at matched visual tokens** | frame-clip captions − self-captions | pixels (the reader's frames); visual tokens about equal (≈ 330 vs. 200) | the captioning model (and the first clause of the prompt) |
+| **C2b, visual budget** | frame captions − frame-clip captions | pixels; captioner | Gemini's visual tokens (≈ 5,500 image path vs. ≈ 330 video path), and the prompt's first clause |
+| **C2c, source** | video captions − frame-clip captions | captioner, prompt, video path, ≈ 330 tokens | the source: the original video vs. the reader's 224 px JPEGs |
+
+With C1's format term, **C2c + C2a + P2 = S3** exactly, the total caption effect. This is the decomposition with the visual budget held about constant. C1's split (S2 + P3 + P2) remains as pre-registered.
+
+**Predictions** (95% CIs, paired bootstrap over questions as in C1):
+- Frame-clip captions: accuracy ≈ 0.74, about the video captions' 0.737. Reasoning: Gemini's video path reduces every frame to ≈ 66 tokens, so the source's higher resolution mostly does not reach the captioner, and the frames are the same 1 fps instants.
+- **C2a ≈ +0.10.** This is the key quantity.
+- C2b ≈ +0.05 (the rest of P3's +0.148).
+- C2c ≈ 0.00.
+
+**What each outcome means.**
+- **C2a's CI excludes 0, positive:** the captioner effect holds at matched visual tokens. The claim "a strong captioner's knowledge carried to a cheap reader" stands. C2b is reported as the extra gain from the larger visual budget.
+- **C2a's CI includes 0, and C2b is positive:** P3 came mostly from Gemini's larger visual budget, not from what it knows. The claim becomes "spend the visual budget once, at captioning time, and query cheaply". That is still an index result, but not a knowledge result. P3's wording in the paper changes accordingly.
+- **C2a negative:** at matched visual tokens, Haiku's own captions are as good or better. The captioner effect is a budget effect.
+- **C2c** has no directional hypothesis. If it is not ≈ 0, the source resolution matters even through the video path.
+
+**Precision.** As in C1: SE ≈ 0.03 for a paired difference on 297 questions, so the 95% CI is about ±0.06.
+
+**Run and stop rules.**
+1. **3-call check** (`--limit-calls 3`): read the three captions (do they describe those frames?) and the logged video tokens. Stop and fix if a full window does not come out at ≈ 66 tokens per frame (≈ 330), because the token match would then fail.
+2. **Captions:** 761 windows (the 297 questions' videos), ≈ $0.0027 each, ≈ $2.0. Cap `--max-usd 11.5` (logged total $8.98; the approved cap is $13). Stop and investigate if more than 2% of windows get no caption. Otherwise, a question with a window without a caption is dropped from every C2 comparison (`reader.py run --skip-missing`, and `c2` uses only questions all its arms answered), and listed here.
+3. **Reader:** Haiku, 297 calls, `--max-5h 0.8`, the isolation and model checks of K0–C1.
+4. **Analysis:** `reader.py c2` is run once, when both steps are complete, and its output is reported here in full.

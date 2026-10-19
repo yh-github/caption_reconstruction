@@ -10,6 +10,8 @@ Arms (per 5 s window; Claude image tokens by the ceil(w/28) x ceil(h/28) rule, 2
               same prompt text as captions, so only the captioner differs
     framecaptions Gemini's isolated caption of the same frames5 frames (caption.py --input frames): the same input
               as selfcaptions, with Gemini as the captioner (C1's coverage control)
+    frameclipcaptions  Gemini's isolated caption of the same frames played as a 1 fps clip (caption.py --input
+              frameclip): the visual tokens and prompt of the captions arm, the pixels of selfcaptions (C2)
 Calls are isolated exactly as in scripts/unshuffle/claude_reader.py (whose call_claude this reuses): a fresh
 `claude -p` per item, no tools, empty MCP config, empty working directory, prompt caching off, pinned model ID.
 A format failure gets one retry; after that the item scores as wrong.
@@ -20,6 +22,7 @@ A format failure gets one retry; after that the item scores as wrong.
     .venv/bin/python scripts/index_qa/reader.py check [--models haiku sonnet] [--per-dim 10]
     .venv/bin/python scripts/index_qa/reader.py run --set confirm --model haiku --arms blind captions ...
     .venv/bin/python scripts/index_qa/reader.py confirm      # C1's pre-registered statistics (research log)
+    .venv/bin/python scripts/index_qa/reader.py c2           # C2's statistics (research log)
 Outputs (append-only; the latest row per item counts): results/index_qa/claude/<model>.jsonl and
 <model>__events.jsonl, as in the unshuffle reader.
 """
@@ -36,14 +39,16 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from index_qa import tempcompass as tc  # noqa: E402
-from index_qa.caption import captions  # noqa: E402
+from index_qa.caption import MODE, captions, visual_tokens  # noqa: E402
 from unshuffle.claude_reader import EFFORT, MODELS, call_claude  # noqa: E402
 
-ARMS = ["blind", "captions", "frame1", "frames5", "selfcaptions", "framecaptions"]
+ARMS = ["blind", "captions", "frame1", "frames5", "selfcaptions", "framecaptions", "frameclipcaptions"]
 K0_ARMS = ARMS[:4]
 # Caption arms -> the captioner whose window captions they read (selfcaptions: scripts/index_qa/self_caption.py)
 CAPTIONERS = {"captions": "gemini-3.8-flash", "selfcaptions": "claude-haiku-5-5-self",
-              "framecaptions": "gemini-3.8-flash-frames"}
+              "framecaptions": "gemini-3.8-flash-frames", "frameclipcaptions": "gemini-3.8-flash-frameclip"}
+# caption.py --input that writes each Gemini caption arm
+CAPTION_INPUT = {"captions": "video", "framecaptions": "frames", "frameclipcaptions": "frameclip"}
 OUT = tc.OUT / "claude"
 PROMPTS = tc.ROOT / "prompts/index_qa"
 
@@ -82,8 +87,8 @@ def build(item: dict) -> tuple[list[dict], str]:
         caps = captions(v, CAPTIONERS[arm])
         if caps is None:
             sys.exit(f"{CAPTIONERS[arm]} captions missing for {v}: run scripts/index_qa/"
-                     f"{'self_caption' if arm == 'selfcaptions' else 'caption'}.py first"
-                     f"{' with --input frames' if arm == 'framecaptions' else ''}")
+                     + ("self_caption.py first" if arm == "selfcaptions"
+                        else f"caption.py --input {CAPTION_INPUT[arm]} first"))
         body = "\n".join(f"{P['window_label'].format(start=s, end=round(e, 1))} {c}" for (s, e), c in zip(wins, caps))
         text = f"{head}\n\n{body}\n\n{tail}"
         return [{"type": "text", "text": text}], text
@@ -163,6 +168,12 @@ def latest(model: str) -> dict[str, dict]:
 
 def cmd_run(args):
     items = [it for it in item_set(args.per_dim, args.set_) if it["arm"] in args.arms]
+    if args.skip_missing:
+        gone = {it["item"] for it in items
+                if it["arm"] in CAPTIONERS and captions(it["video_id"], CAPTIONERS[it["arm"]]) is None}
+        for i in sorted(gone):
+            print(f"skipped, a window has no caption: {i}")
+        items = [it for it in items if it["item"] not in gone]
     prev = latest(args.model)
     retry = set(args.retry or [])
     todo = [it for it in items if it["item"] not in prev or prev[it["item"]]["status"] in retry][: args.limit]
@@ -288,9 +299,8 @@ def cmd_check(args):
             print(f"  {a:>21} - {b:<21} {est:+.3f} [{lo:+.3f}, {hi:+.3f}]  (n={len(d)})")
 
 
-def cmd_confirm(args):
-    """C1's pre-registered statistics on the confirmatory set, exactly as listed in the research log. Primary tests
-    (P1-P3) use 98.33% CIs (Bonferroni over three); secondary ones 95%. A failed call counts as wrong."""
+def confirm_table():
+    """The confirmatory questions, their aspects, and correctness per question (rows) and model:arm (columns)."""
     import pandas as pd
     qs = tc.items("confirm")
     keep = {q["item"] for q in qs}
@@ -300,7 +310,13 @@ def cmd_confirm(args):
     df = pd.DataFrame(rows)
     df["arm"] = df.model + ":" + df.arm
     wide = df.pivot_table(index="question_item", columns="arm", values="correct", aggfunc="first").astype(float)
-    dim = {q["item"]: q["dim"] for q in qs}
+    return qs, {q["item"]: q["dim"] for q in qs}, wide
+
+
+def cmd_confirm(args):
+    """C1's pre-registered statistics on the confirmatory set, exactly as listed in the research log. Primary tests
+    (P1-P3) use 98.33% CIs (Bonferroni over three); secondary ones 95%. A failed call counts as wrong."""
+    qs, dim, wide = confirm_table()
     n_q = len(qs)
     print(f"{n_q} confirmatory questions; answered per arm:")
     print(wide.notna().sum().to_string())
@@ -364,6 +380,43 @@ def cmd_confirm(args):
             print(f"  {a} - {b}: " + ", ".join(f"{k} {v:+.2f}" for k, v in d.groupby(d.index.map(dim)).mean().items()))
 
 
+# C2 (research log): Haiku arms, all on the questions that every one of them answered
+C2_ARMS = ["haiku:frames5", "haiku:selfcaptions", "haiku:frameclipcaptions", "haiku:framecaptions", "haiku:captions"]
+
+
+def cmd_c2(args):
+    """C2's statistics, as listed in the research log: the captioner effect at matched visual tokens, the visual
+    budget and the source terms, with 95% CIs. A failed call counts as wrong."""
+    qs, dim, wide = confirm_table()
+    if missing := [a for a in C2_ARMS if a not in wide]:
+        sys.exit(f"not run yet: {missing}")
+    x = wide[C2_ARMS].dropna()
+    print(f"{len(qs)} confirmatory questions, {len(x)} answered in every C2 arm; dropped: "
+          f"{sorted(set(wide.index) - set(x.index)) or 'none'}")
+    print("\nGemini visual tokens per window, median over the logged calls (all sets):")
+    for mode in (MODE, f"{MODE}_frames", f"{MODE}_frameclip"):
+        t = visual_tokens(mode)
+        print(f"  {mode}: {sorted(t)[len(t) // 2] if t else None} (n={len(t)})")
+    print("\naccuracy:")
+    print(x.mean().round(3).to_string())
+    print("\naccuracy by aspect:")
+    print(x.groupby(x.index.map(dim)).mean().round(2).T.to_string())
+    print("\neffects (95% CIs):")
+    terms = [("C2a captioner at matched visual tokens", "haiku:frameclipcaptions", "haiku:selfcaptions", +0.10),
+             ("C2b visual budget", "haiku:framecaptions", "haiku:frameclipcaptions", +0.05),
+             ("C2c source", "haiku:captions", "haiku:frameclipcaptions", 0.00),
+             ("P3 (C1) on these questions", "haiku:framecaptions", "haiku:selfcaptions", +0.06),
+             ("P2 (C1) format on these questions", "haiku:selfcaptions", "haiku:frames5", -0.08),
+             ("S3 (C1) total = C2c + C2a + P2", "haiku:captions", "haiku:frames5", 0.00)]
+    for name, a, b, pred in terms:
+        est, lo, hi = paired_boot((x[a] - x[b]).tolist())
+        print(f"  {name}: {a} - {b} = {est:+.3f} [{lo:+.3f}, {hi:+.3f}] (n={len(x)}; prediction {pred:+.2f})")
+    print("\nby aspect, paired differences (descriptive):")
+    for name, a, b, _ in terms[:3]:
+        d = x[a] - x[b]
+        print(f"  {name}: " + ", ".join(f"{k} {v:+.2f}" for k, v in d.groupby(d.index.map(dim)).mean().items()))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -377,14 +430,17 @@ def main():
     r.add_argument("--dry-run", action="store_true")
     r.add_argument("--max-5h", type=float, default=0.8)
     r.add_argument("--retry", nargs="+", choices=["invalid", "error", "timeout"])
+    r.add_argument("--skip-missing", action="store_true",
+                   help="skip caption-arm items with a window the captioner gave no caption (C2's rule)")
     c = sub.add_parser("check")
     c.add_argument("--models", nargs="+", choices=list(MODELS), default=["haiku"])
     c.add_argument("--set", dest="set_", choices=list(tc.SETS), default="dev")
     c.add_argument("--per-dim", type=int)
     c.add_argument("--pairs", nargs="+", help="differences to report, as model:arm-model:arm")
     sub.add_parser("confirm")
+    sub.add_parser("c2")
     args = ap.parse_args()
-    {"run": cmd_run, "check": cmd_check, "confirm": cmd_confirm}[args.cmd](args)
+    {"run": cmd_run, "check": cmd_check, "confirm": cmd_confirm, "c2": cmd_c2}[args.cmd](args)
 
 
 if __name__ == "__main__":
