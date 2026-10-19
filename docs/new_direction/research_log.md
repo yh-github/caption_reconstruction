@@ -407,3 +407,9 @@ With C1's format term, **C2c + C2a + P2 = S3** exactly, the total caption effect
 - **Tokens:** they came out at 280 per full window (56 per frame) and 168 for a 3-frame window, not ≈ 330. That breaks rule 1 as written. But the video arm got **exactly the same counts for the same windows** (280, 168, 280). Gemini's tokens per video frame depend on the video's frame size: these are split-screen videos (56 per frame), and most videos get 66. The ≈ 330 in rule 1 was the median over windows, not a per-window target.
 - **What the rule meant:** the frame clip must cost Gemini the same visual tokens as the video for the same window. That holds. **Rule 1 is restated that way, and the run continues.**
 - `reader.py c2` now also prints, per window, whether the two arms' tokens are equal.
+
+**Run status (2026-10-19, evening).**
+- Captioning ran in 4 parallel shards (`caption.py --shard K/4`; the spend cap is checked against the shared log before every call).
+- It stopped at **450 of 761 windows**, with no window lacking a caption. All four shards got `429 RESOURCE_EXHAUSTED`: the AI Studio project's monthly spend cap, as in C1 Amendment 2, not our `--max-usd`.
+- Logged spend is $10.29. The remaining 311 windows need ≈ $0.90.
+- No reader call has been made on the frame-clip captions. The run resumes after the user raises the cap.

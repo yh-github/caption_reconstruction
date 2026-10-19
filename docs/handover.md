@@ -4,6 +4,8 @@ The newest session is at the top. Older sessions stay below because other docs l
 
 # 2026-10-19 → C1 confirmatory results; C2 robustness check; venue search
 
+**Start here next session: `docs/new_direction/acl2027_plan.md`.** It has the findings, the next steps in order, the paper outline, the optional arms, reviewer risks and the timeline to ACL 2027. **Blocker:** C2 captioning stopped at 450 of 761 windows on the AI Studio monthly spend cap. The user must raise it (https://ai.studio/spend); then resume with the command in the plan, §3.
+
 **C1 is done** (pre-registered, 297 held-out TempCompass questions; full record and tables in `docs/new_direction/research_log.md`, C1 *Result*):
 - **P3 passed:** Gemini's captions of the reader's own 5 frames beat Haiku's self-captions by +0.15 [+0.09, +0.21] (prediction +0.06).
 - **P2 not passed:** format effect +0.03 [−0.03, +0.09], so at most +0.09, against IsoBench's 15–29 points.
