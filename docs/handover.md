@@ -13,12 +13,14 @@ The newest session is at the top. Older sessions stay below because other docs l
 
 **Open weakness, found after the run:** Gemini spent ≈ 5,500 visual tokens per window on the frames (image path), Haiku 200, and Gemini's video path 330. So P3 may be "looked harder", not "knows more". **C2** (log) re-captions the same frames as a 1-fps clip through Gemini's video path (≈ 330 tokens), to measure the captioner effect at matched visual tokens. The user approved it on 2026-10-19 (≈ $2 of Gemini, 297 Haiku calls).
 
-**Decided with the user (2026-10-19):** record C1, then run C2. The user wants help choosing a venue, which sets the deadline.
+**Decided with the user (2026-10-19):**
+- Record C1, then run C2.
+- **Venue: ACL 2027, through the January 2027 ARR cycle.** Secondary sources give a deadline of Jan 4, 2027; confirm it against the ACL call when that is published. Fallbacks: Findings, or committing the ARR reviews to a later ACL-family venue.
 
 **Proposed, not yet approved:**
 - The paper claim "a strong captioner's knowledge carried to a cheap reader", pending C2.
-- Reorder the literature search brief (`final_search_brief.md`: Q5 and Q1 first, Q3 last) and run it after the reset.
-- A short paper or a workshop, with no second benchmark.
+- A short paper (4 pages), with no second benchmark.
+- Reorder the literature search brief (`final_search_brief.md`: Q5 and Q1 first, Q3 last) and run it after the reset. The user's Gemini Deep Research report gives leads only. Its T3 claims are wrong (checked against the paper), and it has no source list.
 
 # 2026-10-18 → TempCompass kill test for the caption index
 
