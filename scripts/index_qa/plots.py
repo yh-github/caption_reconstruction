@@ -28,6 +28,9 @@ LABEL = {"blind": "question only", "frame1": "1 frame", "frames5": "5 frames", "
          "describe5": "describe, answer", "selfcaptions": "self-captions", "sonnetcaptions": "Sonnet captions",
          "frameclipcaptions": "Gemini frame-clip capt.", "framecaptions": "Gemini frame capt.",
          "captions": "Gemini video capt."}
+# Label offsets (points) in the Q = inf panel, where the caption arms crowd at one cost; Sonnet labels go left
+OFFSET = {("haiku", "captions"): (5, 4), ("haiku", "frameclipcaptions"): (5, -3), ("haiku", "sonnetcaptions"): (5, -8),
+          ("haiku", "selfcaptions"): (5, -6), ("sonnet", "frames5"): (-6, 4)}
 
 
 def arm_costs():
@@ -76,7 +79,7 @@ def cmd_cost(args):
     t = t[t.n >= 290]  # arms with (nearly) every confirmatory question
     print(t.round(6).to_string(index=False))
     qs = [1, 10, None]
-    fig, axes = plt.subplots(1, 3, figsize=(10, 3.6), sharey=True)
+    fig, axes = plt.subplots(1, 3, figsize=(11, 4.2), sharey=True, gridspec_kw={"width_ratios": [1, 1, 1.8]})
     for ax, Q in zip(axes, qs):
         style(ax)
         x = t.usd + (t["index"] / Q if Q else 0)
@@ -86,9 +89,9 @@ def cmd_cost(args):
                        edgecolor="white", linewidth=1.5, zorder=3)
             if Q is None:
                 left = r.model == "sonnet"  # the right edge of the panel: label to the left
-                dy = {"captions": 3, "frameclipcaptions": -6}.get(r.arm, -3) if not left else (4 if r.arm == "frames5" else -9)
+                dx, dy = OFFSET.get((r.model, r.arm), (-6, -9) if left else (5, -3))
                 ax.annotate(("Sonnet, " if left else "") + LABEL.get(r.arm, r.arm), (xi, r.acc),
-                            xytext=(-6 if left else 5, dy), textcoords="offset points", fontsize=6.5, color=INK,
+                            xytext=(dx, dy), textcoords="offset points", fontsize=6.5, color=INK,
                             ha="right" if left else "left")
         ax.set_xscale("log")
         ax.set_title(f"Q = {Q} question{'s' if Q > 1 else ''} per video" if Q else "per question only (Q → ∞)",
@@ -124,12 +127,13 @@ def cmd_types(args):
     w = 0.8 / len(arms)
     for i, a in enumerate(arms):
         xs = [k + (i - (len(arms) - 1) / 2) * w for k in range(len(tc.VIDEO_TYPES))]
-        ax.bar(xs, acc[a], width=w - 0.02, color=colors[i], label=a.replace(":", ", "), zorder=3)
+        model, arm = a.split(":")
+        ax.bar(xs, acc[a], width=w - 0.02, color=colors[i], label=f"{model.capitalize()}, {LABEL[arm]}", zorder=3)
     ax.set_xticks(range(len(tc.VIDEO_TYPES)))
     ax.set_xticklabels([f"{t.replace('_', '-')} ({n.get(t, 0)})" for t in tc.VIDEO_TYPES], fontsize=8)
     ax.set_ylabel("accuracy", fontsize=8, color=MUTED)
     ax.set_ylim(0, 1)
-    ax.legend(fontsize=7, frameon=False, ncol=3, loc="upper right")
+    ax.legend(fontsize=7, frameon=False, ncol=3, loc="lower center", bbox_to_anchor=(0.5, 1.0))
     fig.tight_layout()
     for ext in ("png", "pdf"):
         fig.savefig(FIG / f"caption_index_fig2_types.{ext}", dpi=200)
