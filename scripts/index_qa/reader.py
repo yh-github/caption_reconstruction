@@ -561,7 +561,7 @@ INDEX_SOURCE = {"captions": ("gemini", MODE), "framecaptions": ("gemini", f"{MOD
 # Break-even pairs (Prop. 2 for one caption arm against one frame arm): (caption arm, frame arm)
 QSTAR_PAIRS = [("haiku:captions", "haiku:frames5"), ("sonnet:captions", "sonnet:frames5"),
                ("haiku:captions", "sonnet:frames5"), ("haiku:framecaptions", "sonnet:frames5"),
-               ("haiku:sonnetcaptions", "sonnet:frames5")]
+               ("haiku:frameclipcaptions", "sonnet:frames5"), ("haiku:sonnetcaptions", "sonnet:frames5")]
 
 
 def list_usd(model: str, usage: dict | None) -> float:
