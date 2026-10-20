@@ -28,6 +28,13 @@ The newest session is at the top. Older sessions stay below because other docs l
   - `reader.py thinking` (log A1).
   - `reader.py cost` and the cost account for C1's arms (log A2). Its new exploratory finding: Haiku on Gemini frame captions matches Sonnet on frames at 1/25 of the cost per question, Q\* 3.7.
 
+**Later on Oct 20: A3, results by video type** (log A3; `reader.py types`; no calls).
+- The questions where frames and captions disagree most are on TempCompass's built videos: reversed, stacked (the same clip twice, at two speeds) and two-clip.
+- The captioner effect is positive in every type. The modality effect is +0.22 on two-clip videos and ≈ 0 elsewhere. Captions lose on stacked videos. On reversed videos, both modalities fall back to the prior.
+- Clip-clustered CIs agree with C1's.
+- C3 Amendment 1 (predictions by type) is written; it must be committed before any C3 call.
+- **The user wants more language-vs-visual tests considered before C3 runs.** The options are at the end of the table in plan §6 (minimal pairs, describe-then-answer, caption audit, …). Record the chosen ones as a log entry before any call.
+
 **Next (plan §0):**
 1. **G3, C3:** the user approves the C3 entry, then the run starts after the quota reset (Oct 20, 17:00 UTC): the 3-call check, then 758 windows, then 297 Haiku reads, then `reader.py c3` once.
 2. **G5:** the go/no-go rule. C2a positive already secures case 2; C3 decides between cases 1 and 2.

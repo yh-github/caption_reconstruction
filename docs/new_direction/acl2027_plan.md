@@ -79,6 +79,12 @@ Input tokens are medians per call. Cost is the mean of the CLI's `costUSD` per c
    - Sonnet on captions − Sonnet on 5 frames: −0.007 [−0.054, +0.040] (S1).
    - Haiku on captions − Sonnet on 5 frames: −0.061 [−0.111, −0.010] (S6).
 4. **Which aspects captions lose: not confirmed** (P1: −0.10 [−0.23, +0.03]). Speed is the only consistent loss (Sonnet −0.10); exploratory.
+5. **By video type (log A3, exploratory, 2026-10-20).** In TempCompass, aspect is nearly the same as how the video was built, so P1 mostly compared video types.
+   - The captioner effect is positive in every type.
+   - The modality effect is +0.22 [+0.10, +0.35] on two-clip videos (order), about 0 on plain ones and −0.10 on stacked ones (speed).
+   - Captions lose to Sonnet on frames on stacked videos in both sets: question-blind captions don't state how the two copies differ.
+   - On reversed videos, both modalities fall back to the forward reading.
+   - C3 Amendment 1 adds predictions by type.
 
 **Cost** (log A2, `reader.py cost`; list prices, which match the CLI's `costUSD` exactly):
 - **For one reader, the saving per question is small.** The fixed prompt (≈ 1,025 tokens) and the thinking tokens dominate. Captions cut the video tokens to 43%, but the input tokens only to 81%.
@@ -177,6 +183,11 @@ Steps 1–4 (C2) were **done on 2026-10-20**; the result is in the log, C2. They
 | Gemini answers the questions directly | Not needed: in the main design the captioner's direct answer is Sonnet on frames, already measured | ≈ $1–3 | Skip |
 | Thinking tokens as an outcome (exploratory analysis of C1's calls) | See below. Thinking is part of the cost account either way (§5, step 6). | No calls | **Do it**: an exploratory log entry, and the analysis moved into `reader.py` |
 | Effort sweep: Haiku at low and high effort, on captions and on 5 frames | The only way to learn whether thinking *helps* more on captions than on frames; the analysis below shows only that it marks hard questions | ≈ 1,200 Haiku calls (little quota) | **No** |
+| **Minimal pairs** (log A3): ask the same question on the sibling video whose answer differs. There are 92 pairs: 59 reversed↔forward, 17 stacked, 16 two-clip; 20 are already read. | The cleanest language-vs-visual test: with the content fixed, does the temporal fact reach each representation? An arm that misses it gives one answer for both videos and gets at most one right. It tests A3's readings for reversed and stacked videos. | 72 new reads per arm: Haiku on 5 frames, self-captions, Gemini video captions and Sonnet captions; Sonnet on 5 frames. That is ≈ 290 Haiku and 72 Sonnet calls. Sibling captions: 33 Haiku windows and 71 Sonnet windows, added to C3's run. No Gemini. ≈ 3 points of the 7-day quota in all. | Proposed 2026-10-20; **decide before C3**, since it adds to C3's caption run |
+| **Describe, then answer** (one call): Haiku on 5 frames writes one sentence per window, then answers | Separates putting the frames into words from captioning each window on its own, for the +0.22 on two-clip videos (A3). Its descriptions see the question. | 297 Haiku calls (little quota) | Proposed 2026-10-20 |
+| **Caption audit:** for the discordant questions, does the caption state the right answer, state a wrong option, or say nothing that decides it? | Splits caption-arm errors into a wrong statement (e.g. forward narration), an omission (e.g. stacked speed) and a reader error. This is the paper's qualitative analysis. | The user hand-labels ≈ 60 cases (1–2 h); or a Haiku judge on all caption-arm errors (≈ 430 calls), checked against 40 hand labels | Proposed 2026-10-20 |
+| Question-aware captions: Haiku captions each window with the question shown | The price of being question-blind (Prop. 4): is the stacked loss an omission? Partly covered by "describe, then answer". | ≈ 760 Haiku caption calls + 297 reads | Proposed; lower priority |
+| Window order shuffled, or captions shown as an image | Where order information sits; modality with identical content (IsoBench-style) | ≈ 120 or 297 Haiku calls | Skip unless asked |
 
 **Thinking tokens in C1** (computed 2026-10-20, after the results; exploratory; no new calls). At effort medium the model decides per call whether to think, so thinking is observed, not set. Thinking tokens are above 0 exactly when a call has a thinking block (all 3,042 reader calls).
 - **How much:**
@@ -222,7 +233,8 @@ Steps 1–4 (C2) were **done on 2026-10-20**; the result is in the log, C2. They
 | Captioner effect = larger visual budget | C3 matches visual tokens exactly by construction; C2 matches them about for Gemini |
 | Captioner and reader from one family (Claude reading Claude) | The Gemini chain replicates the captioner effect across families |
 | Why not ask the strong model directly? | It is in the design: Sonnet on frames, compared on accuracy and on cost per question |
-| Haiku 5 frames: 0.70 on development, 0.61 on confirmatory | Report as is; the headline is P3, not S3; the development data only set the hypotheses |
+| Haiku 5 frames: 0.70 on development, 0.61 on confirmatory | Report as is; the headline is P3, not S3; the development data only set the hypotheses. About half the drop is the mix of video types: 0.80 on plain videos in both sets (log A3) |
+| Questions share filmed clips (TempCompass's reversed, stacked and two-clip variants) | CIs from resampling clip clusters agree with the question-level ones (log A3); report the clustered ones |
 | Multiple choice only | TempCompass's other formats are out of scope; stated |
 | Post-hoc analyses | Every entry in the log is dated and marked pre-registered or exploratory; C2 and C3 are exploratory; the pre-registration is made publicly verifiable (§5, step 9) |
 

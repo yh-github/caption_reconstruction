@@ -543,6 +543,26 @@ With C1's format term, **C2c + C2a + P2 = S3** exactly, the total caption effect
 .venv/bin/python scripts/index_qa/reader.py c3
 ```
 
+**Amendment 1 (2026-10-20, before any C3 call): results by video type.** A3 (below; exploratory, on C1 and C2's data) found that the caption arms' results depend on how TempCompass built the video. This amendment adds secondary, descriptive predictions by video type, fixed before any C3 call. Nothing above changes: C3a over all questions stays the key quantity, and the outcome mapping stands.
+- **Report:** `reader.py types`, run once after step 4. It adds the C3 rows once the `sonnetcaptions` arm exists, and gives:
+  - accuracy by video type;
+  - C3a, C3b and C3c by video type, with 95% CIs from resampling clusters of questions whose videos share a filmed clip;
+  - every C3 term over all questions, with the clustered CI next to the question-level one.
+- **Predictions:** Haiku on Sonnet's captions scores plain 0.87, two-clip 0.88, reversed 0.55, stacked 0.36. With C1's arms, that gives:
+
+| Term | Plain (137) | Two-clip (45) | Reversed (74) | Stacked (41) |
+|---|---|---|---|---|
+| C3a, Sonnet captions − self-captions | +0.07 | +0.06 | +0.12 | +0.04 |
+| C3b, Sonnet captions − 5 frames | +0.07 | +0.28 | +0.17 | −0.05 |
+| C3c, Haiku on Sonnet captions − Sonnet on 5 frames | −0.02 | −0.03 | −0.09 | −0.30 |
+
+  Weighted by the type counts, these give C3a ≈ +0.08, within the precision of the +0.09 predicted above. That prediction stands.
+- **Directional hypotheses.** Each is read from its 95% clustered CI. With 41–137 questions per type, the CIs are about ±0.08 to ±0.15, so only large effects can show.
+  1. **Stacked: C3c < 0.** A question-blind caption does not state how two copies of a clip differ in speed, even when a strong captioner writes it. Sonnet reading the frames sees the difference (0.66 vs. Haiku 0.41 on 5 frames).
+  2. **Reversed: C3a > 0,** as C2a was (+0.14 [+0.04, +0.24]).
+  3. **Two-clip: C3b > 0,** as S3 (+0.33) and P2 (+0.22) were.
+- **Use:** descriptive, for the paper's analysis section. If hypothesis 1 holds, the limitations state that question-blind captions drop comparisons between things shown at the same time.
+
 ### A1 — Thinking tokens in C1 (exploratory analysis, 2026-10-20; not written in advance)
 
 **Why.** The user asked whether we quantify the readers' thinking tokens, and whether they correlate between frames and captions. The analysis was adopted as exploratory (G2, plan §6). It made no new calls; the effort sweep that could test whether thinking *helps* was declined. Reproduce with `reader.py thinking [--set dev]`.
@@ -620,3 +640,100 @@ With C1's format term, **C2c + C2a + P2 = S3** exactly, the total caption effect
   - For cost, the comparison is fair: the index cost includes the spend.
 - **Latency per call does not favour captions.** The caption arms' median call is 0.1–1.1 s slower than the frame arms' with the same reader. These are wall-clock times of a CLI call, start-up included, and were not controlled for time of day.
 - **Still to add to G4:** the frame-clip captions (C2), Sonnet's captions (C3) and the 448 px arm, once they are run.
+
+### A3 — Results by video type, and the questions where frames and captions disagree most (exploratory analysis, 2026-10-20; not written in advance)
+
+**Why.** The user asked whether we had looked at the questions where frames and captions differ most. We had not. A first look showed that those questions are almost all on videos TempCompass built (reversed, stacked or two-clip), so the analysis was redone by video type. It made no new calls. Reproduce with `reader.py types [--set dev]`.
+
+**Video types.** TempCompass builds videos so that one frame or the question's wording is not enough. `tempcompass.video_type` reads the type from the video ID; frames of one stacked and two two-clip videos were checked by eye.
+- **Plain** (`<id>`): one clip as filmed.
+- **Reversed** (`<id>_reverse`): a clip played backwards. TempCompass asks the same question about the forward clip, with the mirrored answer.
+- **Stacked** (`<id>_concat_<k>`): the same clip twice, one above the other, at equal or different speeds.
+- **Two-clip** (`<a>_<b>_<k>`): two different clips, one after the other or one above the other.
+
+**Video type is nearly the same as aspect.** In the confirmatory set (297 questions):
+- Every stacked question (41) is about speed, and every two-clip one (45) about order.
+- Reversed videos carry 40 of the 60 direction questions and 34 of the 60 attribute-change ones.
+- All 60 action questions are on plain videos, as are 137 questions in all.
+
+So C1's aspect contrast (P1) mostly compared video types.
+
+**Accuracy by video type** (confirmatory set):
+
+| Arm | Plain (137) | Two-clip (45) | Reversed (74) | Stacked (41) | All (297) |
+|---|---|---|---|---|---|
+| Haiku, question only | 0.60 | 0.31 | 0.16 | 0.34 | 0.411 |
+| Haiku, 1 frame | 0.77 | 0.62 | 0.27 | 0.49 | 0.582 |
+| Haiku, 5 frames | 0.80 | 0.60 | 0.38 | 0.41 | 0.613 |
+| Haiku, self-captions | 0.80 | 0.82 | 0.43 | 0.32 | 0.643 |
+| Haiku, Gemini frame-clip captions | 0.88 | 0.87 | 0.57 | 0.34 | 0.724 |
+| Haiku, Gemini frame captions | 0.92 | 1.00 | 0.64 | 0.41 | 0.791 |
+| Haiku, Gemini video captions | 0.86 | 0.93 | 0.53 | 0.49 | 0.737 |
+| Sonnet, 5 frames | 0.89 | 0.91 | 0.64 | 0.66 | 0.798 |
+| Sonnet, Gemini video captions | 0.93 | 0.98 | 0.57 | 0.54 | 0.791 |
+
+**Differences by video type.** The CIs are 95%, from resampling clusters of questions whose videos share a filmed clip (see *Clusters* below):
+
+| Difference | Plain | Two-clip | Reversed | Stacked |
+|---|---|---|---|---|
+| P2, modality (Haiku self-captions − 5 frames) | −0.01 [−0.07, +0.06] | **+0.22 [+0.10, +0.35]** | +0.05 [−0.04, +0.15] | −0.10 [−0.26, +0.05] |
+| P3, captioner (Gemini frame captions − self-captions) | +0.12 [+0.06, +0.19] | +0.18 [+0.09, +0.28] | +0.20 [+0.09, +0.32] | +0.10 [+0.02, +0.19] |
+| C2a, captioner at about matched tokens | +0.08 [+0.01, +0.15] | +0.04 [−0.09, +0.17] | +0.14 [+0.04, +0.24] | +0.02 [−0.08, +0.14] |
+| S1, Sonnet: captions − 5 frames | +0.04 [−0.01, +0.09] | +0.07 [−0.02, +0.16] | −0.07 [−0.19, +0.05] | −0.12 [−0.31, +0.05] |
+| S3, Haiku: Gemini video captions − 5 frames | +0.06 [−0.01, +0.12] | +0.33 [+0.22, +0.47] | +0.15 [+0.04, +0.27] | +0.07 [−0.03, +0.17] |
+
+**Development set** (100 questions: 60 plain, 10 two-clip, 17 reversed, 13 stacked):
+- **Stacked videos are where captions lose,** for both readers: Sonnet captions − frames −0.38 [−0.69, −0.07], Haiku −0.31 [−0.58, −0.08].
+- On plain videos the differences are small: Sonnet −0.03, Haiku +0.03.
+- **Two-clip videos don't test the confirmatory pattern here.** Haiku on Gemini captions − frames is +0.30 [−0.10, +0.70] (10 questions). K2's self-captions cover only 5 two-clip questions (difference 0.00).
+
+**Why Haiku's 5-frame accuracy fell from 0.70 (dev) to 0.61 (confirmatory).** Part of it is the mix of video types.
+- On plain videos it is 0.80 in both sets.
+- Built videos are 40% of the development set and 54% of the confirmatory set.
+- Weighting the confirmatory per-type accuracies by the development mix gives 0.66, so about half of the drop.
+- The rest is stacked videos: 0.69 on 13 development questions, 0.41 on 41 confirmatory ones.
+
+**Wrong answers fall to the question's prior in both modalities.** Haiku with the question only scores 0.16 on reversed videos, below chance, so the wording favours the forward event. Among wrong answers on reversed videos, the share equal to Haiku's question-only answer is:
+
+| Reader | Frames | Captions |
+|---|---|---|
+| Haiku | 5 frames 0.67 (46 wrong), 1 frame 0.63 (54) | self-captions 0.55 (42); Gemini captions 0.51–0.67 (27–35) |
+| Sonnet | 5 frames 0.56 (27) | Gemini video captions 0.53 (32) |
+
+Captions are not more prior-bound than frames. Both readers fall back to the forward reading when they miss the reversal. The examples below had suggested that captions carry the prior; the counts don't support "more than frames".
+
+**The most discordant questions** (confirmatory set):
+- **Sonnet on frames right, at most 1 of 5 caption arms right: 19 questions.** 8 are reversed, 7 stacked and 4 plain. Two kinds of example:
+  - **Reversed video, captions narrate the forward event.**
+    - Salt pile, answer "shrinking" (tcc195): all five of Gemini's video captions describe salt pouring onto the pile ("piling up"). Haiku's self-captions say the pile "grows taller"; only its last window notes that "the pile is lower".
+    - Zebras, answer "leftward" (tcc265): both captioners write "toward the right" / "left to right".
+    - Only Sonnet on frames answered either one correctly.
+  - **Stacked video, captions don't compare the two copies.** Jump rope, answer "the man above is faster" (tcc005):
+    - Gemini: "An athletic man … jumps rope in a split-screen video".
+    - Haiku: one woman skipping rope.
+    - No caption says how the two copies differ.
+- **At least 4 of 5 caption arms right, all 3 frame arms wrong: 5 questions.** 2 are plain, 2 reversed and 1 two-clip. In each, the caption commits to the event:
+  - Reversed virus animation, answer "it assembles" (tcc189): Gemini writes "a coronavirus particle … forms and binds with small, blue Y-shaped antibodies". Haiku's own caption says the sphere "grows larger in the foreground", and that arm was wrong.
+  - Two-clip, answer "at the same time" (tcc136): Gemini writes "a red squirrel picks up a walnut … in the top frame, while below, a hand reaches …". Haiku's own caption makes it a sequence ("Then a person's hand reaches in"), and that arm was wrong.
+  - Reversed camera pan, answer "panning to the left" (tcc296): Gemini writes "pans to the left"; Haiku's own caption says "drifts sideways".
+
+**Clusters.** C1 sampled one question per video, but reversed, stacked and two-clip videos reuse filmed clips. The 297 questions fall into 156 clusters of videos that share a clip, directly or through another video (`reader.clip_clusters`; largest 12 questions). Resampling clusters instead of questions barely changes the CIs (95%):
+
+| Term | Question-level | Clustered |
+|---|---|---|
+| P2 | +0.030 [−0.020, +0.081] | [−0.019, +0.079] |
+| P3 | +0.148 [+0.098, +0.199] | [+0.100, +0.199] |
+| C2a | +0.081 [+0.030, +0.131] | [+0.035, +0.125] |
+| S1 | −0.007 [−0.054, +0.040] | [−0.060, +0.047] |
+| S3 | +0.125 [+0.071, +0.178] | [+0.077, +0.172] |
+
+C1's and C2's conclusions stand. The paper should report the clustered CIs, or state that they agree.
+
+**Reading** (hypotheses, untested):
+- **The captioner effect is the robust one.** P3 is positive in every video type, and C2a is clearest on reversed and plain videos.
+- **The modality effect depends on the video type.** It is positive on two-clip videos, near 0 on plain ones, and negative but not significant on stacked ones. P2 (+0.03) averages these.
+  - The two-clip gain may come from captioning each window on its own rather than from text as such. With frames, Haiku must keep about 10 small images from two clips apart; a caption per window states what each window shows.
+- **Question-blind captions lose comparisons between things shown at the same time.** On stacked videos, no captioner states the difference between the copies, and Sonnet on frames beats every caption arm in both sets.
+- **On reversed videos, both modalities fail toward the prior.** A captioner that does report the reversal helps (C2a +0.14).
+
+**Use in the paper:** an exploratory analysis paragraph with a figure (accuracy by video type), and the clustered CIs. C3 Amendment 1 adds predictions by video type before C3 runs. Follow-up tests of these hypotheses are being decided with the user before C3.
