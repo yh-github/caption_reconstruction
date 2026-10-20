@@ -27,6 +27,7 @@ A format failure gets one retry; after that the item scores as wrong.
     .venv/bin/python scripts/index_qa/reader.py c2           # C2's statistics (research log)
     .venv/bin/python scripts/index_qa/reader.py c3           # C3's statistics (research log)
     .venv/bin/python scripts/index_qa/reader.py thinking [--set dev]   # A1: thinking tokens (research log)
+    .venv/bin/python scripts/index_qa/reader.py cost         # G4: cost per question and arm, index cost, Q*
 Outputs (append-only; the latest row per item counts): results/index_qa/claude/<model>.jsonl and
 <model>__events.jsonl, as in the unshuffle reader.
 """
@@ -42,6 +43,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import caption_pieces as cp  # noqa: E402
 from index_qa import tempcompass as tc  # noqa: E402
 from index_qa.caption import CAPTIONS, MODE, captions, visual_tokens  # noqa: E402
 from unshuffle.claude_reader import EFFORT, MODELS, call_claude  # noqa: E402
@@ -548,6 +550,118 @@ def cmd_thinking(args):
               f"{c.loc[q, cheap].mean():.3f}, ${u.loc[q, cheap].mean():.5f}")
 
 
+# Claude list prices, $ per million input / output tokens (thinking bills as output), from the claude-api skill's
+# model table (cached 2026-10-06); Haiku's hold for prompts up to 100K tokens. The CLI's costUSD should match them.
+PRICES = {"haiku": (0.10, 0.50), "sonnet": (2.00, 10.00)}
+# Where each caption arm's one-time captioning cost comes from: Gemini's call log (by caption.py mode), or a Claude
+# captioner's caption files at the list prices
+INDEX_SOURCE = {"captions": ("gemini", MODE), "framecaptions": ("gemini", f"{MODE}_frames"),
+                "frameclipcaptions": ("gemini", f"{MODE}_frameclip"), "selfcaptions": ("claude", "haiku"),
+                "sonnetcaptions": ("claude", "sonnet")}
+# Break-even pairs (Prop. 2 for one caption arm against one frame arm): (caption arm, frame arm)
+QSTAR_PAIRS = [("haiku:captions", "haiku:frames5"), ("sonnet:captions", "sonnet:frames5"),
+               ("haiku:captions", "sonnet:frames5"), ("haiku:framecaptions", "sonnet:frames5"),
+               ("haiku:sonnetcaptions", "sonnet:frames5")]
+
+
+def list_usd(model: str, usage: dict | None) -> float:
+    """A Claude call's list-price cost from its usage (prompt caching is off in every call)."""
+    u = usage or {}
+    p_in, p_out = PRICES[model]
+    return (u.get("input_tokens", 0) * p_in + u.get("output_tokens", 0) * p_out) / 1e6
+
+
+def index_usd(arm: str) -> dict[tuple[str, int], float]:
+    """$ per (video_id, window) to caption a caption arm's window once: the latest successful call per window."""
+    kind, key = INDEX_SOURCE[arm]
+    out = {}
+    if kind == "gemini":
+        for line in cp.CALLS_LOG.open():
+            r = json.loads(line)
+            if r["mode"] == key and not r.get("error") and not r.get("cached"):
+                out[r["video_id"], r["piece"]] = r["usd"]
+    else:
+        for f in (CAPTIONS / CAPTIONERS[arm]).glob("*/*.json"):
+            d = json.loads(f.read_text())
+            out[d["video_id"], d["window"]] = list_usd(key, d.get("usage"))
+    return out
+
+
+def qstar_boot(index: list[float], c_cap: list[float], c_frames: list[float], n_boot: int = 10_000, seed: int = 0,
+               level: float = 0.95) -> tuple[float, float, float, float]:
+    """Prop. 2's break-even for one caption arm against one frame arm: Q* = mean index cost per video / (mean cost
+    per question on frames - on captions), with a percentile CI from resampling questions (one per video, so
+    videos too). Where the saving is <= 0, Q* = inf (never). Also returns the share of resamples that never pay."""
+    import numpy as np
+    x = np.column_stack([index, c_cap, c_frames]).astype(float)
+
+    def q(m):
+        save = m[..., 2] - m[..., 1]
+        return np.where(save > 0, m[..., 0] / np.where(save > 0, save, 1.0), np.inf), save
+
+    rng = np.random.default_rng(seed)
+    qs, save = q(x[rng.integers(0, len(x), size=(n_boot, len(x)))].mean(1))
+    lo, hi = np.percentile(qs, [50 * (1 - level), 50 * (1 + level)], method="nearest")  # no inf - inf interpolation
+    return float(q(x.mean(0))[0]), float(lo), float(hi), float((save <= 0).mean())
+
+
+def cmd_cost(args):
+    """G4 (plan §5, step 6): per arm on the confirmatory questions, tokens, list-price dollars and latency per
+    question; per caption arm, the one-time captioning cost per video; and Q* for the pairs in QSTAR_PAIRS."""
+    import pandas as pd
+    qs = tc.items("confirm")
+    keep = {q["item"] for q in qs}
+    rows = [r for m in PRICES for r in latest(m).values() if r["question_item"] in keep]
+    df = pd.DataFrame(rows)
+    df["arm"] = df.model + ":" + df.arm
+    df["in_tok"] = [(u or {}).get("input_tokens", 0) for u in df.usage]
+    df["out_tok"] = [(u or {}).get("output_tokens", 0) for u in df.usage]
+    df["think"] = [thinking_tokens(r) for r in rows]
+    df["usd"] = [list_usd(r["model"], r["usage"]) for r in rows]
+    df["cli_usd"] = [sum(v.get("costUSD", 0) for v in (r.get("model_usage") or {}).values()) for r in rows]
+    rel = ((df.usd - df.cli_usd).abs() / df.cli_usd).max()
+    print(f"{len(qs)} confirmatory questions. List prices $/M tokens (input, output incl. thinking): {PRICES}; "
+          f"largest relative difference from the CLI's costUSD over {len(df)} calls: {rel:.1e}")
+    vid = {q["item"]: q["video_id"] for q in qs}
+    idx = {}
+    for arm in INDEX_SOURCE:
+        per_win = index_usd(arm)
+        per_vid = {}
+        for v in set(vid.values()):
+            w = [per_win.get((v, p)) for p in range(len(tc.windows(tc.duration_s(v))))]
+            per_vid[v] = sum(w) if all(c is not None for c in w) else None
+        idx[arm] = per_vid
+    stats = []
+    for arm, d in df.groupby("arm"):
+        cap = arm.split(":")[1]
+        iv = [idx[cap][vid[q]] for q in d.question_item] if cap in idx else []
+        iv = [c for c in iv if c is not None]
+        stats.append(dict(arm=arm, n=len(d), acc=d.correct.mean(), in_tok=d.in_tok.median(), out_tok=d.out_tok.mean(),
+                          think=d.think.mean(), usd_per_q=d.usd.mean(), secs=d.seconds.median(),
+                          index_usd_per_video=sum(iv) / len(iv) if iv else None,
+                          index_videos=len(iv) if cap in idx else None))
+    print("\nper arm: accuracy; median input tokens; mean output tokens (incl. thinking) and thinking tokens; mean "
+          "list $ per question; median seconds per call (CLI wall clock); one-time captioning $ per video:")
+    print(pd.DataFrame(stats).set_index("arm").round({"acc": 3, "out_tok": 1, "think": 1, "usd_per_q": 6,
+                                                      "index_usd_per_video": 5}).to_string())
+    cor = df.pivot_table(index="question_item", columns="arm", values="correct", aggfunc="first").astype(float)
+    usd = df.pivot_table(index="question_item", columns="arm", values="usd", aggfunc="first")
+    print("\nbreak-even Q* (questions per video after which captioning once costs less in total), 95% CI over "
+          "questions; with the accuracy difference, captions - frames:")
+    for a, b in QSTAR_PAIRS:
+        cap = a.split(":")[1]
+        if a not in usd or b not in usd:
+            print(f"  {a} vs. {b}: not run yet")
+            continue
+        q = [i for i in usd.index if pd.notna(usd.at[i, a]) and pd.notna(usd.at[i, b])
+             and idx[cap].get(vid[i]) is not None]
+        est, lo, hi, never = qstar_boot([idx[cap][vid[i]] for i in q], usd.loc[q, a].tolist(), usd.loc[q, b].tolist())
+        dacc, dlo, dhi = paired_boot((cor.loc[q, a] - cor.loc[q, b]).tolist())
+        print(f"  {a} vs. {b}: Q* = {est:.1f} [{lo:.1f}, {hi:.1f}] (never in {never:.0%} of resamples; n={len(q)}); "
+              f"$/question {usd.loc[q, a].mean():.6f} vs. {usd.loc[q, b].mean():.6f}; accuracy {dacc:+.3f} "
+              f"[{dlo:+.3f}, {dhi:+.3f}]")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -573,9 +687,10 @@ def main():
     sub.add_parser("c3")
     th = sub.add_parser("thinking")
     th.add_argument("--set", dest="set_", choices=list(tc.SETS), default="confirm")
+    sub.add_parser("cost")
     args = ap.parse_args()
     {"run": cmd_run, "check": cmd_check, "confirm": cmd_confirm, "c2": cmd_c2, "c3": cmd_c3,
-     "thinking": cmd_thinking}[args.cmd](args)
+     "thinking": cmd_thinking, "cost": cmd_cost}[args.cmd](args)
 
 
 if __name__ == "__main__":

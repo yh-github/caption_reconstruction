@@ -8,8 +8,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 from index_qa import tempcompass as tc  # noqa: E402
 from index_qa.caption import GEMINI_LEAD, frame_clip, frames_prompt, prompt_for  # noqa: E402
-from index_qa.reader import (ARMS, CAPTIONERS, CLAUDE_CAPTIONER, HIGH, LOW, contrast_boot, paired_boot,  # noqa: E402
-                             parse, retention_boot, spearman, thinking_tokens)
+from index_qa.reader import (ARMS, CAPTIONERS, CLAUDE_CAPTIONER, HIGH, INDEX_SOURCE, LOW, QSTAR_PAIRS,  # noqa: E402
+                             contrast_boot, list_usd, paired_boot, parse, qstar_boot, retention_boot, spearman,
+                             thinking_tokens)
 from index_qa.self_caption import captioner  # noqa: E402
 
 
@@ -110,6 +111,23 @@ def test_thinking_tokens():
     assert thinking_tokens({"usage": {"output_tokens_details": {"thinking_tokens": 42}}}) == 42
     assert thinking_tokens({"usage": {"output_tokens": 11}}) == 0
     assert thinking_tokens({"usage": None}) == 0
+
+
+def test_list_usd_matches_a_logged_cli_cost():
+    # a logged Haiku question-only call: 1032 input and 11 output tokens, costUSD 0.0001087
+    assert list_usd("haiku", {"input_tokens": 1032, "output_tokens": 11}) == pytest.approx(0.0001087)
+    assert list_usd("sonnet", None) == 0
+
+
+def test_qstar_boot():
+    est, lo, hi, never = qstar_boot([1.0] * 4, [0.0] * 4, [0.5] * 4)
+    assert (est, lo, hi, never) == pytest.approx((2.0, 2.0, 2.0, 0.0))
+    est, _, hi, never = qstar_boot([1.0] * 4, [0.5] * 4, [0.5] * 4)  # no saving per question: never pays
+    assert est == float("inf") and hi == float("inf") and never == 1
+
+
+def test_every_qstar_caption_arm_has_an_index_cost():
+    assert all(a.split(":")[1] in INDEX_SOURCE and b.split(":")[1] not in INDEX_SOURCE for a, b in QSTAR_PAIRS)
 
 
 def test_spearman():
