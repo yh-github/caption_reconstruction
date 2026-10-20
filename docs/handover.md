@@ -17,8 +17,8 @@ The newest session is at the top. Older sessions stay below because other docs l
 - **C7 audit is done** (442 labels; log C7 *Result*, draft Table 4 and claim 7). Omission ("silent") is 61–73% of every caption arm's wrong answers, and 0.93–1.00 on stacked videos. Reversed failures split into forward narration (0.28–0.45) and silence, so "wrong ≥ 0.50" failed.
 - **Next:**
   1. The user hand-labels the 40 items in `results/index_qa/audit/hand_labels.csv` (blind; fill `label`). Then run `audit.py agree`; if κ < 0.6, Table 4 becomes the hand-labelled sample.
-  3. The user decides the open gaps (draft's last section): a Sonnet question-only arm, and Sonnet captions at 448 px.
-  4. Literature Q6 and Q7.
+  2. The user decides the open gaps (draft's last section): a Sonnet question-only arm, and Sonnet captions at 448 px.
+  3. Literature Q6 and Q7.
 
 # 2026-10-20 (evening) → C3–C7 running; paper skeleton started
 
