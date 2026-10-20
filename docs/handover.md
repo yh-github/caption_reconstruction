@@ -2,6 +2,24 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
+# 2026-10-20 (evening) → C3–C7 running; paper skeleton started
+
+**The user (2026-10-20):** do all the recommended follow-ups, and start the draft while the experiments run; keep the prose minimal, as a skeleton showing the claims, what backs them, and what is missing.
+- **Paper skeleton:** `docs/paper/caption_index_draft.md`. §0 is the claims-and-evidence table; the last section lists the gaps found while outlining. (`docs/paper/draft.md` is the old reconstruction paper; leave it.)
+- **Entries committed before their calls:** C4 (minimal pairs, 193 pairs, `--set pairs`), C5 (describe, then answer, `describe5`), C6 (448 px frames, `frames5_448`), C7 (caption audit, `scripts/index_qa/audit.py`, Sonnet judge). There is also N2a: the Q5 novelty check, close, not scooped (Prism, CapRL and MetaCaptioner have no self-caption control).
+- **Runs** (logs in `logs/c3_*.log`, `c4_haiku.log`, `c5_c6_haiku.log`, `c6_haiku.log`):
+  - C3: the 3-call check passed (input tokens Sonnet − Haiku = 2). The 758 Sonnet captions are running.
+  - C5, C6 and C4's Haiku reads (frames5, self-captions, Gemini captions) are running in parallel.
+  - **Still to run, in order:**
+    1. Sonnet captions for the pair siblings: `self_caption.py --set pairs --model sonnet`.
+    2. Haiku reads on `sonnetcaptions`: `--set confirm`, then `--set pairs`.
+    3. Sonnet reads: `--set pairs --arms frames5 sonnetcaptions`, and `--set confirm --arms sonnetcaptions`.
+    4. The audit: `audit.py run --limit 3`, then the rest, then `audit.py sheet`, which writes 40 items for the user to hand-label.
+    5. Then `reader.py c3 / c4 / c5 / c6 / types / cost` once each, `audit.py report`, and `plots.py cost types`. Fill the draft's ⟨PENDING⟩ marks.
+- **Gotchas:**
+  - A Claude Code auto-update deletes the `claude` binary for a moment and crashed the first C3 run. `call_claude` now waits and retries.
+  - `pgrep -f` with a plain pattern matches the waiting shell's own command line. Write the pattern as `self_caption[.]py`.
+
 # 2026-10-20 → ACL plan reviewed: Claude captioner, new terms, long draft
 
 **Start here next session: `docs/new_direction/acl2027_plan.md`**, revised today. **§0 has the dated goals G1–G12** (owner, test for done, date), and the go/no-go rule for the claim.
