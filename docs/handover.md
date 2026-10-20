@@ -20,11 +20,12 @@ The newest session is at the top. Older sessions stay below because other docs l
 - For one reader, captions save only 18% (Haiku) or 30% (Sonnet) of the cost per question. Break-even Q\* is ≈ 200 for Haiku and ≈ 6 for Sonnet, and ≈ 2 for the reader downgrade. So the paper leads with P3 and the decomposition, not with S3 or "43% of the tokens".
 - **Deadline:** ARR's dates page says January 2027 with no day, and the ACL 2027 site says TBA. Plan to Jan 4.
 
-- **Thinking tokens** (plan §6, exploratory): Sonnet thinks 3.3× less on captions. Thinking flags wrong answers on captions, and for Sonnet on frames, but not for Haiku on frames; the development set shows the same. Whether this goes in the paper is part of G2.
+- **Thinking tokens** (plan §6, exploratory): Sonnet thinks 3.3× less on captions. Thinking flags wrong answers on captions, and for Sonnet on frames, but not for Haiku on frames; the development set shows the same.
+- **G2 done (2026-10-20):** the user accepted the recommendations in plan §6. Do the 448 px Haiku arm and the thinking analysis; Sonnet on its own captions if quota allows after C3; decide the open-weights reader after C3; no effort sweep.
 
 **Next (plan §0):**
-1. G2: the user decides the open choices, by Oct 21.
-2. G1: C2, after the spend cap is raised.
+1. G1: C2. The user raised the spend cap on 2026-10-20, and the captioning resumed.
+2. G2: done.
 3. G3: C3 code (`self_caption.py --model` and a reader arm for Sonnet captions), then its log entry with predictions, then the Sonnet run after the reset (≈ 10–15 points of the 7-day figure).
 4. G4: the cost account.
 

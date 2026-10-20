@@ -142,7 +142,7 @@ Input tokens are medians per call. Cost is the mean of the CLI's `costUSD` per c
      - Claude list prices for Haiku and Sonnet 5.5, to check the CLI's `costUSD`. Look them up (claude-api skill); don't quote them from memory.
    - **Formula:** Prop. 2 in `research_plan_caption_index.md` (Q\*(α) = C(τ) / (c\*_f(α) − c\*_τ(α))). Compute it for α at the Haiku-frames, Haiku-captions and Sonnet accuracies, with bootstrap CIs.
    - **Output:** per question and arm, the input tokens, output and thinking tokens, list-price dollars and latency; the one-time index cost per video; Q\*.
-7. **Optional arms: the user decides** (§6; G2, by Oct 21).
+7. **Optional arms, as decided** (§6; G2 done 2026-10-20): the 448 px Haiku arm; Sonnet on its own captions if quota allows after C3; the thinking analysis.
 8. **Literature pass, after the quota reset of Oct 20, 17:00 UTC.** Run `final_search_brief.md`, reordered:
    - **Q5** (captioner effect from identical input) first, then Q1, Q2, Q4, Q6 and Q7. Q3 (aspects) last, since P1 failed.
    - **Deliverable:** §10 of `related_work_caption_index.md` and log entry N2. Do it before writing the introduction.
@@ -160,18 +160,18 @@ Input tokens are medians per call. Cost is the mean of the CLI's `costUSD` per c
 9. **Make the pre-registration verifiable.** Reviewers can't check local git timestamps. Before submission, put the C1 commit (or an archive with its hash and date) somewhere public, timestamped and anonymizable: an anonymous repository for review, or OSF.
 10. **Write** (§7), starting with the outline and the figures.
 
-## 6. Optional arms (proposed; the user decides)
+## 6. Optional arms (decided by the user 2026-10-20, G2: the recommendations below were accepted)
 
-| Arm | Why | Cost | Recommendation |
+| Arm | Why | Cost | Decision |
 |---|---|---|---|
-| Haiku on 5 frames at 448 px (144 tokens each, ≈ 1,870 video tokens per question) | Answers "you starved the frames": 40-token frames, and Haiku barely gains from 1 to 5 of them (0.58 → 0.61). Shows where frames catch up on the accuracy–cost curve. | 297 Haiku calls (little quota). Frames re-extracted at 448 px (`tempcompass.py` has `LONG_EDGE = 224`). A log entry with predictions before the run. | **Do it** |
-| Sonnet reads Sonnet's own captions | Sonnet's modality effect (P2 for a second reader), and the case where one model both indexes and answers | 297 Sonnet calls, ≈ 4 points of the 7-day quota | If quota allows after C3 |
-| Open-weights reader on Kaggle (e.g. Qwen2.5-VL-7B) on the main arms | Answers "all readers are closed models"; reproducible | Free GPU; a few sessions of work | Decide after C2 and C3 |
+| Haiku on 5 frames at 448 px (144 tokens each, ≈ 1,870 video tokens per question) | Answers "you starved the frames": 40-token frames, and Haiku barely gains from 1 to 5 of them (0.58 → 0.61). Shows where frames catch up on the accuracy–cost curve. | 297 Haiku calls (little quota). Frames re-extracted at 448 px (`tempcompass.py` has `LONG_EDGE = 224`). A log entry with predictions before the run. | **Do it** (G7) |
+| Sonnet reads Sonnet's own captions | Sonnet's modality effect (P2 for a second reader), and the case where one model both indexes and answers | 297 Sonnet calls, ≈ 4 points of the 7-day quota | **Do it if quota allows after C3** (G7) |
+| Open-weights reader on Kaggle (e.g. Qwen2.5-VL-7B) on the main arms | Answers "all readers are closed models"; reproducible | Free GPU; a few sessions of work | **Decide after C3** (G5, Oct 25) |
 | Sonnet, question only and 1 frame (C1's skipped secondary arms) | Completes Sonnet's curve and gives its retention | 600 Sonnet calls, ≈ 7–8 points of the 7-day quota | Skip unless quota is spare |
 | Opus as a third captioner | A captioner ladder (Haiku, Sonnet, Opus) | ≈ 2× C3's quota | Skip |
 | Gemini answers the questions directly | Not needed: in the main design the captioner's direct answer is Sonnet on frames, already measured | ≈ $1–3 | Skip |
-| Thinking tokens as an outcome (exploratory analysis of C1's calls) | See below. Thinking is part of the cost account either way (§5, step 6). | No calls | **Do it** |
-| Effort sweep: Haiku at low and high effort, on captions and on 5 frames | The only way to learn whether thinking *helps* more on captions than on frames; the analysis below shows only that it marks hard questions | ≈ 1,200 Haiku calls (little quota) | Only if thinking becomes part of the paper's story |
+| Thinking tokens as an outcome (exploratory analysis of C1's calls) | See below. Thinking is part of the cost account either way (§5, step 6). | No calls | **Do it**: an exploratory log entry, and the analysis moved into `reader.py` |
+| Effort sweep: Haiku at low and high effort, on captions and on 5 frames | The only way to learn whether thinking *helps* more on captions than on frames; the analysis below shows only that it marks hard questions | ≈ 1,200 Haiku calls (little quota) | **No** |
 
 **Thinking tokens in C1** (computed 2026-10-20, after the results; exploratory; no new calls). At effort medium the model decides per call whether to think, so thinking is observed, not set. Thinking tokens are above 0 exactly when a call has a thinking block (all 3,042 reader calls).
 - **How much:**
@@ -186,7 +186,7 @@ Input tokens are medians per call. Cost is the mean of the CLI's `costUSD` per c
   - Sonnet, frames: 0.93 vs. 0.63.
   - The 100 development questions (other videos) show the same pattern: Haiku on captions 0.85 vs. 0.51, Haiku on frames 0.67 vs. 0.77, Sonnet on captions 0.86 vs. 0.50, Sonnet on frames 0.94 vs. 0.67.
 - **Routing illustration (post hoc):** Haiku answers from captions and escalates to Sonnet on frames when it thought (45% of questions). That gives 0.774 at $0.0022 per question, against Sonnet on frames for every question at 0.798 and $0.0041.
-- If adopted (G2): an exploratory log entry, and the analysis moved from the session scratchpad into `reader.py`.
+- Adopted (G2, 2026-10-20): an exploratory log entry, and the analysis moved from the session scratchpad into `reader.py`.
 
 ## 7. Paper outline (long draft, 8 pages; cut to 4 if we go short)
 
