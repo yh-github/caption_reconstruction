@@ -21,10 +21,11 @@ Each goal has a test for done, an owner and a date. "Claude" means a Claude Code
 | G11 | Submission package | ARR checklist; anonymous release (code, captions, outputs); the pre-registration archived publicly (§5, step 9) | Claude and user | Thu Dec 31 |
 | G12 | Submit | Submitted through ARR; the deadline checked against the ACL 2027 call on Nov 15 and Dec 1 | User | ARR deadline (Jan 4, 2027 assumed) |
 
-**Go/no-go rule for G5** (C3 is the exact visual-token match; C2 the cross-family one):
-- **C3's CI excludes 0, positive:** the headline is the captioner effect; target ACL main.
-- **C3 null and C2b positive:** the claim becomes "spend the visual budget once, at captioning time".
-- **Both null:** the paper is the cost result plus the bound on the modality effect; target Findings.
+**Go/no-go rule for G5** (C3 is the exact visual-token match, C2 the cross-family one; the same rule is in the log, C3):
+1. **C3a's CI excludes 0, positive:** the headline is the captioner effect; target ACL main.
+2. **C3a not positive, C2a positive:** the captioner effect is shown only across families. The claim names the captioner; length and venue are decided at G9.
+3. **C3a and C2a not positive, C2b positive:** the claim becomes "spend the visual budget once, at captioning time".
+4. **None positive:** the paper is the cost result plus the bound on the modality effect; target Findings.
 
 **Not covered by the goals:** the user's available hours and the teammates' availability. G8 and G10 depend on both.
 
@@ -130,9 +131,9 @@ Input tokens are medians per call. Cost is the mean of the CLI's `costUSD` per c
    - **C2a positive:** the captioner effect holds across families at about matched visual tokens.
    - **C2a null and C2b positive:** Gemini's P3 is mostly a visual budget effect. The captioner claim then rests on C3.
 5. **C3: Claude captioner** (the Sonnet run after the quota reset of Oct 20, 17:00 UTC).
-   - **Code:** `self_caption.py` is fixed to Haiku (`MODEL = "haiku"`, captioner `claude-haiku-5-5-self`). Add a `--model` option, and a reader arm for Sonnet captions in `reader.py` (`CAPTIONERS`), with tests in `tests/test_index_qa.py`. Add C3's terms to the analysis (extend `c2`, or a `c3` command).
-   - **Log entry C3,** with predictions and stop rules, committed before any call.
-   - **Sonnet captions:** 761 windows. Caption calls take ≈ 1,300–1,500 input tokens plus thinking, and Sonnet moves the 7-day figure about 1 point per 80 reader calls, so ≈ 10–15 points.
+   - **Code (done 2026-10-20):** `self_caption.py --model sonnet` (folder `claude-sonnet-5-5-frames`, with a `--max-7d` stop), the `sonnetcaptions` reader arm, and `reader.py c3`; tests in `tests/test_index_qa.py`.
+   - **Log entry C3** (written 2026-10-20): predictions, outcome mapping, stop rules and the commands. **The user approves it before the run.**
+   - **Sonnet captions:** 761 windows. Caption calls take ≈ 1,300–1,500 input tokens plus thinking, so ≈ 10–15 points of the 7-day figure, and about two 5-hour windows at `--max-5h 0.7`.
    - **Haiku reads them:** 297 calls (little quota).
 6. **Cost account and break-even** (no new runs).
    - **Inputs:**

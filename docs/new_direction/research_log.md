@@ -440,3 +440,95 @@ With C1's format term, **C2c + C2a + P2 = S3** exactly, the total caption effect
 **Cost framing** (from C1's logged calls; plan §3).
 - For one reader, captions save little per question: Haiku 18%, Sonnet 30% of the list-price cost. The fixed prompt (≈ 1,025 tokens) and thinking tokens dominate, so captions cut video tokens to 43% but input tokens only to 81%.
 - The economic result is the reader downgrade: Haiku on captions costs 1/24 of Sonnet on frames, and repays ≈ $0.0073 of captioning per video after ≈ 2 questions, at 6 points lower accuracy.
+
+### C3 — Claude's captioner effect at identical input (written 2026-10-20, committed before any C3 call)
+
+**Status.** Exploratory: designed after C1, on the same 297 questions. It cannot change C1's verdicts. It replicates P3 within one model family, with the captioner given exactly the self-captions' input. The run starts after the user approves this entry, and after the 7-day quota reset (Oct 20, 17:00 UTC).
+
+**Why.** P3 (+0.148) compared Gemini at ≈ 5,500 visual tokens per window with Haiku at 200. C2 brings Gemini down to ≈ 280–330, about matched, and across model families. Every Claude model counts image tokens by the same rule (C1's 5-frame reader calls: median input 1,525 tokens for Haiku, 1,527 for Sonnet). So a Claude captioner given the same frames spends exactly Haiku's visual tokens.
+
+**New arm: Sonnet captions (`sonnetcaptions`).**
+- **Captioning:** Sonnet captions each window from the same five 224 px JPEGs as the self-captions, with the same prompt (`caption.frames_prompt`) and effort (medium). One isolated call per window, without the question (`self_caption.py --model sonnet`, folder `claude-sonnet-5-5-frames`).
+- **Reading:** Haiku reads the captions with the reader prompt of every caption arm.
+
+**Terms** (Haiku reads; names as in D2):
+
+| Term | Difference | Same in both arms | What differs |
+|---|---|---|---|
+| **C3a, captioner** | Sonnet captions − Haiku self-captions | pixels, prompt, visual tokens (200 per full window), effort | the captioning model |
+| **C3b, total within Claude** | Sonnet captions − 5 frames | pixels | C3a + modality (P2); source and visual budget are 0 by design |
+| **C3c, index vs. direct** | Haiku on Sonnet captions − Sonnet on 5 frames | pixels; Sonnet sees them in both | Sonnet captions once and Haiku answers, vs. Sonnet answers each question |
+| **C3d, family** | Sonnet captions − Gemini frame-clip captions (C2) | pixels | captioner and family; visual tokens about equal (200 vs. ≈ 280–330); prompt's first clause (frames vs. video) |
+
+**Predictions** (95% CIs, paired bootstrap over questions, as in C2):
+- **Haiku on Sonnet captions ≈ 0.73.**
+  - Sonnet reads these frames far better than Haiku: 0.798 vs. 0.613 on 5 frames.
+  - Sonnet loses almost nothing through a strong captioner's captions (S1: −0.007).
+  - A question-blind caption should carry part of Sonnet's advantage, though less than Gemini's frame captions did (0.791, with 27× the visual tokens).
+- **C3a ≈ +0.09.** The key quantity.
+- **C3b ≈ +0.12.**
+- **C3c ≈ −0.07.**
+- **C3d ≈ 0.00.** No directional hypothesis.
+
+**What each outcome means.** This is the go/no-go rule of G5 (plan §0), stated with C2:
+1. **C3a's CI excludes 0, positive:** the captioner effect holds with identical input, so it is not a visual budget effect. It is the paper's headline; target ACL main.
+2. **C3a not positive, C2a positive:** the effect is shown only across families (Gemini as captioner). The claim names the captioner, and the length and venue are decided at G9.
+3. **C3a and C2a not positive, C2b positive:** the claim becomes "spend the visual budget once, at captioning time".
+4. **None positive:** the paper is the cost result plus the bound on the modality effect; target Findings.
+- **C3a negative:** Haiku's own captions are as useful as Sonnet's, which would be reported as such.
+
+**Precision.** As in C2: SE ≈ 0.03 for a paired difference on 297 questions, so the 95% CI is about ±0.06. If the effect is +0.09, the power is about 85%.
+
+**Run and stop rules.**
+1. **3-call check** (`--limit 3`). Read the three captions: do they describe those frames? Compare each call's input tokens with Haiku's self-caption call for the same window. Stop and investigate if any differs by more than 10 tokens: the image tokens must be equal, and the text may differ by a few tokens between models.
+2. **Captions:** the remaining 758 windows, with `--max-5h 0.7 --max-7d 0.5`.
+   - Sonnet reader calls in C1 took ≈ 0.06–0.09 points of the 5-hour window each, so expect ≈ 0.1 per caption call. The run then needs two 5-hour windows; done windows are skipped when it resumes.
+   - Expect ≈ 10–15 points of the 7-day figure.
+   - Stop and investigate if more than 2% of windows get no caption. Otherwise, a question with a missing window is dropped from every C3 comparison (`--skip-missing`) and listed here.
+3. **Reader:** Haiku, 297 calls, `--max-5h 0.8`, with the isolation and model checks of K0–C2.
+4. **Analysis:** `reader.py c3` is run once, when steps 2 and 3 are complete. Its full output is reported here.
+
+```bash
+.venv/bin/python scripts/index_qa/self_caption.py --set confirm --model sonnet --limit 3
+.venv/bin/python scripts/index_qa/self_caption.py --set confirm --model sonnet --max-5h 0.7 --max-7d 0.5
+.venv/bin/python scripts/index_qa/reader.py run --set confirm --model haiku --arms sonnetcaptions --skip-missing
+.venv/bin/python scripts/index_qa/reader.py c3
+```
+
+### A1 — Thinking tokens in C1 (exploratory analysis, 2026-10-20; not written in advance)
+
+**Why.** The user asked whether we quantify the readers' thinking tokens, and whether they correlate between frames and captions. The analysis was adopted as exploratory (G2, plan §6). It made no new calls; the effort sweep that could test whether thinking *helps* was declined. Reproduce with `reader.py thinking [--set dev]`.
+
+**What thinking is here.** All reader calls run at effort medium, where the model decides per call whether to think, so thinking is observed, not set. In all 3,042 reader calls, the logged thinking tokens are above 0 exactly when the call has a thinking block.
+
+**Results, confirmatory set (297 questions):**
+
+| Arm | Calls that think | Mean thinking tokens | Accuracy, no thinking | Accuracy, thinking |
+|---|---|---|---|---|
+| Haiku, 5 frames | 0.25 | 79 | 0.61 | 0.61 |
+| Haiku, 1 frame | 0.22 | 43 | 0.57 | 0.63 |
+| Haiku, self-captions | 0.54 | 104 | 0.75 | 0.55 |
+| Haiku, Gemini frame captions | 0.44 | 73 | 0.90 | 0.65 |
+| Haiku, Gemini video captions | 0.45 | 74 | 0.84 | 0.62 |
+| Sonnet, 5 frames | 0.44 | 80 | 0.93 | 0.63 |
+| Sonnet, Gemini video captions | 0.24 | 24 | 0.84 | 0.64 |
+
+- **Development set (100 questions, other videos):** the same pattern.
+  - Haiku on captions: 0.85 without thinking vs. 0.51 with it.
+  - Haiku on 5 frames: 0.67 vs. 0.77.
+  - Sonnet on captions: 0.86 vs. 0.50.
+  - Sonnet on 5 frames: 0.94 vs. 0.67.
+- **Where thinking goes:** speed and direction draw the most thinking in every arm, and action almost none.
+- **Correlation across arms.** The same questions draw thinking in different arms. Spearman over questions, then the mean within aspects:
+  - Haiku, frames vs. captions: +0.38 and +0.25.
+  - Sonnet, frames vs. captions: +0.47 and +0.31.
+  - Haiku, Gemini video vs. frame captions: +0.60 and +0.44.
+- **Cost.** Thinking is 2–5% of reader tokens. Sonnet thinks 3.3× less on captions than on frames (24 vs. 80 tokens on average), which is part of why captions save Sonnet 30% per question.
+
+**Reading** (hypotheses, untested):
+- Thinking marks hard questions in every arm.
+- It marks *wrong answers* when the reader reads text, and for Sonnet on frames, but not for Haiku on 40-token frames. One explanation: from a caption, the reader can tell that the answer is not there; from small frames, Haiku does not know what it is missing.
+
+**Escalation (illustration, post hoc).** Haiku answers from the Gemini captions; when it thinks, the question goes to Sonnet on 5 frames (45% of questions). That gives 0.774 at $0.0022 per question, against 0.798 at $0.0041 for Sonnet on frames every time, and 0.737 at $0.00017 for Haiku on captions alone. On the development set: 0.800 at $0.0020 vs. 0.840 at $0.0040. It is a middle point on the accuracy–cost curve, not a win. The rule (escalate on any thinking) was chosen after seeing the data, without tuning.
+
+**Use in the paper:** thinking tokens are part of the cost account (G4), and this is an exploratory paragraph or appendix section. It is not a claim.
