@@ -2,6 +2,25 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
+# 2026-10-20 (night) → C3–C6 done, G5 = case 1; draft v1; C7 audit queued
+
+**Start here: `docs/paper/caption_index_draft.md` §0** (claims, evidence, status) and its last section (gaps to decide). Results with predictions are in the log's C3–C6 *Result* paragraphs; raw report outputs are in `results/index_qa/reports/*.txt`.
+- **G5 is case 1:** C3a = +0.064 [+0.017, +0.111], so the captioner effect holds within Claude at identical input. On minimal pairs, C4b = +0.104.
+- **New findings** (exploratory):
+  - Sonnet on its own captions loses 0.088 vs. its frames, mostly on reversed and stacked videos.
+  - Haiku and Sonnet read Sonnet's captions equally well (0.707 vs. 0.710).
+  - On stacked pairs every caption arm is near chance. A question-aware description (C5) recovers +0.22 on stacked videos.
+  - 448 px frames don't close the gap to captions (C6).
+- **Claims reworded in the draft:**
+  - Claim 3: the index trades 0–9 points for a 20–25× cheaper query.
+  - Claim 5: captions narrate reversals forward even from a captioner that sees them (Sonnet).
+- **C7 audit:** the 3-call check was read (the first label, "silent", is right). The full run (442 Sonnet calls) is queued in the background and starts after the 5-hour reset at 22:40 UTC. It then writes `results/index_qa/reports/c7.txt` (`audit.py report`) and the hand-label sheet `results/index_qa/audit/hand_labels.csv`. Log: `logs/c7_audit.log`.
+- **Next:**
+  1. Write C7's *Result* in the log, and fill §4.4 and claims 4–5 in the draft.
+  2. The user hand-labels the 40 items; then run `audit.py agree`.
+  3. The user decides the open gaps (draft's last section): a Sonnet question-only arm, and Sonnet captions at 448 px.
+  4. Literature Q6 and Q7.
+
 # 2026-10-20 (evening) → C3–C7 running; paper skeleton started
 
 **The user (2026-10-20):** do all the recommended follow-ups, and start the draft while the experiments run; keep the prose minimal, as a skeleton showing the claims, what backs them, and what is missing.
