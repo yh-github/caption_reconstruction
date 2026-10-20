@@ -140,7 +140,17 @@ def call_claude(blocks: list[dict], model_id: str, effort: str) -> dict:
     env = {**os.environ, "DISABLE_PROMPT_CACHING": "1"}
     t0 = time.time()
     try:
-        p = subprocess.run(cmd, input=msg, capture_output=True, text=True, cwd=empty_cwd(), env=env, timeout=TIMEOUT_S)
+        for wait in (30, 60, 120, 240, 0):  # the CLI binary is briefly missing while Claude Code auto-updates
+            try:
+                p = subprocess.run(cmd, input=msg, capture_output=True, text=True, cwd=empty_cwd(), env=env,
+                                   timeout=TIMEOUT_S)
+                break
+            except FileNotFoundError:
+                if not wait:
+                    raise
+                print(f"claude CLI not found (updating?); retrying in {wait} s", file=sys.stderr, flush=True)
+                time.sleep(wait)
+                t0 = time.time()
         stdout, stderr, rc, timed_out = p.stdout, p.stderr, p.returncode, False
     except subprocess.TimeoutExpired as e:
         stdout = e.stdout.decode() if isinstance(e.stdout, bytes) else (e.stdout or "")
