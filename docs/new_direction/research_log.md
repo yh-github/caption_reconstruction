@@ -987,6 +987,33 @@ This is the paper's qualitative analysis, and it tests A3's readings.
 .venv/bin/python scripts/index_qa/audit.py sheet              # for the user's 40 hand labels
 ```
 
+**Result (2026-10-21; `audit.py report`, run once after all labels; output in `results/index_qa/reports/c7.txt`).**
+- **Run.**
+  - **3-call check:** the first label was checked by hand and is right. It was a stacked sunrise, where the caption names one sun and no speeds, and the judge said "silent".
+  - **Labels:** 442 items, all labelled; 7-day quota 7% → 9%.
+  - **Hand-label sheet:** `results/index_qa/audit/hand_labels.csv`, 40 items, blind (prompt only). **κ is pending the user's labels.** Until then, every number below is the judge's.
+- **Wrong answers by the judge's label of the captions** (share: reader error "correct" / misstatement "wrong" / omission "silent"; n wrong), with the prediction:
+
+| Reader arm | Correct | Wrong | Silent | n | Prediction |
+|---|---|---|---|---|---|
+| Haiku, self-captions | 0.08 | 0.28 | **0.63** | 106 | 0.20 / 0.30 / 0.50 |
+| Haiku, Sonnet captions | 0.13 | 0.26 | 0.61 | 87 | — |
+| Haiku, Gemini frame-clip captions | 0.17 | 0.15 | 0.68 | 82 | — |
+| Haiku, Gemini frame captions | 0.10 | 0.18 | 0.73 | 62 | — |
+| Haiku, Gemini video captions | 0.10 | 0.21 | **0.69** | 78 | 0.25 / 0.30 / 0.45 |
+| Sonnet, Gemini video captions | 0.05 | 0.24 | **0.71** | 62 | 0.15 / 0.35 / 0.50 |
+| Sonnet, Sonnet captions | 0.08 | 0.26 | 0.66 | 86 | — |
+
+- **Omission is the main failure:** 61–73% of every caption arm's wrong answers come from captions that don't decide the question. Reader errors are rarer than predicted (5–17% against 15–25%). Misstatements are 15–28%.
+- **Sonnet makes fewer reader errors than Haiku on the same captions:** 0.05 vs. 0.10 on Gemini video captions, as predicted, but the counts are small (3 vs. 8).
+- **By video type:**
+  - **Stacked: silent ≥ 0.70 holds.** It is 0.93–1.00 in every arm. Almost no caption says how the two copies differ.
+  - **Reversed: wrong ≥ 0.50 fails.** Wrong is 0.28–0.45 and silent 0.45–0.62. About two in five reversed failures are forward narration; the rest are captions that do not commit to a direction. Sonnet's captions misstate as often as Haiku's (0.41 vs. 0.45).
+  - Plain: silent 0.60–0.80.
+  - Two-clip: few errors (1–8 per arm), mostly reader errors, where the captions state the order but the reader still answered wrongly.
+- **Reading:** a question-blind caption fails mainly by leaving out what the question asks, and less often by stating the wrong thing. This fits the cap of the C3 result: once the fact is missing, no reader can recover it. It also fits Prop. 4 and C5b on stacked videos (+0.22 for a description that sees the question).
+- **Caveat:** Sonnet is both the judge and one of the captioners. If κ with the hand labels is < 0.6, only the hand-labelled sample is reported (pre-registered above).
+
 **Order of the runs (C3–C7).** C3's Sonnet captions run first (started 2026-10-20 17:53 UTC). The Haiku-only arms run alongside it: C5, C6, and C4's Haiku reads that don't need Sonnet captions. The Sonnet reads and the audit follow once C3's captions are done. The 7-day quota guard for every Sonnet run is 0.5–0.6.
 
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
