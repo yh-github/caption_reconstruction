@@ -875,3 +875,19 @@ This is the paper's qualitative analysis, and it tests A3's readings.
 ```
 
 **Order of the runs (C3–C7).** C3's Sonnet captions run first (started 2026-10-20 17:53 UTC). The Haiku-only arms run alongside it: C5, C6, and C4's Haiku reads that don't need Sonnet captions. The Sonnet reads and the audit follow once C3's captions are done. The 7-day quota guard for every Sonnet run is 0.5–0.6.
+
+### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
+
+**Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
+
+**New since N1:**
+- [CapRL](https://arxiv.org/abs/2509.22647) (ICLR 2026) trains a captioner with a reward: how well a text-only LLM answers multiple-choice questions from the caption alone. Its follow-up [CapRL++](https://huggingface.co/papers/2606.09393) (June 2026) adds video. Caption utility for a fixed text-only reader is therefore an established *training signal*. There is no self-caption control, and the reader never sees the pixels.
+- [MetaCaptioner](https://arxiv.org/abs/2510.12126) (images) ranks captioners by a text-only LLM's accuracy on visual tasks from their captions. It is a captioner comparison with a fixed reader, but with no self-caption arm and no frame view for the reader.
+- [Vamos](https://arxiv.org/abs/2311.13627) (ECCV 2024; verified, it was a lead from memory) finds free-text descriptions competitive with visual embeddings for an LLM reasoner on five video benchmarks, where the visual embeddings add little or nothing. That is in line with our bound on the modality effect, but it is learned, on long and egocentric video, with no control of what the captioner saw.
+
+**Verdict for Q5: close, not scooped.** Varying the captioner in front of a fixed reader is established (Prism, LLoVi, MetaCaptioner, CapRL). Not found, on images or video:
+- a **self-caption control**: the reader captions the same pixels itself;
+- **identical or matched visual tokens** for the two captioners;
+- **the reader's own view of the frames** as the third arm, which turns the captioner comparison into the decomposition (captioner + modality).
+
+Claim 1 must be worded as the controlled decomposition, not as "a better captioner helps". Prism and CapRL are cited as the closest work.
