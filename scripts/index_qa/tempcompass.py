@@ -130,6 +130,34 @@ def first_per_dim(qs: list[dict], n: int | None) -> list[dict]:
     return out
 
 
+VIDEO_TYPES = ["plain", "two_clip", "reversed", "stacked"]
+
+
+def video_type(video_id: str) -> str:
+    """How TempCompass built the video, from its ID (A3, research log): "reversed" (<id>_reverse, one clip played
+    backwards; direction and attribute change), "stacked" (<id>_concat_<k>, the same clip twice, one above the other,
+    at equal or different speeds; speed), "two_clip" (<a>_<b>_<k>, two different clips, one after the other or one
+    above the other; order), or "plain" (<id>, one clip as filmed)."""
+    if re.fullmatch(r"\d+_reverse", video_id):
+        return "reversed"
+    if re.fullmatch(r"\d+_concat_\d+", video_id):
+        return "stacked"
+    if re.fullmatch(r"\d+_\d+_\d+", video_id):
+        return "two_clip"
+    if re.fullmatch(r"\d+", video_id):
+        return "plain"
+    raise ValueError(f"unknown TempCompass video ID {video_id!r}")
+
+
+def source_clips(video_id: str) -> list[str]:
+    """The IDs of the filmed clips a video is built from (a reversed or stacked video shares its clip with the plain
+    one; a two-clip video has two)."""
+    t = video_type(video_id)
+    if t == "two_clip":
+        return video_id.split("_")[:2]
+    return [video_id.split("_")[0]]
+
+
 def video_path(video_id: str) -> Path:
     return VIDEOS / f"{video_id}.mp4"
 

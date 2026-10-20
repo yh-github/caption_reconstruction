@@ -9,8 +9,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from index_qa import tempcompass as tc  # noqa: E402
 from index_qa.caption import GEMINI_LEAD, frame_clip, frames_prompt, prompt_for  # noqa: E402
 from index_qa.reader import (ARMS, CAPTIONERS, CLAUDE_CAPTIONER, HIGH, INDEX_SOURCE, LOW, QSTAR_PAIRS,  # noqa: E402
-                             contrast_boot, list_usd, paired_boot, parse, qstar_boot, retention_boot, spearman,
-                             thinking_tokens)
+                             clip_clusters, cluster_boot, contrast_boot, list_usd, paired_boot, parse, qstar_boot,
+                             retention_boot, spearman, thinking_tokens)
 from index_qa.self_caption import captioner  # noqa: E402
 
 
@@ -94,6 +94,39 @@ def test_contrast_boot():
 def test_retention_boot():
     est, lo, hi = retention_boot([1, 1, 0, 0], [1, 1, 1, 0], [0, 0, 0, 0])
     assert est == pytest.approx(2 / 3) and lo <= est <= hi
+
+
+def test_cluster_boot():
+    est, lo, hi = cluster_boot([1, 1, 0, 0, -1, 0], ["a", "a", "b", "b", "c", "c"])
+    assert est == pytest.approx(1 / 6) and lo <= est <= hi
+    # one question per cluster: the same percentile CI as resampling questions
+    d = [1, 0, -1, 1, 0, 0, 1, 0, 0, -1] * 3
+    assert cluster_boot(d, list(range(len(d)))) == pytest.approx(paired_boot(d))
+
+
+def test_cluster_boot_wider_when_clusters_are_alike():
+    d = [1] * 10 + [0] * 10
+    _, lo, hi = paired_boot(d)
+    _, clo, chi = cluster_boot(d, [0] * 10 + [1] * 10)  # two clusters, each all alike
+    assert chi - clo > hi - lo
+
+
+def test_video_type_and_source_clips():
+    assert [tc.video_type(v) for v in ["1034419625", "1034419625_reverse", "1059718130_concat_0",
+                                       "1059072773_1059718130_0"]] == ["plain", "reversed", "stacked", "two_clip"]
+    assert set(tc.VIDEO_TYPES) == {"plain", "reversed", "stacked", "two_clip"}
+    assert tc.source_clips("1034419625_reverse") == ["1034419625"]
+    assert tc.source_clips("1059718130_concat_2") == ["1059718130"]
+    assert tc.source_clips("1059072773_1059718130_0") == ["1059072773", "1059718130"]
+    with pytest.raises(ValueError):
+        tc.video_type("abc_reverse")
+
+
+def test_clip_clusters_join_videos_through_shared_clips():
+    v = ["1", "1_reverse", "2_1_0", "2_concat_1", "3", "4_5_1"]
+    c = clip_clusters(v)
+    assert c[0] == c[1] == c[2] == c[3]  # 1 and 2 are linked by the two-clip video 2_1_0
+    assert len({c[0], c[4], c[5]}) == 3
 
 
 def test_aspect_groups_partition_the_aspects():

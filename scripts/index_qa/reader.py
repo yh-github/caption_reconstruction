@@ -28,6 +28,7 @@ A format failure gets one retry; after that the item scores as wrong.
     .venv/bin/python scripts/index_qa/reader.py c3           # C3's statistics (research log)
     .venv/bin/python scripts/index_qa/reader.py thinking [--set dev]   # A1: thinking tokens (research log)
     .venv/bin/python scripts/index_qa/reader.py cost         # G4: cost per question and arm, index cost, Q*
+    .venv/bin/python scripts/index_qa/reader.py types [--set dev]      # A3: by video type, clip-clustered CIs
 Outputs (append-only; the latest row per item counts): results/index_qa/claude/<model>.jsonl and
 <model>__events.jsonl, as in the unshuffle reader.
 """
@@ -254,6 +255,40 @@ def contrast_boot(d_a: list[float], d_b: list[float], n_boot: int = 10_000, seed
           - b[rng.integers(0, len(b), size=(n_boot, len(b)))].mean(1))
     lo, hi = np.percentile(bs, [50 * (1 - level), 50 * (1 + level)])
     return float(a.mean() - b.mean()), float(lo), float(hi)
+
+
+def cluster_boot(diff: list[float], clusters: list, n_boot: int = 10_000, seed: int = 0, level: float = 0.95
+                 ) -> tuple[float, float, float]:
+    """Mean of per-question differences and a percentile CI from resampling clusters of questions (A3: questions
+    whose videos share a filmed clip), each resample's mean taken over its questions."""
+    import numpy as np
+    d = np.asarray(diff, float)
+    keys = sorted(set(clusters), key=str)
+    at = {k: i for i, k in enumerate(keys)}
+    idx = np.array([at[c] for c in clusters])
+    s, n = np.bincount(idx, d, len(keys)), np.bincount(idx, minlength=len(keys)).astype(float)
+    rng = np.random.default_rng(seed)
+    pick = rng.integers(0, len(keys), size=(n_boot, len(keys)))
+    bs = s[pick].sum(1) / n[pick].sum(1)
+    lo, hi = np.percentile(bs, [50 * (1 - level), 50 * (1 + level)])
+    return float(d.mean()), float(lo), float(hi)
+
+
+def clip_clusters(video_ids: list[str]) -> list[int]:
+    """Per video, a cluster label: videos that share a filmed clip, directly or through other videos, share a label."""
+    parent: dict = {}
+
+    def root(x):
+        while parent.setdefault(x, x) != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    for v in video_ids:
+        for c in tc.source_clips(v):
+            parent[root(("video", v))] = root(("clip", c))
+    labels: dict = {}
+    return [labels.setdefault(root(("video", v)), len(labels)) for v in video_ids]
 
 
 def retention_boot(cap: list[float], frames: list[float], blind: list[float], n_boot: int = 10_000, seed: int = 0,
@@ -550,6 +585,77 @@ def cmd_thinking(args):
               f"{c.loc[q, cheap].mean():.3f}, ${u.loc[q, cheap].mean():.5f}")
 
 
+# A3 (research log): differences reported by video type; the C3 ones once C3 has run (C3 amendment 1)
+TYPE_PAIRS = [("P2 modality", "haiku:selfcaptions", "haiku:frames5"),
+              ("P3 captioner (Gemini, image path)", "haiku:framecaptions", "haiku:selfcaptions"),
+              ("C2a captioner (Gemini, matched tokens)", "haiku:frameclipcaptions", "haiku:selfcaptions"),
+              ("S1 Sonnet, captions - frames", "sonnet:captions", "sonnet:frames5"),
+              ("S3 Haiku, captions - frames", "haiku:captions", "haiku:frames5"),
+              ("C3a captioner (Sonnet)", "haiku:sonnetcaptions", "haiku:selfcaptions"),
+              ("C3b total within Claude", "haiku:sonnetcaptions", "haiku:frames5"),
+              ("C3c index vs. Sonnet on frames", "haiku:sonnetcaptions", "sonnet:frames5")]
+PRIOR_ARM = "haiku:blind"
+
+
+def cmd_types(args):
+    """A3 (research log; exploratory): accuracy and the main differences by how TempCompass built the video
+    (tc.video_type), with CIs from resampling clusters of questions whose videos share a filmed clip; and, among wrong
+    answers, the share that equal the question-only answer. A failed call counts as wrong."""
+    import pandas as pd
+    qs = tc.items(args.set_)
+    q = {x["item"]: x for x in qs}
+    rows = [r for m in ("haiku", "sonnet") for r in latest(m).values() if r["question_item"] in q]
+    if not rows:
+        sys.exit("no saved rows")
+    df = pd.DataFrame(rows)
+    df["arm"] = df.model + ":" + df.arm
+    wide = df.pivot_table(index="question_item", columns="arm", values="correct", aggfunc="first").astype(float)
+    letter = df.pivot_table(index="question_item", columns="arm", values="letter", aggfunc="first")
+    vtype = pd.Series({i: tc.video_type(q[i]["video_id"]) for i in wide.index})
+    clus = pd.Series(dict(zip(wide.index, clip_clusters([q[i]["video_id"] for i in wide.index]))))
+    print(f"{args.set_} set: {len(wide)} questions in {clus.nunique()} clusters of videos that share a filmed clip "
+          f"(largest {clus.value_counts().max()})")
+    print("\nquestions by video type and aspect:")
+    aspect = pd.Series({i: q[i]["dim"] for i in wide.index}, name="aspect")
+    print(pd.crosstab(vtype.rename("video type"), aspect).reindex(tc.VIDEO_TYPES).to_string())
+    print("\naccuracy by video type:")
+    acc = wide.groupby(vtype).mean().reindex(tc.VIDEO_TYPES).T.round(2)
+    acc["all"] = wide.mean().round(3)
+    print(acc.to_string())
+    print("\ndifferences, all questions: 95% CI over questions, then over clip clusters:")
+    pairs = [(n, a, b) for n, a, b in TYPE_PAIRS if a in wide and b in wide]
+    for name, a, b in pairs:
+        d = (wide[a] - wide[b]).dropna()
+        est, lo, hi = paired_boot(d.tolist())
+        _, clo, chi = cluster_boot(d.tolist(), clus[d.index].tolist())
+        print(f"  {name}: {a} - {b} = {est:+.3f} [{lo:+.3f}, {hi:+.3f}], clustered [{clo:+.3f}, {chi:+.3f}] "
+              f"(n={len(d)})")
+    print("\nby video type, 95% CI over clip clusters:")
+    for name, a, b in pairs:
+        d = (wide[a] - wide[b]).dropna()
+        out = []
+        for t in tc.VIDEO_TYPES:
+            dt = d[vtype[d.index] == t]
+            if len(dt):
+                est, lo, hi = cluster_boot(dt.tolist(), clus[dt.index].tolist())
+                out.append(f"{t} {est:+.2f} [{lo:+.2f}, {hi:+.2f}] n={len(dt)}")
+        print(f"  {name}: " + "; ".join(out))
+    if PRIOR_ARM in letter:
+        no = pd.Series({i: len(q[i]["options"]) for i in wide.index})
+        print(f"\nwrong answers equal to the question-only answer ({PRIOR_ARM}), share and n, by video type; "
+              f"{(1 / (no - 1)).mean():.2f} if wrong answers were uniform over the wrong options:")
+        for a in wide.columns:
+            if a == PRIOR_ARM:
+                continue
+            wrong = (wide[a] == 0) & letter[PRIOR_ARM].notna() & letter[a].notna()
+            out = []
+            for t in tc.VIDEO_TYPES + [None]:
+                m = wrong & (vtype == t) if t else wrong
+                share = (letter.loc[m, a] == letter.loc[m, PRIOR_ARM]).mean() if m.any() else float("nan")
+                out.append(f"{t or 'all'} {share:.2f} ({int(m.sum())})")
+            print(f"  {a}: " + "; ".join(out))
+
+
 # Claude list prices, $ per million input / output tokens (thinking bills as output), from the claude-api skill's
 # model table (cached 2026-10-06); Haiku's hold for prompts up to 100K tokens. The CLI's costUSD should match them.
 PRICES = {"haiku": (0.10, 0.50), "sonnet": (2.00, 10.00)}
@@ -688,9 +794,11 @@ def main():
     th = sub.add_parser("thinking")
     th.add_argument("--set", dest="set_", choices=list(tc.SETS), default="confirm")
     sub.add_parser("cost")
+    ty = sub.add_parser("types")
+    ty.add_argument("--set", dest="set_", choices=list(tc.SETS), default="confirm")
     args = ap.parse_args()
     {"run": cmd_run, "check": cmd_check, "confirm": cmd_confirm, "c2": cmd_c2, "c3": cmd_c3,
-     "thinking": cmd_thinking, "cost": cmd_cost}[args.cmd](args)
+     "thinking": cmd_thinking, "cost": cmd_cost, "types": cmd_types}[args.cmd](args)
 
 
 if __name__ == "__main__":
