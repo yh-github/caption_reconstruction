@@ -737,3 +737,141 @@ C1's and C2's conclusions stand. The paper should report the clustered CIs, or s
 - **On reversed videos, both modalities fail toward the prior.** A captioner that does report the reversal helps (C2a +0.14).
 
 **Use in the paper:** an exploratory analysis paragraph with a figure (accuracy by video type), and the clustered CIs. C3 Amendment 1 adds predictions by video type before C3 runs. Follow-up tests of these hypotheses are being decided with the user before C3.
+
+**Decision (2026-10-20, after A3).** The user chose all three recommended follow-ups: minimal pairs (C4), describe-then-answer (C5) and the caption audit (C7). The 448 px arm (C6) was decided earlier (G2). Each entry below was written and committed before any of its calls. C3's caption run started first, under its own entry, after its 3-call check passed (Sonnet's caption calls took 2 more input tokens than Haiku's for the same windows: 1,499 vs. 1,497 and 1,365 vs. 1,363).
+
+### C4 — Minimal pairs: does the temporal fact reach each representation? (written 2026-10-20, committed before any C4 call)
+
+**Status.** Exploratory, designed after C1–C3's design and A3. On the confirmatory questions and their sibling videos.
+
+**Why.** A3 read the video-type results as: captions narrate reversed clips forwards, and question-blind captions don't compare the two copies of a stacked clip. Accuracy on one video can't separate "the representation lost the fact" from "the reader guessed". A minimal pair can: the same question, with the same wording and option order, on two videos built from the same filmed clip whose correct options differ. An arm that doesn't receive the fact gives the same answer on both and gets at most one right.
+
+**Pairs** (`tempcompass.py sample --set pairs`, `results/index_qa/pairs_items.json`).
+- For each confirmatory question, the first sibling video (sorted by ID) with a TempCompass question of the same aspect, stem and option set whose correct option differs. Siblings: a plain clip and its reversed version; the other stacked versions of the clip (other speed pairs); the other two-clip videos of the same two clips (other order or layout).
+- Only siblings already captioned by Gemini (on the video), so no Gemini call is needed. That leaves out 3 reversal pairs.
+- **193 pairs:** 107 reversal (66 with the reversed video confirmatory, 41 with the plain one), 41 stacked and 45 two-clip. They are on 174 sibling videos (449 windows). 9 of the 41 stacked pairs, and some others, have siblings in the dev set; that is fine, because the sibling item is a new question–video combination.
+- Chance pair accuracy (both right by guessing): 0.093.
+
+**Arms** (each also read on the sibling, with the confirmatory question's wording):
+
+| Arm | New calls |
+|---|---|
+| Haiku, 5 frames | 193 Haiku |
+| Haiku, self-captions | 193 Haiku; self-captions for ≈ 50 sibling windows that lack them |
+| Haiku, Sonnet captions | 193 Haiku; Sonnet captions for the ≈ 120 sibling windows outside the confirmatory set |
+| Haiku, Gemini video captions | 193 Haiku |
+| Sonnet, 5 frames | 193 Sonnet |
+| Sonnet, Sonnet captions | 193 Sonnet, and the 297 confirmatory reads (plan §6: Sonnet on its own captions) |
+
+**Outcomes** (`reader.py c4`): per arm, accuracy on each side, **pair accuracy** (right on both) and the **same-answer rate** (one letter for both videos). Differences in pair accuracy with 95% CIs from resampling clip clusters, overall and by group (reversal, stacked, two-clip).
+
+**Predictions** (pair accuracy, overall / reversal / stacked / two-clip):
+
+| Arm | All | Reversal (107) | Stacked (41) | Two-clip (45) |
+|---|---|---|---|---|
+| Haiku, 5 frames | 0.31 | 0.33 | 0.15 | 0.40 |
+| Haiku, self-captions | 0.37 | 0.36 | 0.08 | 0.65 |
+| Haiku, Sonnet captions | 0.46 | 0.47 | 0.12 | 0.75 |
+| Haiku, Gemini video captions | 0.49 | 0.47 | 0.15 | 0.85 |
+| Sonnet, 5 frames | 0.58 | 0.55 | 0.40 | 0.80 |
+| Sonnet, Sonnet captions | 0.50 | 0.50 | 0.15 | 0.80 |
+
+| Term (pair accuracy) | Prediction |
+|---|---|
+| C4a modality: Haiku self-captions − 5 frames | +0.06 |
+| C4b captioner: Haiku on Sonnet captions − self-captions | +0.09 |
+| C4c index vs. direct: Haiku on Sonnet captions − Sonnet on 5 frames | −0.12 |
+| C4d Haiku: Gemini video captions − 5 frames | +0.18 |
+| C4e Sonnet: own captions − 5 frames | −0.08 |
+
+**Directional hypotheses** (each read from its 95% clustered CI):
+1. **Stacked: captions lose the comparison.** On stacked pairs, every caption arm's same-answer rate is above Sonnet on 5 frames', and C4c < 0.
+2. **Two-clip: C4a > 0.** The modality effect of A3 holds on pair accuracy.
+3. **Reversal: C4b > 0.** A stronger captioner reports the reversal more often.
+
+**Stop rules.** Isolation, model and format checks as in C1–C3; `--max-5h 0.8`. A pair with a failed call counts as wrong in that arm. The sibling caption runs follow C3's rules (stop at > 2% missing windows).
+
+```bash
+.venv/bin/python scripts/index_qa/self_caption.py --set pairs --model haiku
+.venv/bin/python scripts/index_qa/self_caption.py --set pairs --model sonnet --max-5h 0.7 --max-7d 0.5
+.venv/bin/python scripts/index_qa/reader.py run --set pairs --model haiku --arms frames5 selfcaptions sonnetcaptions captions
+.venv/bin/python scripts/index_qa/reader.py run --set pairs --model sonnet --arms frames5 sonnetcaptions
+.venv/bin/python scripts/index_qa/reader.py run --set confirm --model sonnet --arms sonnetcaptions
+.venv/bin/python scripts/index_qa/reader.py c4
+```
+
+### C5 — Describe, then answer (written 2026-10-20, committed before any C5 call)
+
+**Status.** Exploratory; the 297 confirmatory questions.
+
+**Why.** A3 found a modality effect of +0.22 on two-clip videos (Haiku's self-captions vs. its 5 frames). Two things differ between those arms: the frames are put into words, and each window is captioned in its own call. C5 keeps the input and the single call of the frames arm, and asks Haiku to write one sentence per window before answering (`describe5`, `prompts/index_qa/mcq_describe.txt`; only the answer instruction differs from `mcq.txt`). Its descriptions see the question, unlike the captions.
+
+**Readings.**
+- On two-clip videos, **C5a = describe5 − frames5 > 0** means that writing the windows down helps, even in one call.
+- **describe5 − self-captions < 0** there means that captioning each window on its own matters.
+- On stacked videos, describe5 > self-captions would mean that the stacked loss is an omission that a question-aware description fixes (Prop. 4: the price of being question-blind).
+
+**Predictions** (accuracy; 95% CIs over clip clusters for the differences):
+- **describe5:** plain 0.80, two-clip 0.72, reversed 0.40, stacked 0.45, so **0.64** overall.
+- **C5a ≈ +0.03** overall; two-clip +0.12.
+- **C5b ≈ 0.00** overall: describe5 − self-captions is −0.10 on two-clip and +0.13 on stacked.
+
+```bash
+.venv/bin/python scripts/index_qa/reader.py run --set confirm --model haiku --arms describe5
+.venv/bin/python scripts/index_qa/reader.py c5
+```
+
+### C6 — Haiku on 448 px frames (written 2026-10-20, committed before any C6 call; decided at G2)
+
+**Status.** Exploratory; the 297 confirmatory questions.
+
+**Why.** It answers "you starved the frames": at 224 px a frame is 40 tokens, and Haiku gains little from 1 to 5 of them (0.58 → 0.61). At 448 px (448×252, 144 tokens) a full window is 720 tokens. That puts a frame arm at about 2.3× the input tokens of the caption arms on the accuracy–cost curve.
+
+**Arm.** `frames5_448`: the frames5 prompt and instants, with frames extracted at long edge 448 (`tempcompass.py frames --long-edge 448`, `local/tempcompass/frames_448/`).
+
+**Predictions:**
+- **Accuracy 0.66:** plain 0.84, two-clip 0.65, reversed 0.42, stacked 0.48.
+- **C6a (448 − 224 px) ≈ +0.04.**
+- **C6b** (Haiku on Sonnet captions − 448 px) ≈ +0.07.
+- **C6c** (Gemini video captions − 448 px) ≈ +0.08.
+- **C6d** (Gemini frame captions − 448 px) ≈ +0.13.
+- **Median input tokens ≈ 2,800** per question, against ≈ 1,520 at 224 px.
+- **Reading:** if C6c's CI includes 0, the caption advantage for Haiku is a frame-size effect, and the cost comparison (A2) carries the argument. If it stays positive, captions beat a 2× larger visual budget.
+
+```bash
+.venv/bin/python scripts/index_qa/reader.py run --set confirm --model haiku --arms frames5_448
+.venv/bin/python scripts/index_qa/reader.py c6
+```
+
+### C7 — Caption audit: why the caption arms fail (written 2026-10-20, committed before any C7 call)
+
+**Status.** Exploratory; labels only, no new reader calls.
+
+**Why.** It separates a caption arm's errors into three kinds:
+- **misstatement:** the caption states a wrong option, e.g. forward narration of a reversed clip;
+- **omission:** the caption doesn't decide the question, e.g. no speed comparison on a stacked clip;
+- **reader error:** the caption states the answer, but the reader missed it.
+
+This is the paper's qualitative analysis, and it tests A3's readings.
+
+**Design** (`scripts/index_qa/audit.py`, prompt `prompts/index_qa/audit.txt`).
+- **Items:** every (caption arm, confirmatory question) that some reader got wrong from those captions. The reader arms are Haiku on self, Sonnet, Gemini frame-clip, Gemini frame and Gemini video captions, and Sonnet on Gemini video and Sonnet captions. That is ≈ 336 items before C3, ≈ 420 after.
+- **Judge:** Sonnet, given the captions, the question, the options and the correct answer, labels the captions "correct", "wrong" or "silent", with a quote as evidence. One isolated call per item.
+- **Check:** `audit.py sheet` draws 40 labelled items, stratified by the judge's label (seed 0), for the user to label blind. `audit.py agree` reports agreement and Cohen's κ. **If κ < 0.6, the paper reports only the hand-labelled sample,** with the judge's labels as a secondary check.
+
+**Predictions** (share of a reader arm's wrong answers by label: correct / wrong / silent):
+- **Haiku, self-captions:** 0.20 / 0.30 / 0.50.
+- **Haiku, Gemini video captions:** 0.25 / 0.30 / 0.45.
+- **Sonnet, Gemini video captions:** 0.15 / 0.35 / 0.50. A stronger reader makes fewer reader errors.
+- **By video type, every captioner:**
+  - Stacked: silent ≥ 0.70 (omission).
+  - Reversed: wrong ≥ 0.50 (forward narration).
+
+```bash
+.venv/bin/python scripts/index_qa/audit.py run --limit 3      # read the three labels, then the rest
+.venv/bin/python scripts/index_qa/audit.py run
+.venv/bin/python scripts/index_qa/audit.py report
+.venv/bin/python scripts/index_qa/audit.py sheet              # for the user's 40 hand labels
+```
+
+**Order of the runs (C3–C7).** C3's Sonnet captions run first (started 2026-10-20 17:53 UTC). The Haiku-only arms run alongside it: C5, C6, and C4's Haiku reads that don't need Sonnet captions. The Sonnet reads and the audit follow once C3's captions are done. The 7-day quota guard for every Sonnet run is 0.5–0.6.
