@@ -1,0 +1,17 @@
+You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is {duration} seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+{captions}
+
+Question: {stem}
+{options}
+
+The correct answer is {answer}. {answer_text}
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- "correct": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- "wrong": the descriptions state, or clearly imply, a different option.
+- "silent": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {{"label": "<correct|wrong|silent>", "evidence": "<a short quote from the descriptions, or an empty string>"}}

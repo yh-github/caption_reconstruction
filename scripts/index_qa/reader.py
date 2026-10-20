@@ -14,6 +14,9 @@ Arms (per 5 s window; Claude image tokens by the ceil(w/28) x ceil(h/28) rule, 2
               frameclip): the visual tokens and prompt of the captions arm, the pixels of selfcaptions (C2)
     sonnetcaptions  Sonnet's isolated caption of the same frames5 frames (self_caption.py --model sonnet): the
               pixels, visual tokens and prompt of selfcaptions, with Sonnet as the captioner (C3)
+    describe5 the frames5 input, but the reader first writes one sentence per window, then answers, in one call
+              (prompts/index_qa/mcq_describe.txt; C5)
+    frames5_448  frames5 with the frames at 448 px (448x252 -> 144 tokens each, up to 720 per window; C6)
 Calls are isolated exactly as in scripts/unshuffle/claude_reader.py (whose call_claude this reuses): a fresh
 `claude -p` per item, no tools, empty MCP config, empty working directory, prompt caching off, pinned model ID.
 A format failure gets one retry; after that the item scores as wrong.
@@ -29,6 +32,10 @@ A format failure gets one retry; after that the item scores as wrong.
     .venv/bin/python scripts/index_qa/reader.py thinking [--set dev]   # A1: thinking tokens (research log)
     .venv/bin/python scripts/index_qa/reader.py cost         # G4: cost per question and arm, index cost, Q*
     .venv/bin/python scripts/index_qa/reader.py types [--set dev]      # A3: by video type, clip-clustered CIs
+    .venv/bin/python scripts/index_qa/reader.py run --set pairs --model haiku --arms frames5 ...   # C4's sibling reads
+    .venv/bin/python scripts/index_qa/reader.py c4           # C4: minimal pairs
+    .venv/bin/python scripts/index_qa/reader.py c5           # C5: describe, then answer
+    .venv/bin/python scripts/index_qa/reader.py c6           # C6: 448 px frames
 Outputs (append-only; the latest row per item counts): results/index_qa/claude/<model>.jsonl and
 <model>__events.jsonl, as in the unshuffle reader.
 """
@@ -50,7 +57,7 @@ from index_qa.caption import CAPTIONS, MODE, captions, visual_tokens  # noqa: E4
 from unshuffle.claude_reader import EFFORT, MODELS, call_claude  # noqa: E402
 
 ARMS = ["blind", "captions", "frame1", "frames5", "selfcaptions", "framecaptions", "frameclipcaptions",
-        "sonnetcaptions"]
+        "sonnetcaptions", "describe5", "frames5_448"]
 K0_ARMS = ARMS[:4]
 # Caption arms -> the captioner whose window captions they read (Claude's: self_caption.captioner)
 CAPTIONERS = {"captions": "gemini-3.8-flash", "selfcaptions": "claude-haiku-5-5-self",
@@ -59,6 +66,9 @@ CAPTIONERS = {"captions": "gemini-3.8-flash", "selfcaptions": "claude-haiku-5-5-
 # caption.py --input that writes each Gemini caption arm, and self_caption.py --model for each Claude one
 CAPTION_INPUT = {"captions": "video", "framecaptions": "frames", "frameclipcaptions": "frameclip"}
 CLAUDE_CAPTIONER = {"selfcaptions": "haiku", "sonnetcaptions": "sonnet"}
+# Frame arms that show every frame of a window, with the frame size and the answer template
+FRAMES_ALL = {"frames5": (tc.LONG_EDGE, "mcq.txt"), "describe5": (tc.LONG_EDGE, "mcq_describe.txt"),
+              "frames5_448": (448, "mcq.txt")}
 OUT = tc.OUT / "claude"
 PROMPTS = tc.ROOT / "prompts/index_qa"
 
@@ -84,9 +94,11 @@ def build(item: dict) -> tuple[list[dict], str]:
     P, arm, v = parts(), item["arm"], item["video_id"]
     dur = tc.duration_s(v)
     wins = tc.windows(dur)
-    tpl = (PROMPTS / "mcq.txt").read_text().strip()
+    size, template = FRAMES_ALL.get(arm, (tc.LONG_EDGE, "mcq.txt"))
+    tpl = (PROMPTS / template).read_text().strip()
     head, tail = tpl.split("{evidence}")
-    fill = dict(duration=f"{dur:.1f}".rstrip("0").rstrip("."), modality=P["modality_captions" if arm in CAPTIONERS else f"modality_{arm}"], stem=item["stem"],
+    modality = "captions" if arm in CAPTIONERS else "frames5" if arm in FRAMES_ALL else arm
+    fill = dict(duration=f"{dur:.1f}".rstrip("0").rstrip("."), modality=P[f"modality_{modality}"], stem=item["stem"],
                 options="\n".join(f"{L}. {o}" for L, o in item["options"].items()),
                 letters=", ".join(item["options"]))
     head, tail = head.format(**fill).rstrip(), tail.format(**fill).strip()
@@ -103,9 +115,9 @@ def build(item: dict) -> tuple[list[dict], str]:
         text = f"{head}\n\n{body}\n\n{tail}"
         return [{"type": "text", "text": text}], text
     blocks, log = [{"type": "text", "text": head}], [head]
-    for (s, e), frames in zip(wins, tc.window_frames(v)):
+    for (s, e), frames in zip(wins, tc.window_frames(v, size)):
         shown = [tc.middle(frames)] if arm == "frame1" else frames
-        if arm == "frames5":
+        if arm in FRAMES_ALL:
             label = P["window_label"].format(start=s, end=round(e, 1))
             blocks.append({"type": "text", "text": label})
             log.append(label)
@@ -656,6 +668,160 @@ def cmd_types(args):
             print(f"  {a}: " + "; ".join(out))
 
 
+def type_effects(wide, terms: list[tuple], vtype, clus) -> None:
+    """For each (name, a, b, prediction) term, a - b over the questions both arms answered: overall with 95% CIs over
+    questions and over clip clusters, then by video type over clip clusters."""
+    for name, a, b, pred in terms:
+        if a not in wide or b not in wide:
+            print(f"  {name}: {a} or {b} not run yet")
+            continue
+        d = (wide[a] - wide[b]).dropna()
+        est, lo, hi = paired_boot(d.tolist())
+        _, clo, chi = cluster_boot(d.tolist(), clus[d.index].tolist())
+        by = []
+        for t in tc.VIDEO_TYPES:
+            dt = d[vtype[d.index] == t]
+            if len(dt):
+                e, l, h = cluster_boot(dt.tolist(), clus[dt.index].tolist())
+                by.append(f"{t} {e:+.2f} [{l:+.2f}, {h:+.2f}] n={len(dt)}")
+        print(f"  {name}: {a} - {b} = {est:+.3f} [{lo:+.3f}, {hi:+.3f}], clustered [{clo:+.3f}, {chi:+.3f}] "
+              f"(n={len(d)}; prediction {pred:+.2f})\n      by type: " + "; ".join(by))
+
+
+def confirm_frame():
+    """Correctness per confirmatory question and model:arm, with each question's video type and clip cluster."""
+    import pandas as pd
+    qs, dim, wide = confirm_table()
+    q = {x["item"]: x for x in qs}
+    vtype = pd.Series({i: tc.video_type(q[i]["video_id"]) for i in wide.index})
+    clus = pd.Series(dict(zip(wide.index, clip_clusters([q[i]["video_id"] for i in wide.index]))))
+    return wide, vtype, clus
+
+
+# C5 and C6 (research log): terms, as (name, a, b, prediction)
+C5_TERMS = [("C5a describing first (same input, same call)", "haiku:describe5", "haiku:frames5", +0.03),
+            ("C5b describe-then-answer vs. separate question-blind self-captions", "haiku:describe5",
+             "haiku:selfcaptions", +0.00),
+            ("P2 (C1) modality, for reference", "haiku:selfcaptions", "haiku:frames5", -0.08)]
+C6_TERMS = [("C6a frame size (448 vs. 224 px)", "haiku:frames5_448", "haiku:frames5", +0.04),
+            ("C6b Sonnet captions vs. 448 px frames", "haiku:sonnetcaptions", "haiku:frames5_448", +0.07),
+            ("C6c Gemini video captions vs. 448 px frames", "haiku:captions", "haiku:frames5_448", +0.08),
+            ("C6d Gemini frame captions vs. 448 px frames", "haiku:framecaptions", "haiku:frames5_448", +0.13)]
+
+
+def cmd_c5(args):
+    """C5's statistics (research log): describe, then answer, against the frames5 and self-caption arms; 95% CIs over
+    questions and over clip clusters, and by video type. A failed call counts as wrong."""
+    wide, vtype, clus = confirm_frame()
+    cols = [c for c in ("haiku:frames5", "haiku:selfcaptions", "haiku:describe5") if c in wide]
+    print("accuracy by video type:")
+    acc = wide[cols].groupby(vtype).mean().reindex(tc.VIDEO_TYPES).T.round(2)
+    acc["all"] = wide[cols].mean().round(3)
+    print(acc.to_string())
+    print("\neffects:")
+    type_effects(wide, C5_TERMS, vtype, clus)
+
+
+def cmd_c6(args):
+    """C6's statistics (research log): Haiku on 448 px frames against 224 px frames and the caption arms; tokens per
+    call; 95% CIs over questions and over clip clusters, and by video type. A failed call counts as wrong."""
+    wide, vtype, clus = confirm_frame()
+    rows = [r for r in latest("haiku").values() if r["arm"] in ("frames5", "frames5_448")
+            and r["question_item"] in wide.index]
+    for arm in ("frames5", "frames5_448"):
+        t = sorted((r["usage"] or {}).get("input_tokens", 0) for r in rows if r["arm"] == arm)
+        print(f"haiku:{arm}: median input tokens {t[len(t) // 2] if t else None} (n={len(t)})")
+    cols = [c for c in ("haiku:frames5", "haiku:frames5_448", "haiku:sonnetcaptions", "haiku:captions",
+                        "haiku:framecaptions", "sonnet:frames5") if c in wide]
+    print("\naccuracy by video type:")
+    acc = wide[cols].groupby(vtype).mean().reindex(tc.VIDEO_TYPES).T.round(2)
+    acc["all"] = wide[cols].mean().round(3)
+    print(acc.to_string())
+    print("\neffects:")
+    type_effects(wide, C6_TERMS, vtype, clus)
+
+
+# C4 (research log): arms read on both videos of a minimal pair, and the terms on pair accuracy
+C4_ARMS = ["haiku:frames5", "haiku:selfcaptions", "haiku:sonnetcaptions", "haiku:captions", "sonnet:frames5",
+           "sonnet:sonnetcaptions"]
+C4_TERMS = [("C4a modality", "haiku:selfcaptions", "haiku:frames5", +0.06),
+            ("C4b captioner (Sonnet)", "haiku:sonnetcaptions", "haiku:selfcaptions", +0.09),
+            ("C4c index vs. Sonnet on frames", "haiku:sonnetcaptions", "sonnet:frames5", -0.12),
+            ("C4d Gemini video captions vs. frames", "haiku:captions", "haiku:frames5", +0.18),
+            ("C4e Sonnet: own captions vs. frames", "sonnet:sonnetcaptions", "sonnet:frames5", -0.06)]
+PAIR_GROUPS = {"plain": "reversal", "reversed": "reversal", "stacked": "stacked", "two_clip": "two_clip"}
+
+
+def pair_frame():
+    """Per minimal pair (index: the pair item) and model:arm: correct on both videos, and the same answer letter on
+    both; with the pair's group (reversal, stacked, two_clip) and the clip cluster of its confirmatory video."""
+    import pandas as pd
+    pairs = tc.items("pairs")
+    keep = {p["pair_of"] for p in pairs} | {p["item"] for p in pairs}
+    rows = [r for m in ("haiku", "sonnet") for r in latest(m).values() if r["question_item"] in keep]
+    df = pd.DataFrame(rows)
+    df["arm"] = df.model + ":" + df.arm
+    cor = df.pivot_table(index="question_item", columns="arm", values="correct", aggfunc="first").astype(float)
+    let = df.pivot_table(index="question_item", columns="arm", values="letter", aggfunc="first")
+    idx = [p["item"] for p in pairs]
+    a, b = [p["pair_of"] for p in pairs], idx
+    both = pd.DataFrame(cor.reindex(a).values * cor.reindex(b).values, index=idx, columns=cor.columns)
+    same = pd.DataFrame((let.reindex(a).values == let.reindex(b).values).astype(float), index=idx, columns=let.columns)
+    missing = cor.reindex(a).isna().values | cor.reindex(b).isna().values
+    both = both.mask(missing)
+    same = same.reindex(columns=cor.columns).mask(missing)
+    orig = pd.DataFrame(cor.reindex(a).values, index=idx, columns=cor.columns)
+    sib = pd.DataFrame(cor.reindex(b).values, index=idx, columns=cor.columns)
+    group = pd.Series({p["item"]: PAIR_GROUPS[tc.video_type(p["pair_video"])] for p in pairs})
+    clus = pd.Series(dict(zip(idx, clip_clusters([p["pair_video"] for p in pairs]))))
+    chance = pd.Series({p["item"]: 1 / len(p["options"]) ** 2 for p in pairs})
+    return both, same, orig, sib, group, clus, chance
+
+
+def cmd_c4(args):
+    """C4's statistics (research log): per arm, accuracy on each video of a minimal pair, pair accuracy (right on both)
+    and the same-answer rate (one letter for two videos whose correct options differ); the pair-accuracy terms with 95%
+    CIs over clip clusters, overall and by group. A failed call counts as wrong."""
+    import pandas as pd
+    both, same, orig, sib, group, clus, chance = pair_frame()
+    arms = [a for a in C4_ARMS if a in both and both[a].notna().any()]
+    if not arms:
+        sys.exit("no arm has read both videos of a pair yet")
+    print(f"{len(both)} minimal pairs: " + ", ".join(f"{g} {n}" for g, n in group.value_counts().items())
+          + f"; chance pair accuracy {chance.mean():.3f}")
+    stats = []
+    for a in arms:
+        m = both[a].notna()
+        stats.append(dict(arm=a, n=int(m.sum()), acc_confirm=orig.loc[m, a].mean(), acc_sibling=sib.loc[m, a].mean(),
+                          pair_acc=both.loc[m, a].mean(), same_answer=same.loc[m, a].mean()))
+    print(pd.DataFrame(stats).set_index("arm").round(3).to_string())
+    for name, tab in (("pair accuracy", both), ("same-answer rate", same)):
+        print(f"\n{name} by group:")
+        print(tab[arms].groupby(group).mean().T.round(2).to_string())
+    print("\npair-accuracy differences, 95% CI over clip clusters (overall, then by group):")
+    for name, a, b, pred in C4_TERMS:
+        if a not in arms or b not in arms:
+            print(f"  {name}: {a} or {b} not run yet")
+            continue
+        d = (both[a] - both[b]).dropna()
+        est, lo, hi = cluster_boot(d.tolist(), clus[d.index].tolist())
+        by = []
+        for g in ("reversal", "stacked", "two_clip"):
+            dg = d[group[d.index] == g]
+            e, l, h = cluster_boot(dg.tolist(), clus[dg.index].tolist())
+            by.append(f"{g} {e:+.2f} [{l:+.2f}, {h:+.2f}] n={len(dg)}")
+        print(f"  {name}: {a} - {b} = {est:+.3f} [{lo:+.3f}, {hi:+.3f}] (n={len(d)}; prediction {pred:+.2f})\n"
+              f"      by group: " + "; ".join(by))
+    ref = "sonnet:frames5"
+    if ref in arms:
+        print(f"\nstacked pairs, same-answer rate minus {ref}'s (H1: > 0 for every caption arm):")
+        for a in arms:
+            if a != ref:
+                d = (same[a] - same[ref])[group == "stacked"].dropna()
+                e, l, h = cluster_boot(d.tolist(), clus[d.index].tolist())
+                print(f"  {a}: {e:+.2f} [{l:+.2f}, {h:+.2f}] (n={len(d)})")
+
+
 # Claude list prices, $ per million input / output tokens (thinking bills as output), from the claude-api skill's
 # model table (cached 2026-10-06); Haiku's hold for prompts up to 100K tokens. The CLI's costUSD should match them.
 PRICES = {"haiku": (0.10, 0.50), "sonnet": (2.00, 10.00)}
@@ -667,7 +833,8 @@ INDEX_SOURCE = {"captions": ("gemini", MODE), "framecaptions": ("gemini", f"{MOD
 # Break-even pairs (Prop. 2 for one caption arm against one frame arm): (caption arm, frame arm)
 QSTAR_PAIRS = [("haiku:captions", "haiku:frames5"), ("sonnet:captions", "sonnet:frames5"),
                ("haiku:captions", "sonnet:frames5"), ("haiku:framecaptions", "sonnet:frames5"),
-               ("haiku:frameclipcaptions", "sonnet:frames5"), ("haiku:sonnetcaptions", "sonnet:frames5")]
+               ("haiku:frameclipcaptions", "sonnet:frames5"), ("haiku:sonnetcaptions", "sonnet:frames5"),
+               ("haiku:sonnetcaptions", "haiku:frames5_448"), ("sonnet:sonnetcaptions", "sonnet:frames5")]
 
 
 def list_usd(model: str, usage: dict | None) -> float:
@@ -796,9 +963,12 @@ def main():
     sub.add_parser("cost")
     ty = sub.add_parser("types")
     ty.add_argument("--set", dest="set_", choices=list(tc.SETS), default="confirm")
+    for name in ("c4", "c5", "c6"):
+        sub.add_parser(name)
     args = ap.parse_args()
     {"run": cmd_run, "check": cmd_check, "confirm": cmd_confirm, "c2": cmd_c2, "c3": cmd_c3,
-     "thinking": cmd_thinking, "cost": cmd_cost, "types": cmd_types}[args.cmd](args)
+     "thinking": cmd_thinking, "cost": cmd_cost, "types": cmd_types, "c4": cmd_c4, "c5": cmd_c5,
+     "c6": cmd_c6}[args.cmd](args)
 
 
 if __name__ == "__main__":

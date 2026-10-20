@@ -8,9 +8,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 from index_qa import tempcompass as tc  # noqa: E402
 from index_qa.caption import GEMINI_LEAD, frame_clip, frames_prompt, prompt_for  # noqa: E402
-from index_qa.reader import (ARMS, CAPTIONERS, CLAUDE_CAPTIONER, HIGH, INDEX_SOURCE, LOW, QSTAR_PAIRS,  # noqa: E402
-                             clip_clusters, cluster_boot, contrast_boot, list_usd, paired_boot, parse, qstar_boot,
-                             retention_boot, spearman, thinking_tokens)
+from index_qa import reader  # noqa: E402
+from index_qa.reader import (ARMS, CAPTIONERS, CLAUDE_CAPTIONER, FRAMES_ALL, HIGH, INDEX_SOURCE, LOW,  # noqa: E402
+                             PROMPTS, QSTAR_PAIRS, clip_clusters, cluster_boot, contrast_boot, list_usd, paired_boot,
+                             parse, qstar_boot, retention_boot, spearman, thinking_tokens)
 from index_qa.self_caption import captioner  # noqa: E402
 
 
@@ -196,3 +197,74 @@ def test_frame_clip_plays_each_frame_for_one_second(tmp_path):
     assert len(decoded) == 3 and decoded[0].shape == (126, 224, 3)
     for d, c in zip(decoded, colors):
         assert np.abs(d.mean((0, 1)) - c).max() < 12
+
+
+def test_siblings():
+    ids = ["1", "1_reverse", "2", "1_concat_0", "1_concat_1", "3_concat_0", "1_2_0", "2_1_1", "1_3_0"]
+    assert tc.siblings("1", ids) == ["1_reverse"]
+    assert tc.siblings("1_reverse", ids) == ["1"]
+    assert tc.siblings("2", ids) == []
+    assert tc.siblings("1_concat_0", ids) == ["1_concat_1"]
+    assert tc.siblings("1_2_0", ids) == ["2_1_1"]
+
+
+def test_sample_pairs_keeps_the_confirmatory_wording(monkeypatch):
+    conf = dict(item="tcc000|1_reverse|direction", video_id="1_reverse", dim="direction", stem="Which way?",
+                options={"A": "left", "B": "right"}, answer="A")
+    sib_same = dict(video_id="1", dim="direction", stem="Which way?", options={"A": "left", "B": "right"}, answer="A")
+    sib = dict(video_id="1", dim="direction", stem="Which way?", options={"A": "right", "B": "left"}, answer="A")
+    other = dict(video_id="1", dim="speed", stem="How fast?", options={"A": "fast", "B": "slow"}, answer="B")
+    monkeypatch.setattr(tc, "load_questions", lambda: [conf, sib_same, sib, other])
+    monkeypatch.setattr(tc, "items", lambda set_: [conf])
+    out = tc.sample_pairs(lambda v: True)
+    assert len(out) == 1
+    p = out[0]
+    assert p["video_id"] == "1" and p["pair_of"] == conf["item"] and p["options"] == conf["options"]
+    assert p["answer"] == "B"  # "right", the sibling's correct option, in the confirmatory option order
+    assert p["item"] == "tcp000|1|direction"
+    assert tc.sample_pairs(lambda v: False) == []  # siblings without Gemini captions are left out
+
+
+def test_frame_size_arms():
+    assert tc.frame_path("v", 1, 2) == tc.FRAMES / "v/01_2.jpg"
+    assert tc.frame_path("v", 1, 2, 448) == tc.TC / "frames_448/v/01_2.jpg"
+    assert FRAMES_ALL["frames5"][0] == tc.LONG_EDGE and FRAMES_ALL["frames5_448"][0] == 448
+    for arm, (_, template) in FRAMES_ALL.items():
+        assert arm in ARMS and (PROMPTS / template).exists()
+    base, desc = ((PROMPTS / t).read_text().split("Question:")[0] for t in ("mcq.txt", "mcq_describe.txt"))
+    assert base == desc  # describe5 changes only the answer instruction
+
+
+def test_parse_describe_then_answer():
+    text = '{"windows": ["a man walks left", "he stops"], "answer": "B"}'
+    assert parse(text, ["A", "B", "C"]) == "B"
+
+
+def test_pair_frame(monkeypatch):
+    pairs = [dict(item="tcp000|1|direction", pair_of="tcc000|1_reverse|direction", pair_video="1_reverse",
+                  options={"A": "l", "B": "r"}),
+             dict(item="tcp001|2_concat_1|speed", pair_of="tcc001|2_concat_0|speed", pair_video="2_concat_0",
+                  options={"A": "x", "B": "y", "C": "z"})]
+    monkeypatch.setattr(tc, "items", lambda set_: pairs)
+
+    def row(q, arm, letter, correct):
+        return dict(question_item=q, arm=arm, model="haiku", letter=letter, correct=correct)
+    rows = {"haiku": {i: r for i, r in enumerate([
+        row("tcc000|1_reverse|direction", "frames5", "A", True), row("tcp000|1|direction", "frames5", "A", False),
+        row("tcc001|2_concat_0|speed", "frames5", "B", True), row("tcp001|2_concat_1|speed", "frames5", "C", True)])},
+        "sonnet": {}}
+    monkeypatch.setattr(reader, "latest", lambda m: rows[m])
+    both, same, orig, sib, group, clus, chance = reader.pair_frame()
+    assert both["haiku:frames5"].tolist() == [0.0, 1.0]
+    assert same["haiku:frames5"].tolist() == [1.0, 0.0]
+    assert group.tolist() == ["reversal", "stacked"]
+    assert chance.tolist() == [0.25, 1 / 9]
+
+
+def test_audit_parse_label_and_kappa():
+    from index_qa.audit import cohen_kappa, parse_label
+    assert parse_label('{"label": "Silent", "evidence": ""}') == ("silent", "")
+    assert parse_label('x {"label": "maybe"} {"label": "wrong", "evidence": "pans right"}') == ("wrong", "pans right")
+    assert parse_label("no json") == (None, "")
+    assert cohen_kappa(["a", "b", "a", "b"], ["a", "b", "a", "b"]) == 1.0
+    assert abs(cohen_kappa(["a", "a", "b", "b"], ["a", "b", "a", "b"])) < 1e-12

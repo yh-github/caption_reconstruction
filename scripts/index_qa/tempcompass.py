@@ -7,11 +7,13 @@ Data: the lmms-eval/TempCompass dataset on Hugging Face (ungated, CC BY-NC 4.0),
 t = 5p + k s (k = 0..4, t < duration), the 1 fps instants the captioner samples, saved with the long edge at
 224 px (16:9 sources -> 224x126, 40 Claude image tokens).
 
-Two question sets (docs/new_direction/research_log.md): "dev", the 100 development questions (K0-K2), and
-"confirm", 60 per aspect on the 310 videos the dev set does not use (C1).
+Question sets (docs/new_direction/research_log.md): "dev", the 100 development questions (K0-K2); "confirm", 60 per
+aspect on the 310 videos the dev set does not use (C1); and "pairs", C4's minimal pairs: each confirmatory question
+asked, with its own wording and option order, on a sibling video (one built from the same filmed clip) whose correct
+option differs (sample_pairs).
 
-    .venv/bin/python scripts/index_qa/tempcompass.py sample [--set confirm]   # writes the set's items file
-    .venv/bin/python scripts/index_qa/tempcompass.py frames [--set confirm]   # frames for the set's videos
+    .venv/bin/python scripts/index_qa/tempcompass.py sample [--set confirm|pairs]   # writes the set's items file
+    .venv/bin/python scripts/index_qa/tempcompass.py frames [--set confirm] [--long-edge 448]   # the set's frames
 """
 from __future__ import annotations
 
@@ -32,7 +34,7 @@ TC = ROOT / "local/tempcompass"
 VIDEOS = TC / "videos"
 FRAMES = TC / "frames"
 OUT = ROOT / "results/index_qa"
-SETS = {"dev": OUT / "kill_test_items.json", "confirm": OUT / "confirm_items.json"}
+SETS = {"dev": OUT / "kill_test_items.json", "confirm": OUT / "confirm_items.json", "pairs": OUT / "pairs_items.json"}
 ITEMS = SETS["dev"]
 # C1 amendment 2 (research log): questions dropped from every arm, before any reader call on the Gemini captions,
 # because the captioner returned no caption for one of their windows
@@ -110,6 +112,50 @@ def sample_confirm() -> list[dict]:
     return out
 
 
+def siblings(video_id: str, all_ids: list[str]) -> list[str]:
+    """The other videos TempCompass built from the same filmed clip(s), as the same kind of video: a plain video and
+    its reversed version; the stacked versions of one clip (different speed pairs); the two-clip videos of the same
+    two clips (other order or layout)."""
+    t = video_type(video_id)
+    if t in ("plain", "reversed"):
+        base = video_id.split("_")[0]
+        out = [base, f"{base}_reverse"]
+    elif t == "stacked":
+        out = [v for v in all_ids if video_type(v) == "stacked" and v.rsplit("_", 1)[0] == video_id.rsplit("_", 1)[0]]
+    else:
+        out = [v for v in all_ids if video_type(v) == "two_clip" and set(v.split("_")[:2]) == set(source_clips(video_id))]
+    return sorted(v for v in set(out) if v != video_id and v in all_ids)
+
+
+def sample_pairs(has_captions) -> list[dict]:
+    """C4's minimal pairs (research log): for each confirmatory question, the first sibling video (sorted by ID) with a
+    TempCompass question of the same aspect, stem and option set whose correct option differs, and whose windows are
+    already captioned by Gemini (has_captions(video_id)). The pair item keeps the confirmatory question's stem and
+    option order, so the two reads differ only in the video; its answer is the letter of the sibling's correct option
+    in that order."""
+    qs = load_questions()
+    by_video: dict[str, list[dict]] = {}
+    for q in qs:
+        by_video.setdefault(q["video_id"], []).append(q)
+    ids = sorted(by_video)
+    out = []
+    for q in items("confirm"):
+        right = q["options"][q["answer"]]
+        for s in siblings(q["video_id"], ids):
+            m = [x for x in by_video[s] if x["dim"] == q["dim"] and x["stem"] == q["stem"]
+                 and sorted(x["options"].values()) == sorted(q["options"].values())
+                 and x["options"][x["answer"]] != right]
+            if m and has_captions(s):
+                text = m[0]["options"][m[0]["answer"]]
+                letter = next(L for L, o in q["options"].items() if o == text)
+                out.append(dict(video_id=s, dim=q["dim"], stem=q["stem"], options=q["options"], answer=letter,
+                                pair_of=q["item"], pair_video=q["video_id"]))
+                break
+    for i, p in enumerate(out):
+        p["item"] = f"tcp{i:03d}|{p['video_id']}|{p['dim']}"
+    return out
+
+
 def items(set_: str = "dev") -> list[dict]:
     """The set's questions, without EXCLUDED ones (the items file itself stays as sampled)."""
     if not SETS[set_].exists():
@@ -180,13 +226,15 @@ def frame_times(start: float, end: float) -> list[int]:
     return [t for t in range(int(start), int(start) + WINDOW_S) if t < end - 0.05]
 
 
-def frame_path(video_id: str, p: int, k: int) -> Path:
-    return FRAMES / video_id / f"{p:02d}_{k}.jpg"
+def frame_path(video_id: str, p: int, k: int, long_edge: int = LONG_EDGE) -> Path:
+    """The reader frames; frames at another size (C6: 448 px) go to frames_<long_edge>/."""
+    root = FRAMES if long_edge == LONG_EDGE else TC / f"frames_{long_edge}"
+    return root / video_id / f"{p:02d}_{k}.jpg"
 
 
-def window_frames(video_id: str) -> list[list[Path]]:
+def window_frames(video_id: str, long_edge: int = LONG_EDGE) -> list[list[Path]]:
     """Per window, the paths of its frames in time order."""
-    return [[frame_path(video_id, p, t - int(s)) for t in frame_times(s, e)]
+    return [[frame_path(video_id, p, t - int(s), long_edge) for t in frame_times(s, e)]
             for p, (s, e) in enumerate(windows(duration_s(video_id)))]
 
 
@@ -195,12 +243,12 @@ def middle(frames: list[Path]) -> Path:
     return frames[len(frames) // 2]
 
 
-def extract(video_id: str) -> int:
-    scale = f"scale='if(gte(iw,ih),{LONG_EDGE},-2)':'if(gte(iw,ih),-2,{LONG_EDGE})'"
+def extract(video_id: str, long_edge: int = LONG_EDGE) -> int:
+    scale = f"scale='if(gte(iw,ih),{long_edge},-2)':'if(gte(iw,ih),-2,{long_edge})'"
     made = 0
     for p, (s, e) in enumerate(windows(duration_s(video_id))):
         for t in frame_times(s, e):
-            out = frame_path(video_id, p, t - int(s))
+            out = frame_path(video_id, p, t - int(s), long_edge)
             if out.exists():
                 continue
             out.parent.mkdir(parents=True, exist_ok=True)
@@ -220,19 +268,25 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("cmd", choices=["sample", "frames"])
     ap.add_argument("--set", dest="set_", choices=list(SETS), default="dev")
+    ap.add_argument("--long-edge", type=int, default=LONG_EDGE)
     args = ap.parse_args()
     if args.cmd == "sample":
         path = SETS[args.set_]
         if path.exists():
             sys.exit(f"{path} exists; a sample is fixed once drawn")
         OUT.mkdir(parents=True, exist_ok=True)
-        qs = sample() if args.set_ == "dev" else sample_confirm()
+        if args.set_ == "pairs":
+            sys.path.insert(0, str(ROOT / "scripts"))
+            from index_qa.caption import captions
+            qs = sample_pairs(lambda v: captions(v) is not None)
+        else:
+            qs = sample() if args.set_ == "dev" else sample_confirm()
         path.write_text(json.dumps(qs, indent=1))
         n_win = sum(len(windows(duration_s(q["video_id"]))) for q in qs)
         print(f"{len(qs)} items on {len({q['video_id'] for q in qs})} videos, {n_win} windows -> {path.relative_to(ROOT)}")
     else:
         for q in items(args.set_):
-            print(f"{q['video_id']}: {extract(q['video_id'])} new frames")
+            print(f"{q['video_id']}: {extract(q['video_id'], args.long_edge)} new frames")
 
 
 if __name__ == "__main__":

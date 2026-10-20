@@ -1,0 +1,10 @@
+Answer a multiple-choice question about a video clip that is {duration} seconds long. There is no sound.
+
+{modality}
+
+{evidence}
+
+Question: {stem}
+{options}
+
+First describe each window in one sentence, in time order: what can be seen in it and what happens. Then answer. Answer with JSON only, in this format: {{"windows": ["<window 1>", "<window 2>", ...], "answer": "<letter>"}}, with one description per window and one of the letters {letters}.
