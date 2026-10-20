@@ -532,3 +532,43 @@ With C1's format term, **C2c + C2a + P2 = S3** exactly, the total caption effect
 **Escalation (illustration, post hoc).** Haiku answers from the Gemini captions; when it thinks, the question goes to Sonnet on 5 frames (45% of questions). That gives 0.774 at $0.0022 per question, against 0.798 at $0.0041 for Sonnet on frames every time, and 0.737 at $0.00017 for Haiku on captions alone. On the development set: 0.800 at $0.0020 vs. 0.840 at $0.0040. It is a middle point on the accuracy–cost curve, not a win. The rule (escalate on any thinking) was chosen after seeing the data, without tuning.
 
 **Use in the paper:** thinking tokens are part of the cost account (G4), and this is an exploratory paragraph or appendix section. It is not a claim.
+
+### A2 — Cost account for C1's arms (2026-10-20; G4, first part; no new calls)
+
+**Inputs.**
+- **Reader calls:** C1's, from `results/index_qa/claude/*.jsonl`.
+- **Claude list prices:** from the claude-api skill's model table (cached 2026-10-06), in $ per million input / output tokens, with thinking billed as output: Haiku 5.5 $0.10 / $0.50, Sonnet 5.5 $2 / $10. Computed from the logged tokens, they equal the CLI's `costUSD` on all 2,376 calls (largest relative difference 4e-16).
+- **Gemini captioning:** from `results/piece_captions/calls.jsonl`, by mode, as `caption.py` logs it ($0.50 / $3.00 per million input / output tokens, thinking included).
+- **Haiku self-captions:** from their caption files, at the list prices.
+- Reproduce with `reader.py cost`.
+
+**Per arm** (297 questions). Tokens are per question; the dollar figures are list prices; seconds are the median wall clock of a CLI call, start-up included:
+
+| Arm | Accuracy | Input tokens (median) | Output tokens incl. thinking (mean) | $ per question | Seconds | Captioning $ per video (once) |
+|---|---|---|---|---|---|---|
+| Haiku, question only | 0.411 | 1,025 | 12 | 0.000109 | 2.5 | — |
+| Haiku, 1 frame | 0.582 | 1,189 | 54 | 0.000146 | 2.2 | — |
+| Haiku, 5 frames | 0.613 | 1,520 | 90 | 0.000204 | 2.4 | — |
+| Haiku, self-captions | 0.643 | 1,283 | 115 | 0.000189 | 2.9 | 0.00058 |
+| Haiku, Gemini frame captions | 0.791 | 1,229 | 85 | 0.000167 | 3.1 | 0.01461 |
+| Haiku, Gemini video captions | 0.737 | 1,236 | 85 | 0.000168 | 3.1 | 0.00726 |
+| Sonnet, 5 frames | 0.798 | 1,522 | 93 | 0.004112 | 3.0 | — |
+| Sonnet, Gemini video captions | 0.791 | 1,238 | 35 | 0.002868 | 4.1 | 0.00726 |
+
+**Break-even Q\*** (Prop. 2 for one caption arm against one frame arm). Q\* is the number of questions per video after which captioning once costs less in total. The CIs are 95%, from resampling questions; with one question per video, that resamples videos too.
+
+| Captions | Frames | Q\* | Accuracy, captions − frames |
+|---|---|---|---|
+| Haiku, Gemini video captions | Haiku, 5 frames | 202 [156, 279] | +0.125 [+0.071, +0.178] |
+| Sonnet, Gemini video captions | Sonnet, 5 frames | 5.8 [5.2, 6.5] | −0.007 [−0.054, +0.040] |
+| Haiku, Gemini video captions | Sonnet, 5 frames | 1.8 [1.7, 2.0] | −0.061 [−0.111, −0.010] |
+| Haiku, Gemini frame captions | Sonnet, 5 frames | 3.7 [3.5, 4.0] | −0.007 [−0.057, +0.044] |
+
+**Reading.**
+- **For one reader, captions save little per question.** The fixed prompt (≈ 1,025 tokens) dominates the input. With Haiku, the index pays off only after ≈ 200 questions per video, though Haiku is also 12.5 points more accurate on the captions. With Sonnet, it pays off after ≈ 6 questions, at equal accuracy.
+- **The reader downgrade is what pays.** Haiku on Gemini's video captions costs 1/24 of Sonnet on frames per question, and repays the captioning after 2 questions, at 6 points lower accuracy.
+- **New, exploratory: Haiku on Gemini's frame captions matches Sonnet on frames** (−0.007 [−0.057, +0.044]) at 1/25 of the cost per question. It repays the captioning after ≈ 4 questions.
+  - Those captions cost twice the video captions ($0.0146 per video), because Gemini's image path spends ≈ 5,500 visual tokens per window. That spend is the C2 question.
+  - For cost, the comparison is fair: the index cost includes the spend.
+- **Latency per call does not favour captions.** The caption arms' median call is 0.1–1.1 s slower than the frame arms' with the same reader. These are wall-clock times of a CLI call, start-up included, and were not controlled for time of day.
+- **Still to add to G4:** the frame-clip captions (C2), Sonnet's captions (C3) and the 448 px arm, once they are run.

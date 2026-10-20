@@ -77,14 +77,15 @@ Input tokens are medians per call. Cost is the mean of the CLI's `costUSD` per c
    - Haiku on captions − Sonnet on 5 frames: −0.061 [−0.111, −0.010] (S6).
 4. **Which aspects captions lose: not confirmed** (P1: −0.10 [−0.23, +0.03]). Speed is the only consistent loss (Sonnet −0.10); exploratory.
 
-**Cost, first estimate** (point values from the table; step 6 does it properly, with CIs):
+**Cost** (log A2, `reader.py cost`; list prices, which match the CLI's `costUSD` exactly):
 - **For one reader, the saving per question is small.** The fixed prompt (≈ 1,025 tokens) and the thinking tokens dominate. Captions cut the video tokens to 43%, but the input tokens only to 81%.
   - Haiku: captions instead of 5 frames save $0.000036 per question (18%).
   - Sonnet: they save $0.00124 per question (30%).
-- **Break-even Q\*** (questions per video that repay ≈ $0.0073 of captioning):
-  - ≈ 200 for Haiku, same reader.
-  - ≈ 6 for Sonnet, same reader.
-  - ≈ 2 for the reader downgrade: Haiku on captions instead of Sonnet on frames, 24× cheaper per question, but 6 points lower.
+- **Break-even Q\*** (questions per video that repay the captioning; 95% CIs):
+  - Haiku, same reader: 202 [156, 279].
+  - Sonnet, same reader: 5.8 [5.2, 6.5].
+  - The reader downgrade, Haiku on Gemini video captions instead of Sonnet on frames: 1.8 [1.7, 2.0]. That is 24× cheaper per question, but 6 points lower.
+  - **Haiku on Gemini frame captions instead of Sonnet on frames:** 3.7 [3.5, 4.0], at equal accuracy (−0.007 [−0.057, +0.044]). Exploratory; its captioner spent 27× the visual tokens (C2), and that cost is in the index.
 - **So the economic result is the reader downgrade, not fewer tokens for one reader.** Don't headline "43% of the tokens".
 
 **Proposed claim:** a strong model's question-blind captions of the same frames make a cheap reader more accurate than its own view of those frames, at a fraction of the query cost. The gain comes from the captioner, not from the text modality.
