@@ -414,6 +414,54 @@ With C1's format term, **C2c + C2a + P2 = S3** exactly, the total caption effect
 - Logged spend is $10.29. The remaining 311 windows need ≈ $0.90.
 - No reader call has been made on the frame-clip captions. The run resumes after the user raises the cap.
 
+**Run completed (2026-10-20).**
+- **Captions.** The user raised the AI Studio spend cap, and the remaining 311 windows were captioned in 4 shards. All 761 windows have a caption; the 4 failed calls were the 429s of 2026-10-19, retried.
+- **Cost.** C2's Gemini calls cost $2.26 (765 calls). The logged total is $11.24, under the run's `--max-usd 11.5` and the approved $13.
+- **Reader.** Haiku read the frame-clip captions in 297 calls, all valid at the first try. Quota (account-wide): 5-hour 23% → 24%, 7-day 92%.
+
+**Result (2026-10-20; `reader.py c2`, run once, after both steps were complete; output saved in `logs/c2_result.txt`).** No question was dropped: all 297 count.
+
+*Visual tokens.*
+- The video arm and the frame-clip arm both have a median of 330 visual tokens per window. They are equal in 693 of the 761 windows.
+- The other 68 are all a video's short last window. There the clip has one frame more (56 or 66 tokens): it plays each of the reader's frames for one second, while Gemini samples the original last window at 1 fps and gets one frame fewer. In total, the clip has 216,696 tokens against the video's 212,338 (+2%).
+- The image path has a median of 5,500 visual tokens per window.
+
+*Accuracy (Haiku reads):*
+
+| Arm | All | Action | Attribute change | Direction | Order | Speed |
+|---|---|---|---|---|---|---|
+| 5 frames | 0.613 | 0.93 | 0.67 | 0.28 | 0.65 | 0.53 |
+| Self-captions | 0.643 | 0.90 | 0.70 | 0.38 | 0.82 | 0.42 |
+| **Gemini frame-clip captions** | **0.724** | 0.98 | 0.85 | 0.43 | 0.88 | 0.48 |
+| Gemini frame captions (image path) | 0.791 | 1.00 | 0.90 | 0.55 | 1.00 | 0.52 |
+| Gemini video captions | 0.737 | 0.95 | 0.82 | 0.43 | 0.93 | 0.57 |
+
+*Effects (95% CIs):*
+
+| Term | Observed | Prediction |
+|---|---|---|
+| Frame-clip captions, accuracy | 0.724 | ≈ 0.74 |
+| **C2a, captioner at about matched visual tokens** (frame-clip captions − self-captions) | **+0.081 [+0.030, +0.131]** | +0.10 |
+| C2b, visual budget (frame captions − frame-clip captions) | +0.067 [+0.030, +0.108] | +0.05 |
+| C2c, source (video captions − frame-clip captions) | +0.013 [−0.030, +0.061] | 0.00 |
+
+- **Two decompositions.**
+  - At about matched visual tokens: S3 (+0.125) = C2c (+0.013) + C2a (+0.081) + P2 (+0.030).
+  - C1's P3 (+0.148) = C2a + C2b, so about half captioner and half visual budget.
+- **By aspect** (paired differences, descriptive):
+  - C2a: action +0.08, attribute change +0.15, direction +0.05, order +0.05, speed +0.07.
+  - C2b: action +0.02, attribute change +0.05, direction +0.12, order +0.12, speed +0.03.
+  - C2c: action −0.03, attribute change −0.03, direction 0.00, order +0.05, speed +0.08.
+
+**Predictions against results.** All four came within 0.02, and all three effects had the predicted sign.
+
+**Reading,** by the mapped outcomes as reworded in D2:
+- **C2a is positive: the captioner effect holds across model families at about matched visual tokens.** "About": Gemini's video path still spent ≈ 330 visual tokens per window on the frames, against Haiku's 200 (1.65×). C3 matches them exactly.
+- **C2b: the visual budget accounts for the rest of P3.** Gemini's image path (≈ 5,500 tokens per window) adds ≈ +0.07 over its video path on the same pixels, most on direction and order (+0.12 each).
+- **C2c ≈ 0, as predicted.** With the same captioner, prompt and tokens, captions of the original video and captions of the reader's 224 px frames are about equally useful. Gemini's video path reduces each frame to ≈ 66 tokens, so the source's higher resolution mostly does not reach the captioner.
+- **Cost** (A2's method): Haiku on the frame-clip captions costs $0.000167 per question, and the captioning $0.0076 per video. Against Sonnet on frames, Q\* = 1.9 [1.8, 2.1], at −0.074 [−0.125, −0.024] accuracy.
+- **Go/no-go (G5, plan §0):** case 2 at least holds, since C2a is positive. C3 decides between case 1 and case 2.
+
 ### D2 — Terms renamed; Claude captioner as the main chain (2026-10-20)
 
 **Decided with the user** after a review of the ACL plan (`acl2027_plan.md`, revised the same day). No analysis changes, and no run.

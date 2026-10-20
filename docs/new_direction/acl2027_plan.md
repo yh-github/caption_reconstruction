@@ -8,8 +8,8 @@ Each goal has a test for done, an owner and a date. "Claude" means a Claude Code
 
 | # | Goal | Done when | Owner | By |
 |---|---|---|---|---|
-| G1 | C2 complete | ≥ 98% of the 761 windows captioned; 297 Haiku reads; `reader.py c2` output in the log as C2's *Result* | User raises the AI Studio cap; Claude runs | Thu Oct 22 |
-| G2 | Open choices decided | Each marked decided in §6: the 448 px arm, Sonnet on its own captions, the open-weights reader, the thinking analysis, the effort sweep | User | Wed Oct 21 |
+| G1 | C2 complete | ≥ 98% of the 761 windows captioned; 297 Haiku reads; `reader.py c2` output in the log as C2's *Result* | User raises the AI Studio cap; Claude runs | **Done Oct 20** |
+| G2 | Open choices decided | Each marked decided in §6: the 448 px arm, Sonnet on its own captions, the open-weights reader, the thinking analysis, the effort sweep | User | **Done Oct 20** |
 | G3 | C3 run | Code and tests; the log entry with predictions committed before any call; 761 Sonnet captions and 297 Haiku reads; the result in the log | Claude; user approves the run | Entry Thu Oct 22; result Sun Oct 25 |
 | G4 | Cost account | Per arm: input, output and thinking tokens, list-price $, latency; index cost per video; Q\* with bootstrap CIs (§5, step 6) | Claude | Sun Oct 25 |
 | G5 | Claim fixed (go/no-go) | The rule below applied, and the claim written in §3 | User and Claude | Sun Oct 25 |
@@ -69,7 +69,10 @@ With visual tokens held about fixed, the total caption effect = source + caption
 Input tokens are medians per call. Cost is the mean of the CLI's `costUSD` per call (list basis, output and thinking tokens included), from `results/index_qa/claude/*.jsonl`. Step 6 cross-checks the list prices. The one-time captioning cost is not in the table: Gemini on the video costs ≈ $0.0028 per window, ≈ $0.0073 per video (2.57 windows on average).
 
 **Findings, in the order the paper should give them:**
-1. **Captioner effect (P3, pre-registered, passed):** Gemini's captions of the reader's own frames beat Haiku's own captions by +0.148 [98.33% CI +0.088, +0.209], positive in every aspect. Open: Gemini spent ≈ 5,500 visual tokens per window on those frames, Haiku 200. C2 and C3 address this (§4).
+1. **Captioner effect (P3, pre-registered, passed):** Gemini's captions of the reader's own frames beat Haiku's own captions by +0.148 [98.33% CI +0.088, +0.209], positive in every aspect.
+   - **C2 (exploratory, 2026-10-20): about half of it survives at matched visual tokens.** At ≈ 330 visual tokens per window instead of 5,500, the captioner effect is still +0.081 [+0.030, +0.131]. The other +0.067 [+0.030, +0.108] is the visual budget.
+   - The source effect is ≈ 0: +0.013 [−0.030, +0.061].
+   - C3 (Sonnet, exactly Haiku's 200 tokens) is still to come.
 2. **Modality effect (P2, not passed):** +0.030 [−0.034, +0.094]. No evidence that text is easier for the reader than the pixels it came from: at most +0.09, against IsoBench's 15–29 points for exact text renderings.
 3. **Secondary estimates** (95% CIs; their predictions were further off):
    - Haiku on Gemini video captions − Haiku on 5 frames: +0.125 [+0.071, +0.178] (S3, predicted 0.00). Part of it comes from Haiku's frame arm dropping from 0.70 (development) to 0.61 (confirmatory), so it is not the headline.
@@ -106,18 +109,18 @@ Input tokens are medians per call. Cost is the mean of the CLI's `costUSD` per c
 
 **Pre-registered vs. exploratory.** P3 (Gemini) stays the pre-registered result. C3 is exploratory, designed after C1, on the same 297 questions. Its log entry, with predictions, is committed before any call. C3 replicates P3 within one family at identical input; it does not replace P3 as the headline.
 
-| Effect (Haiku reads) | Claude chain | Gemini chain |
+| Effect (Haiku reads) | Claude chain | Gemini chain (C2 results, 2026-10-20) |
 |---|---|---|
-| Source | 0 by design | C2c: video captions − frame-clip captions |
-| Visual budget | 0 by design | C2b: frame captions (image path) − frame-clip captions |
-| Captioner | C3: Sonnet captions − Haiku's own captions | C2a: frame-clip captions − Haiku's own captions |
-| Modality | P2: Haiku's own captions − 5 frames | (same) |
+| Source | 0 by design | C2c: video captions − frame-clip captions = +0.013 [−0.030, +0.061] |
+| Visual budget | 0 by design | C2b: frame captions (image path) − frame-clip captions = +0.067 [+0.030, +0.108] |
+| Captioner | C3: Sonnet captions − Haiku's own captions (to run) | C2a: frame-clip captions − Haiku's own captions = +0.081 [+0.030, +0.131] |
+| Modality | P2: Haiku's own captions − 5 frames = +0.030 [−0.034, +0.094] (98.33%) | (same) |
 
 ## 5. Next steps, in order
 
-1. **User: raise the AI Studio monthly spend cap** (https://ai.studio/spend).
-   - C2 captioning is still at 450 of 761 windows (checked 2026-10-20; the logs end on the cap's 429).
-   - The rest costs ≈ $0.90. The logged total would then be ≈ $11.2, within the approved $13 and the run's `--max-usd 11.5`.
+Steps 1–4 (C2) were **done on 2026-10-20**; the result is in the log, C2. They stay here as the record of how C2 was run.
+
+1. **User: raise the AI Studio monthly spend cap** (https://ai.studio/spend). Done 2026-10-20; the logged Gemini total is $11.24.
 2. **Resume the C2 captions.** Same command, and done windows are skipped:
    ```bash
    source ~/.secrets && for k in 0 1 2 3; do nohup .venv/bin/python scripts/index_qa/caption.py --set confirm \
@@ -129,7 +132,7 @@ Input tokens are medians per call. Cost is the mean of the CLI's `costUSD` per c
 3. **Haiku reader on the frame-clip captions** (297 calls):
    `.venv/bin/python scripts/index_qa/reader.py run --set confirm --model haiku --arms frameclipcaptions --skip-missing`
 4. **Run `reader.py c2` once.** Record its full output as C2's *Result* in the log, each prediction next to its result. Read it by C2's mapped outcomes, in the new terms:
-   - **C2a positive:** the captioner effect holds across families at about matched visual tokens.
+   - **C2a positive:** the captioner effect holds across families at about matched visual tokens. **This is the outcome (2026-10-20).**
    - **C2a null and C2b positive:** Gemini's P3 is mostly a visual budget effect. The captioner claim then rests on C3.
 5. **C3: Claude captioner** (the Sonnet run after the quota reset of Oct 20, 17:00 UTC).
    - **Code (done 2026-10-20):** `self_caption.py --model sonnet` (folder `claude-sonnet-5-5-frames`, with a `--max-7d` stop), the `sonnetcaptions` reader arm, and `reader.py c3`; tests in `tests/test_index_qa.py`.
@@ -229,5 +232,5 @@ The dated goals are in §0 (G1–G12). They replace the week-by-week timeline of
 
 ## 10. Budget
 
-- **Gemini:** $10.29 logged against the approved $13. C2 needs ≈ $0.90 more. No other Gemini spending is planned. The AI Studio project cap is separate, and currently blocking.
-- **Claude:** the 7-day quota was 86% at the last read (2026-10-19). It resets on Tuesdays at 17:00 UTC, next on Oct 20. In the week after that reset: C3 ≈ 10–15 points; Sonnet on its own captions ≈ 4; the 448 px Haiku arm and the effort sweep little; the literature pass uses this session's quota too. That is ≈ 20–30 points, which fits in one week.
+- **Gemini:** $11.24 logged against the approved $13, with C2 complete. No other Gemini spending is planned.
+- **Claude:** the 7-day quota was 92% at the last read (2026-10-20, before the reset). It resets on Tuesdays at 17:00 UTC, next on Oct 20. In the week after that reset: C3 ≈ 10–15 points; Sonnet on its own captions ≈ 4; the 448 px Haiku arm and the effort sweep little; the literature pass uses this session's quota too. That is ≈ 20–30 points, which fits in one week.

@@ -5,7 +5,7 @@ The newest session is at the top. Older sessions stay below because other docs l
 # 2026-10-20 → ACL plan reviewed: Claude captioner, new terms, long draft
 
 **Start here next session: `docs/new_direction/acl2027_plan.md`**, revised today. **§0 has the dated goals G1–G12** (owner, test for done, date), and the go/no-go rule for the claim.
-- **The blocker is unchanged:** C2 captioning is at 450 of 761 windows on the AI Studio spend cap. The user raises it, then resume with the command in the plan, §5.
+- **C2 is done (G1).** The user raised the spend cap; all 761 windows were captioned, and Haiku read them. The captioner effect at about matched visual tokens is **C2a +0.081 [+0.030, +0.131]**, the visual budget C2b +0.067, and the source C2c +0.013 (log, C2 *Result*). So about half of P3 survives at matched tokens. The logged Gemini total is $11.24.
 - **The 7-day Claude quota resets on Tuesdays at 17:00 UTC**, first on Oct 20 (from `resetsAt` in `results/index_qa/claude/*__events.jsonl`). C3's Sonnet run and the literature pass go after it.
 
 **Decided with the user (2026-10-20; log D2):**
@@ -23,11 +23,16 @@ The newest session is at the top. Older sessions stay below because other docs l
 - **Thinking tokens** (plan §6, exploratory): Sonnet thinks 3.3× less on captions. Thinking flags wrong answers on captions, and for Sonnet on frames, but not for Haiku on frames; the development set shows the same.
 - **G2 done (2026-10-20):** the user accepted the recommendations in plan §6. Do the 448 px Haiku arm and the thinking analysis; Sonnet on its own captions if quota allows after C3; decide the open-weights reader after C3; no effort sweep.
 
+- **Also done today:**
+  - The C3 code and log entry (predictions written before any call).
+  - `reader.py thinking` (log A1).
+  - `reader.py cost` and the cost account for C1's arms (log A2). Its new exploratory finding: Haiku on Gemini frame captions matches Sonnet on frames at 1/25 of the cost per question, Q\* 3.7.
+
 **Next (plan §0):**
-1. G1: C2. The user raised the spend cap on 2026-10-20, and the captioning resumed.
-2. G2: done.
-3. G3: C3 code (`self_caption.py --model` and a reader arm for Sonnet captions), then its log entry with predictions, then the Sonnet run after the reset (≈ 10–15 points of the 7-day figure).
-4. G4: the cost account.
+1. **G3, C3:** the user approves the C3 entry, then the run starts after the quota reset (Oct 20, 17:00 UTC): the 3-call check, then 758 windows, then 297 Haiku reads, then `reader.py c3` once.
+2. **G5:** the go/no-go rule. C2a positive already secures case 2; C3 decides between cases 1 and 2.
+3. **G4:** add the C3 and 448 px arms to `reader.py cost`.
+4. **G7:** the 448 px Haiku arm (its log entry first), and Sonnet on its own captions if quota allows.
 
 # 2026-10-19 → C1 confirmatory results; C2 robustness check; venue search
 
