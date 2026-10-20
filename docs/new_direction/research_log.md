@@ -563,6 +563,53 @@ With C1's format term, **C2c + C2a + P2 = S3** exactly, the total caption effect
   3. **Two-clip: C3b > 0,** as S3 (+0.33) and P2 (+0.22) were.
 - **Use:** descriptive, for the paper's analysis section. If hypothesis 1 holds, the limitations state that question-blind captions drop comparisons between things shown at the same time.
 
+**Result (2026-10-20; `reader.py c3` and `reader.py types`, each run once after steps 2–3 were complete; output in `results/index_qa/reports/c3.txt`, `types.txt`).**
+- **Run.**
+  - All 876 windows were captioned and no question was dropped: 297 in every C3 arm.
+  - Sonnet's caption calls took exactly 2 more input tokens than Haiku's for the same window, in all 876 (the median and range were both 2).
+  - Quota for C3–C6 together: the 7-day figure went from 3% to 7%. The 5-hour window reached 80% at 19:21 UTC.
+  - One run crashed while Claude Code auto-updated (`FileNotFoundError: 'claude'`). It was resumed, and done windows were skipped.
+- **Accuracy:**
+  - Haiku on 5 frames: 0.613.
+  - Haiku on its self-captions: 0.643.
+  - **Haiku on Sonnet captions: 0.707** (predicted 0.73).
+  - Sonnet on 5 frames: 0.798.
+
+| Term | Result, 95% CI over questions; clustered | Prediction |
+|---|---|---|
+| **C3a, captioner** (Sonnet − Haiku captions, identical input) | **+0.064 [+0.017, +0.111]; [+0.011, +0.119]** | +0.09 |
+| C3b, total within Claude (Sonnet captions − 5 frames) | +0.094 [+0.044, +0.148]; [+0.042, +0.147] | +0.12 |
+| C3c, index vs. direct (Haiku on Sonnet captions − Sonnet on frames) | −0.091 [−0.145, −0.040]; [−0.151, −0.032] | −0.07 |
+| C3d, family (Sonnet − Gemini frame-clip captions) | −0.017 [−0.071, +0.037] | 0.00 |
+
+- **Go/no-go (G5): case 1.** C3a's CI excludes 0 and is positive, so the captioner effect holds with identical pixels, prompt and visual tokens. It is not a visual budget effect. The effect is smaller than predicted (+0.064 vs. +0.09); the prediction lies inside the CI.
+- **By aspect** (descriptive), C3a is:
+
+  | Action | Attribute change | Direction | Order | Speed |
+  |---|---|---|---|---|
+  | +0.07 | +0.02 | +0.03 | +0.09 | +0.12 |
+
+- **Amendment 1, by video type** (clustered CIs). Haiku on Sonnet captions scores plain 0.85, two-clip 0.93, reversed 0.45 and stacked 0.44 (predicted 0.87, 0.88, 0.55, 0.36).
+
+| Term | Plain (137) | Two-clip (45) | Reversed (74) | Stacked (41) |
+|---|---|---|---|---|
+| C3a | +0.06 [−0.01, +0.12] | +0.11 [−0.03, +0.24] | +0.01 [−0.08, +0.10] | +0.12 [−0.03, +0.28] |
+| C3b | +0.05 [+0.00, +0.11] | **+0.33 [+0.20, +0.48]** | +0.07 [−0.04, +0.18] | +0.02 [−0.16, +0.21] |
+| C3c | −0.04 [−0.10, +0.02] | +0.02 [−0.10, +0.13] | **−0.19 [−0.32, −0.07]** | −0.22 [−0.44, +0.00] |
+
+  1. **Stacked, C3c < 0: not shown at 95%.** The estimate is −0.22; the 95% CI's upper end is 0.00, and the 90% CI is [−0.41, −0.05]. C4 (stacked pairs) tests the same reading with more power.
+  2. **Reversed, C3a > 0: not supported** (+0.01). Unlike Gemini (C2a +0.14 on reversed), Sonnet as a captioner does not report reversals more often than Haiku does. C3c on reversed is −0.19, so Sonnet sees the reversal when it reads the frames but does not write it into a question-blind caption.
+  3. **Two-clip, C3b > 0: holds** (+0.33).
+- **Sonnet reading its own captions** (plan §6; the 297 confirmatory reads of C4's run; not predicted in C3):
+  - **Sonnet on Sonnet captions scores 0.710.** That is −0.088 below Sonnet on frames, [−0.135, −0.044]; clustered [−0.140, −0.036].
+    - By type: plain −0.01, two-clip 0.00, **reversed −0.18 [−0.30, −0.05], stacked −0.27 [−0.47, −0.09]**.
+  - **Haiku and Sonnet read Sonnet's captions equally well:** −0.003 [−0.047, +0.040]. Once the video is in these captions, a 20× cheaper reader loses nothing.
+  - **Sonnet reads Gemini's video captions better than its own:** 0.791 vs. 0.710, +0.081 [+0.034, +0.128]; clustered [+0.031, +0.129]. The video captions come from a different captioner, which sees the video, at a much larger visual budget.
+  - **Reading:** with question-blind captions, the reader's accuracy is capped by what the captions hold. That cap is the captioner's question-blind description, not the reader's strength.
+    - Haiku is below the cap on frames (0.613), so captions help it.
+    - Sonnet is above it (0.798), so its own captions cost it 0.09, almost all on reversed and stacked videos.
+    - S1 (Sonnet on Gemini video captions ≈ Sonnet on frames) holds only for a captioner that writes those facts down.
+
 ### A1 — Thinking tokens in C1 (exploratory analysis, 2026-10-20; not written in advance)
 
 **Why.** The user asked whether we quantify the readers' thinking tokens, and whether they correlate between frames and captions. The analysis was adopted as exploratory (G2, plan §6). It made no new calls; the effort sweep that could test whether thinking *helps* was declined. Reproduce with `reader.py thinking [--set dev]`.
@@ -800,6 +847,42 @@ C1's and C2's conclusions stand. The paper should report the clustered CIs, or s
 .venv/bin/python scripts/index_qa/reader.py c4
 ```
 
+**Result (2026-10-20; `reader.py c4`, run once after all reads were complete; output in `results/index_qa/reports/c4.txt`).**
+- **Run.** All 6 arms read all 193 pairs. No call failed and every answer parsed.
+- **Pair accuracy** (chance 0.093), with the prediction in brackets:
+
+| Arm | All | Reversal (107) | Stacked (41) | Two-clip (45) | Same-answer rate |
+|---|---|---|---|---|---|
+| Haiku, 5 frames | 0.233 (0.31) | 0.28 (0.33) | 0.17 (0.15) | 0.18 (0.40) | 0.54 |
+| Haiku, self-captions | 0.326 (0.37) | 0.33 (0.36) | 0.10 (0.08) | 0.53 (0.65) | 0.42 |
+| Haiku, Sonnet captions | 0.430 (0.46) | 0.38 (0.47) | 0.17 (0.12) | 0.78 (0.75) | 0.43 |
+| Haiku, Gemini video captions | 0.482 (0.49) | 0.47 (0.47) | 0.20 (0.15) | 0.78 (0.85) | 0.37 |
+| Sonnet, 5 frames | 0.606 (0.58) | 0.56 (0.55) | 0.51 (0.40) | 0.80 (0.80) | 0.28 |
+| Sonnet, Sonnet captions | 0.430 (0.50) | 0.40 (0.50) | 0.10 (0.15) | 0.80 (0.80) | 0.39 |
+
+| Term (pair accuracy; 95% CI over clip clusters) | Result | Prediction |
+|---|---|---|
+| C4a modality: Haiku self-captions − 5 frames | +0.093 [+0.028, +0.161] | +0.06 |
+| C4b captioner: Haiku on Sonnet − self-captions | **+0.104 [+0.017, +0.190]** | +0.09 |
+| C4c index vs. direct: Haiku on Sonnet captions − Sonnet on frames | −0.176 [−0.276, −0.079] | −0.12 |
+| C4d Haiku: Gemini video captions − 5 frames | +0.249 [+0.173, +0.319] | +0.18 |
+| C4e Sonnet: own captions − 5 frames | −0.176 [−0.260, −0.093] | −0.08 |
+
+- **The captioner effect replicates on pairs.** C4b is +0.104, so Sonnet's captions carry facts that distinguish the two videos which Haiku's own captions do not. This is the C3a result, measured without guessing.
+- **Hypotheses:**
+  1. **Stacked, captions lose the comparison: holds.**
+     - C4c on stacked pairs is −0.34 [−0.60, −0.08]; C4e is −0.41 [−0.62, −0.23].
+     - The same-answer rate minus Sonnet on frames' is above 0 for 3 of the 4 caption arms:
+       - Haiku self-captions +0.32 [+0.13, +0.49];
+       - Haiku on Sonnet captions +0.32 [+0.07, +0.55];
+       - Sonnet on Sonnet captions +0.24 [+0.05, +0.43];
+       - Haiku on Gemini video captions +0.22 [−0.02, +0.44], the exception.
+     - Every caption arm's stacked pair accuracy is 0.10–0.20, about chance level for pairs, against 0.51 for Sonnet on frames.
+     - This is also C3 Amendment 1's hypothesis 1 (stacked C3c < 0), which C3 alone could not show at 95%.
+  2. **Two-clip, C4a > 0: holds.** +0.36 [+0.16, +0.56].
+  3. **Reversal, C4b > 0: not shown.** +0.06 [−0.01, +0.13]. As in C3 Amendment 1, Sonnet's captions do not report reversals much more often than Haiku's.
+- **Unpredicted:** Haiku on 5 frames gives the same letter on both videos of a pair 54% of the time, and is below its predicted pair accuracy, mostly on two-clip pairs (0.18 vs. 0.40). On two-clip pairs, with 10 small frames from two clips, Haiku's frame reading is close to a guess about order.
+
 ### C5 — Describe, then answer (written 2026-10-20, committed before any C5 call)
 
 **Status.** Exploratory; the 297 confirmatory questions.
@@ -820,6 +903,20 @@ C1's and C2's conclusions stand. The paper should report the clustered CIs, or s
 .venv/bin/python scripts/index_qa/reader.py run --set confirm --model haiku --arms describe5
 .venv/bin/python scripts/index_qa/reader.py c5
 ```
+
+**Result (2026-10-20; `reader.py c5`, run once; output in `results/index_qa/reports/c5.txt`).** 297 calls, and every answer parsed.
+- **describe5 scores 0.684** (predicted 0.64): plain 0.82, two-clip 0.69, reversed 0.50, stacked 0.54.
+
+| Term (95% CI over clip clusters) | All | Plain | Two-clip | Reversed | Stacked | Prediction (all) |
+|---|---|---|---|---|---|---|
+| C5a, describe5 − frames5 | **+0.071 [+0.029, +0.114]** | +0.02 | +0.09 [−0.06, +0.24] | +0.12 [+0.01, +0.23] | +0.12 [+0.00, +0.23] | +0.03 |
+| C5b, describe5 − self-captions | +0.040 [−0.011, +0.092] | +0.03 | −0.13 [−0.30, +0.02] | +0.07 | **+0.22 [+0.09, +0.37]** | 0.00 |
+
+- **Reading:**
+  - **Writing the windows down helps,** even in the same call with the same input: C5a > 0. The gain is on built videos (reversed and stacked), not on two-clip ones as predicted.
+  - **Two-clip:** describe5 is below the self-captions (0.69 vs. 0.82), but the CI includes 0. The direction fits "captioning each window in its own call matters", without showing it.
+  - **Stacked:** a description that sees the question beats the question-blind self-captions by +0.22. The stacked loss is an omission caused by not seeing the question (Prop. 4), not a limit of the text format.
+- **Cost:** describe5 writes 501 output tokens per question (346 of them thinking) against 90 for frames5. At list price that is $0.000415 against $0.000204 per question: 2× the frames arm, and 2.3× Haiku on Sonnet captions, which is more accurate (0.707). describe5 sees the frames at every question, so it is not an index.
 
 ### C6 — Haiku on 448 px frames (written 2026-10-20, committed before any C6 call; decided at G2)
 
@@ -842,6 +939,22 @@ C1's and C2's conclusions stand. The paper should report the clustered CIs, or s
 .venv/bin/python scripts/index_qa/reader.py run --set confirm --model haiku --arms frames5_448
 .venv/bin/python scripts/index_qa/reader.py c6
 ```
+
+**Result (2026-10-20; `reader.py c6`, run once; output in `results/index_qa/reports/c6.txt`).** 297 calls, and every answer parsed.
+- **Accuracy 0.650** (predicted 0.66): plain 0.82, two-clip 0.62, reversed 0.43, stacked 0.49.
+- **Median input: 2,676 tokens** per question (predicted ≈ 2,800), against 1,520 at 224 px and ≈ 1,280 for the caption arms. One extracted frame was portrait (398×448).
+
+| Term (95% CI over questions; clustered) | Result | Prediction |
+|---|---|---|
+| C6a, 448 − 224 px | +0.037 [−0.010, +0.084]; [−0.007, +0.082] | +0.04 |
+| C6b, Sonnet captions − 448 px | +0.057 [+0.003, +0.111]; [+0.004, +0.109] | +0.07 |
+| C6c, Gemini video captions − 448 px | **+0.088 [+0.037, +0.138]; [+0.040, +0.132]** | +0.08 |
+| C6d, Gemini frame captions − 448 px | +0.141 [+0.088, +0.195]; [+0.085, +0.195] | +0.13 |
+
+- **Reading:** the caption advantage for Haiku is not a frame-size effect. C6c stays positive, so Haiku reading captions (≈ 1,280 input tokens) beats Haiku reading frames at 2.1× those input tokens, and so does C6b, barely.
+  - By type, all of C6b–C6d's advantage is on two-clip videos (+0.31 to +0.38) and, for C6d, also on reversed and plain ones.
+  - On stacked videos every caption arm is within ±0.07 of 448 px frames.
+- Every result is within 0.03 of its prediction.
 
 ### C7 — Caption audit: why the caption arms fail (written 2026-10-20, committed before any C7 call)
 
