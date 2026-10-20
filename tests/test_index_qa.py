@@ -8,7 +8,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 from index_qa import tempcompass as tc  # noqa: E402
 from index_qa.caption import GEMINI_LEAD, frame_clip, frames_prompt, prompt_for  # noqa: E402
-from index_qa.reader import HIGH, LOW, contrast_boot, paired_boot, parse, retention_boot  # noqa: E402
+from index_qa.reader import (ARMS, CAPTIONERS, CLAUDE_CAPTIONER, HIGH, LOW, contrast_boot, paired_boot,  # noqa: E402
+                             parse, retention_boot, spearman, thinking_tokens)
+from index_qa.self_caption import captioner  # noqa: E402
 
 
 def test_parse_question_plain():
@@ -95,6 +97,25 @@ def test_retention_boot():
 
 def test_aspect_groups_partition_the_aspects():
     assert LOW | HIGH == set(tc.DIMS) and not LOW & HIGH
+
+
+def test_claude_captioner_folders_match_the_reader_arms():
+    assert captioner("haiku") == "claude-haiku-5-5-self"  # K2's folder name, kept
+    assert captioner("sonnet") == "claude-sonnet-5-5-frames"
+    for arm, model in CLAUDE_CAPTIONER.items():
+        assert arm in ARMS and CAPTIONERS[arm] == captioner(model)
+
+
+def test_thinking_tokens():
+    assert thinking_tokens({"usage": {"output_tokens_details": {"thinking_tokens": 42}}}) == 42
+    assert thinking_tokens({"usage": {"output_tokens": 11}}) == 0
+    assert thinking_tokens({"usage": None}) == 0
+
+
+def test_spearman():
+    import pandas as pd
+    assert spearman(pd.Series([1, 2, 3, 4]), pd.Series([10, 20, 30, 1000])) == pytest.approx(1.0)
+    assert spearman(pd.Series([1, 2, 3]), pd.Series([3, 2, 1])) == pytest.approx(-1.0)
 
 
 def test_frames_prompt_changes_only_the_lead():

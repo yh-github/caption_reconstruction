@@ -12,6 +12,8 @@ Arms (per 5 s window; Claude image tokens by the ceil(w/28) x ceil(h/28) rule, 2
               as selfcaptions, with Gemini as the captioner (C1's coverage control)
     frameclipcaptions  Gemini's isolated caption of the same frames played as a 1 fps clip (caption.py --input
               frameclip): the visual tokens and prompt of the captions arm, the pixels of selfcaptions (C2)
+    sonnetcaptions  Sonnet's isolated caption of the same frames5 frames (self_caption.py --model sonnet): the
+              pixels, visual tokens and prompt of selfcaptions, with Sonnet as the captioner (C3)
 Calls are isolated exactly as in scripts/unshuffle/claude_reader.py (whose call_claude this reuses): a fresh
 `claude -p` per item, no tools, empty MCP config, empty working directory, prompt caching off, pinned model ID.
 A format failure gets one retry; after that the item scores as wrong.
@@ -23,6 +25,8 @@ A format failure gets one retry; after that the item scores as wrong.
     .venv/bin/python scripts/index_qa/reader.py run --set confirm --model haiku --arms blind captions ...
     .venv/bin/python scripts/index_qa/reader.py confirm      # C1's pre-registered statistics (research log)
     .venv/bin/python scripts/index_qa/reader.py c2           # C2's statistics (research log)
+    .venv/bin/python scripts/index_qa/reader.py c3           # C3's statistics (research log)
+    .venv/bin/python scripts/index_qa/reader.py thinking [--set dev]   # A1: thinking tokens (research log)
 Outputs (append-only; the latest row per item counts): results/index_qa/claude/<model>.jsonl and
 <model>__events.jsonl, as in the unshuffle reader.
 """
@@ -39,16 +43,19 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from index_qa import tempcompass as tc  # noqa: E402
-from index_qa.caption import MODE, captions, visual_tokens  # noqa: E402
+from index_qa.caption import CAPTIONS, MODE, captions, visual_tokens  # noqa: E402
 from unshuffle.claude_reader import EFFORT, MODELS, call_claude  # noqa: E402
 
-ARMS = ["blind", "captions", "frame1", "frames5", "selfcaptions", "framecaptions", "frameclipcaptions"]
+ARMS = ["blind", "captions", "frame1", "frames5", "selfcaptions", "framecaptions", "frameclipcaptions",
+        "sonnetcaptions"]
 K0_ARMS = ARMS[:4]
-# Caption arms -> the captioner whose window captions they read (selfcaptions: scripts/index_qa/self_caption.py)
+# Caption arms -> the captioner whose window captions they read (Claude's: self_caption.captioner)
 CAPTIONERS = {"captions": "gemini-3.8-flash", "selfcaptions": "claude-haiku-5-5-self",
-              "framecaptions": "gemini-3.8-flash-frames", "frameclipcaptions": "gemini-3.8-flash-frameclip"}
-# caption.py --input that writes each Gemini caption arm
+              "framecaptions": "gemini-3.8-flash-frames", "frameclipcaptions": "gemini-3.8-flash-frameclip",
+              "sonnetcaptions": "claude-sonnet-5-5-frames"}
+# caption.py --input that writes each Gemini caption arm, and self_caption.py --model for each Claude one
 CAPTION_INPUT = {"captions": "video", "framecaptions": "frames", "frameclipcaptions": "frameclip"}
+CLAUDE_CAPTIONER = {"selfcaptions": "haiku", "sonnetcaptions": "sonnet"}
 OUT = tc.OUT / "claude"
 PROMPTS = tc.ROOT / "prompts/index_qa"
 
@@ -87,7 +94,7 @@ def build(item: dict) -> tuple[list[dict], str]:
         caps = captions(v, CAPTIONERS[arm])
         if caps is None:
             sys.exit(f"{CAPTIONERS[arm]} captions missing for {v}: run scripts/index_qa/"
-                     + ("self_caption.py first" if arm == "selfcaptions"
+                     + (f"self_caption.py --model {CLAUDE_CAPTIONER[arm]} first" if arm in CLAUDE_CAPTIONER
                         else f"caption.py --input {CAPTION_INPUT[arm]} first"))
         body = "\n".join(f"{P['window_label'].format(start=s, end=round(e, 1))} {c}" for (s, e), c in zip(wins, caps))
         text = f"{head}\n\n{body}\n\n{tail}"
@@ -422,6 +429,125 @@ def cmd_c2(args):
         print(f"  {name}: " + ", ".join(f"{k} {v:+.2f}" for k, v in d.groupby(d.index.map(dim)).mean().items()))
 
 
+# C3 (research log): Claude arms, all on the questions that every one of them answered
+C3_ARMS = ["haiku:frames5", "haiku:selfcaptions", "haiku:sonnetcaptions", "sonnet:frames5"]
+
+
+def caption_tokens(name: str) -> dict[tuple[str, int], int]:
+    """Input tokens (prompt and frames) of each window's caption call, from a Claude captioner's caption files."""
+    out = {}
+    for f in (CAPTIONS / name).glob("*/*.json"):
+        d = json.loads(f.read_text())
+        out[(d["video_id"], d["window"])] = (d.get("usage") or {}).get("input_tokens")
+    return out
+
+
+def cmd_c3(args):
+    """C3's statistics, as listed in the research log: the captioner effect with the pixels, prompt and visual tokens
+    of the self-captions, and the index comparisons around it, with 95% CIs. A failed call counts as wrong."""
+    qs, dim, wide = confirm_table()
+    if missing := [a for a in C3_ARMS if a not in wide]:
+        sys.exit(f"not run yet: {missing}")
+    x = wide[C3_ARMS].dropna()
+    print(f"{len(qs)} confirmatory questions, {len(x)} answered in every C3 arm; dropped: "
+          f"{sorted(set(wide.index) - set(x.index)) or 'none'}")
+    tok = {m: caption_tokens(CAPTIONERS[a]) for a, m in CLAUDE_CAPTIONER.items()}
+    both = sorted(tok["haiku"].keys() & tok["sonnet"].keys())
+    d = sorted(tok["sonnet"][k] - tok["haiku"][k] for k in both)
+    print(f"\ncaption-call input tokens, Sonnet - Haiku, same window ({len(both)} windows): median "
+          f"{d[len(d) // 2] if d else None}, range [{d[0] if d else None}, {d[-1] if d else None}]")
+    print("\naccuracy:")
+    print(x.mean().round(3).to_string())
+    print("\naccuracy by aspect:")
+    print(x.groupby(x.index.map(dim)).mean().round(2).T.to_string())
+    print("\neffects (95% CIs):")
+    terms = [("C3a captioner at identical visual tokens", "haiku:sonnetcaptions", "haiku:selfcaptions", +0.09),
+             ("C3b total within Claude = C3a + P2", "haiku:sonnetcaptions", "haiku:frames5", +0.12),
+             ("C3c index (Sonnet captions once, Haiku answers) vs. Sonnet on frames", "haiku:sonnetcaptions",
+              "sonnet:frames5", -0.07),
+             ("P2 (C1) modality on these questions", "haiku:selfcaptions", "haiku:frames5", -0.08)]
+    for name, a, b, pred in terms:
+        est, lo, hi = paired_boot((x[a] - x[b]).tolist())
+        print(f"  {name}: {a} - {b} = {est:+.3f} [{lo:+.3f}, {hi:+.3f}] (n={len(x)}; prediction {pred:+.2f})")
+    a, b = "haiku:sonnetcaptions", "haiku:frameclipcaptions"
+    if b in wide:
+        dd = (wide[a] - wide[b]).dropna()
+        est, lo, hi = paired_boot(dd.tolist())
+        print(f"  C3d Sonnet vs. Gemini as captioner (about matched tokens): {a} - {b} = {est:+.3f} "
+              f"[{lo:+.3f}, {hi:+.3f}] (n={len(dd)}; prediction +0.00)")
+    else:
+        print("  C3d Sonnet vs. Gemini as captioner: C2's frameclipcaptions not run yet")
+    print("\nby aspect, paired differences (descriptive):")
+    for name, a, b, _ in terms[:3]:
+        dd = x[a] - x[b]
+        print(f"  {name}: " + ", ".join(f"{k} {v:+.2f}" for k, v in dd.groupby(dd.index.map(dim)).mean().items()))
+
+
+def thinking_tokens(r: dict) -> int:
+    return ((r.get("usage") or {}).get("output_tokens_details") or {}).get("thinking_tokens") or 0
+
+
+def spearman(a, b) -> float:
+    """Spearman's rho of two aligned pandas Series (average ranks for ties)."""
+    return float(a.rank().corr(b.rank()))
+
+
+# A1 (research log): thinking-token pairs to compare, and the escalation illustration (cheap arm, strong arm)
+THINK_PAIRS = [("haiku:frames5", "haiku:captions"), ("haiku:frames5", "haiku:selfcaptions"),
+               ("haiku:captions", "haiku:framecaptions"), ("sonnet:frames5", "sonnet:captions"),
+               ("haiku:frames5", "sonnet:frames5"), ("haiku:captions", "sonnet:captions")]
+ESCALATE = ("haiku:captions", "sonnet:frames5")
+
+
+def cmd_thinking(args):
+    """A1 (research log; exploratory): thinking tokens per arm, whether the same questions draw thinking in different
+    arms, and accuracy with and without thinking. At effort medium the model decides per call whether to think, so
+    thinking is observed, not set. A failed call counts as wrong."""
+    import pandas as pd
+    keep = {q["item"] for q in tc.items(args.set_)}
+    rows = [r for m in ("haiku", "sonnet") for r in latest(m).values() if r["question_item"] in keep]
+    if not rows:
+        sys.exit("no saved rows")
+    df = pd.DataFrame(rows)
+    df["arm"] = df.model + ":" + df.arm
+    df["think"] = [thinking_tokens(r) for r in rows]
+    df["cost"] = [sum(v.get("costUSD", 0) for v in (r.get("model_usage") or {}).values()) for r in rows]
+    print(f"{args.set_} set: {df.question_item.nunique()} questions")
+    print("\nper arm: share of calls that think, thinking tokens, accuracy without / with thinking, "
+          "mean list-price $ per call (the CLI's costUSD):")
+    stats = []
+    for arm, d in df.groupby("arm"):
+        stats.append(dict(arm=arm, n=len(d), thinks=(d.think > 0).mean(), mean=d.think.mean(), median=d.think.median(),
+                          p90=d.think.quantile(0.9), acc_no_think=d.correct[d.think == 0].mean(),
+                          acc_think=d.correct[d.think > 0].mean(), usd=d.cost.mean()))
+    print(pd.DataFrame(stats).set_index("arm").round({"thinks": 2, "mean": 1, "acc_no_think": 3, "acc_think": 3,
+                                                      "usd": 5}).to_string())
+    print("\nmean thinking tokens by aspect:")
+    print(df.pivot_table(index="arm", columns="dim", values="think", aggfunc="mean").round(0).to_string())
+    t = df.pivot_table(index="question_item", columns="arm", values="think", aggfunc="first")
+    qdim = df.groupby("question_item").dim.first()
+    print("\nsame questions, thinking tokens in two arms: Spearman, all questions and the mean within aspects:")
+    for a, b in THINK_PAIRS:
+        if a in t and b in t:
+            x = t[[a, b]].dropna()
+            within = [spearman(g[a], g[b]) for _, g in x.groupby(qdim.reindex(x.index)) if g[a].nunique() > 1
+                      and g[b].nunique() > 1]
+            mean_within = f"{sum(within) / len(within):+.2f}" if within else "n/a"
+            print(f"  {a} vs. {b}: {spearman(x[a], x[b]):+.2f} (n={len(x)}); within aspects {mean_within}")
+    cheap, strong = ESCALATE
+    if cheap in t and strong in t:
+        c = df.pivot_table(index="question_item", columns="arm", values="correct", aggfunc="first").astype(float)
+        u = df.pivot_table(index="question_item", columns="arm", values="cost", aggfunc="first")
+        q = t[[cheap, strong]].dropna().index
+        up = t.loc[q, cheap] > 0
+        acc = c.loc[q, strong].where(up, c.loc[q, cheap]).mean()
+        usd = (u.loc[q, cheap] + u.loc[q, strong].where(up, 0)).mean()
+        print(f"\nescalation (illustration, post hoc): {cheap}, and {strong} when the first thought "
+              f"({up.mean():.0%} of {len(q)} questions): accuracy {acc:.3f}, ${usd:.5f} per question; always {strong}: "
+              f"{c.loc[q, strong].mean():.3f}, ${u.loc[q, strong].mean():.5f}; always {cheap}: "
+              f"{c.loc[q, cheap].mean():.3f}, ${u.loc[q, cheap].mean():.5f}")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -444,8 +570,12 @@ def main():
     c.add_argument("--pairs", nargs="+", help="differences to report, as model:arm-model:arm")
     sub.add_parser("confirm")
     sub.add_parser("c2")
+    sub.add_parser("c3")
+    th = sub.add_parser("thinking")
+    th.add_argument("--set", dest="set_", choices=list(tc.SETS), default="confirm")
     args = ap.parse_args()
-    {"run": cmd_run, "check": cmd_check, "confirm": cmd_confirm, "c2": cmd_c2}[args.cmd](args)
+    {"run": cmd_run, "check": cmd_check, "confirm": cmd_confirm, "c2": cmd_c2, "c3": cmd_c3,
+     "thinking": cmd_thinking}[args.cmd](args)
 
 
 if __name__ == "__main__":
