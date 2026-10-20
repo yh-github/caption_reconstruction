@@ -17,11 +17,11 @@ Second pass written 2026-10-14, after the Gate 1 pilot (`unshuffle_pilot_results
 
 **What is open (as far as this search found):**
 1. Accuracy against query cost as a **curve, per task type, with the same reader**, on short video, with both modalities at their best allocation per budget.
-2. **Coverage vs. code.** Published caption wins mix "the captioner saw more frames" with "words are a better code". No one controls what the captioner saw.
+2. **Source vs. modality.** Published caption wins mix "the captioner saw more frames" with "words are easier to use than pixels". No one controls what the captioner saw.
 3. **A cost account that goes beyond tokens:** bytes, latency, energy, the vision encoder, the reader's own thinking tokens, and the one-time captioning cost, with a break-even number of queries. The 2026 efficiency survey leaves caption pipelines out for exactly this reason.
 4. **Why some content survives the language channel and some does not.** Cognitive science has a name and a theory for it (codability; efficient naming as an information bottleneck); no video paper tests it.
 
-**The niche in one sentence.** A resource-complete, information-controlled rate–utility study of language as a reusable video index: per task type, how much accuracy a caption index buys per token, byte, joule and dollar at query time; how much of that is coverage rather than language; what predicts it (codability); and when indexing pays for itself.
+**The niche in one sentence.** A resource-complete, information-controlled rate–utility study of language as a reusable video index: per task type, how much accuracy a caption index buys per token, byte, joule and dollar at query time; how much of that is the source rather than language; what predicts it (codability); and when indexing pays for itself.
 
 **Verdict.** Open, publishable, and narrow enough to finish on our budget. The area is moving weekly (CFD, CapMem, CapQuiz, VEI, Sprout, LoHi, OneStreamer and SwitchMem all appeared between 9 September and 13 October 2026), so the parts that are hard to copy (the information control, the theory, the full cost account) must lead.
 
@@ -32,8 +32,8 @@ Second pass written 2026-10-14, after the Gate 1 pilot (`unshuffle_pilot_results
 | Index | A representation computed once per video, before any question is known (task-agnostic). Captions are one; cached frames or embeddings are others. |
 | Query cost | What the reader consumes per question: input tokens (text and image), output and thinking tokens, payload bytes, latency, energy, list-price dollars. |
 | Matched budget | Two representations given the same query cost in a stated unit. Matching in tokens does not match bytes or energy. |
-| Coverage | How much of the video the representation was made from (frames, fps, resolution). |
-| Code | The form the content is in at query time (words vs. pixels), at equal coverage. |
+| Source | What the representation was made from (the video, or which frames at which fps and resolution). Called "coverage" in this review's first version; renamed 2026-10-20. |
+| Modality | The type of input at query time (words vs. pixels), from the same source. Called "code" in this review's first version; renamed 2026-10-20. The full term set is the *Terms* block of `research_plan_caption_index.md`. |
 | Break-even Q\* | The number of questions per video after which the one-time captioning cost is repaid by cheaper queries at equal accuracy. |
 | Routing headroom | How much accuracy a router that picks a representation per question type could gain at a fixed budget over the best single representation. |
 
@@ -198,7 +198,7 @@ Second pass written 2026-10-14, after the Gate 1 pilot (`unshuffle_pilot_results
 
 ## 4. Closest work, head to head
 
-| | Amortizes captioning | Counts query tokens | Same reader both sides | Matched budget | Budget sweep | Best visual allocation per budget | Coverage vs. code separated | By task type | Energy / bytes | Short videos |
+| | Amortizes captioning | Counts query tokens | Same reader both sides | Matched budget | Budget sweep | Best visual allocation per budget | Source vs. modality separated | By task type | Energy / bytes | Short videos |
 |---|---|---|---|---|---|---|---|---|---|---|
 | CFD | yes | no (frames, seconds) | yes | no | frames only | no | no | 4 InfiniBench skills | storage only | Video-MME short |
 | CapMem | yes | captions; video by proxy | yes (self-captioning) | frames | no (one cap) | no | partly | tags, in a figure | no | ≤ 20 min split |
@@ -224,13 +224,13 @@ Second pass written 2026-10-14, after the Gate 1 pilot (`unshuffle_pilot_results
 Working title: **"Caption once, query cheaply? A resource-complete rate–utility study of language as a video index."** Full design, hypotheses and budget: `research_plan_caption_index.md`.
 
 1. **Accuracy–cost frontiers** per representation (caption grains; frame counts × resolutions) and per task family, with the same readers, in several cost units.
-2. **Coverage vs. code.** Captions made from exactly the frames the frame arm sees isolate the code; captions from more frames add coverage. The difference splits any caption advantage into the two.
+2. **Source vs. modality.** Captions made from exactly the frames the frame arm sees isolate the modality; captions from more frames add a source effect. The difference splits any caption advantage into the two.
 3. **A test of CFD's duality claim** (language carries temporal structure better) under the information control, at matched cost, on short video. Our ordering pilot already contradicts it there: frames ordered 1-minute clips far better than captions (at 11× the tokens).
 4. **Codability.** A pre-registered prediction that caption retention rises with how codable the answer-relevant content is (§3.11).
 5. **Break-even and routing headroom** from measured frontiers, with the captioning cost counted.
 
 Theory:
-- **Garbling bound.** Captions made from frame set S are a garbling of any frame arm that sees S or more, so no reader can do better from them in principle (Blackwell). Any observed win is usable information created by the captioner (Xu et al.), or coverage.
+- **Garbling bound.** Captions made from frame set S are a garbling of any frame arm that sees S or more, so no reader can do better from them in principle (Blackwell). Any observed win is usable information created by the captioner (Xu et al.), or a source effect.
 - **Amortization.** Per-question cost C_index/Q + c_query; break-even Q\*(α) = C_index / (c_frames(α) − c_captions(α)) at accuracy α; undefined if captions never reach α.
 - **Routing.** Mixed strategies make the routed frontier the per-task upper concave envelope; its gap to the best single representation bounds any visual-need router.
 - **Rate.** Captions and frames are two lossy codes at rate R (tokens or bytes); each task has its own utility curve. A question-aware captioner is a code with encoder side information; its advantage at equal rate is the price of task-agnosticism.

@@ -2,11 +2,15 @@
 
 Written 2026-10-15. It builds on the literature review `related_work_caption_index.md` (third pass) and on what we already have (`unshuffle_pilot_results.md`, `docs/report/status_report_2026-10-14.md`). **It is a proposal until the user and partners decide (§12).** If adopted, it replaces `paper_plan.md` as the master plan, and the unshuffling study becomes one task family inside it (§5.3).
 
-**Terms (fixed 2026-10-18; use only these).**
+**Terms (fixed 2026-10-18, revised 2026-10-20; use only these).**
 - **Codability:** how consistently and briefly people put the answer-relevant content into words, measured by agreement between independent descriptions (Brown & Lenneberg 1954). It replaces "nameability", which earlier drafts used for the same idea. A question type has high codability when different describers would state its answer the same way, in few words.
-- **Coverage:** what part of the video the captioner saw, compared with the frame arm.
-- **Captioner effect:** what a different captioning model adds or loses compared with the reader describing the same frames itself (knowledge, skill, errors).
-- **Format effect:** the same model's description as text instead of the frames themselves. Earlier drafts called this the "code" term, which clashed with codability.
+- **Visual tokens:** the tokens a model spends on visual input (frames or video) in one call.
+- Four **effects**. Each is the accuracy difference between two arms that changes one thing, with the same reader in both:
+  - **Source effect:** what the captioner was given (the video, or more or larger frames) instead of the frames the reader sees. Captioner, prompt and visual tokens are held fixed. It replaces "coverage" (2026-10-15 to 2026-10-19), which suggested only how much of the video was seen. In C1 and C2 both inputs are the same 1 fps instants; what differs is the input itself (the video file vs. the reader's 224 px JPEGs).
+  - **Visual budget effect:** the visual tokens the captioner spends on the same pixels. Captioner and pixels are held fixed.
+  - **Captioner effect:** a different captioning model instead of the reader model itself. Pixels and prompt are held fixed, and visual tokens about fixed. It includes everything that differs between the two models: what they perceive, what they recognize, how they write, their errors. No arm separates these, so claims say "captioner effect", not "knowledge".
+  - **Modality effect:** the reader reads its own caption of the frames (text) instead of the frames themselves (images). The model and the pixels are held fixed. It replaces "format effect" (2026-10-18 to 2026-10-20), which suggested a change of encoding (JSON to YAML), not a different type of input. Before that, drafts called it the "code" term, which clashed with codability. "Format" keeps only its plain sense: an answer in the required output format.
+  - With visual tokens held about fixed, the total caption effect = source + captioner + modality. Where two arms differ in visual tokens, that difference is reported as a visual budget effect.
 - **Information about the video** (Shannon, Blackwell) vs. **usable information** (Xu et al. 2020: what a given bounded reader can extract). Captions never add the first. They can add or remove the second.
 
 ## 0. At a glance
@@ -14,7 +18,7 @@ Written 2026-10-15. It builds on the literature review `related_work_caption_ind
 | | |
 |---|---|
 | **Question** | For short videos (≤ 1 min), when does a one-time, question-independent caption index answer questions better per unit of query cost than frames, why, and when does the indexing pay for itself? |
-| **Contribution** | Accuracy–cost frontiers per task family, with the same readers and both modalities at their best allocation per budget; an information control that splits any caption advantage into coverage, captioner and format effects; a full cost account (tokens by type, bytes, latency, list-price dollars, energy, model size); a tested explanation (codability); break-even and routing-headroom numbers from measurements. |
+| **Contribution** | Accuracy–cost frontiers per task family, with the same readers and both modalities at their best allocation per budget; an information control that splits any caption advantage into source, visual budget, captioner and modality effects; a full cost account (tokens by type, bytes, latency, list-price dollars, energy, model size); a tested explanation (codability); break-even and routing-headroom numbers from measurements. |
 | **Theory** | Garbling bound (Blackwell), usable information, amortized break-even, routing headroom by LP duality, price of task-agnosticism (§3). |
 | **Data** | 30 WildQA pilot videos (ordering, reused), TempCompass (fine temporal aspects), Perception Test or NExT-QA (breadth). |
 | **Readers** | Claude Haiku / Sonnet / Opus 5.5 through `claude -p`; one open VLM on Kaggle, where energy and memory are measured. Gemini only writes captions. |
@@ -27,7 +31,7 @@ Written 2026-10-15. It builds on the literature review `related_work_caption_ind
 
 **Research questions.**
 - **RQ1 (rate–utility).** At a fixed query budget, which representation gives a fixed reader the highest accuracy: captions at several grains, or frames at several counts and resolutions? How does the answer change by task family and by cost unit (tokens, bytes, energy, dollars)?
-- **RQ2 (mechanism).** When captions win at a matched budget, is it because the captioner saw more of the video (coverage), knows or sees things the reader does not (captioner effect), or because text is easier for the reader to use than pixels (format effect)?
+- **RQ2 (mechanism).** When captions win at a matched budget, is it because the captioner was given more of the video (source effect), spent more visual tokens on it (visual budget effect), is a model that perceives, recognizes or writes differently from the reader (captioner effect), or because text is easier for the reader to use than pixels (modality effect)?
 - **RQ3 (explanation).** Does the codability of the answer-relevant content predict how much accuracy the caption index keeps?
 - **RQ4 (economics).** Counting the captioning cost, after how many questions per video does the index pay off, and how much could a router that sends some question types to frames gain?
 
@@ -35,7 +39,7 @@ Written 2026-10-15. It builds on the literature review `related_work_caption_ind
 
 **Contributions.**
 1. The first accuracy–cost frontiers of a caption index vs. frames on short video, per task family, with each modality at its best allocation per budget, the same readers, and a blind (question-only) arm.
-2. An information control that splits a caption advantage into coverage, captioner and format effects, and a test, under that control, of the published claim that language carries temporal structure better (CFD).
+2. An information control that splits a caption advantage into source, captioner and modality effects (with visual tokens held fixed), and a test, under that control, of the published claim that language carries temporal structure better (CFD).
 3. A cost card for video QA that counts what token budgets hide: image vs. text tokens, thinking tokens, payload bytes, latency, energy and memory on an open model, and the one-time index cost.
 4. A pre-registered test of codability as the predictor of what survives the language channel, linking the result to cognitive science and to efficient-naming theory.
 5. Break-even query counts and routing headroom from measured frontiers, which say when caption indexing pays and how much any visual-need router (CFD-style) could gain.
@@ -61,15 +65,16 @@ where the supremum is over all (randomized) readers.
 
 *Proof.* For any reader R of ψ, the reader R′(z, q) = R(z′, q) with z′ ~ G(· | z) reads φ and produces the same joint law of (answer, Y), hence the same accuracy. ∎ (This is the easy direction of Blackwell's 1953 theorem; it holds for every loss, not only accuracy.)
 
-*What it licenses, and what it does not.* The bound is about information **about this video**, and it holds because the supremum includes readers that know everything the captioner knows. The captioner's world knowledge is part of the fixed kernel G, so it adds no information about X. Our readers are fixed and bounded, and the captioner is a different model from the reader, so for them captions **can** do better than frames. The captioner can name what the reader would not recognize (a species, a sport's move, a tool). That is information the reader lacked, though not information about the video that was missing from the frames. Captions can also do worse, through errors and hallucinations. So with the captioner given exactly the frame the frame arm sees (arm T3 vs. V1, §5.1), an observed caption win is a gain in **usable** information for this reader (Xu et al. 2020), coming from the captioner's knowledge or from the text format. The unshuffling plan's Proposition 1 is the special case where the task is order.
+*What it licenses, and what it does not.* The bound is about information **about this video**, and it holds because the supremum includes readers that know everything the captioner knows. The captioner's world knowledge is part of the fixed kernel G, so it adds no information about X. Our readers are fixed and bounded, and the captioner is a different model from the reader, so for them captions **can** do better than frames. The captioner can name what the reader would not recognize (a species, a sport's move, a tool). That is information the reader lacked, though not information about the video that was missing from the frames. Captions can also do worse, through errors and hallucinations. So with the captioner given exactly the frame the frame arm sees (arm T3 vs. V1, §5.1), an observed caption win is a gain in **usable** information for this reader (Xu et al. 2020), coming from the captioner (what it perceives, recognizes or writes that the reader does not) or from the text modality. The unshuffling plan's Proposition 1 is the special case where the task is order.
 
-**Corollary (coverage + captioner + format decomposition).** Let T_S be captions made by the captioner from frame set S, S′ ⊆ S the frames the frame arm shows, and T^R_S′ captions of S′ written by the reader model itself (self-captioning). Then exactly
+**Corollary (source + captioner + modality decomposition).** Let T_S be captions made by the captioner from frame set S, S′ ⊆ S the frames the frame arm shows, and T^R_S′ captions of S′ written by the reader model itself (self-captioning). Then exactly
 
-A(T_S) − A(V_S′) = [A(T_S) − A(T_S′)] + [A(T_S′) − A(T^R_S′)] + [A(T^R_S′) − A(V_S′)] = coverage + captioner + format.
+A(T_S) − A(V_S′) = [A(T_S) − A(T_S′)] + [A(T_S′) − A(T^R_S′)] + [A(T^R_S′) − A(V_S′)] = source + captioner + modality.
 
-- **Coverage:** the captioner saw more frames. Either sign.
-- **Captioner:** what a different model's knowledge and skill add over the reader's own description. Either sign.
-- **Format:** the same model's knowledge, as its own words instead of pixels (verbalization). Proposition 1 bounds this term only in the limit of unbounded readers. For a real reader, it can have either sign.
+- **Source:** the captioner was given more than the reader's frames. Either sign.
+- **Captioner:** what a different model's description adds over the reader's own description of the same frames. Either sign.
+- **Modality:** the reader's own description, as text, instead of the frames it described. Proposition 1 bounds this term only in the limit of unbounded readers. For a real reader, it can have either sign.
+- The identity holds for any arms. Each term isolates one change only if the two arms it compares spend about the same visual tokens; otherwise a visual budget effect is mixed in, and needs its own pair of arms (C2 in `research_log.md`).
 
 **Proposition 2 (amortized cost and break-even).** For Q questions on one video, the total cost is TC_φ(Q) = C(φ) + Σ_q c_q(φ). For a target accuracy α, let c*_φ(α) = inf { c(φ_b, R) : A(φ_b, R) ≥ α } over the budgets b and readers R in a family (the inverse of its frontier). A caption index τ costs less in total than frames f for every Q ≥ Q*(α), where
 
@@ -89,7 +94,7 @@ Q*(α) = C(τ) / (c*_f(α) − c*_τ(α)) if c*_f(α) > c*_τ(α), and never oth
 
 **Proposition 4 (price of task-agnosticism).** Among captioners limited to L words, one that also sees the question can do at least as well as one that does not, for an optimal reader, since it can ignore the question. We define the price of task-agnosticism Δ_TA(L) = A(question-aware captions, L) − A(generic captions, L) for our fixed captioner and reader, and measure it (E5). In coding terms, a question-aware caption is a code with side information at the encoder as well as the decoder; generic captions have it only at the decoder (the reader sees the question). Lossy coding with decoder-only side information pays a rate penalty in general (the Wyner–Ziv setting); we use this as an analogy, not a bound.
 
-**Remark (capacity per token).** A text token from a vocabulary of about 2^17 words carries at most about 17 bits, so a 40-token caption carries at most ≈ 680 bits; its actual size is 184 bytes. The 40-token frame we would match it with is a 7.7 KB JPEG (≈ 62 kbit). At matched tokens the visual input is about two orders of magnitude larger. A caption that wins per token therefore wins by **selection** (the captioner chose what to keep, often from more frames) and **usability** (the captioner's knowledge and the text format), never by capacity. This is why the coverage/captioner/format split is the right decomposition.
+**Remark (capacity per token).** A text token from a vocabulary of about 2^17 words carries at most about 17 bits, so a 40-token caption carries at most ≈ 680 bits; its actual size is 184 bytes. The 40-token frame we would match it with is a 7.7 KB JPEG (≈ 62 kbit). At matched tokens the visual input is about two orders of magnitude larger. A caption that wins per token therefore wins by **selection** (the captioner chose what to keep, often from more frames) and **usability** (the captioner and the text modality), never by capacity. This is why the source/captioner/modality split is the right decomposition.
 
 **What the theory does not give.** No proposition predicts which task families win. That is an empirical claim, made in advance through the codability hypothesis (H4) and tested.
 
@@ -99,13 +104,13 @@ Fixed now in direction. The confirmatory versions (exact arms, budgets, margins,
 
 | | Hypothesis | Test | Falsified if |
 |---|---|---|---|
-| H1 Format | At equal coverage (caption of exactly the frame the reader sees, T3, vs. that frame, V1), the captioner + format effect is negative for low-codability families and not negative for high-codability families. | Arm × codability-group interaction, paired by question | No interaction, or the reverse sign |
-| H2 Coverage | A caption made from all 5 frames of a window beats a caption made from 1 of them at the same length (T2 > T3), most for action, order and change questions. | Paired difference, pooled; by family as secondary | T2 ≤ T3 |
+| H1 Modality | At equal source (caption of exactly the frame the reader sees, T3, vs. that frame, V1), the captioner + modality effect is negative for low-codability families and not negative for high-codability families. | Arm × codability-group interaction, paired by question | No interaction, or the reverse sign |
+| H2 Source | A caption made from all 5 frames of a window beats a caption made from 1 of them at the same length (T2 > T3), most for action, order and change questions. | Paired difference, pooled; by family as secondary | T2 ≤ T3 |
 | H3 Frontier | For low-codability families (direction, speed, order of continuous motion, fine appearance), a frame arm at no more tokens than the dense captions is more accurate (V1 > T2). For high-codability families (objects, actions, scene, semantics), the dense captions are non-inferior to V1 within 3 points. | One-sided test; non-inferiority test (margin 3 points) | Frames do not win on low-codability; captions are inferior on high-codability |
 | H4 Codability | Across question types (≥ 20 over both benchmarks), retention at the ≈ 40-token budget rises with a priori codability, and the caption's mention rate of the answer-relevant content mediates it. | Spearman ρ > 0 (one-sided); mediation as secondary | ρ ≤ 0 |
 | H5 Break-even (estimation, no direction) | Q\*(α) per family and cost unit, with CIs; with and without a reader downgrade (Haiku on captions). | Pre-registered computation | n/a |
 | H6 Routing (estimation) | Routing headroom H(B) at the dense-caption budget, on each benchmark's natural question mix. | LP on measured frontiers, bootstrap CI | n/a |
-| H7 Duality (CFD) | Under the information control, captions do *not* carry the order of events better than frames on short video (the ordering pilot already points this way). | Ordering τ, T3 vs. V1 and T2 vs. V4 | Captions order better at equal coverage |
+| H7 Duality (CFD) | Under the information control, captions do *not* carry the order of events better than frames on short video (the ordering pilot already points this way). | Ordering τ, T3 vs. V1 and T2 vs. V4 | Captions order better at equal source |
 
 Primary confirmatory tests: H1, H2, H3 (its two parts) and H4: five tests, Holm-corrected. Everything else is labelled exploratory.
 
@@ -117,7 +122,7 @@ Primary confirmatory tests: H1, H2, H3 (its two parts) and H4: five tests, Holm-
 |---|---|---|---|---|
 | T0 Blind | Question and options only | 0 | 0 | Language-prior baseline (TVBench lesson) |
 | T1 Terse | Caption ≤ 10 words, from the window at 1 fps | ≈ 15 | ≈ 60 | Low rate point |
-| T2 Dense | Caption ≤ 45 words from the window's 5 frames (1 fps, the V4 JPEGs; frozen prompt v2) | ≈ 47 | 184 (measured) | The index; coverage arm |
+| T2 Dense | Caption ≤ 45 words from the window's 5 frames (1 fps, the V4 JPEGs; frozen prompt v2) | ≈ 47 | 184 (measured) | The index; source arm |
 | T3 Matched | Caption ≤ 45 words from **the single JPEG the V1 arm shows** | ≈ 47 | ≈ 184 | Information control (Prop. 1) |
 | T4 Clip | One caption ≤ 80 words for the whole clip | ≈ 9 per window on 60 s | ≈ 40 per window | Coarse grain |
 | T5 Aware | Like T2, but the captioner sees the question | ≈ 47 | ≈ 184 | Price of task-agnosticism (not amortizable) |
@@ -192,7 +197,7 @@ Every frontier is drawn in at least two units (tokens and dollars for Claude; to
 | **E6 Codability** | H4 | LLM raters on all 1,400 questions; authors on 100; mention-rate judge | E2, E3 | Haiku ≈ 2,800, Sonnet ≈ 1,400 (tiny calls) |
 | **E7 Robustness** | Is it Gemini, one seed, one reader? | Second captioner (Sonnet writes T2 for 100 videos); caption resampling at a new seed (10%); the open VLM as a second reader family throughout | subsets | Sonnet ≈ 1,000, Gemini ≈ $3 |
 
-**Analysis outputs (all computed from these runs, no extra calls):** frontiers per family and unit; the coverage/captioner/format decomposition (coverage T2 − T3; captioner T3 − self-captions of the same frame; format self-captions − V1; and T2 − V4 at five frames) per family; Q\*(α) per family and unit, with and without the reader downgrade; routing headroom H(B) and the item-level oracle bound; codability regression and mediation.
+**Analysis outputs (all computed from these runs, no extra calls):** frontiers per family and unit; the source/captioner/modality decomposition (source T2 − T3; captioner T3 − self-captions of the same frame; modality self-captions − V1; and T2 − V4 at five frames) per family; Q\*(α) per family and unit, with and without the reader downgrade; routing headroom H(B) and the item-level oracle bound; codability regression and mediation.
 
 ## 7. Statistics and pre-registration
 
@@ -267,7 +272,7 @@ The 5-hour windows needed: roughly 8–10 for Sonnet and 3 for Opus, spread over
 | Risk | Handling |
 |---|---|
 | Scooping: CFD, CapMem, ViSIL or LoHi authors publish per-task matched-budget curves | Lead with what is hard to copy: the information control, the full cost card, the theory. Monthly arXiv and citation watch on CFD, CapMem, ViSIL, LoHi, Sprout. |
-| "Obviously frames win on motion and captions on objects" | Directional predictions are pre-registered; the paper's value is in the magnitudes, the coverage/captioner/format split, Q\*, the headroom, and the test of codability as the explanation. |
+| "Obviously frames win on motion and captions on objects" | Directional predictions are pre-registered; the paper's value is in the magnitudes, the source/captioner/modality split, Q\*, the headroom, and the test of codability as the explanation. |
 | Token units differ across readers | Report per reader, plus bytes, dollars and joules; claim only what holds in at least two units. |
 | Readers treat text and images unequally (TokenSwap), and think more on images | Same effort for every arm; thinking tokens counted as cost; the open VLM as a second reader. |
 | Claude misreads images under 200 px (V0, V3) | That is a real constraint of the reader and part of its frontier; the open VLM shows whether it is reader-specific. |
@@ -285,7 +290,7 @@ The 5-hour windows needed: roughly 8–10 for Sonnet and 3 for Opus, spread over
 - [ ] **Direction:** adopt this as the main paper, with unshuffling as the ordering family (E1) and generation as a short negative result? (Recommended.)
 - [ ] **Breadth benchmark:** Perception Test (recommended: skill taxonomy, short, CC-BY) or NExT-QA (comparable with published caption pipelines).
 - [ ] **Captioner thinking level:** decided by the E0 check.
-- [ ] **Opus coverage:** the subset sizes above, confirmed at Gate A.
+- [ ] **Opus subset:** the subset sizes above, confirmed at Gate A.
 - [ ] **Venue:** ACL 2027 via ARR, or TMLR.
 - [ ] **Human codability raters** beyond the two authors (optional; a few colleagues, about 1 hour each).
 

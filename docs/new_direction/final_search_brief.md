@@ -6,20 +6,22 @@
 
 The search must establish that no paper published or posted up to submission already makes our three claims on video. If one does, it must tell us which claim is lost. It replaces the quick novelty pass of 2026-10-18 (N1 in `docs/new_direction/research_log.md`: 7 web searches, not a full review).
 
-**The study in two sentences.** A strong captioner (Gemini 3.8 Flash) writes question-blind captions of each 5 s window of a short video, once. A reader (Claude Haiku or Sonnet) then answers multiple-choice TempCompass questions from those captions instead of the frames, and we compare accuracy at matched query cost (input tokens).
+**The study in two sentences.** A strong captioner (Gemini 3.8 Flash; Claude Sonnet in C3, planned) writes question-blind captions of each 5 s window of a short video, once. A reader (Claude Haiku or Sonnet) then answers multiple-choice TempCompass questions from those captions instead of the frames, and we compare accuracy at matched query cost.
 
-**How the effect is split.** With Haiku as the reader, the total caption effect (Gemini video captions − 5 frames) splits exactly into three terms:
+**How the effect is split.** With Haiku as the reader, the total caption effect (Gemini video captions − 5 frames) splits exactly into three terms. The terms were renamed on 2026-10-20 (coverage → source, format → modality); definitions are in the *Terms* block of `research_plan_caption_index.md`.
 
 | Term | Comparison | What differs |
 | --- | --- | --- |
-| Coverage | Gemini video captions − Gemini frame captions | what the captioner saw (the video vs. the reader's 5 small frames) |
+| Source | Gemini video captions − Gemini frame captions | what the captioner was given (the video vs. the reader's 5 small frames) |
 | Captioner | Gemini frame captions − Haiku self-captions | who wrote the caption, from identical input |
-| Format | Haiku self-captions − 5 frames | the same model's own words vs. the pixels it saw |
+| Modality | Haiku self-captions − 5 frames | the same model's own words vs. the pixels it saw |
+
+In C1, Gemini spent ≈ 5,500 visual tokens per window on the frames and Haiku 200, so the captioner term also holds a visual budget effect. C2 (Gemini at about matched tokens) and C3 (Sonnet captions the same frames at exactly Haiku's tokens) remove it.
 
 **Pre-registered hypotheses (C1, 297 questions, held-out videos).**
 
 - **P1, aspect:** captions lose continuous quantities (direction, speed) more than discrete content (action, order, attribute change). Sonnet reader, predicted contrast −0.20.
-- **P2, format:** no format advantage. Self-captions − 5 frames, predicted −0.08. This is the opposite of IsoBench's finding for exact text renderings.
+- **P2, modality** (pre-registered as "format"): no modality advantage. Self-captions − 5 frames, predicted −0.08. This is the opposite of IsoBench's finding for exact text renderings.
 - **P3, captioner:** a stronger captioner adds usable information. Gemini frame captions − self-captions, predicted +0.06.
 
 Secondary claims the search should also cover: break-even counts (how many questions repay the captioning cost), and a cheap reader on captions vs. a strong reader on frames.
@@ -30,15 +32,15 @@ None of these makes our claims, so the baseline is clear. The search looks for n
 
 | Paper | What it does | What it leaves open for us |
 | --- | --- | --- |
-| [CapMem](https://arxiv.org/abs/2609.17688) (Liang et al., EMNLP 2026) | Each model captions its own video into a memory and answers from it. Token cost per question; 75 egocentric videos, 33.7 h. Captions win above 20 min and lose at 20 min or less. | Long video, one frame cap, self-captioning only (no separate captioner), no coverage/captioner/format split. |
-| [CFD](https://arxiv.org/abs/2609.11899) (Cai et al., EMNLP 2026) | Caption once, then a router fetches frames for "perceptual" questions. Amortized time formula; hour-long video. | No token counts, no matched budget, coverage confounded with format. |
+| [CapMem](https://arxiv.org/abs/2609.17688) (Liang et al., EMNLP 2026) | Each model captions its own video into a memory and answers from it. Token cost per question; 75 egocentric videos, 33.7 h. Captions win above 20 min and lose at 20 min or less. | Long video, one frame cap, self-captioning only (no separate captioner), no source/captioner/modality split. |
+| [CFD](https://arxiv.org/abs/2609.11899) (Cai et al., EMNLP 2026) | Caption once, then a router fetches frames for "perceptual" questions. Amortized time formula; hour-long video. | No token counts, no matched budget, source confounded with modality. |
 | [IsoBench](https://arxiv.org/abs/2404.01266) (COLM 2024) | The same problems as text and as images; models do 15–29 points better on text. | Images, and text that exactly renders the problem; not lossy, question-blind video captions. |
-| [Prism](https://arxiv.org/abs/2406.14544) (NeurIPS 2024) | A VLM describes an image, an LLM reasons over the description; a 2B captioner + GPT-3.5 matches much larger VLMs. | Images; no self-caption control, so captioner and format are not separated. |
+| [Prism](https://arxiv.org/abs/2406.14544) (NeurIPS 2024) | A VLM describes an image, an LLM reasons over the description; a 2B captioner + GPT-3.5 matches much larger VLMs. | Images; no self-caption control, so captioner and modality are not separated. |
 | [LLoVi](https://arxiv.org/abs/2312.17235) (2023) | Captions short clips, an LLM reasons over the text; captioner choice matters (oracle captions +10.8 on EgoSchema). | Long video; no matched cost, no decomposition. |
 | [VidCtx](https://arxiv.org/abs/2412.17415) (2024) | Question-aware captions beat generic ones on NExT-QA by 1–2 points. | Prices task-agnosticism only; no frame arm at matched cost. |
 | [Sprout](https://arxiv.org/abs/2609.35497) (2026) | Builds a text memory lazily, because eager indexing costs more than answering a few questions. | Eager vs. lazy; no information control. |
 | [LoHi](https://arxiv.org/abs/2610.04318) (NeurIPS 2026) | Dense low-resolution frames beat sparse full-resolution frames at matched visual-token budget. | Visual side only; relevant to whether our frame arms got a fair allocation. |
-| [TokenSwap](https://arxiv.org/abs/2607.28640) (2026) | The same content as images instead of text loses 4–47% across 42 MLLMs. | Format effect for exact content, not captions; closest risk to P2's framing. |
+| [TokenSwap](https://arxiv.org/abs/2607.28640) (2026) | The same content as images instead of text loses 4–47% across 42 MLLMs. | Modality effect for exact content, not captions; closest risk to P2's framing. |
 | [Missing-modality gap](https://arxiv.org/abs/2605.12517) (ICLR 2026 workshop) | A VLM given a description instead of the image loses accuracy and calibration beyond the missing information. | Images; close to P2 and P3 in spirit. |
 
 ## Search questions
@@ -55,10 +57,11 @@ Each question is a claim we want to make. For each one, find any paper that alre
    - Look for per-aspect or per-skill caption-only results on temporal benchmarks: TempCompass, MVBench, VITATECS, TemporalBench, FAVOR-Bench, MotionBench.
    - Also the motion-captioning literature: papers reporting that captioners miss motion direction or speed.
    - The original TempCompass paper reports no caption-input baseline (checked).
-4. **Q4. No format advantage for lossy text (P2).** Is the IsoBench or TokenSwap "text beats pixels" result known to reverse when the text is a lossy description written without the question?
+4. **Q4. No modality advantage for lossy text (P2).** Is the IsoBench or TokenSwap "text beats pixels" result known to reverse when the text is a lossy description written without the question?
    - Look for describe-then-answer or verbalization studies where the same model describes, then answers, and does worse than answering from the image.
-5. **Q5. Captioner knowledge (P3).** Is "a stronger captioner adds usable information even from identical input" shown with a controlled design, on images or video?
+5. **Q5. Captioner effect (P3).** Is "a stronger captioner adds usable information even from identical input" shown with a controlled design, on images or video?
    - Prism and LLoVi vary the captioner, but not with identical input to a self-caption arm.
+   - Also look for designs that hold the captioner's visual tokens fixed, or captioner and reader from the same model family (our C3: Sonnet captions, Haiku reads).
 6. **Q6. Break-even and reader downgrade.** Has anyone solved for the number of questions at which captioning pays for itself, counting a cheaper reader, with measured numbers?
 7. **Q7. New closest work.** Anything after 2026-10-15 on caption memories, video indexes, or text vs. visual tokens. The area produced 8 close papers between 2026-09-09 and 2026-10-13.
 
@@ -85,7 +88,7 @@ Search from 2023-01 to the day of the search, newest first. The previous passes 
 | --- | --- |
 | Setting | caption memory, caption index, video index, caption once, amortized video understanding, text memory for video, describe then answer, verbalize then reason |
 | Comparison | captions vs frames, text vs visual tokens, matched token budget, equal budget, cost-accuracy trade-off, Pareto frontier, iso-token |
-| Decomposition | self-captioning, self-description, captioner effect, modality gap, format effect, perception vs reasoning, decoupled perception, information control |
+| Decomposition | self-captioning, self-description, captioner effect, modality gap, modality effect, format effect, perception vs reasoning, decoupled perception, information control |
 | Content | motion direction, speed, temporal reasoning, fine-grained motion, what captions miss, caption hallucination of motion |
 | Benchmarks | TempCompass, MVBench, Perception Test, NExT-QA, TemporalBench, VITATECS, MotionBench, FAVOR-Bench, Video-MME short |
 
