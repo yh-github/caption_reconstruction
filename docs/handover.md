@@ -14,10 +14,9 @@ The newest session is at the top. Older sessions stay below because other docs l
 - **Claims reworded in the draft:**
   - Claim 3: the index trades 0–9 points for a 20–25× cheaper query.
   - Claim 5: captions narrate reversals forward even from a captioner that sees them (Sonnet).
-- **C7 audit:** the 3-call check was read (the first label, "silent", is right). The full run (442 Sonnet calls) is queued in the background and starts after the 5-hour reset at 22:40 UTC. It then writes `results/index_qa/reports/c7.txt` (`audit.py report`) and the hand-label sheet `results/index_qa/audit/hand_labels.csv`. Log: `logs/c7_audit.log`.
+- **C7 audit is done** (442 labels; log C7 *Result*, draft Table 4 and claim 7). Omission ("silent") is 61–73% of every caption arm's wrong answers, and 0.93–1.00 on stacked videos. Reversed failures split into forward narration (0.28–0.45) and silence, so "wrong ≥ 0.50" failed.
 - **Next:**
-  1. Write C7's *Result* in the log, and fill §4.4 and claims 4–5 in the draft.
-  2. The user hand-labels the 40 items; then run `audit.py agree`.
+  1. The user hand-labels the 40 items in `results/index_qa/audit/hand_labels.csv` (blind; fill `label`). Then run `audit.py agree`; if κ < 0.6, Table 4 becomes the hand-labelled sample.
   3. The user decides the open gaps (draft's last section): a Sonnet question-only arm, and Sonnet captions at 448 px.
   4. Literature Q6 and Q7.
 

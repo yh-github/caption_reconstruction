@@ -15,10 +15,11 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 | 2a | **The question-blind caption caps accuracy, whatever the reader.** On Sonnet's captions, Haiku and Sonnet score the same. | Haiku 0.707 vs. Sonnet 0.710 on Sonnet captions: −0.003 [−0.047, +0.040] (C3 result, unplanned) | **New, exploratory.** One captioner. On Gemini video captions Sonnet leads Haiku by 0.054, so the cap is not reached with every index. |
 | 2b | …**except on two-clip videos, where captions help a weak reader** (+0.22 accuracy; +0.36 pair accuracy). | A3; C4a two-clip +0.36 [+0.16, +0.56]; C3b two-clip +0.33 [+0.20, +0.48] | **Backed.** The mechanism is open: describing in one call gives two-clip +0.09 [−0.06, +0.24] (C5a), below the self-captions by −0.13 [−0.30, +0.02] (C5b). This leans to "a separate call per window", without showing it. |
 | 3 | **The index pays through the reader downgrade, not through fewer tokens.** A cheap reader on a strong captioner's captions costs ~1/25 per question and repays the captioning within 2–4 questions per video. Its accuracy cost depends on the captioner. | Q\* 1.8–3.7 (A2); the Claude chain, Sonnet captions once and Haiku answers vs. Sonnet answers: Q\* 2.3 [2.2, 2.4], accuracy **−0.091** [−0.145, −0.040]. Gemini frame captions: Q\* 3.7, accuracy −0.007 [−0.057, +0.044]. Same-reader savings: 18% (Haiku), 30% (Sonnet) | **Backed for cost.** "Close to the strong reader" holds only for Gemini frame captions (≈ 5,500 visual tokens per window). The Claude chain loses 9 points. **Reword: the index trades ≈ 0–9 points for a 20–25× lower query cost.** |
-| 4 | **Question-blind captions drop comparisons between things shown at the same time** (stacked clips at two speeds), even from a strong captioner. The loss comes from not seeing the question, not from the text. | C4 stacked pairs: caption arms' pair accuracy 0.10–0.20 vs. Sonnet on frames 0.51; C4c −0.34 [−0.60, −0.08]; C4e −0.41 [−0.62, −0.23]; same-answer rate above Sonnet on frames' in 3 of 4 caption arms. C5b stacked: a description that sees the question beats question-blind self-captions by **+0.22 [+0.09, +0.37]**. | **Backed** (exploratory, written in advance in C4 and C5). Audit (C7: silent ≥ 0.70) **⟨PENDING: C7⟩** |
-| 5 | **Reversed clips: question-blind captions narrate the forward event, even when the captioner can see the reversal.** | Sonnet on frames beats Haiku on Sonnet captions on reversed videos: C3c −0.19 [−0.32, −0.07]. Sonnet on its own captions −0.18 [−0.30, −0.05] vs. its frames. Sonnet captions do not report reversals more often than Haiku's: C3a reversed +0.01, C4b reversal +0.06 [−0.01, +0.13]. Gemini's do: C2a reversed +0.14. Wrong answers fall to the prior in both modalities (A3). | **Reworded and backed** (the old wording, "a stronger captioner fixes it", failed for Sonnet). Audit (C7: wrong ≥ 0.50) **⟨PENDING: C7⟩** |
+| 4 | **Question-blind captions drop comparisons between things shown at the same time** (stacked clips at two speeds), even from a strong captioner. The loss comes from not seeing the question, not from the text. | C4 stacked pairs: caption arms' pair accuracy 0.10–0.20 vs. Sonnet on frames 0.51; C4c −0.34 [−0.60, −0.08]; C4e −0.41 [−0.62, −0.23]; same-answer rate above Sonnet on frames' in 3 of 4 caption arms. C5b stacked: a description that sees the question beats question-blind self-captions by **+0.22 [+0.09, +0.37]**. | **Backed** (exploratory, written in advance in C4, C5 and C7). The audit (C7) labels 0.93–1.00 of stacked failures "silent" in every arm (predicted ≥ 0.70). κ **⟨PENDING: user's hand labels⟩** |
+| 5 | **Reversed clips: question-blind captions narrate the forward event, even when the captioner can see the reversal.** | Sonnet on frames beats Haiku on Sonnet captions on reversed videos: C3c −0.19 [−0.32, −0.07]. Sonnet on its own captions −0.18 [−0.30, −0.05] vs. its frames. Sonnet captions do not report reversals more often than Haiku's: C3a reversed +0.01, C4b reversal +0.06 [−0.01, +0.13]. Gemini's do: C2a reversed +0.14. Wrong answers fall to the prior in both modalities (A3). | **Reworded; partly backed** (the old wording, "a stronger captioner fixes it", failed for Sonnet). The audit finds forward narration ("wrong") in 0.28–0.45 of reversed failures, below the predicted ≥ 0.50; the rest are "silent", where the captions do not commit to a direction. Say "narrate forward or don't commit". |
 | 6 | **Captions beat frames for Haiku even when the frames get 2× more tokens.** | C6: 448 px frames, 2,676 input tokens, 0.650. Captions minus 448 px: Gemini video +0.088 [+0.037, +0.138]; Sonnet +0.057 [+0.003, +0.111]; Gemini frame +0.141. C6a (448 − 224 px) +0.037 [−0.010, +0.084] | **Backed.** The gain is mostly on two-clip videos. |
-| 7 | *(minor)* **Writing before answering helps a cheap reader** (+0.07), at 2× the query cost. It is not an index. | C5a +0.071, cl. [+0.029, +0.114]; $0.000415 vs. $0.000204 per question | Backed. A paragraph in §4.6. |
+| 7 | **Caption arms fail mainly by omission.** Most wrong answers come from captions that don't decide the question; few come from the reader. | C7: silent 0.61–0.73 of each caption arm's wrong answers, misstatement 0.15–0.28, reader error 0.05–0.17 (predicted reader error 0.15–0.25) | **Backed by the judge**; κ **⟨PENDING: user⟩**. Supports claim 2a (the cap). |
+| 8 | *(minor)* **Writing before answering helps a cheap reader** (+0.07), at 2× the query cost. It is not an index. | C5a +0.071, cl. [+0.029, +0.114]; $0.000415 vs. $0.000204 per question | Backed. A paragraph in §4.6. |
 | — | *Dropped:* "captions lose continuous quantities (direction, speed)" | P1 −0.10 [−0.23, +0.03], not passed; aspect ≈ video type (A3) | Reported as a null in §4.5 |
 | — | *Dropped:* "the captioner's knowledge" | No arm separates perceiving, recognizing and writing (D2) | We say "captioner effect" |
 | — | *Dropped:* "a captioner that reports reversals more often fixes reversed clips" | C3a reversed +0.01 | Folded into claim 5 |
@@ -38,7 +39,7 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
   - The captioner effect is +0.15 (P3), +0.08 at matched visual tokens (C2a), and +0.06 within one model family at identical input (C3a).
   - The modality effect is ≤ +0.09 for Haiku and −0.09 for Sonnet.
   - The index pays through the reader downgrade: Q\* ≈ 2–4 questions per video, at 0–9 points of accuracy.
-- Where captions fail: minimal pairs show that question-blind captions lose the comparison in stacked clips (pair accuracy 0.10–0.20 vs. 0.51) and narrate reversed clips forward. A question-aware description recovers the stacked loss (+0.22). Audit ⟨PENDING: C7⟩.
+- Where captions fail: minimal pairs show that question-blind captions lose the comparison in stacked clips (pair accuracy 0.10–0.20 vs. 0.51) and narrate reversed clips forward. A question-aware description recovers the stacked loss (+0.22). An audit of the wrong answers finds that 61–73% come from captions that are silent on the question, and only 5–17% from the reader.
 
 ---
 
@@ -165,10 +166,24 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 - Accuracy by video type for C3 (Amendment 1): §0 and the log's C3 result. Use them in the appendix.
 
 ### 4.4 Why caption arms fail: the audit (C7)
-- **Table 4:** each reader arm's wrong answers, split into captions state the answer (reader error), state a wrong option (misstatement), or are silent (omission); by video type. ⟨PENDING: C7, 442 items, runs after the 5-hour quota reset at 22:40 UTC⟩
-- Judge agreement with the user's 40 hand labels (κ). ⟨PENDING: user⟩
+- **Table 4** (C7; Sonnet judge, 442 items; share of each reader arm's wrong answers):
+
+| Reader arm | Reader error | Misstatement | Omission | n wrong |
+|---|---|---|---|---|
+| Haiku, self-captions | 0.08 | 0.28 | 0.63 | 106 |
+| Haiku, Sonnet captions | 0.13 | 0.26 | 0.61 | 87 |
+| Haiku, Gemini frame-clip captions | 0.17 | 0.15 | 0.68 | 82 |
+| Haiku, Gemini frame captions | 0.10 | 0.18 | 0.73 | 62 |
+| Haiku, Gemini video captions | 0.10 | 0.21 | 0.69 | 78 |
+| Sonnet, Gemini video captions | 0.05 | 0.24 | 0.71 | 62 |
+| Sonnet, Sonnet captions | 0.08 | 0.26 | 0.66 | 86 |
+
+- **By type** (appendix table):
+  - stacked: omission 0.93–1.00;
+  - reversed: misstatement 0.28–0.45, omission 0.45–0.62;
+  - two-clip: few errors, mostly reader errors.
+- Judge agreement with the user's 40 hand labels (κ). ⟨PENDING: user⟩. If κ < 0.6, Table 4 is replaced by the hand-labelled sample (rule set in C7).
 - Two quoted examples: the reversed salt pile (forward narration) and the stacked jump rope (no comparison) (A3).
-- The first judge label checked by hand is right: a stacked sunrise, where the caption mentions one sun and no speeds, was labelled "silent".
 
 ### 4.5 Aspects (P1, null) and thinking tokens (A1)
 - P1 is not passed. Aspect is nearly the same as video type, so it moves to the appendix as a table.
@@ -223,7 +238,8 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 - Questions share filmed clips. Mitigation: clustered CIs.
 - Thinking is decided per call by the model (effort medium), so it is observed, not controlled.
 - **Question-blind captions drop what the question needs and the captioner did not think to say** (stacked comparisons, reversals). This is a limit of question-blind indexes, not only of our captioners.
-- Claims 2a, 2b, 4, 5 and 7 are exploratory, even though each was predicted in writing before its run.
+- Claims 2a, 2b, 4, 5, 7 and 8 are exploratory, even though each was predicted in writing before its run (2a was not predicted).
+- The audit's judge (Sonnet) also wrote one of the caption sets it judges. Mitigation: the 40 hand labels and κ.
 
 ---
 
@@ -242,8 +258,7 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 
 | Gap | Why it matters | Fix | Cost |
 |---|---|---|---|
-| **C7 audit** | Claims 4–5 need the per-error labels; Table 4 | `audit.py run`, queued after the 22:40 UTC reset; then `report`, `sheet` | ≈ 442 Sonnet calls |
-| **40 hand labels** | The judge's validity (κ ≥ 0.6) | `results/index_qa/audit/hand_labels.csv` | user, 1–2 h |
+| **40 hand labels** | The judge's validity (κ ≥ 0.6) for Table 4 and claims 4, 5 and 7. Sonnet is also a captioner it judges | fill the `label` column of `results/index_qa/audit/hand_labels.csv`, then `audit.py agree` | user, 1–2 h |
 | Sonnet question-only arm | Table 1 has no Sonnet floor; Sonnet's prior on reversed videos (claim 5) | 297 Sonnet calls, after a log amendment | ≈ 4 points of the 7-day quota |
 | **Claim 3's accuracy depends on the captioner's visual budget** | Only Gemini frame captions (≈ 5,500 visual tokens per window) match Sonnet on frames; the Claude chain at 200 loses 9 points | Optional: Sonnet captions from 448 px frames (≈ 880 windows, plus 297 Haiku reads). It tests whether the Claude chain's gap is visual budget | ≈ 10–15 points of the 7-day quota; decide |
 | Figure for the reader-strength tension (claim 2a) | Explains why one index helps Haiku and hurts Sonnet | plot: x = reader on frames, y = reader on each index | none |
