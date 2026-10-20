@@ -2,6 +2,32 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
+# 2026-10-20 → ACL plan reviewed: Claude captioner, new terms, long draft
+
+**Start here next session: `docs/new_direction/acl2027_plan.md`**, revised today. **§0 has the dated goals G1–G12** (owner, test for done, date), and the go/no-go rule for the claim.
+- **The blocker is unchanged:** C2 captioning is at 450 of 761 windows on the AI Studio spend cap. The user raises it, then resume with the command in the plan, §5.
+- **The 7-day Claude quota resets on Tuesdays at 17:00 UTC**, first on Oct 20 (from `resetsAt` in `results/index_qa/claude/*__events.jsonl`). C3's Sonnet run and the literature pass go after it.
+
+**Decided with the user (2026-10-20; log D2):**
+- **Terms:** format → **modality**, coverage → **source**; **visual budget** defined; "knowledge" is not a claim, so say **captioner effect**. They are in the *Terms* block of `research_plan_caption_index.md`, and are applied there and in `related_work_caption_index.md`, `final_search_brief.md` and the plan. Older log and handover entries keep their words.
+- **Design:** Claude carries the main decomposition. In **C3**, Sonnet captions the reader's 5 frames at exactly Haiku's visual tokens, and Haiku reads the captions.
+  - Gemini is used only where it adds something Claude can't: video input (the source effect), a second family, and dollars instead of quota. The user: avoid Gemini "for no reason".
+  - No new Gemini arms beyond finishing C2.
+  - No "Gemini answers directly" arm: Sonnet on frames is already the strong model's direct answer.
+- **Length:** draft long (8 pages), and decide long or short at the end of November.
+
+**Found in the review (plan §3):**
+- For one reader, captions save only 18% (Haiku) or 30% (Sonnet) of the cost per question. Break-even Q\* is ≈ 200 for Haiku and ≈ 6 for Sonnet, and ≈ 2 for the reader downgrade. So the paper leads with P3 and the decomposition, not with S3 or "43% of the tokens".
+- **Deadline:** ARR's dates page says January 2027 with no day, and the ACL 2027 site says TBA. Plan to Jan 4.
+
+- **Thinking tokens** (plan §6, exploratory): Sonnet thinks 3.3× less on captions. Thinking flags wrong answers on captions, and for Sonnet on frames, but not for Haiku on frames; the development set shows the same. Whether this goes in the paper is part of G2.
+
+**Next (plan §0):**
+1. G2: the user decides the open choices, by Oct 21.
+2. G1: C2, after the spend cap is raised.
+3. G3: C3 code (`self_caption.py --model` and a reader arm for Sonnet captions), then its log entry with predictions, then the Sonnet run after the reset (≈ 10–15 points of the 7-day figure).
+4. G4: the cost account.
+
 # 2026-10-19 → C1 confirmatory results; C2 robustness check; venue search
 
 **Start here next session: `docs/new_direction/acl2027_plan.md`.** It has the findings, the next steps in order, the paper outline, the optional arms, reviewer risks and the timeline to ACL 2027. **Blocker:** C2 captioning stopped at 450 of 761 windows on the AI Studio monthly spend cap. The user must raise it (https://ai.studio/spend); then resume with the command in the plan, §3.

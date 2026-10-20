@@ -413,3 +413,30 @@ With C1's format term, **C2c + C2a + P2 = S3** exactly, the total caption effect
 - It stopped at **450 of 761 windows**, with no window lacking a caption. All four shards got `429 RESOURCE_EXHAUSTED`: the AI Studio project's monthly spend cap, as in C1 Amendment 2, not our `--max-usd`.
 - Logged spend is $10.29. The remaining 311 windows need ≈ $0.90.
 - No reader call has been made on the frame-clip captions. The run resumes after the user raises the cap.
+
+### D2 — Terms renamed; Claude captioner as the main chain (2026-10-20)
+
+**Decided with the user** after a review of the ACL plan (`acl2027_plan.md`, revised the same day). No analysis changes, and no run.
+
+**Terms.** The definitions are in the *Terms* block of `research_plan_caption_index.md`.
+
+| Old word (K2, C1, C2) | New term | Why |
+|---|---|---|
+| format effect (C1, P2) | **modality effect** | "Format" suggests a change of encoding (JSON to YAML). What changes is the type of input: the reader's own text instead of the images. |
+| coverage (C1, S2) | **source effect** | What changed is the captioner's input itself (the video file vs. the reader's 224 px JPEGs, the same 1 fps instants), not how much of the video it saw. C1's S2 also differs 17× in visual tokens, so it is source + visual budget. |
+| visual budget (C2b) | **visual budget effect** | Used in C2, now defined. |
+| "knowledge" (C1 claims; C2's outcome mapping) | **captioner effect** | No arm separates what a captioner perceives, recognizes or writes. |
+
+- **The entries above keep their old words.** K2 and C1 were fixed before their runs, and rewording them would blur what was fixed in advance. Read "format" there as modality, and "coverage" as source.
+- **C2's mapped outcome for C2a positive** ("the claim 'a strong captioner's knowledge carried to a cheap reader' stands") now reads: the captioner effect holds across model families, at about matched visual tokens.
+
+**Design.**
+- **Claude carries the main decomposition.** In C3 (entry to be written and committed before its run), Sonnet captions exactly the reader's 5 frames, with the self-caption prompt, and Haiku reads the captions.
+  - The visual tokens are identical by construction: one image-token rule for all Claude models. Haiku's and Sonnet's 5-frame reader calls have median inputs of 1,525 and 1,527 tokens.
+  - The source effect is 0 by design.
+- **Gemini is kept only where it adds something Claude can't:** video input (the source effect), a second model family, and dollars instead of quota. No new Gemini arms beyond finishing C2.
+- **P3 remains the pre-registered result.** C3 is exploratory and replicates P3 within one family.
+
+**Cost framing** (from C1's logged calls; plan §3).
+- For one reader, captions save little per question: Haiku 18%, Sonnet 30% of the list-price cost. The fixed prompt (≈ 1,025 tokens) and thinking tokens dominate, so captions cut video tokens to 43% but input tokens only to 81%.
+- The economic result is the reader downgrade: Haiku on captions costs 1/24 of Sonnet on frames, and repays ≈ $0.0073 of captioning per video after ≈ 2 questions, at 6 points lower accuracy.
