@@ -11,7 +11,9 @@ The newest session is at the top. Older sessions stay below because other docs l
 - **Quota:** 7-day 12% → 16% for C8 + C9.
 - **Next:**
   1. The user fills `results/index_qa/audit/hand_labels.csv`. Then run `audit.py agree` and update Table 4 and claims 4, 5 and 7.
-  2. The user decides on C10, a whole-video caption arm, which tests the 5 s windows on short videos (draft gaps table). If yes, log it with predictions before any call.
+  2. **C10 (one Sonnet caption per video; arm `sonnetwhole`) is approved, logged with predictions and running.**
+     - Check call 1 of 3 passed. The other two run after the 5-hour reset (12:20 UTC).
+     - Then `run_c10.sh run` runs the captions, the reads and the analyses. The script is in this session's scratchpad; the log's C10 commands do the same.
   3. Remaining gaps: the reader-strength figure, Fig. 2 colours, and Haiku retention CIs.
 
 # 2026-10-20 (night) → C3–C6 done, G5 = case 1; draft v1; C7 audit queued
