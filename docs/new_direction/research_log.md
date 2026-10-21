@@ -1135,6 +1135,75 @@ This is the paper's qualitative analysis, and it tests A3's readings.
 
 **Order of the runs (C3–C7).** C3's Sonnet captions run first (started 2026-10-20 17:53 UTC). The Haiku-only arms run alongside it: C5, C6, and C4's Haiku reads that don't need Sonnet captions. The Sonnet reads and the audit follow once C3's captions are done. The 7-day quota guard for every Sonnet run is 0.5–0.6.
 
+### C10 — One caption per video instead of one per 5 s window (written 2026-10-21, committed before any C10 call)
+
+**Status.** Exploratory; the 297 confirmatory questions. The user asked for it on 2026-10-21. The question was whether 5 s windows still make sense when the videos are short.
+
+**Why.**
+- The 5 s windows come from the 60 s WildQA design (12 windows). TempCompass videos are short:
+  - The median is 9.7 s, and the range is 1.5–35 s.
+  - Windows per video: 48 videos have 1 (16%), 126 have 2 (42%), 64 have 3, and 59 have 4 or more.
+  - 39 videos end in a window with a single frame.
+- Per-window captions can't state facts that span windows, such as order, change, or a comparison across the cut. The reader has to piece those together.
+- A reviewer will ask whether captioning the whole video in one call does better.
+- **What exists so far is descriptive.** Sonnet on its own captions loses most on one-window videos: 0.54 vs. 0.75 on frames. At ≥ 3 windows it matches the frames. But window count is confounded with video type: 35 of the 41 stacked videos have 1–2 windows. And one-window videos are not split at all, so the split can't be what costs them.
+
+**Arm.** `sonnetwhole`:
+- **Captioning:** Sonnet captions each video once, from all its frames5 frames in time order. These are the same 224 px frames as every arm, 11.3 per video on average, at most 35. It is one isolated call, question-blind (`self_caption.py --model sonnet --whole`, folder `claude-sonnet-5-5-frames-whole`).
+  - **The prompt** (`caption.whole_prompt`) is the frames prompt of `sonnetcaptions`, with "N frames from a D-second video clip". Its length clause, "in one or two sentences of at most 45 words in total", becomes "in at most 2W sentences of at most 45W words in total" for W windows.
+  - **For one-window videos (W = 1) the call is identical to `sonnetcaptions`':** the same frames and the same prompt. Only sampling differs.
+- **Reading:** Haiku and Sonnet each read the caption, with the reader prompt of every caption arm. Two things change:
+  - **The label:** the caption is labelled with the whole span ("0–9.7 s:") instead of one label per window.
+  - **The modality sentence:** it says one description was written by a model that watched the whole video (`parts.json`, `modality_wholecaption`). The window arms' sentence says each description came from a model that saw only its window. Telling the reader the truth requires this change.
+
+  That is 297 calls per reader.
+- **The only change from `sonnetcaptions` is the split:** one call over all frames vs. one call per window, with the length limit summed over the windows.
+
+**Terms and predictions** (95% CIs over questions and over clip clusters; by video type, and by windows per video: 1, 2, 3+):
+
+| Term | Difference | Prediction |
+|---|---|---|
+| **C10a, splitting, Haiku reads** | Haiku: whole-video − window captions (Sonnet) | **+0.00** (plain 0.00, two-clip −0.05, reversed +0.03, stacked +0.02) |
+| C10b, splitting, Sonnet reads | Sonnet: whole-video − its window captions | +0.01 |
+| C10c, index vs. direct | Haiku on whole-video captions − Sonnet on 5 frames | −0.09 |
+| C10d, Sonnet: own whole-video captions − frames | | −0.08 |
+
+- **Prediction for Haiku on whole-video captions: 0.71.**
+- **Why near 0:**
+  - The losses so far are within a window: the comparison between stacked copies, and the direction of a reversed clip (C4, C7). Seeing more frames at once may help reversed and stacked a little.
+  - The two-clip gain came from captions that keep the clips apart, and the window labels give the order for free. A single caption has to narrate the order itself, so two-clip may lose a little.
+- **By windows:**
+  - **One window is a control.** C10a and C10b are predicted 0.00 there, with CIs that include 0: the captioner input is identical, and only sampling and the reader's modality sentence differ. If the one-window difference is not ≈ 0, the ≥ 2-window differences are read against it (descriptive).
+  - **Two windows and 3+:** C10a +0.01 and −0.01.
+- **Words**, as the median ratio of the whole-video caption to the window captions summed, per video: 1.0 at W = 1, 0.8 at W = 2, 0.7 at W ≥ 3.
+- **Index cost:** one call per video instead of W pays the fixed prompt (≈ 1,180 tokens) once.
+  - Captioning cost per video: about $0.005 against $0.0091 for the window captions (ratio ≈ 0.55).
+  - Q\* for Haiku on them vs. Sonnet on frames: about 1.3, against 2.3.
+- **Readings:**
+  - **C10a and C10b CIs include 0, and the 2 and 3+ groups are near 0:** splitting into 5 s windows costs nothing measurable on these videos. The window design stands for the indexing reasons (§1), and the paper states the check.
+  - **C10a > 0 (CI excludes 0), from the ≥ 2-window videos:** splitting costs accuracy. The paper reports the per-window index as a lower bound for short videos and says where the loss is, by type.
+  - **C10a < 0:** per-window isolation helps. That supports claim 2b's "a separate call per window" mechanism.
+  - With 297 questions, CIs are about ±0.045 (as C9a). A null is weak evidence against an effect of a few points.
+
+**Not run:** minimal pairs (C4) for this arm. They follow only if C10a ≠ 0.
+
+**Run and stop rules.**
+1. **3-call check** (`--limit 3`). Read the three captions. Each call's input tokens should exceed the `sonnetcaptions` call for window 0 of the same video by 40 per extra landscape frame, or 64 per portrait frame, within ±15 for the prompt change. A one-window video should match it within ±2. Stop and investigate otherwise.
+2. **Captions:** the remaining videos, with `--max-5h 0.7 --max-7d 0.5`. Stop and investigate if more than 2% of videos get no caption.
+3. **Reads:** first a dry run of one item, to read the reader prompt. Then Haiku and Sonnet, `--max-5h 0.8 --skip-missing`, with the isolation and model checks of K0–C9.
+4. **Analysis:** `reader.py c10`, run once after steps 2 and 3. Then `reader.py cost`, and `plots.py cost`.
+
+```bash
+.venv/bin/python scripts/index_qa/self_caption.py --set confirm --model sonnet --whole --limit 3
+.venv/bin/python scripts/index_qa/self_caption.py --set confirm --model sonnet --whole --max-5h 0.7 --max-7d 0.5
+.venv/bin/python scripts/index_qa/reader.py run --set confirm --model haiku --arms sonnetwhole --dry-run --limit 1
+.venv/bin/python scripts/index_qa/reader.py run --set confirm --model haiku --arms sonnetwhole --skip-missing
+.venv/bin/python scripts/index_qa/reader.py run --set confirm --model sonnet --arms sonnetwhole --skip-missing
+.venv/bin/python scripts/index_qa/reader.py c10
+```
+
+**Quota estimate:** 297 Sonnet caption calls (larger inputs), 297 Sonnet reads and 297 Haiku reads. That is about 2 points of the 7-day figure; C8 + C9 used 4 for ≈ 1,350 Sonnet calls.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
