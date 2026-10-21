@@ -1040,6 +1040,31 @@ This is the paper's qualitative analysis, and it tests A3's readings.
 .venv/bin/python scripts/index_qa/reader.py c8
 ```
 
+**Result (2026-10-21; `reader.py c8`, run once after the reads; output in `results/index_qa/reports/c8.txt`).** 297 calls, and every answer parsed. Run alongside C9; the two together moved the 7-day quota from 12% to 16%.
+
+| | Prediction | Result |
+|---|---|---|
+| Sonnet, question only | 0.43 (plain 0.62, two-clip 0.33, reversed 0.15, stacked 0.38) | **0.414** (0.61, 0.29, 0.18, 0.32) |
+| C8a, Sonnet − Haiku, question only | +0.02 | **+0.003** [−0.061, +0.064]; clustered [−0.054, +0.061] |
+| C8b, Sonnet: frames − question only | +0.37 | **+0.384** [+0.320, +0.451]; clustered [+0.319, +0.448] |
+| Retention, Sonnet on Gemini video captions | 0.98 | **0.98** [0.87, 1.11] |
+| Retention, Sonnet on its own captions | 0.76 | **0.77** [0.66, 0.88] |
+
+- **H1 holds.** Sonnet's question-only accuracy on reversed videos is 0.18, below 0.25. Haiku's was 0.16. The two readers share the question-only prior: C8a is +0.003, and within ±0.02 for every type.
+- **H2 holds.** These are the shares of Sonnet's wrong answers on reversed videos that equal its question-only answer, against 0.43 if the wrong answers were uniform:
+  - frames: 0.59 (27 wrong; predicted 0.55);
+  - its own captions: 0.65 (40; predicted 0.60);
+  - Gemini video captions: 0.66 (32);
+  - its own 448 px captions: 0.74 (38).
+
+  This is descriptive.
+- **Reading:**
+  - Claim 5 now holds for both readers. On reversed videos, a reader that errs tends to fall back to the forward reading the question alone suggests, with frames and with captions alike.
+  - On stacked videos, Sonnet's frame errors do not revert (0.14 of 14), but its caption errors do (0.48–0.53). This fits C7: a caption that omits the difference leaves the reader with only the prior.
+- **Prop. 1 retention for Sonnet:**
+  - Gemini video captions keep all of the frames' gain over the question.
+  - Sonnet's own captions keep about three-quarters of it.
+
 ### C9 — Sonnet captions from 448 px frames (written 2026-10-21, committed before any C9 call)
 
 **Status.** Exploratory; the 297 confirmatory questions. The user asked for it on 2026-10-21 (draft v1, gap list).
@@ -1084,6 +1109,27 @@ This is the paper's qualitative analysis, and it tests A3's readings.
 .venv/bin/python scripts/index_qa/reader.py run --set confirm --model sonnet --arms sonnetcaptions448 --skip-missing
 .venv/bin/python scripts/index_qa/reader.py c9
 ```
+
+**Result (2026-10-21; `reader.py c9`, run once after steps 2–3; output in `results/index_qa/reports/c9.txt`).**
+- **Calls:** 761 windows captioned (3 in the check, 758 in the run), with none missing. 297 reads each by Haiku and Sonnet, and every answer parsed.
+- **Token check:** 448 − 224 px input tokens per caption call, same window: median 520 (5 landscape frames × 104), range 104–960. The 960 cases are windows with portrait frames.
+
+| Term | Prediction | Result (95% CI over questions; clustered) |
+|---|---|---|
+| Haiku on Sonnet 448 px captions | 0.74 (0.88, 0.93, 0.50, 0.44) | **0.710** (plain 0.88, two-clip 0.87, reversed 0.46, stacked 0.41) |
+| **C9a, captioner visual budget** | **+0.03** | **+0.003** [−0.037, +0.047]; [−0.034, +0.041] |
+| C9b, index vs. direct | −0.06 | **−0.088** [−0.138, −0.037]; [−0.141, −0.035] |
+| C9c, Sonnet: own 448 px captions − frames | −0.07 | **−0.067** [−0.114, −0.024]; [−0.114, −0.024] |
+| C9d, vs. Gemini frame captions | −0.06 | **−0.081** [−0.131, −0.030]; [−0.126, −0.037] |
+| C9e, Sonnet's own captions, 448 − 224 px | +0.02 | **+0.020** [−0.024, +0.064]; [−0.026, +0.064] |
+
+- **The second reading holds: C9a's CI includes 0, and C9b < 0.**
+  - Four times the captioner's visual tokens did not move Haiku's accuracy on Sonnet's captions: +0.003, with no type above ±0.07.
+  - The index still trails Sonnet on frames by 0.088. The loss is on reversed (−0.18) and stacked (−0.24) videos; plain and two-clip are within 0.04.
+  - With power ≈ 0.25 for +0.03, this is weak evidence against a small budget effect. The CI rules out more than about +0.045.
+- **The captioner effect survives a larger Claude visual budget.** Sonnet's 448 px captions (720 visual tokens per window) still trail Gemini's frame captions (≈ 5,500) by 0.081 when Haiku reads them. Budget is not fully matched: C2b's +0.067 for Gemini came from a much larger change. But within Claude, quadrupling the budget moved nothing, so the budget is an unlikely account of the 0.08.
+- **Reading for claim 3:** the Claude-only chain's gap is not the 224 px frames. Together with C7 (omissions dominate), the gap is what a question-blind captioner chooses to write.
+- **Index cost:** the 448 px captions cost $0.0117 per video against $0.0091. Q\* for Haiku on them vs. Sonnet on frames is 3.0 [2.8, 3.1] questions per video.
 
 **Quota estimate for C8 and C9:** ≈ 1,350 Sonnet calls and 297 Haiku calls. C3–C6 used 4 points of the 7-day figure for ≈ 1,700 Sonnet calls, so expect ≈ 4 points. The 5-hour window will need two or three windows; done items are skipped on resume.
 
