@@ -12,8 +12,10 @@ image tokens by the same rule, so all captioners spend the same visual tokens on
     .venv/bin/python scripts/index_qa/self_caption.py --per-dim 10 [--limit 3]
     .venv/bin/python scripts/index_qa/self_caption.py --set confirm
     .venv/bin/python scripts/index_qa/self_caption.py --set confirm --model sonnet --limit 3   # C3's 3-call check
+    .venv/bin/python scripts/index_qa/self_caption.py --set confirm --model sonnet --long-edge 448   # C9
 Writes results/index_qa/captions/<captioner>/<video_id>/<pp>.json (captioner(): Haiku's are read by reader.py's
-selfcaptions arm, Sonnet's by sonnetcaptions) and one row per attempt to results/index_qa/self_captions.jsonl.
+selfcaptions arm, Sonnet's by sonnetcaptions, Sonnet's from 448 px frames by sonnetcaptions448) and one row per
+attempt to results/index_qa/self_captions.jsonl.
 """
 from __future__ import annotations
 
@@ -35,10 +37,12 @@ from unshuffle.claude_reader import EFFORT, MODELS, call_claude  # noqa: E402
 LOG = tc.OUT / "self_captions.jsonl"
 
 
-def captioner(model: str) -> str:
+def captioner(model: str, long_edge: int = tc.LONG_EDGE) -> str:
     """The captions folder of a Claude captioner. Haiku keeps K2's name ("-self": it captions for itself as the
-    reader); other models caption for another reader, named like Gemini's frame captions ("-frames")."""
-    return "claude-haiku-5-5-self" if model == "haiku" else f"{MODELS[model]}-frames"
+    reader); other models caption for another reader, named like Gemini's frame captions ("-frames"). Frames at
+    another size than the reader's add it to the name (C9: "-frames448")."""
+    name = "claude-haiku-5-5-self" if model == "haiku" else f"{MODELS[model]}-frames"
+    return name if long_edge == tc.LONG_EDGE else f"{name}{long_edge}"
 
 
 def blocks_for(prompt: str, frames: list[Path]) -> list[dict]:
@@ -54,16 +58,21 @@ def main() -> None:
     ap.add_argument("--per-dim", type=int, help="only the videos of the first N questions of each aspect")
     ap.add_argument("--limit", type=int)
     ap.add_argument("--effort", default=EFFORT)
+    ap.add_argument("--long-edge", type=int, default=tc.LONG_EDGE,
+                    help="frame size (C9: 448, frames from tempcompass.py frames --long-edge 448)")
     ap.add_argument("--max-5h", type=float, default=0.7)
     ap.add_argument("--max-7d", type=float, default=0.9)
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
-    model_id, name = MODELS[args.model], captioner(args.model)
+    model_id, name = MODELS[args.model], captioner(args.model, args.long_edge)
 
     jobs = []
     for q in tc.first_per_dim(tc.items(args.set_), args.per_dim):
         v = q["video_id"]
-        for p, ((s, e), frames) in enumerate(zip(tc.windows(tc.duration_s(v)), tc.window_frames(v))):
+        for p, ((s, e), frames) in enumerate(zip(tc.windows(tc.duration_s(v)),
+                                                 tc.window_frames(v, args.long_edge))):
+            if not all(f.exists() for f in frames):
+                sys.exit(f"missing frames for {v} window {p}: run tempcompass.py frames --long-edge {args.long_edge}")
             if not caption_path(name, v, p).exists():
                 jobs.append((v, p, s, e, frames))
     jobs = jobs[: args.limit]
