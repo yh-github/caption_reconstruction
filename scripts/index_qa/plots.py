@@ -27,7 +27,8 @@ INK, MUTED, GRID = "#0b0b0b", "#52514e", "#e4e3df"
 LABEL = {"blind": "question only", "frame1": "1 frame", "frames5": "5 frames", "frames5_448": "5 frames 448 px",
          "describe5": "describe, answer", "selfcaptions": "self-captions", "sonnetcaptions": "Sonnet captions",
          "frameclipcaptions": "Gemini frame-clip capt.", "framecaptions": "Gemini frame capt.",
-         "captions": "Gemini video capt.", "sonnetcaptions448": "Sonnet captions 448 px"}
+         "captions": "Gemini video capt.", "sonnetcaptions448": "Sonnet captions 448 px",
+         "sonnetwhole": "Sonnet whole-video capt."}
 # Label offsets (points) in the Q = inf panel, where the caption arms crowd at one cost; Sonnet labels go left
 OFFSET = {("haiku", "captions"): (5, 4), ("haiku", "frameclipcaptions"): (5, 0), ("haiku", "sonnetcaptions"): (5, -11),
           ("haiku", "selfcaptions"): (5, -6), ("sonnet", "frames5"): (-6, 4)}

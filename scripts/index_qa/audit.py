@@ -28,7 +28,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from index_qa import tempcompass as tc  # noqa: E402
-from index_qa.caption import captions  # noqa: E402
+from index_qa.caption import caption_windows, captions  # noqa: E402
 from index_qa.reader import CAPTIONERS, PROMPTS, latest, parts  # noqa: E402
 from unshuffle.claude_reader import EFFORT, MODELS, call_claude  # noqa: E402
 
@@ -58,7 +58,7 @@ def prompt(job: dict) -> str | None:
     caps = captions(job["video_id"], CAPTIONERS[job["arm"]])
     if caps is None:
         return None
-    wins = tc.windows(tc.duration_s(job["video_id"]))
+    wins = caption_windows(job["video_id"], CAPTIONERS[job["arm"]])
     label = parts()["window_label"]
     body = "\n".join(f"{label.format(start=s, end=round(e, 1))} {c}" for (s, e), c in zip(wins, caps))
     dur = tc.duration_s(job["video_id"])

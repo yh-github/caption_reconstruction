@@ -13,9 +13,12 @@ image tokens by the same rule, so all captioners spend the same visual tokens on
     .venv/bin/python scripts/index_qa/self_caption.py --set confirm
     .venv/bin/python scripts/index_qa/self_caption.py --set confirm --model sonnet --limit 3   # C3's 3-call check
     .venv/bin/python scripts/index_qa/self_caption.py --set confirm --model sonnet --long-edge 448   # C9
+    .venv/bin/python scripts/index_qa/self_caption.py --set confirm --model sonnet --whole   # C10
+--whole (C10) captions each video once from all its frames (the frames5 frames of every window, in time order),
+with caption.whole_prompt: the same prompt, with the length limit times the number of windows.
 Writes results/index_qa/captions/<captioner>/<video_id>/<pp>.json (captioner(): Haiku's are read by reader.py's
-selfcaptions arm, Sonnet's by sonnetcaptions, Sonnet's from 448 px frames by sonnetcaptions448) and one row per
-attempt to results/index_qa/self_captions.jsonl.
+selfcaptions arm, Sonnet's by sonnetcaptions, Sonnet's from 448 px frames by sonnetcaptions448, Sonnet's whole-video
+ones, as window 00, by sonnetwhole) and one row per attempt to results/index_qa/self_captions.jsonl.
 """
 from __future__ import annotations
 
@@ -31,18 +34,19 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import caption_pieces as cp  # noqa: E402
 from index_qa import tempcompass as tc  # noqa: E402
-from index_qa.caption import caption_path, frames_prompt as prompt_for  # noqa: E402
+from index_qa.caption import WHOLE, caption_path, frames_prompt as prompt_for, whole_prompt  # noqa: E402
 from unshuffle.claude_reader import EFFORT, MODELS, call_claude  # noqa: E402
 
 LOG = tc.OUT / "self_captions.jsonl"
 
 
-def captioner(model: str, long_edge: int = tc.LONG_EDGE) -> str:
+def captioner(model: str, long_edge: int = tc.LONG_EDGE, whole: bool = False) -> str:
     """The captions folder of a Claude captioner. Haiku keeps K2's name ("-self": it captions for itself as the
     reader); other models caption for another reader, named like Gemini's frame captions ("-frames"). Frames at
-    another size than the reader's add it to the name (C9: "-frames448")."""
+    another size than the reader's add it to the name (C9: "-frames448"); one caption per video adds WHOLE (C10)."""
     name = "claude-haiku-5-5-self" if model == "haiku" else f"{MODELS[model]}-frames"
-    return name if long_edge == tc.LONG_EDGE else f"{name}{long_edge}"
+    name = name if long_edge == tc.LONG_EDGE else f"{name}{long_edge}"
+    return f"{name}{WHOLE}" if whole else name
 
 
 def blocks_for(prompt: str, frames: list[Path]) -> list[dict]:
@@ -60,31 +64,38 @@ def main() -> None:
     ap.add_argument("--effort", default=EFFORT)
     ap.add_argument("--long-edge", type=int, default=tc.LONG_EDGE,
                     help="frame size (C9: 448, frames from tempcompass.py frames --long-edge 448)")
+    ap.add_argument("--whole", action="store_true", help="one caption per video from all its frames (C10)")
     ap.add_argument("--max-5h", type=float, default=0.7)
     ap.add_argument("--max-7d", type=float, default=0.9)
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
-    model_id, name = MODELS[args.model], captioner(args.model, args.long_edge)
+    model_id, name = MODELS[args.model], captioner(args.model, args.long_edge, args.whole)
 
     jobs = []
     for q in tc.first_per_dim(tc.items(args.set_), args.per_dim):
         v = q["video_id"]
-        for p, ((s, e), frames) in enumerate(zip(tc.windows(tc.duration_s(v)),
-                                                 tc.window_frames(v, args.long_edge))):
+        wins, wframes = tc.windows(tc.duration_s(v)), tc.window_frames(v, args.long_edge)
+        for p, frames in enumerate(wframes):
             if not all(f.exists() for f in frames):
                 sys.exit(f"missing frames for {v} window {p}: run tempcompass.py frames --long-edge {args.long_edge}")
+        if args.whole:
+            frames = [f for fs in wframes for f in fs]
+            if not caption_path(name, v, 0).exists():
+                jobs.append((v, 0, 0, wins[-1][1], frames, whole_prompt(len(frames), wins[-1][1], len(wins))))
+            continue
+        for p, ((s, e), frames) in enumerate(zip(wins, wframes)):
             if not caption_path(name, v, p).exists():
-                jobs.append((v, p, s, e, frames))
+                jobs.append((v, p, s, e, frames, prompt_for(len(frames), e - s)))
     jobs = jobs[: args.limit]
-    print(f"{len(jobs)} windows to caption with {model_id} (effort {args.effort}) into {name}")
+    print(f"{len(jobs)} {'videos' if args.whole else 'windows'} to caption with {model_id} (effort {args.effort}) "
+          f"into {name}")
     if args.dry_run:
         if jobs:
-            v, p, s, e, frames = jobs[0]
-            print(f"--- {v} window {p}: {len(frames)} frames\n{prompt_for(len(frames), e - s)}")
+            v, p, s, e, frames, prompt = jobs[0]
+            print(f"--- {v} window {p}: {len(frames)} frames\n{prompt}")
         return
     with LOG.open("a") as log:
-        for n, (v, p, s, e, frames) in enumerate(jobs):
-            prompt = prompt_for(len(frames), e - s)
+        for n, (v, p, s, e, frames, prompt) in enumerate(jobs):
             for attempt in (1, 2):
                 out = call_claude(blocks_for(prompt, frames), model_id, args.effort)
                 init = next((x for x in out["events"] if x.get("type") == "system" and x.get("subtype") == "init"), {})
@@ -109,8 +120,8 @@ def main() -> None:
                 sys.exit(f"isolation not confirmed (tools={row['tools']}, mcp={row['mcp_servers']}); stopping")
             words = len(caption.split())
             in_tok = (res.get("usage") or {}).get("input_tokens")
-            print(f"  [{n + 1}/{len(jobs)}] {v} window {p}: ok={ok} {words} words in={in_tok} 5h={util_5h} "
-                  f"7d={util_7d} {out['seconds']}s", flush=True)
+            print(f"  [{n + 1}/{len(jobs)}] {v} window {p} ({len(frames)} frames): ok={ok} {words} words "
+                  f"in={in_tok} 5h={util_5h} 7d={util_7d} {out['seconds']}s", flush=True)
             if not ok:
                 if n == 0:
                     sys.exit(f"first call failed; stopping ({out['stderr'][-300:]})")

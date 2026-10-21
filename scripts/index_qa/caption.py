@@ -42,6 +42,8 @@ from index_qa import tempcompass as tc  # noqa: E402
 CAPTIONS = tc.OUT / "captions"
 MODE = "tc_isolated"
 GEMINI_LEAD = "Describe what happens in the attached 5-second video clip,"
+LENGTH_CLAUSE = "in one or two sentences of at most 45 words in total"
+WHOLE = "-whole"  # suffix of a captioner folder with one caption per video (C10), not per window
 
 
 def prompt_for(base: str, dur: float) -> str:
@@ -57,6 +59,17 @@ def frames_prompt(n_frames: int, dur: float) -> str:
     lead = (f"The attached images are {n_frames} frames from a {max(1, round(dur))}-second video clip, taken one "
             f"second apart and shown in time order. Describe what happens in the clip,")
     return base.replace(GEMINI_LEAD, lead)
+
+
+def whole_prompt(n_frames: int, dur: float, n_windows: int) -> str:
+    """frames_prompt for all frames of a video in one call (C10, self_caption.py --whole). The length limit scales
+    with the number of 5 s windows, so a one-window video gets exactly frames_prompt."""
+    p = frames_prompt(n_frames, dur)
+    if n_windows == 1:
+        return p
+    if LENGTH_CLAUSE not in p:
+        sys.exit("the caption prompt changed; update LENGTH_CLAUSE")
+    return p.replace(LENGTH_CLAUSE, f"in at most {2 * n_windows} sentences of at most {45 * n_windows} words in total")
 
 
 def frames_content(frames: list[Path], prompt: str):
@@ -91,10 +104,16 @@ def caption_path(model: str, video_id: str, p: int) -> Path:
     return CAPTIONS / model / video_id / f"{p:02d}.json"
 
 
+def caption_windows(video_id: str, model: str) -> list[tuple[float, float]]:
+    """[start, end) of each caption of a captioner: the 5 s windows, or the whole video for a WHOLE captioner."""
+    dur = tc.duration_s(video_id)
+    return [(0, dur)] if model.endswith(WHOLE) else tc.windows(dur)
+
+
 def captions(video_id: str, model: str = cp.LLM_CONFIG["model_name"]) -> list[str] | None:
-    """The window captions of a video in time order, or None if any window is missing."""
+    """The captions of a video in time order (caption_windows), or None if any is missing."""
     out = []
-    for p in range(len(tc.windows(tc.duration_s(video_id)))):
+    for p in range(len(caption_windows(video_id, model))):
         f = caption_path(model, video_id, p)
         if not f.exists():
             return None

@@ -19,6 +19,9 @@ Arms (per 5 s window; Claude image tokens by the ceil(w/28) x ceil(h/28) rule, 2
     frames5_448  frames5 with the frames at 448 px (448x252 -> 144 tokens each, up to 720 per window; C6)
     sonnetcaptions448  Sonnet's isolated caption of the frames5_448 frames (self_caption.py --model sonnet
               --long-edge 448): sonnetcaptions with 3.6x the captioner's visual tokens (C9)
+    sonnetwhole  Sonnet's single caption of all of a video's frames5 frames in one call (self_caption.py --model
+              sonnet --whole), with the length limit times the number of windows: sonnetcaptions without the split
+              into windows (C10)
 Calls are isolated exactly as in scripts/unshuffle/claude_reader.py (whose call_claude this reuses): a fresh
 `claude -p` per item, no tools, empty MCP config, empty working directory, prompt caching off, pinned model ID.
 A format failure gets one retry; after that the item scores as wrong.
@@ -40,6 +43,7 @@ A format failure gets one retry; after that the item scores as wrong.
     .venv/bin/python scripts/index_qa/reader.py c6           # C6: 448 px frames
     .venv/bin/python scripts/index_qa/reader.py c8           # C8: Sonnet with the question only
     .venv/bin/python scripts/index_qa/reader.py c9           # C9: Sonnet captions of 448 px frames
+    .venv/bin/python scripts/index_qa/reader.py c10          # C10: one Sonnet caption per video
 Outputs (append-only; the latest row per item counts): results/index_qa/claude/<model>.jsonl and
 <model>__events.jsonl, as in the unshuffle reader.
 """
@@ -57,20 +61,23 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import caption_pieces as cp  # noqa: E402
 from index_qa import tempcompass as tc  # noqa: E402
-from index_qa.caption import CAPTIONS, MODE, captions, visual_tokens  # noqa: E402
+from index_qa.caption import CAPTIONS, MODE, WHOLE, caption_windows, captions, visual_tokens  # noqa: E402
 from unshuffle.claude_reader import EFFORT, MODELS, call_claude  # noqa: E402
 
 ARMS = ["blind", "captions", "frame1", "frames5", "selfcaptions", "framecaptions", "frameclipcaptions",
-        "sonnetcaptions", "describe5", "frames5_448", "sonnetcaptions448"]
+        "sonnetcaptions", "describe5", "frames5_448", "sonnetcaptions448", "sonnetwhole"]
 K0_ARMS = ARMS[:4]
-# Caption arms -> the captioner whose window captions they read (Claude's: self_caption.captioner)
+# Caption arms -> the captioner whose window (or, for a WHOLE captioner, video) captions they read (Claude's:
+# self_caption.captioner)
 CAPTIONERS = {"captions": "gemini-3.8-flash", "selfcaptions": "claude-haiku-5-5-self",
               "framecaptions": "gemini-3.8-flash-frames", "frameclipcaptions": "gemini-3.8-flash-frameclip",
-              "sonnetcaptions": "claude-sonnet-5-5-frames", "sonnetcaptions448": "claude-sonnet-5-5-frames448"}
-# caption.py --input that writes each Gemini caption arm, and self_caption.py --model (and --long-edge) for each
-# Claude one
+              "sonnetcaptions": "claude-sonnet-5-5-frames", "sonnetcaptions448": "claude-sonnet-5-5-frames448",
+              "sonnetwhole": f"claude-sonnet-5-5-frames{WHOLE}"}
+# caption.py --input that writes each Gemini caption arm, and self_caption.py --model (and --long-edge, --whole) for
+# each Claude one
 CAPTION_INPUT = {"captions": "video", "framecaptions": "frames", "frameclipcaptions": "frameclip"}
-CLAUDE_CAPTIONER = {"selfcaptions": "haiku", "sonnetcaptions": "sonnet", "sonnetcaptions448": "sonnet"}
+CLAUDE_CAPTIONER = {"selfcaptions": "haiku", "sonnetcaptions": "sonnet", "sonnetcaptions448": "sonnet",
+                    "sonnetwhole": "sonnet"}
 CAPTIONER_LONG_EDGE = {"sonnetcaptions448": 448}
 # Frame arms that show every frame of a window, with the frame size and the answer template
 FRAMES_ALL = {"frames5": (tc.LONG_EDGE, "mcq.txt"), "describe5": (tc.LONG_EDGE, "mcq_describe.txt"),
@@ -103,7 +110,9 @@ def build(item: dict) -> tuple[list[dict], str]:
     size, template = FRAMES_ALL.get(arm, (tc.LONG_EDGE, "mcq.txt"))
     tpl = (PROMPTS / template).read_text().strip()
     head, tail = tpl.split("{evidence}")
-    modality = "captions" if arm in CAPTIONERS else "frames5" if arm in FRAMES_ALL else arm
+    whole = CAPTIONERS.get(arm, "").endswith(WHOLE)
+    modality = (("wholecaption" if whole else "captions") if arm in CAPTIONERS
+                else "frames5" if arm in FRAMES_ALL else arm)
     fill = dict(duration=f"{dur:.1f}".rstrip("0").rstrip("."), modality=P[f"modality_{modality}"], stem=item["stem"],
                 options="\n".join(f"{L}. {o}" for L, o in item["options"].items()),
                 letters=", ".join(item["options"]))
@@ -116,9 +125,10 @@ def build(item: dict) -> tuple[list[dict], str]:
         if caps is None:
             sys.exit(f"{CAPTIONERS[arm]} captions missing for {v}: run scripts/index_qa/"
                      + (f"self_caption.py --model {CLAUDE_CAPTIONER[arm]} --long-edge "
-                        f"{CAPTIONER_LONG_EDGE.get(arm, tc.LONG_EDGE)} first" if arm in CLAUDE_CAPTIONER
-                        else f"caption.py --input {CAPTION_INPUT[arm]} first"))
-        body = "\n".join(f"{P['window_label'].format(start=s, end=round(e, 1))} {c}" for (s, e), c in zip(wins, caps))
+                        f"{CAPTIONER_LONG_EDGE.get(arm, tc.LONG_EDGE)}{' --whole' if whole else ''} first"
+                        if arm in CLAUDE_CAPTIONER else f"caption.py --input {CAPTION_INPUT[arm]} first"))
+        body = "\n".join(f"{P['window_label'].format(start=s, end=round(e, 1))} {c}"
+                         for (s, e), c in zip(caption_windows(v, CAPTIONERS[arm]), caps))
         text = f"{head}\n\n{body}\n\n{tail}"
         return [{"type": "text", "text": text}], text
     blocks, log = [{"type": "text", "text": head}], [head]
@@ -675,9 +685,11 @@ def cmd_types(args):
             print(f"  {a}: " + "; ".join(out))
 
 
-def type_effects(wide, terms: list[tuple], vtype, clus) -> None:
+def type_effects(wide, terms: list[tuple], vtype, clus, label: str = "type",
+                 groups: list[str] = tc.VIDEO_TYPES) -> None:
     """For each (name, a, b, prediction) term, a - b over the questions both arms answered: overall with 95% CIs over
-    questions and over clip clusters, then by video type over clip clusters."""
+    questions and over clip clusters, then by video type (or the groups of another vtype series) over clip
+    clusters."""
     for name, a, b, pred in terms:
         if a not in wide or b not in wide:
             print(f"  {name}: {a} or {b} not run yet")
@@ -686,13 +698,13 @@ def type_effects(wide, terms: list[tuple], vtype, clus) -> None:
         est, lo, hi = paired_boot(d.tolist())
         _, clo, chi = cluster_boot(d.tolist(), clus[d.index].tolist())
         by = []
-        for t in tc.VIDEO_TYPES:
+        for t in groups:
             dt = d[vtype[d.index] == t]
             if len(dt):
                 e, l, h = cluster_boot(dt.tolist(), clus[dt.index].tolist())
                 by.append(f"{t} {e:+.2f} [{l:+.2f}, {h:+.2f}] n={len(dt)}")
         print(f"  {name}: {a} - {b} = {est:+.3f} [{lo:+.3f}, {hi:+.3f}], clustered [{clo:+.3f}, {chi:+.3f}] "
-              f"(n={len(d)}; prediction {pred:+.2f})\n      by type: " + "; ".join(by))
+              f"(n={len(d)}; prediction {pred:+.2f})\n      by {label}: " + "; ".join(by))
 
 
 def confirm_frame():
@@ -818,6 +830,60 @@ def cmd_c9(args):
     type_effects(wide, C9_TERMS, vtype, clus)
 
 
+# C10 (research log): one caption per video against one per window; terms as (name, a, b, prediction)
+C10_TERMS = [("C10a splitting, Haiku reads (whole video vs. windows)", "haiku:sonnetwhole", "haiku:sonnetcaptions",
+              +0.00),
+             ("C10b splitting, Sonnet reads", "sonnet:sonnetwhole", "sonnet:sonnetcaptions", +0.01),
+             ("C10c index vs. direct", "haiku:sonnetwhole", "sonnet:frames5", -0.09),
+             ("C10d Sonnet: own whole-video captions vs. frames", "sonnet:sonnetwhole", "sonnet:frames5", -0.08)]
+WINDOW_GROUPS = ["1", "2", "3+"]
+
+
+def cmd_c10(args):
+    """C10's statistics (research log): Sonnet's whole-video captions against its window captions, read by Haiku and
+    Sonnet; caption words and captioning $ per video, whole vs. the windows summed; 95% CIs over questions and over
+    clip clusters, by video type and by the number of windows. A failed call counts as wrong."""
+    import pandas as pd
+    wide, vtype, clus = confirm_frame()
+    vid = {q["item"]: q["video_id"] for q in tc.items("confirm")}
+    nw = {v: len(tc.windows(tc.duration_s(v))) for v in set(vid.values())}
+    wgroup = pd.Series({i: WINDOW_GROUPS[min(nw[vid[i]], 3) - 1] for i in wide.index})
+    whole, win = CAPTIONERS["sonnetwhole"], CAPTIONERS["sonnetcaptions"]
+    words, usd = [], []
+    for v in sorted(nw):
+        cw, cs = captions(v, whole), captions(v, win)
+        if cw is None or cs is None:
+            continue
+        words.append((nw[v], len(cw[0].split()), sum(len(c.split()) for c in cs)))
+    iw, iv = index_usd("sonnetwhole"), index_usd("sonnetcaptions")
+    for v in sorted(nw):
+        w = [iv.get((v, p)) for p in range(nw[v])]
+        if (v, 0) in iw and all(c is not None for c in w):
+            usd.append((nw[v], iw[v, 0], sum(w)))
+    print("whole-video caption vs. the window captions summed, per video; median ratio (n videos) by windows:")
+    for name, rows in (("words", words), ("captioning $", usd)):
+        out = []
+        for g in WINDOW_GROUPS + ["all"]:
+            r = sorted(a / b for n, a, b in rows if b and (g == "all" or WINDOW_GROUPS[min(n, 3) - 1] == g))
+            out.append(f"{g} {r[len(r) // 2]:.2f} ({len(r)})" if r else f"{g} -")
+        print(f"  {name}: " + "; ".join(out))
+    if usd:
+        print(f"  captioning $ per video, mean: whole {sum(a for _, a, _ in usd) / len(usd):.5f}, windows "
+              f"{sum(b for _, _, b in usd) / len(usd):.5f}")
+    cols = [c for c in ("haiku:sonnetcaptions", "haiku:sonnetwhole", "sonnet:frames5", "sonnet:sonnetcaptions",
+                        "sonnet:sonnetwhole") if c in wide]
+    for label, by, groups in (("video type", vtype, tc.VIDEO_TYPES), ("windows", wgroup, WINDOW_GROUPS)):
+        print(f"\naccuracy by {label}:")
+        acc = wide[cols].groupby(by).mean().reindex(groups).T.round(2)
+        acc["all"] = wide[cols].mean().round(3)
+        print(acc.to_string())
+        print("n: " + ", ".join(f"{g} {int((by == g).sum())}" for g in groups))
+    print("\neffects:")
+    type_effects(wide, C10_TERMS, vtype, clus)
+    print("\neffects by the number of windows:")
+    type_effects(wide, C10_TERMS, wgroup, clus, "windows", WINDOW_GROUPS)
+
+
 # C4 (research log): arms read on both videos of a minimal pair, and the terms on pair accuracy
 C4_ARMS = ["haiku:frames5", "haiku:selfcaptions", "haiku:sonnetcaptions", "haiku:captions", "sonnet:frames5",
            "sonnet:sonnetcaptions"]
@@ -906,13 +972,15 @@ PRICES = {"haiku": (0.10, 0.50), "sonnet": (2.00, 10.00)}
 # captioner's caption files at the list prices
 INDEX_SOURCE = {"captions": ("gemini", MODE), "framecaptions": ("gemini", f"{MODE}_frames"),
                 "frameclipcaptions": ("gemini", f"{MODE}_frameclip"), "selfcaptions": ("claude", "haiku"),
-                "sonnetcaptions": ("claude", "sonnet"), "sonnetcaptions448": ("claude", "sonnet")}
+                "sonnetcaptions": ("claude", "sonnet"), "sonnetcaptions448": ("claude", "sonnet"),
+                "sonnetwhole": ("claude", "sonnet")}
 # Break-even pairs (Prop. 2 for one caption arm against one frame arm): (caption arm, frame arm)
 QSTAR_PAIRS = [("haiku:captions", "haiku:frames5"), ("sonnet:captions", "sonnet:frames5"),
                ("haiku:captions", "sonnet:frames5"), ("haiku:framecaptions", "sonnet:frames5"),
                ("haiku:frameclipcaptions", "sonnet:frames5"), ("haiku:sonnetcaptions", "sonnet:frames5"),
                ("haiku:sonnetcaptions", "haiku:frames5_448"), ("sonnet:sonnetcaptions", "sonnet:frames5"),
-               ("haiku:sonnetcaptions448", "sonnet:frames5"), ("sonnet:sonnetcaptions448", "sonnet:frames5")]
+               ("haiku:sonnetcaptions448", "sonnet:frames5"), ("sonnet:sonnetcaptions448", "sonnet:frames5"),
+               ("haiku:sonnetwhole", "sonnet:frames5"), ("sonnet:sonnetwhole", "sonnet:frames5")]
 
 
 def list_usd(model: str, usage: dict | None) -> float:
@@ -923,7 +991,8 @@ def list_usd(model: str, usage: dict | None) -> float:
 
 
 def index_usd(arm: str) -> dict[tuple[str, int], float]:
-    """$ per (video_id, window) to caption a caption arm's window once: the latest successful call per window."""
+    """$ per (video_id, window) to caption a caption arm's window once: the latest successful call per window (window
+    0 only, for a whole-video captioner)."""
     kind, key = INDEX_SOURCE[arm]
     out = {}
     if kind == "gemini":
@@ -979,7 +1048,7 @@ def cmd_cost(args):
         per_win = index_usd(arm)
         per_vid = {}
         for v in set(vid.values()):
-            w = [per_win.get((v, p)) for p in range(len(tc.windows(tc.duration_s(v))))]
+            w = [per_win.get((v, p)) for p in range(len(caption_windows(v, CAPTIONERS[arm])))]
             per_vid[v] = sum(w) if all(c is not None for c in w) else None
         idx[arm] = per_vid
     stats = []
@@ -1041,12 +1110,12 @@ def main():
     sub.add_parser("cost")
     ty = sub.add_parser("types")
     ty.add_argument("--set", dest="set_", choices=list(tc.SETS), default="confirm")
-    for name in ("c4", "c5", "c6", "c8", "c9"):
+    for name in ("c4", "c5", "c6", "c8", "c9", "c10"):
         sub.add_parser(name)
     args = ap.parse_args()
     {"run": cmd_run, "check": cmd_check, "confirm": cmd_confirm, "c2": cmd_c2, "c3": cmd_c3,
      "thinking": cmd_thinking, "cost": cmd_cost, "types": cmd_types, "c4": cmd_c4, "c5": cmd_c5,
-     "c6": cmd_c6, "c8": cmd_c8, "c9": cmd_c9}[args.cmd](args)
+     "c6": cmd_c6, "c8": cmd_c8, "c9": cmd_c9, "c10": cmd_c10}[args.cmd](args)
 
 
 if __name__ == "__main__":

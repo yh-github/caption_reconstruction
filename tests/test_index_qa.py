@@ -12,6 +12,7 @@ from index_qa import reader  # noqa: E402
 from index_qa.reader import (ARMS, CAPTIONER_LONG_EDGE, CAPTIONERS, CLAUDE_CAPTIONER, FRAMES_ALL, HIGH, INDEX_SOURCE, LOW,  # noqa: E402
                              PROMPTS, QSTAR_PAIRS, clip_clusters, cluster_boot, contrast_boot, list_usd, paired_boot,
                              parse, qstar_boot, retention_boot, spearman, thinking_tokens)
+from index_qa.caption import LENGTH_CLAUSE, frames_prompt, whole_prompt  # noqa: E402
 from index_qa.self_caption import captioner  # noqa: E402
 
 
@@ -138,9 +139,18 @@ def test_claude_captioner_folders_match_the_reader_arms():
     assert captioner("haiku") == "claude-haiku-5-5-self"  # K2's folder name, kept
     assert captioner("sonnet") == "claude-sonnet-5-5-frames"
     assert captioner("sonnet", 448) == "claude-sonnet-5-5-frames448"
+    assert captioner("sonnet", whole=True) == "claude-sonnet-5-5-frames-whole"
     for arm, model in CLAUDE_CAPTIONER.items():
-        assert arm in ARMS and CAPTIONERS[arm] == captioner(model, CAPTIONER_LONG_EDGE.get(arm, tc.LONG_EDGE))
+        assert arm in ARMS and CAPTIONERS[arm] == captioner(model, CAPTIONER_LONG_EDGE.get(arm, tc.LONG_EDGE),
+                                                            arm == "sonnetwhole")
         assert arm in INDEX_SOURCE
+
+
+def test_whole_prompt_scales_only_the_length_limit():
+    assert whole_prompt(5, 5.0, 1) == frames_prompt(5, 5.0)
+    p, base = whole_prompt(12, 12.0, 3), frames_prompt(12, 12.0)
+    assert "in at most 6 sentences of at most 135 words in total" in p
+    assert p.replace("in at most 6 sentences of at most 135 words in total", LENGTH_CLAUSE) == base
 
 
 def test_thinking_tokens():
