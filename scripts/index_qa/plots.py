@@ -29,7 +29,7 @@ LABEL = {"blind": "question only", "frame1": "1 frame", "frames5": "5 frames", "
          "frameclipcaptions": "Gemini frame-clip capt.", "framecaptions": "Gemini frame capt.",
          "captions": "Gemini video capt.", "sonnetcaptions448": "Sonnet captions 448 px"}
 # Label offsets (points) in the Q = inf panel, where the caption arms crowd at one cost; Sonnet labels go left
-OFFSET = {("haiku", "captions"): (5, 4), ("haiku", "frameclipcaptions"): (5, -3), ("haiku", "sonnetcaptions"): (5, -8),
+OFFSET = {("haiku", "captions"): (5, 4), ("haiku", "frameclipcaptions"): (5, 0), ("haiku", "sonnetcaptions"): (5, -11),
           ("haiku", "selfcaptions"): (5, -6), ("sonnet", "frames5"): (-6, 4)}
 
 

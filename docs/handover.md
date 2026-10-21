@@ -2,6 +2,18 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
+# 2026-10-21 → C8, C9 and the literature pass done; draft v1.1
+
+**Start here: `docs/paper/caption_index_draft.md` §0 and its gaps section.** The log has C8 and C9 *Result* sections and entry N2 (the literature pass).
+- **C8 (Sonnet, question only):** 0.414. That is the same as Haiku (+0.003), with 0.18 on reversed videos. Sonnet's wrong answers on reversed videos fall back to its question-only answer (0.59 on frames, 0.65 on its own captions; uniform would be 0.43), so claim 5 holds for both readers. Retention for Sonnet: 0.98 on Gemini video captions, 0.77 on its own captions.
+- **C9 (Sonnet captions from 448 px frames):** C9a is +0.003 [−0.037, +0.047], so a larger visual budget for the Claude captioner doesn't help. Haiku on them is still −0.088 vs. Sonnet on frames. Claim 3's 9-point gap is what a question-blind caption omits (reversed, stacked), not pixels.
+- **Literature (N2, `related_work_caption_index.md` §10):** no scoop on Q1–Q7. The closest papers are Caption This, Reason That; GEASS; and Seeing and Solving.
+- **Quota:** 7-day 12% → 16% for C8 + C9.
+- **Next:**
+  1. The user fills `results/index_qa/audit/hand_labels.csv`. Then run `audit.py agree` and update Table 4 and claims 4, 5 and 7.
+  2. The user decides on C10, a whole-video caption arm, which tests the 5 s windows on short videos (draft gaps table). If yes, log it with predictions before any call.
+  3. Remaining gaps: the reader-strength figure, Fig. 2 colours, and Haiku retention CIs.
+
 # 2026-10-20 (night) → C3–C6 done, G5 = case 1; draft v1; C7 audit queued
 
 **Start here: `docs/paper/caption_index_draft.md` §0** (claims, evidence, status) and its last section (gaps to decide). Results with predictions are in the log's C3–C6 *Result* paragraphs; raw report outputs are in `results/index_qa/reports/*.txt`.
