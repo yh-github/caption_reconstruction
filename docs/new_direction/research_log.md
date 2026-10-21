@@ -1204,6 +1204,24 @@ This is the paper's qualitative analysis, and it tests A3's readings.
 
 **Quota estimate:** 297 Sonnet caption calls (larger inputs), 297 Sonnet reads and 297 Haiku reads. That is about 2 points of the 7-day figure; C8 + C9 used 4 for ≈ 1,350 Sonnet calls.
 
+**3-call check (2026-10-21; the first call at 08:56 UTC, the other two after the 5-hour reset at 12:21; the quota rule had stopped the run at 72%).** All three videos have 198×224 frames, 64 tokens each.
+
+| Video | Windows | Extra frames | Input-token difference vs. window 0 | Rule's expectation (64 × extra) |
+|---|---|---|---|---|
+| 1098153561_concat_0 | 2 | 3 | 203 | 192 |
+| 1100319395_concat_0 | 3 | 10 | 672 | 640 |
+| 15695290_concat_1 | 3 | 6 | 404 | 384 |
+
+- **Two of three were outside ±15, so per the rule I investigated.** All three fit (64 + 3) × extra + 2 exactly.
+  - Each image block costs 3 tokens beyond its pixels, which the rule left out.
+  - The 2 tokens are the prompt change.
+  - C9's check could not show the per-image cost, because it changed the frame size, not the number of frames.
+- **Verdict:** the inputs are as intended, and the run proceeds. The rule should have been (tokens per frame + 3) × extra frames ± 15.
+- **The one-window check (±2)** had no one-window video among the three. It is done after the run over all 48 one-window videos.
+- **Captions:** 72, 88 and 99 words, against limits of 90, 135 and 135. Each tells events in order ("begins … then … next").
+  - The stacked video's caption says nothing moves in any of the 15 frames, which is the omission pattern of C7.
+  - One caption remarks that it leaves out a watermark.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
