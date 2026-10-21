@@ -1,6 +1,6 @@
 # Draft v1 (skeleton): caption once, ask cheaply
 
-Started 2026-10-20; v1 the same evening, after C3–C6; v1.1 on 2026-10-21, after C7–C9. This is a skeleton, not prose. It shows which claims we make, what backs each one, and what is missing. Numbers come from `docs/new_direction/research_log.md` (entry names in brackets) and `results/index_qa/reports/*.txt`. **⟨PENDING: X⟩** marks a number that run X will fill. Terms follow the *Terms* block of `research_plan_caption_index.md`: source, visual budget, captioner and modality effects. CIs are 95% (98.33% for C1's P1–P3); "cl." marks a CI over clip clusters.
+Started 2026-10-20; v1 the same evening, after C3–C6; v1.1 on 2026-10-21, after C7–C10. This is a skeleton, not prose. It shows which claims we make, what backs each one, and what is missing. Numbers come from `docs/new_direction/research_log.md` (entry names in brackets) and `results/index_qa/reports/*.txt`. **⟨PENDING: X⟩** marks a number that run X will fill. Terms follow the *Terms* block of `research_plan_caption_index.md`: source, visual budget, captioner and modality effects. CIs are 95% (98.33% for C1's P1–P3); "cl." marks a CI over clip clusters.
 
 Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3a positive), so the plan says ACL main; long or short is decided at G9 (Nov 30).
 
@@ -15,6 +15,7 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 | 2a | **The question-blind caption caps accuracy, whatever the reader.** On Sonnet's captions, Haiku and Sonnet score the same. | Haiku 0.707 vs. Sonnet 0.710 on Sonnet captions: −0.003 [−0.047, +0.040] (C3 result, unplanned) | **New, exploratory.** One captioner. On Gemini video captions Sonnet leads Haiku by 0.054, so the cap is not reached with every index. |
 | 2b | …**except on two-clip videos, where captions help a weak reader** (+0.22 accuracy; +0.36 pair accuracy). | A3; C4a two-clip +0.36 [+0.16, +0.56]; C3b two-clip +0.33 [+0.20, +0.48] | **Backed.** The mechanism is open: describing in one call gives two-clip +0.09 [−0.06, +0.24] (C5a), below the self-captions by −0.13 [−0.30, +0.02] (C5b). This leans to "a separate call per window", without showing it. |
 | 3 | **The index pays through the reader downgrade, not through fewer tokens.** A cheap reader on a strong captioner's captions costs ~1/25 per question and repays the captioning within 2–4 questions per video. Its accuracy cost depends on the captioner. | Q\* 1.8–3.7 (A2); the Claude chain, Sonnet captions once and Haiku answers vs. Sonnet answers: Q\* 2.3 [2.2, 2.4], accuracy **−0.091** [−0.145, −0.040]. Gemini frame captions: Q\* 3.7, accuracy −0.007 [−0.057, +0.044]. Same-reader savings: 18% (Haiku), 30% (Sonnet). **C9:** Sonnet captioning 448 px frames (720 visual tokens per window) does not close the Claude gap: C9a +0.003 [−0.037, +0.047]; Haiku on them vs. Sonnet on frames −0.088 [−0.138, −0.037], Q\* 3.0 | **Backed for cost.** "Close to the strong reader" holds only for Gemini frame captions (≈ 5,500 visual tokens per window). The Claude chain loses 9 points, and C9 shows the loss is not the captioner's 224 px frames: it sits on reversed (−0.18) and stacked (−0.24) videos, as in claims 4–5. **Reword: the index trades ≈ 0–9 points for a 20–25× lower query cost.** |
+| 3a | *(robustness, cost)* **Splitting short videos into 5 s windows costs nothing; one caption per video halves the index cost.** | C10a +0.013 [−0.027, +0.057] (Haiku), C10b +0.010 [−0.030, +0.051] (Sonnet); one-window control ≈ 0. Whole-video index $0.0049 vs. $0.0091 per video; Q\* 1.2 [1.2, 1.3] vs. Sonnet on frames, at −0.077 | **Backed** (exploratory, predicted +0.00). By type, reversed +0.12 for Haiku, and stacked leans negative; descriptive. |
 | 4 | **Question-blind captions drop comparisons between things shown at the same time** (stacked clips at two speeds), even from a strong captioner. The loss comes from not seeing the question, not from the text. | C4 stacked pairs: caption arms' pair accuracy 0.10–0.20 vs. Sonnet on frames 0.51; C4c −0.34 [−0.60, −0.08]; C4e −0.41 [−0.62, −0.23]; same-answer rate above Sonnet on frames' in 3 of 4 caption arms. C5b stacked: a description that sees the question beats question-blind self-captions by **+0.22 [+0.09, +0.37]**. | **Backed** (exploratory, written in advance in C4, C5 and C7). The audit (C7) labels 0.93–1.00 of stacked failures "silent" in every arm (predicted ≥ 0.70). κ **⟨PENDING: user's hand labels⟩** |
 | 5 | **Reversed clips: question-blind captions narrate the forward event, even when the captioner can see the reversal.** | Sonnet on frames beats Haiku on Sonnet captions on reversed videos: C3c −0.19 [−0.32, −0.07]. Sonnet on its own captions −0.18 [−0.30, −0.05] vs. its frames. Sonnet captions do not report reversals more often than Haiku's: C3a reversed +0.01, C4b reversal +0.06 [−0.01, +0.13]. Gemini's do: C2a reversed +0.14. Wrong answers fall to the prior in both modalities (A3, Haiku). **C8, Sonnet:** question-only accuracy on reversed videos 0.18 (Haiku 0.16); 0.59 of its wrong answers on frames and 0.65 on its own captions equal its question-only answer (uniform 0.43). | **Reworded; partly backed** (the old wording, "a stronger captioner fixes it", failed for Sonnet). The audit finds forward narration ("wrong") in 0.28–0.45 of reversed failures, below the predicted ≥ 0.50; the rest are "silent", where the captions do not commit to a direction. Say "narrate forward or don't commit". The fall-back to the forward prior now holds for both readers (C8). |
 | 6 | **Captions beat frames for Haiku even when the frames get 2× more tokens.** | C6: 448 px frames, 2,676 input tokens, 0.650. Captions minus 448 px: Gemini video +0.088 [+0.037, +0.138]; Sonnet +0.057 [+0.003, +0.111]; Gemini frame +0.141. C6a (448 − 224 px) +0.037 [−0.010, +0.084] | **Backed.** The gain is mostly on two-clip videos. |
@@ -67,6 +68,9 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 - **Video types** (A3): plain (137), reversed (74), stacked (41), two-clip (45). They nearly determine the aspect. There are 156 clusters of videos that share a filmed clip.
 - **Minimal pairs** (C4): 193 confirmatory questions, each re-asked with the same wording on a sibling video whose correct option differs (107 reversal, 41 stacked, 45 two-clip). Chance pair accuracy is 0.093.
 - **Windows:** 5 s; frames at 1 fps (t = 5p + k), 224 px long edge (40 Claude image tokens each).
+  - Videos are short: median 9.7 s, 1–7 windows (1: 16%, 2: 42%).
+  - The window length was checked: one caption per video from the same frames does no better (C10, claim 3a).
+  - The per-window design is kept because it is what scales to long video.
 
 ### 2.2 Arms
 
@@ -80,6 +84,7 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 | Self-captions | the reader's own isolated caption of each window's 5 frames | — / 200 |
 | Sonnet captions | Sonnet's isolated caption of the same 5 frames | — / 200 |
 | Sonnet captions, 448 px | the same, from the 448 px frames (C9) | — / 720 |
+| Sonnet whole-video captions | one Sonnet caption of all of a video's frames, 45 words per window (C10) | — / 200 |
 | Gemini frame-clip captions | Gemini's caption of the same 5 frames, played as a 1 fps clip | — / ≈ 280–330 |
 | Gemini frame captions | Gemini's caption of the same 5 frames, as images | — / ≈ 5,500 |
 | Gemini video captions | Gemini's caption of the video window | — / ≈ 330 |
@@ -138,10 +143,12 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 | Haiku, Gemini frame captions | 0.791 | 1,229 | 0.000167 | 0.01461 |
 | Haiku, Gemini video captions | 0.737 | 1,236 | 0.000168 | 0.00726 |
 | Haiku, Sonnet captions 448 px | 0.710 | 1,279 | 0.000180 | 0.01167 |
+| Haiku, Sonnet whole-video captions | 0.721 | 1,194 | 0.000156 | 0.00492 |
 | Sonnet, question only | 0.414 | 1,027 | 0.002182 | — |
 | Sonnet, 5 frames | 0.798 | 1,522 | 0.004112 | — |
 | Sonnet, Sonnet captions | 0.710 | 1,282 | 0.003089 | 0.00910 |
 | Sonnet, Sonnet captions 448 px | 0.731 | 1,281 | 0.003103 | 0.01167 |
+| Sonnet, Sonnet whole-video captions | 0.721 | 1,196 | 0.002849 | 0.00492 |
 | Sonnet, Gemini video captions | 0.791 | 1,238 | 0.002868 | 0.00726 |
 
 ### 4.2 Table 2: the decomposition
@@ -199,6 +206,13 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 - **C5:** describing the windows before answering, in the same call, gives +0.071, cl. [+0.029, +0.114], mostly on reversed and stacked videos (+0.12 each). On stacked videos it beats the question-blind self-captions by +0.22: Prop. 4. It costs 2× the frames arm per question, and it is not an index.
 - **C6:** 448 px frames give +0.037 [−0.010, +0.084] over 224 px at 1.76× the input tokens. Captions still beat them (claim 6).
 
+### 4.7 Window length and caption resampling (C10)
+- **Splitting:** one caption per video vs. one per window, with the same frames and the summed length limit: +0.013 (Haiku), +0.010 (Sonnet), both CIs include 0 (claim 3a).
+- **Resampling noise:** on one-window videos the captioning call is identical, yet none of the 48 captions repeats, and the reader's answer changes on 10% (Haiku) to 17% (Sonnet) of those questions.
+  - That is as often as removing the split changes it (17% on ≥ 2-window videos).
+  - Per question, a caption is one sample, so caption-level comparisons need many questions. This is also a point for the discussion of why caption utility is hard to measure.
+- Figure 1 leaves out the 448 px and whole-video variants (Table 1 has them).
+
 ---
 
 ## 5. Cost and break-even
@@ -213,6 +227,7 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 | Gemini frame-clip captions | 1.9 [1.8, 2.1] | −0.074 [−0.125, −0.024] |
 | Sonnet captions | 2.3 [2.2, 2.4] | −0.091 [−0.145, −0.040] |
 | Sonnet captions, 448 px | 3.0 [2.8, 3.1] | −0.088 [−0.138, −0.037] |
+| Sonnet whole-video captions | 1.2 [1.2, 1.3] | −0.077 [−0.128, −0.027] |
 | Gemini frame captions | 3.7 [3.5, 4.0] | −0.007 [−0.057, +0.044] |
 
 - **Within one reader:**
@@ -253,7 +268,7 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 - Questions share filmed clips. Mitigation: clustered CIs.
 - Thinking is decided per call by the model (effort medium), so it is observed, not controlled.
 - **Question-blind captions drop what the question needs and the captioner did not think to say** (stacked comparisons, reversals). This is a limit of question-blind indexes, not only of our captioners.
-- Claims 2a, 2b, 4, 5, 7 and 8 are exploratory, even though each was predicted in writing before its run (2a was not predicted).
+- Claims 2a, 2b, 3a, 4, 5, 7 and 8 are exploratory, even though each was predicted in writing before its run (2a was not predicted).
 - The audit's judge (Sonnet) also wrote one of the caption sets it judges. Mitigation: the 40 hand labels and κ.
 
 ---
@@ -276,7 +291,8 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 | **40 hand labels** | The judge's validity (κ ≥ 0.6) for Table 4 and claims 4, 5 and 7. Sonnet is also a captioner it judges | fill the `label` column of `results/index_qa/audit/hand_labels.csv`, then `audit.py agree` | user, 1–2 h |
 | ~~Sonnet question-only arm~~ | Done (C8): 0.414; claim 5 holds for Sonnet | — | 7-day quota 12% → 16% for C8 + C9 |
 | ~~Claim 3 and the captioner's visual budget~~ | Done (C9): 448 px captions do not close the 9 points (C9a +0.003) | — | (above) |
-| **Window length on short videos** | Median video 9.7 s, so 16% of videos are one window and 42% two; 39 end in a 1-frame window. A reviewer may ask whether per-window captions lose facts that span windows. Sonnet's own captions lose most on one-window videos (0.54 vs. 0.75 on frames) and match frames at ≥ 3 windows, but this is confounded with video type | Optional C10: Sonnet captions all of a video's frames in one question-blind call (same frames, 45 words per window); Haiku and Sonnet read it | ≈ 300 Sonnet captions + 594 reads, ≈ 2 points of the 7-day quota; user decides |
+| ~~Window length on short videos~~ | Done (C10): whole-video captions are no better (+0.01), and cost half as much per video | — | 7-day quota 17% → 19% |
+| Discussion: why caption utility is hard to measure | Lessons from the reconstruction phase and this one: strong baselines that exploit continuity and the prior, question-dependent references, similarity metrics that track style, reader-dependent value, resampling noise (§4.7), minimal pairs as the remedy | a skeleton §8; the user's notes on hard hand-label items as evidence | none; user decides |
 | Figure for the reader-strength tension (claim 2a) | Explains why one index helps Haiku and hurts Sonnet | plot: x = reader on frames, y = reader on each index | none |
 | Colour consistency | Fig. 1 uses orange for Sonnet; Fig. 2 uses orange for Haiku self-captions | Fig. 2: a hue per arm that avoids the reader colours, or the reader colours with two shades | none |
 | Literature: done (N2, no scoop). Repeat Q7 before submission | New work weekly | rerun the §10.3 queries | this session's quota |

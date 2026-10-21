@@ -19,6 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from index_qa import reader as R  # noqa: E402
 from index_qa import tempcompass as tc  # noqa: E402
+from index_qa.caption import caption_windows  # noqa: E402
 
 FIG = tc.ROOT / "docs/paper/figures"
 # Categorical slots 1-2 of the dataviz skill's validated default palette (light mode), one per reader
@@ -29,6 +30,8 @@ LABEL = {"blind": "question only", "frame1": "1 frame", "frames5": "5 frames", "
          "frameclipcaptions": "Gemini frame-clip capt.", "framecaptions": "Gemini frame capt.",
          "captions": "Gemini video capt.", "sonnetcaptions448": "Sonnet captions 448 px",
          "sonnetwhole": "Sonnet whole-video capt."}
+# Caption variants left out of Fig. 1 (robustness checks, in Table 1): C9's 448 px and C10's whole-video captions
+FIG1_SKIP = {"sonnetcaptions448", "sonnetwhole"}
 # Label offsets (points) in the Q = inf panel, where the caption arms crowd at one cost; Sonnet labels go left
 OFFSET = {("haiku", "captions"): (5, 4), ("haiku", "frameclipcaptions"): (5, 0), ("haiku", "sonnetcaptions"): (5, -11),
           ("haiku", "selfcaptions"): (5, -6), ("sonnet", "frames5"): (-6, 4)}
@@ -52,7 +55,7 @@ def arm_costs():
             per_win = R.index_usd(a)
             per_vid = []
             for v in {vid[q] for q in d.question_item}:
-                w = [per_win.get((v, p)) for p in range(len(tc.windows(tc.duration_s(v))))]
+                w = [per_win.get((v, p)) for p in range(len(caption_windows(v, R.CAPTIONERS[a])))]
                 if all(c is not None for c in w):
                     per_vid.append(sum(w))
             index = sum(per_vid) / len(per_vid) if per_vid else float("nan")
@@ -77,7 +80,7 @@ def cmd_cost(args):
     import matplotlib.pyplot as plt
     from matplotlib.lines import Line2D
     t = arm_costs()
-    t = t[t.n >= 290]  # arms with (nearly) every confirmatory question
+    t = t[(t.n >= 290) & ~t.arm.isin(FIG1_SKIP)]  # arms with (nearly) every confirmatory question
     print(t.round(6).to_string(index=False))
     qs = [1, 10, None]
     fig, axes = plt.subplots(1, 3, figsize=(11, 4.2), sharey=True, gridspec_kw={"width_ratios": [1, 1, 1.8]})

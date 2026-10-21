@@ -11,9 +11,12 @@ The newest session is at the top. Older sessions stay below because other docs l
 - **Quota:** 7-day 12% → 16% for C8 + C9.
 - **Next:**
   1. The user fills `results/index_qa/audit/hand_labels.csv`. Then run `audit.py agree` and update Table 4 and claims 4, 5 and 7.
-  2. **C10 (one Sonnet caption per video; arm `sonnetwhole`) is approved, logged with predictions and running.**
-     - Check call 1 of 3 passed. The other two run after the 5-hour reset (12:20 UTC).
-     - Then `run_c10.sh run` runs the captions, the reads and the analyses. The script is in this session's scratchpad; the log's C10 commands do the same.
+  2. **C10 is done** (one Sonnet caption per video, arm `sonnetwhole`; log C10 *Result*, draft claim 3a and §4.7).
+     - Splitting into 5 s windows costs nothing: +0.013 (Haiku), +0.010 (Sonnet).
+     - The whole-video index costs half as much; Q\* is 1.2.
+     - Resampling a caption from identical input changes 10–17% of answers.
+     - Figure 1 now leaves out the 448 px and whole-video variants.
+  4. Open, for the user to decide: a Discussion §8 on why caption utility is hard to measure (draft gaps table). It could use the user's notes on the hard hand-label items.
   3. Remaining gaps: the reader-strength figure, Fig. 2 colours, and Haiku retention CIs.
 
 # 2026-10-20 (night) → C3–C6 done, G5 = case 1; draft v1; C7 audit queued
