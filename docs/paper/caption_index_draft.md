@@ -216,16 +216,24 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 
 ---
 
-## 6. Related work (bullets; only Q5 of the literature pass is done: log N2a)
+## 6. Related work (bullets; literature pass done, log N2 and `related_work_caption_index.md` §10: no scoop on Q1–Q7)
 
 - Caption-then-reason for video QA: LLoVi (the captioner matters: oracle captions +10.8), VideoTree, SiLVR, Vamos (text competitive with visual embeddings; verified).
 - Caption indexes and memories: CFD, CapMem, Sprout, VidCtx (question-aware captions +1–2 points; compare with C5b stacked +0.22).
 - **A captioner in front of a fixed reader (closest to claim 1):** Prism (images; a 2B captioner + GPT-3.5 ≈ 10× larger VLMs), MetaCaptioner, CapRL / CapRL++ (caption utility as the RL reward). **What none has:** a self-caption control, matched visual tokens, or the reader's own view of the frames (N2a). That is our gap; word claim 1 as the controlled decomposition.
 - Text vs. pixels for the same content: IsoBench (text +15–29 points when the text is exact), TokenSwap. Our modality effect is ≤ +0.09, and negative for the strong reader.
+- **A model reading its own description (closest to claims 2 and 2a; images only):**
+  - Caption This, Reason That (NeurIPS 2025): own captions instead of the image give a weak 7B model +22 to +29 on synthetic location tasks, and GPT-4o +8 (not significant).
+  - GEASS: the model's own caption added to the image costs ≈ 10 points on HallusionBench.
+  - Seeing and Solving: two-pass extract→solve beats direct answering on charts, but a one-call "state first" prompt does not (contrast with C5).
+  - **Our framing:** the sign depends on where the reader stands relative to what the question-blind caption holds.
+- Minimal pairs as a design: TempCompass's conflicting videos, MotionBlind, TimeBlind. We apply the pairs to representations, not to models.
+- Motion and reversal from pixels: Which Way Did It Move?, MotionBlind, Seeing the Arrow of Time, and the reversal-drop paper. Video models often fail direction, speed and reversal from frames too, which fits P1's null.
+- Cost: no paper solves for break-even with a reader downgrade (Q6 open). Related: SAFE-Cascade (per-question routing, −9.3% cost), Sprout (lazy memory), MIT³ (parametric memory), Industrial ReMEmbR (caches vision tokens instead of captioning at write time: the opposite design).
 - Visual token budgets: LoHi, VEI.
 - Caption utility judged by QA: CaptionQA, CapQuiz, ViSIL.
 - Temporal benchmarks: TempCompass, plus T3 (text-to-video temporal transfer; related at most, checked 2026-10-19). Reversed-video shortcuts and the forward prior (find the citation).
-- **Still missing:** Q6 (break-even with a reader downgrade), Q7 (new close work since Oct 15), and the rest of G6.
+- **Still to do:** repeat Q7 in the week before submission; Google Scholar and OpenReview were not searched.
 
 ---
 
@@ -263,6 +271,6 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 | **Claim 3's accuracy depends on the captioner's visual budget** | Only Gemini frame captions (≈ 5,500 visual tokens per window) match Sonnet on frames; the Claude chain at 200 loses 9 points | Optional: Sonnet captions from 448 px frames (≈ 880 windows, plus 297 Haiku reads). It tests whether the Claude chain's gap is visual budget | ≈ 10–15 points of the 7-day quota; decide |
 | Figure for the reader-strength tension (claim 2a) | Explains why one index helps Haiku and hurts Sonnet | plot: x = reader on frames, y = reader on each index | none |
 | Colour consistency | Fig. 1 uses orange for Sonnet; Fig. 2 uses orange for Haiku self-captions | Fig. 2: a hue per arm that avoids the reader colours, or the reader colours with two shades | none |
-| Literature: Q6, Q7 and the rest of G6 open (Q5 done: close, not scooped) | Novelty of claims 1 and 3; a citation for reversed-video priors | `final_search_brief.md` | this session's quota |
+| Literature: done (N2, no scoop). Repeat Q7 before submission | New work weekly | rerun the §10.3 queries | this session's quota |
 | Public pre-registration archive | Reviewers can't verify local commits | an anonymous repository or OSF, before submission | user |
 | Open-weights reader | "All readers are closed" | G5 is case 1, so this is optional for ACL main; decide at G9 | Kaggle |

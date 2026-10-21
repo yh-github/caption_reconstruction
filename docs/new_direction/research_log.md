@@ -1104,3 +1104,25 @@ This is the paper's qualitative analysis, and it tests A3's readings.
 - **the reader's own view of the frames** as the third arm, which turns the captioner comparison into the decomposition (captioner + modality).
 
 Claim 1 must be worded as the controlled decomposition, not as "a better captioner helps". Prism and CapRL are cited as the closest work.
+
+### N2 — Literature pass, fourth (G6; 2026-10-21)
+
+**Scope.** All of `final_search_brief.md` (Q1–Q7), run after C1–C7 against draft v1. Details, the paper table and the search log are in §10 of `related_work_caption_index.md`.
+
+**Verdicts:**
+- **Q1, the decomposition: open.**
+- **Q2, captions vs. frames at matched cost on short video: open.**
+- **Q3, which aspects survive the caption: open.** It is no longer our claim (P1 failed).
+- **Q4, no modality advantage for lossy text: open,** with close image work whose sign varies:
+  - *Caption This, Reason That* (NeurIPS 2025): a weak 7B model gains +22 to +29 points from its own captions, and GPT-4o +8, not significant.
+  - *GEASS*: appending the model's own caption costs ≈ 10 points.
+- **Q5, the captioner effect: close, not scooped** (N2a).
+- **Q6, break-even with a reader downgrade: open.**
+- **Q7, new work since Oct 15: nothing above related** (MIT³, Industrial ReMEmbR).
+- **No scoop on any question.**
+
+**Changes to the paper:**
+1. Frame the modality result with *Caption This* and *GEASS*. The modality effect's sign depends on the reader, which fits the cap in draft claim 2a.
+2. Cite MotionBlind, TimeBlind and TempCompass's conflicting videos as precedent for minimal pairs. Ours applies the pairs to representations.
+3. Contrast C5 with *Seeing and Solving*: there, a one-call "state first" prompt did not help untuned open models on charts, while ours helps a frontier reader on video (+0.07).
+4. Repeat Q7 in the week before submission.

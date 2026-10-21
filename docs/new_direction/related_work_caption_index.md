@@ -268,3 +268,67 @@ So at a matched ≈ 40 tokens per 5 s, a caption is ≈ 40× smaller in bytes th
 - **Not done:** full text of LoHi, Sprout, ASP, CodecCap and Modality Inflation (abstracts only); the Dobrushin–Tsybakov, Witsenhausen and Blackwell originals; Paivio; Perception Test per-file download availability; current official Kaggle quota.
 
 **Second pass (2026-10-14).** Full text of CFD, CapMem, ViSIL, the aligned-caption RAG paper and the survey's scope section. Also cited from that pass: [Aligned video captions for RAG](https://arxiv.org/abs/2405.17706) (Dela Rosa, 2024; 1-fps frames would need ≈ 69× the tokens of the captions, an estimate) and [SEG](https://arxiv.org/abs/2601.06097) (Dixit & Liang, 2026; a pruned symbolic event graph at 3.47k vs. 40.39k tokens per query, 5 videos).
+
+## 10. Fourth pass (2026-10-21; G6, `final_search_brief.md`)
+
+The final search of the brief, run after C1–C7, against the claims of draft v1 (`docs/paper/caption_index_draft.md` §0). Q5 was done the day before (research log N2a). Levels follow the brief: scoop, close, related, not relevant.
+
+### 10.1 Verdict per question
+
+| Question | Verdict | Closest papers |
+|---|---|---|
+| **Q1, the decomposition** | **Open.** Nobody splits a caption's effect into source, visual budget, captioner and modality, on video or images. | Caption This, Reason That (self-captions replace images; same model; images); Seeing and Solving (extract / solve / direct; images); Prism, MetaCaptioner, CapRL (the captioner varies; no self-caption arm) |
+| **Q2, captions vs. frames at matched query cost, short video** | **Open.** Matched-cost comparisons exist only on long video (CFD, CapMem) or for OCR text on charts (SAFE-Cascade). | CFD, CapMem, SAFE-Cascade |
+| **Q3, which aspects survive the caption** | **Open, and no longer our claim** (P1 failed; aspect ≈ video type, A3). Recent work shows video models fail direction and speed *from pixels*. That fits our finding that captions do not lose these more than frames. | Which Way Did It Move?, MotionBlind, Seeing the Arrow of Time, What Does a Temporal Benchmark Score Measure? |
+| **Q4, no modality advantage for lossy text** | **Open; close work on images, and its sign varies.** A self-caption swap helps a weak 7B model by +22 to +29 points on synthetic location tasks, and GPT-4o by +8 (not significant). Appending the model's own caption *hurts* by ≈ 10 points on HallusionBench. A question-aware two-pass extract→solve helps on charts. None is on video, question-blind, or with a strong reader losing. | Caption This, Reason That; GEASS; Seeing and Solving |
+| **Q5, the captioner effect** | **Close, not scooped** (N2a; nothing new in this pass). | Prism, MetaCaptioner, CapRL / CapRL++ |
+| **Q6, break-even with a reader downgrade** | **Open.** No paper solves for the number of questions per video at which captioning pays, with or without a cheaper reader. Cost arguments are qualitative (MIT³, Sprout), or for routing rather than indexing (SAFE-Cascade: −9.3% estimated cost). | SAFE-Cascade, Sprout, MIT³, Industrial ReMEmbR |
+| **Q7, new close work since 2026-10-15** | **Nothing above related.** Two new papers: MIT³ (Oct 17) and Industrial ReMEmbR (Oct 20). | — |
+
+**What changes in the paper:**
+1. **Q4 gives the modality result its framing.** The image literature has the modality effect positive for weak readers (Caption This) and negative when a caption competes with the image (GEASS). Our video result fits one account: a question-blind caption caps accuracy (draft claim 2a), so a reader below the cap gains (Haiku: +0.03) and one above it loses (Sonnet: −0.09). Cite Caption This and GEASS next to IsoBench and TokenSwap.
+2. **The minimal pairs (C4) have precedent as a benchmark design:** TempCompass's conflicting videos, MotionBlind (pairs of clips that differ only in motion; credit only if all items are right) and TimeBlind. Ours is new in applying the pairs to *representations* (captions vs. frames vs. own captions). The method section cites them.
+3. **C5 (describe, then answer) meets Seeing and Solving.** There, a one-call "state first" prompt did *not* help untuned models on charts, but a two-pass extract→solve did (+11 to +24). Ours is one call and helps (+0.07). Report the difference: video, free description rather than an exact task state, and a frontier reader.
+4. **Reversed videos:** cite Seeing the Arrow of Time (models barely notice reversed frames on 8 QA benchmarks) and the reversal-drop paper (position-dominant vs. visual-sequence-dominant models). Claude receives frames as separate images, so the order comes only from their position in the prompt.
+
+### 10.2 Papers (new in this pass)
+
+| Paper | Venue, date | Level | Setting | Arms; same reader both sides? | Cost matched? | Key number | Difference from us | Read |
+|---|---|---|---|---|---|---|---|---|
+| [Caption This, Reason That](https://arxiv.org/abs/2505.21538) (Weng et al.) | NeurIPS 2025 | Close (Q1, Q4) | Images; synthetic ShapeNet trials (perception, attention, memory) | Image vs. self-captions (written in a separate conversation, apparently without the task) vs. ground-truth captions; same model (Qwen2.5-VL-7B, 72B, GPT-4o) | No; self-captions take ≈ 2× the time | Qwen2.5-VL-7B on location: +28.7 (perception), +26.9 (memory); GPT-4o +8.3 (not significant) | Images, synthetic; no other captioner, so no captioner effect; no cost | Full text (to char 100k) |
+| [Seeing and Solving Are Not Enough](https://arxiv.org/abs/2609.33694) | arXiv 2026-09-27 | Close (Q4) | Images: ChartQA, CLEVR; 4 open 7–8B VLMs | Extract (with the question) / solve from the true state / direct; same model | No | Composition failures are 17.7–75.6% of direct errors. Two-pass extract→solve beats direct (e.g. Molmo 79.7 vs. 58.0); one-call state-first does not | Question-aware extraction; images; no question-blind index | Full text (to char 100k) |
+| [GEASS](https://arxiv.org/abs/2605.01733) (Li & Zhang) | arXiv 2026-05 (v5 Sep 28) | Close (Q4) | Images: POPE, HallusionBench | Image vs. image + own caption; same model | No | Own caption appended: Qwen2.5-VL-3B −≈ 10 points on HallusionBench | Caption added to the image, not replacing it; images | Abstract |
+| [SAFE-Cascade](https://arxiv.org/abs/2606.19646) | arXiv 2026-06 (demo) | Related (Q2, Q6) | Charts; OCR text → gpt-5-mini; escalates to a VLM | Text answer vs. VLM, routed | Estimated cost | 69.1% vs. 67.7% (not significant) with 26.9% fewer VLM calls, −9.3% cost | Routing per question, not an index; OCR, not captions | Abstract |
+| [MIT³](https://arxiv.org/abs/2610.26910) | arXiv 2026-10-17 | Related (Q6, Q7) | Long video (LVBench, LongVideoBench, Video-MME) | Video knowledge stored in per-video adapted parameters; text-only inference | Motivated by re-encoding frames per question; no numbers in the abstract | — | Parametric memory, not captions | Abstract |
+| [Industrial ReMEmbR](https://arxiv.org/abs/2610.28624) | arXiv 2026-10-20 | Related (Q6, Q7) | Robot fleets; spatiotemporal memory | Caches vision tokens and describes on demand: no captioning at write time | Compute / communication / storage | Cached-token decoding reproduces the unsplit model in 450 / 450 decodes | The opposite design choice (lazy, visual cache); a counterpoint for §5 | Abstract |
+| [Which Way Did It Move?](https://arxiv.org/abs/2605.22823) | arXiv 2026-05 | Related (Q3) | Synthetic and real motion direction | Video-LLMs on frames | — | Most Video-LLMs are near chance on signed motion direction; the signal is in the encoder but not bound to the answer | Pixels only | Abstract |
+| [MotionBlind](https://arxiv.org/abs/2609.09528) | arXiv 2026-09-08 | Related (Q3; C4 design) | Self-recorded paired clips, differing only in motion | Video-LLMs; video present / absent / shuffled | — | Open models at the 6.25% instance floor; only Gemini 3.1 Pro clears it, and even it fails on speed | Pixels only; minimal pairs as a benchmark, not across representations | Abstract |
+| [What Does a Temporal Benchmark Score Measure?](https://arxiv.org/abs/2607.12304) | arXiv 2026-07 | Related (reversed videos) | TempCompass-like temporal QA | Reversed frames with forward RoPE | — | Molmo2 reads the order off positions; Qwen3-VL reads it off the pixels | Open models' channels; no captions | Abstract |
+| [Seeing the Arrow of Time](https://arxiv.org/abs/2506.03340) | arXiv 2025-06 | Related (reversed videos) | AoTBench; 8 VQA benchmarks | Forward vs. reversed frames | — | Answers on 8 benchmarks barely change with reversed frames | Pixels only | Abstract (and project page) |
+| [Speed in the Blind Spot](https://arxiv.org/abs/2609.37046) | arXiv 2026-09-29 | Related (Q3) | Driving (nuScenes) | VLMs; probes vs. verbal answers | — | Ego speed is decodable from hidden states (4.7–5.8 km/h MAE) but poorly verbalized (10.2–16.8) | Speed is in the representation but lost in words: a "written-down" loss like ours, on pixels | Abstract |
+
+Also seen, not relevant above "related": SwitchMem (2610.17928; text vs. visual memory for GUI agents, known from the third pass), Video Evidence Indexing (2610.00757; the VEI already cited), CapQuiz (2609.09973; known), Self-Captioning Multimodal Interaction Tuning (2605.08145; training), DPL (2511.18463; training), Distilling Visual Reasoning into Text Space (2609.34408; training), I Don't Miss You (2609.07596; self-explanation of missing modalities), ScaleCap (2506.19848; a 7B captioner is enough for most visual information; images), Cache of Thought (EMNLP 2025; large-VLM answers cached for small VLMs).
+
+### 10.3 Search log
+
+- **Tools:**
+  - WebSearch, 7 queries (extended for Q1, Q2, Q6 and Q7).
+  - The arXiv API, through a scratchpad client sorted by submission date at 1 request per 3 s: 11 queries, Q7 from 2026-10-13 and Q1/Q4 from 2024-01.
+  - The Semantic Scholar citations API.
+  - Full text, to 100k characters, of Caption This and Seeing and Solving.
+- **arXiv queries:**
+  - caption + video + frames; caption + memory + video; captions + "visual tokens"; caption + cost + video; "text-only" + video + question;
+  - "own captions"; "self-generated captions"; "self-captioning"; "describe then answer"; captioner + reader + "question answering"; "decoupled perception" + video.
+- **Citation chases** (citing papers since 2025, titles filtered by caption, text, modality, memory, cost and similar terms):
+  - Prism: 49 citing papers, 14 kept, none above related besides those listed.
+  - IsoBench: 40 citing papers, 7 kept.
+  - CaptionQA: 17 citing papers, 15 kept.
+  - CapMem: 0 citing papers.
+  - CFD: 2 citing papers (VEI).
+  - TempCompass: 413 citing papers, 12 kept by title. No caption-only arm found among them; the motion papers are listed above.
+- **Stop rule:** the last 20 titles checked (the Q7 arXiv listing since 2026-10-13 and the TempCompass chase) gave nothing above related.
+- **Not done:**
+  - Google Scholar and OpenReview (ICLR 2027 submissions are not public until mid-November).
+  - The full text of GEASS, SAFE-Cascade, MIT³, MotionBlind and the reversal-drop paper (abstracts only).
+  - Citation chases of LLoVi and CapQuiz.
+  - **Repeat Q7 in the week before submission** (brief: this area moves weekly).
