@@ -1222,6 +1222,41 @@ This is the paper's qualitative analysis, and it tests A3's readings.
   - The stacked video's caption says nothing moves in any of the 15 frames, which is the omission pattern of C7.
   - One caption remarks that it leaves out a watermark.
 
+**Result (2026-10-21; `reader.py c10`, run once after steps 2–3; output in `results/index_qa/reports/c10.txt`).**
+- **Calls:** 297 videos captioned, none missing. 297 reads each by Haiku and Sonnet, and every answer parsed. The 7-day quota went from 17% to 19%.
+- **One-window check:** the input tokens equal `sonnetcaptions`' exactly for all 48 one-window videos (difference 0).
+
+| | Prediction | Result (95% CI over questions; clustered) |
+|---|---|---|
+| Haiku on whole-video captions | 0.71 | **0.721** (plain 0.85, two-clip 0.89, reversed 0.57, stacked 0.37) |
+| **C10a, splitting, Haiku reads** | **+0.00** (0.00, −0.05, +0.03, +0.02) | **+0.013** [−0.027, +0.057]; [−0.031, +0.054]. By type: plain +0.00, two-clip −0.04, **reversed +0.12 [+0.03, +0.23]**, stacked −0.07 [−0.21, +0.06] |
+| C10b, splitting, Sonnet reads | +0.01 | **+0.010** [−0.030, +0.051]; [−0.031, +0.052]. By type: +0.02, +0.02, +0.05, −0.12 [−0.29, +0.05] |
+| C10c, index vs. direct | −0.09 | **−0.077** [−0.128, −0.027]; [−0.132, −0.024] |
+| C10d, Sonnet: own whole-video captions − frames | −0.08 | **−0.077** [−0.125, −0.034]; [−0.128, −0.027]. Stacked −0.39 |
+| C10a by windows: 1 / 2 / 3+ | 0.00 / +0.01 / −0.01 | +0.02 [−0.07, +0.11] / −0.01 / +0.03 |
+| C10b by windows: 1 / 2 / 3+ | 0.00 / — / — | −0.02 [−0.09, +0.04] / +0.06 [−0.01, +0.12] / −0.02 |
+| Words, whole ÷ windows summed (median) | 1.0 / 0.8 / 0.7 | 1.00 / 0.84 / 0.74 |
+| Captioning $ per video | ≈ 0.005 (≈ 0.55 of windows) | **0.00492** vs. 0.00910 (mean; median ratio 0.61) |
+| Q\*, Haiku on whole-video captions vs. Sonnet on frames | ≈ 1.3 | **1.2** [1.2, 1.3] |
+
+- **The first reading holds: splitting into 5 s windows costs nothing measurable on these videos.**
+  - Both readers' CIs include 0. They rule out a cost of splitting larger than ≈ 0.05–0.06 (the upper CI bounds), and a benefit from splitting larger than ≈ 0.03.
+  - The one-window control is ≈ 0 for both readers, as predicted.
+  - **One unpredicted pattern (descriptive; one of 8 by-type terms, uncorrected):**
+    - Haiku gains +0.12 on reversed videos from whole-video captions.
+    - Stacked videos lean the other way for both readers (−0.07, −0.12; CIs include 0).
+    - A plausible account: seeing all frames at once helps notice that motion runs backwards, but a single caption compresses two stacked copies even more than window captions do.
+- **Resampling noise (from the one-window control):**
+  - None of the 48 one-window captions is identical to its `sonnetcaptions` twin, though the input is identical.
+  - A reader's answer from the two captions agrees on 0.90 (Haiku) and 0.83 (Sonnet) of the 48 questions.
+  - On ≥ 2-window videos, where the split also differs, agreement is 0.83 for both.
+  - So drawing a new caption changes the answer about as often as removing the split does. Per question, the caption is a noisy measurement, and only the averages are stable.
+- **Cost:** one call per video pays the fixed prompt once. The index costs 0.54× as much per video at the same accuracy, and Q\* against Sonnet on frames falls from 2.3 to 1.2.
+- **For the paper:**
+  - §2.1 can say that the window length was checked: whole-video captions are no better.
+  - §5 can offer the whole-video index as the cheaper variant for short videos.
+  - The per-window design remains the one that scales to long videos.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
