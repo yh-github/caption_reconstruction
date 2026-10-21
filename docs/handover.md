@@ -16,8 +16,8 @@ The newest session is at the top. Older sessions stay below because other docs l
      - The whole-video index costs half as much; Q\* is 1.2.
      - Resampling a caption from identical input changes 10–17% of answers.
      - Figure 1 now leaves out the 448 px and whole-video variants.
-  4. Open, for the user to decide: a Discussion §8 on why caption utility is hard to measure (draft gaps table). It could use the user's notes on the hard hand-label items.
-  3. Remaining gaps: the reader-strength figure, Fig. 2 colours, and Haiku retention CIs.
+  3. Open, for the user to decide: a Discussion §8 on why caption utility is hard to measure (draft gaps table). It could use the user's notes on the hard hand-label items.
+  4. Remaining gaps: the reader-strength figure, Fig. 2 colours, and Haiku retention CIs.
 
 # 2026-10-20 (night) → C3–C6 done, G5 = case 1; draft v1; C7 audit queued
 
