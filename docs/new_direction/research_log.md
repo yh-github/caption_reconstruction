@@ -1014,6 +1014,79 @@ This is the paper's qualitative analysis, and it tests A3's readings.
 - **Reading:** a question-blind caption fails mainly by leaving out what the question asks, and less often by stating the wrong thing. This fits the cap of the C3 result: once the fact is missing, no reader can recover it. It also fits Prop. 4 and C5b on stacked videos (+0.22 for a description that sees the question).
 - **Caveat:** Sonnet is both the judge and one of the captioners. If κ with the hand labels is < 0.6, only the hand-labelled sample is reported (pre-registered above).
 
+### C8 — Sonnet with the question only (written 2026-10-21, committed before any C8 call)
+
+**Status.** Exploratory; the 297 confirmatory questions. The user asked for it on 2026-10-21 (draft v1, gap list).
+
+**Why.**
+- Table 1 has no question-only row for Sonnet.
+- Prop. 1's retention for Sonnet needs that row: the share of the frames' gain over the question that captions keep.
+- Claim 5 (reversed videos fall back to the forward reading) needs Sonnet's own prior. A3 and the C3 result used Haiku's.
+
+**Arm.** `sonnet:blind`: the question and options only, with the reader prompt of every arm (`reader.py run --set confirm --model sonnet --arms blind`). 297 Sonnet calls.
+
+**Predictions:**
+- **Accuracy 0.43:** plain 0.62, two-clip 0.33, reversed 0.15, stacked 0.38. C8a (Sonnet − Haiku, question only) ≈ +0.02, and C8b (Sonnet frames − question only) ≈ +0.37.
+- **Retention**, (captions − question only) / (frames − question only):
+  - Sonnet on Gemini video captions: 0.98.
+  - Sonnet on its own captions: 0.76.
+- **Directional hypotheses:**
+  1. **Reversed videos: Sonnet's question-only accuracy is below 0.25,** as Haiku's was (0.16). The wording favours the forward event for both readers.
+  2. **Among Sonnet's wrong answers on reversed videos, the share equal to its question-only answer is above the uniform rate (≈ 0.43)** for both frames and its own captions (predicted 0.55 and 0.60). Descriptive; there are ≈ 25–40 wrong answers each.
+
+```bash
+.venv/bin/python scripts/index_qa/reader.py run --set confirm --model sonnet --arms blind --limit 3
+.venv/bin/python scripts/index_qa/reader.py run --set confirm --model sonnet --arms blind --max-5h 0.8
+.venv/bin/python scripts/index_qa/reader.py c8
+```
+
+### C9 — Sonnet captions from 448 px frames (written 2026-10-21, committed before any C9 call)
+
+**Status.** Exploratory; the 297 confirmatory questions. The user asked for it on 2026-10-21 (draft v1, gap list).
+
+**Why.**
+- In claim 3, Haiku on Sonnet's captions trails Sonnet on frames by 0.091 (C3c).
+- Only Gemini's frame captions match Sonnet on frames, and their captioner used ≈ 5,500 visual tokens per window against Sonnet's 200.
+- C2b put Gemini's visual budget effect at +0.067. C9 asks whether a larger captioning budget closes part of the Claude chain's gap.
+- C7 points the other way. The failures are mostly omissions, of things a question-blind captioner does not think to write, so more pixels may not help.
+
+**Arm.** `sonnetcaptions448`:
+- **Captioning:** Sonnet captions each window from the frames5_448 frames, which C6 already extracted: the same instants as every arm, at 448 px, 144 tokens per landscape frame, so up to 720 per window. The prompt and effort are the same as `sonnetcaptions`. One isolated call per window, question-blind (`self_caption.py --model sonnet --long-edge 448`, folder `claude-sonnet-5-5-frames448`). 761 windows.
+- **Reading:** Haiku and Sonnet each read the captions with the reader prompt of every caption arm. That is 297 calls each.
+- **Only the captioner's frame size differs** from `sonnetcaptions`. The index cost per video rises with the captioner's input tokens.
+
+**Terms and predictions** (95% CIs over questions and over clip clusters, and by video type):
+
+| Term | Difference | Prediction |
+|---|---|---|
+| **C9a, captioner visual budget** | Haiku: Sonnet 448 px captions − Sonnet 224 px captions | **+0.03** |
+| C9b, index vs. direct | Haiku on Sonnet 448 px captions − Sonnet on 5 frames | −0.06 |
+| C9c, Sonnet on its own 448 px captions − its frames | | −0.07 |
+| C9d, vs. Gemini frame captions | Haiku: Sonnet 448 px captions − Gemini frame captions | −0.06 |
+| C9e, Sonnet's own captions, 448 − 224 px | | +0.02 |
+
+- **Prediction for Haiku on Sonnet 448 px captions: 0.74.** By type: plain 0.88, two-clip 0.93, reversed 0.50, stacked 0.44.
+- **Readings:**
+  - **C9a's CI excludes 0, positive:** within Claude, the captioner's visual budget matters too. Part of claim 3's gap is budget, and the draft should say how much of it C9a closes.
+  - **C9a's CI includes 0 and C9b < 0:** the gap to Sonnet on frames is not the captioner's budget. That supports C7's reading that it is question-blindness.
+  - The by-type estimates are descriptive. With power ≈ 0.25 for +0.03 on 297 questions, a null C9a is weak evidence of no effect, and will be reported as such.
+
+**Run and stop rules.**
+1. **3-call check** (`--limit 3`): read the three captions. Each call's input tokens should exceed Sonnet's 224 px caption call for the same window by 104 per landscape frame (520 for 5 frames). Stop and investigate if any differs from that by more than 10 tokens beyond portrait frames.
+2. **Captions:** the remaining windows, with `--max-5h 0.7 --max-7d 0.5`. Stop and investigate if more than 2% of windows get no caption.
+3. **Reads:** Haiku and Sonnet, `--max-5h 0.8`, `--skip-missing`, with the isolation and model checks of K0–C3.
+4. **Analysis:** `reader.py c9`, run once after steps 2 and 3. Then `reader.py cost`, for the index cost and Q\*.
+
+```bash
+.venv/bin/python scripts/index_qa/self_caption.py --set confirm --model sonnet --long-edge 448 --limit 3
+.venv/bin/python scripts/index_qa/self_caption.py --set confirm --model sonnet --long-edge 448 --max-5h 0.7 --max-7d 0.5
+.venv/bin/python scripts/index_qa/reader.py run --set confirm --model haiku --arms sonnetcaptions448 --skip-missing
+.venv/bin/python scripts/index_qa/reader.py run --set confirm --model sonnet --arms sonnetcaptions448 --skip-missing
+.venv/bin/python scripts/index_qa/reader.py c9
+```
+
+**Quota estimate for C8 and C9:** ≈ 1,350 Sonnet calls and 297 Haiku calls. C3–C6 used 4 points of the 7-day figure for ≈ 1,700 Sonnet calls, so expect ≈ 4 points. The 5-hour window will need two or three windows; done items are skipped on resume.
+
 **Order of the runs (C3–C7).** C3's Sonnet captions run first (started 2026-10-20 17:53 UTC). The Haiku-only arms run alongside it: C5, C6, and C4's Haiku reads that don't need Sonnet captions. The Sonnet reads and the audit follow once C3's captions are done. The 7-day quota guard for every Sonnet run is 0.5–0.6.
 
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
