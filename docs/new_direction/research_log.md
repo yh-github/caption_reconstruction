@@ -1350,6 +1350,13 @@ No new calls. These analyses are descriptive: the point estimates of Table 5 (dr
    - `run_c11.sh stop` stops everything, and `run` again resumes: caption files are written atomically, and a partial reader row is skipped and its item rerun.
    - Expected: about 50 min of compute and a 7-day quota rise of about +2%.
 
+**3-call check (2026-10-22, 07:55 UTC): passed.**
+- All 3 calls are ok. Quota: 5h 0.20, 7d 0.22.
+- Input tokens are `sonnetwhole`'s + 74 for all 3 videos: a constant, as predicted (≈ 50–70; the bullet is a little longer).
+- Words: 80, 97 and 112, within the limits (90, 135, 135).
+- The captions state direction and order more explicitly than C10's ("draws a wavy, dotted teal line that stretches rightward", "straight vertical lines downward"; the forest's colour sequence step by step).
+- The stacked two-circle video is "nothing moves" under both prompts (1 fps frames). That is perception, not the prompt.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
