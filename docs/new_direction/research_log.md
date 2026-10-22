@@ -1262,6 +1262,24 @@ This is the paper's qualitative analysis, and it tests A3's readings.
   - §5 can offer the whole-video index as the cheaper variant for short videos.
   - The per-window design remains the one that scales to long videos.
 
+### D3 — Headroom split by video type, retention CIs, reader-strength figure (written 2026-10-22, before running)
+
+No new calls. These analyses are descriptive: the point estimates of Table 5 (draft §8.1) and of Haiku's retention were already seen, so there are no predictions, only CIs for numbers in the draft.
+- **Table 5 with CIs** (`reader.py headroom`). For each reader, by video type and overall, with 95% CIs over clip clusters:
+  - question-only, frames and captions accuracy;
+  - perception shortfall = 1 − frames;
+  - index loss = frames − captions;
+  - retention = (captions − question only) / (frames − question only).
+
+  Two versions:
+  - Sonnet reading its own captions, as in §8.1;
+  - Haiku reading Sonnet's captions. Its frames are below its captions (claim 2a), so its index loss is expected to be negative.
+- **Retention per index, overall**, with CIs over questions and over clip clusters:
+  - every index Haiku reads, which fills the gap of the Haiku retention CIs in draft §3;
+  - every index Sonnet reads.
+- **Figure 3** (`plots.py readers`): a slope chart of accuracy by reader (Haiku, Sonnet) for question only, frames, and the two indexes both readers read (Sonnet captions, Gemini video captions). Each point has a 95% CI over clip clusters. It shows the tension of claim 2a: frames gain with the reader, and the indexes barely do.
+- **Figure 2:** new colours, so that no hue means a reader in one figure and an arm in another.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).

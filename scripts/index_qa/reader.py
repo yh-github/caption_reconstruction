@@ -321,13 +321,22 @@ def clip_clusters(video_ids: list[str]) -> list[int]:
 
 
 def retention_boot(cap: list[float], frames: list[float], blind: list[float], n_boot: int = 10_000, seed: int = 0,
-                   level: float = 0.95) -> tuple[float, float, float]:
+                   level: float = 0.95, clusters: list | None = None) -> tuple[float, float, float]:
     """(acc(captions) - acc(blind)) / (acc(frames) - acc(blind)) over the same questions, with a percentile CI from
-    resampling questions."""
+    resampling questions, or clusters of questions when `clusters` is given (as in cluster_boot)."""
     import numpy as np
     x = np.column_stack([cap, frames, blind]).astype(float)
     rng = np.random.default_rng(seed)
-    m = x[rng.integers(0, len(x), size=(n_boot, len(x)))].mean(1)
+    if clusters is None:
+        m = x[rng.integers(0, len(x), size=(n_boot, len(x)))].mean(1)
+    else:
+        keys = sorted(set(clusters), key=str)
+        at = {k: i for i, k in enumerate(keys)}
+        idx = np.array([at[c] for c in clusters])
+        s = np.column_stack([np.bincount(idx, x[:, j], len(keys)) for j in range(3)])
+        n = np.bincount(idx, minlength=len(keys)).astype(float)
+        pick = rng.integers(0, len(keys), size=(n_boot, len(keys)))
+        m = s[pick].sum(1) / n[pick].sum(1)[:, None]
     with np.errstate(divide="ignore", invalid="ignore"):
         bs = (m[:, 0] - m[:, 2]) / (m[:, 1] - m[:, 2])
     lo, hi = np.nanpercentile(bs, [50 * (1 - level), 50 * (1 + level)])
@@ -809,6 +818,46 @@ def cmd_c8(args):
         print(f"  sonnet:{arm}: " + "; ".join(out))
 
 
+# D3 (research log): Table 5 of the draft (§8.1) per reader, with the captions it reads; and the retention of every
+# index each reader reads
+HEADROOM = [("sonnet", "sonnetcaptions"), ("haiku", "sonnetcaptions")]
+RETENTION_ARMS = {"haiku": ["selfcaptions", "sonnetcaptions", "sonnetcaptions448", "sonnetwhole", "frameclipcaptions",
+                            "framecaptions", "captions"],
+                  "sonnet": ["sonnetcaptions", "sonnetcaptions448", "sonnetwhole", "captions"]}
+
+
+def cmd_headroom(args):
+    """D3's statistics (research log), descriptive: per video type, a reader's question-only, frames and captions
+    accuracy, the perception shortfall (1 - frames), the index loss (frames - captions) and the retention, with 95% CIs
+    over clip clusters; then each index's retention per reader, overall. A failed call counts as wrong."""
+    wide, vtype, clus = confirm_frame()
+    for model, arm in HEADROOM:
+        b, f, c = (f"{model}:{a}" for a in ("blind", "frames5", arm))
+        x = wide[[b, f, c]].dropna()
+        print(f"\n{model} reads {arm} (n={len(x)}); 95% CIs over clip clusters:")
+        for t in tc.VIDEO_TYPES + [None]:
+            xt = x[vtype[x.index] == t] if t else x
+            k = clus[xt.index].tolist()
+            short, sl, sh = cluster_boot((1 - xt[f]).tolist(), k)
+            loss, ll, lh = cluster_boot((xt[f] - xt[c]).tolist(), k)
+            r, rl, rh = retention_boot(xt[c].tolist(), xt[f].tolist(), xt[b].tolist(), clusters=k)
+            print(f"  {t or 'all'} (n={len(xt)}): question only {xt[b].mean():.2f}, frames {xt[f].mean():.2f}, "
+                  f"captions {xt[c].mean():.2f}; shortfall {short:.2f} [{sl:.2f}, {sh:.2f}], "
+                  f"index loss {loss:+.2f} [{ll:+.2f}, {lh:+.2f}], retention {r:.2f} [{rl:.2f}, {rh:.2f}]")
+    print("\nretention per index, overall: 95% CI over questions; over clip clusters")
+    for model, arms in RETENTION_ARMS.items():
+        for arm in arms:
+            cols = [f"{model}:{a}" for a in (arm, "frames5", "blind")]
+            if not all(col in wide for col in cols):
+                print(f"  {model}:{arm}: not run yet")
+                continue
+            x = wide[cols].dropna()
+            v = [x[col].tolist() for col in cols]
+            est, lo, hi = retention_boot(*v)
+            _, clo, chi = retention_boot(*v, clusters=clus[x.index].tolist())
+            print(f"  {model}:{arm}: {est:.2f} [{lo:.2f}, {hi:.2f}]; [{clo:.2f}, {chi:.2f}] (n={len(x)})")
+
+
 def cmd_c9(args):
     """C9's statistics (research log): Sonnet's captions of 448 px frames, read by Haiku and Sonnet, against Sonnet's
     224 px captions, Sonnet on frames and Gemini's frame captions; the captioners' input tokens per window; 95% CIs
@@ -1110,12 +1159,12 @@ def main():
     sub.add_parser("cost")
     ty = sub.add_parser("types")
     ty.add_argument("--set", dest="set_", choices=list(tc.SETS), default="confirm")
-    for name in ("c4", "c5", "c6", "c8", "c9", "c10"):
+    for name in ("c4", "c5", "c6", "c8", "c9", "c10", "headroom"):
         sub.add_parser(name)
     args = ap.parse_args()
     {"run": cmd_run, "check": cmd_check, "confirm": cmd_confirm, "c2": cmd_c2, "c3": cmd_c3,
      "thinking": cmd_thinking, "cost": cmd_cost, "types": cmd_types, "c4": cmd_c4, "c5": cmd_c5,
-     "c6": cmd_c6, "c8": cmd_c8, "c9": cmd_c9, "c10": cmd_c10}[args.cmd](args)
+     "c6": cmd_c6, "c8": cmd_c8, "c9": cmd_c9, "c10": cmd_c10, "headroom": cmd_headroom}[args.cmd](args)
 
 
 if __name__ == "__main__":

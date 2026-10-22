@@ -98,6 +98,15 @@ def test_retention_boot():
     assert est == pytest.approx(2 / 3) and lo <= est <= hi
 
 
+def test_retention_boot_over_clusters():
+    cap, frames, blind = [1, 1, 0, 0, 1, 0] * 5, [1, 1, 1, 0, 1, 1] * 5, [0, 1, 0, 0, 0, 0] * 5
+    # one question per cluster (labels that sort in order): the same draws as resampling questions
+    assert retention_boot(cap, frames, blind, clusters=[f"{i:02d}" for i in range(30)]) == pytest.approx(
+        retention_boot(cap, frames, blind))
+    est, lo, hi = retention_boot(cap, frames, blind, clusters=[i // 6 for i in range(30)])
+    assert est == pytest.approx(2 / 4) and lo <= est <= hi
+
+
 def test_cluster_boot():
     est, lo, hi = cluster_boot([1, 1, 0, 0, -1, 0], ["a", "a", "b", "b", "c", "c"])
     assert est == pytest.approx(1 / 6) and lo <= est <= hi

@@ -3,6 +3,7 @@
 
     .venv/bin/python scripts/index_qa/plots.py cost    # Figure 1: accuracy vs. list-price $ per question
     .venv/bin/python scripts/index_qa/plots.py types   # Figure 2: accuracy by video type
+    .venv/bin/python scripts/index_qa/plots.py readers # Figure 3: accuracy by reader (claim 2a)
 
 Figure 1 has one panel per number of questions per video Q, with the one-time captioning cost spread over Q
 questions (Q = inf: the per-question cost alone). Costs are computed as in reader.py cost (list prices from the
@@ -25,6 +26,10 @@ FIG = tc.ROOT / "docs/paper/figures"
 # Categorical slots 1-2 of the dataviz skill's validated default palette (light mode), one per reader
 READER_COLOR = {"haiku": "#2a78d6", "sonnet": "#eb6834"}
 INK, MUTED, GRID = "#0b0b0b", "#52514e", "#e4e3df"
+# Figs. 2-3: a hue per model:arm from the default palette's slots 3-7, so that no hue also means a reader (Fig. 1).
+# Validated in this order as adjacent bars (worst adjacent CVD ΔE 9.1); Fig. 3 uses the two caption hues
+ARM_COLOR = {"haiku:frames5": "#1baf7a", "haiku:selfcaptions": "#eda100", "haiku:sonnetcaptions": "#6250d6",
+             "haiku:captions": "#008300", "sonnet:frames5": "#e87ba4"}
 LABEL = {"blind": "question only", "frame1": "1 frame", "frames5": "5 frames", "frames5_448": "5 frames 448 px",
          "describe5": "describe, answer", "selfcaptions": "self-captions", "sonnetcaptions": "Sonnet captions",
          "frameclipcaptions": "Gemini frame-clip capt.", "framecaptions": "Gemini frame capt.",
@@ -124,8 +129,7 @@ def cmd_types(args):
     acc = wide[arms].groupby(vtype).mean().reindex(tc.VIDEO_TYPES)
     n = vtype.value_counts()
     print(acc.round(2).to_string())
-    # Categorical slots in fixed order (default palette, light mode)
-    colors = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4"]
+    colors = [ARM_COLOR[a] for a in arms]
     fig, ax = plt.subplots(figsize=(7, 3.2))
     style(ax)
     w = 0.8 / len(arms)
@@ -144,11 +148,54 @@ def cmd_types(args):
     print(f"-> {FIG / 'caption_index_fig2_types.png'}")
 
 
+def cmd_readers(args):
+    """Figure 3 (D3): accuracy by reader for question only, frames and the two indexes both readers read, with 95% CIs
+    over clip clusters (claim 2a)."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    wide, vtype, clus = R.confirm_frame()
+    # (arm, colour, line style); frames and question only are references in ink and muted grey
+    lines = [("frames5", INK, "-"), ("captions", ARM_COLOR["haiku:captions"], "-"),
+             ("sonnetcaptions", ARM_COLOR["haiku:sonnetcaptions"], "-"), ("blind", MUTED, ":")]
+    names = {"frames5": "5 frames", "captions": "Gemini video captions", "sonnetcaptions": "Sonnet captions",
+             "blind": "question only"}
+    fig, ax = plt.subplots(figsize=(4.2, 3.6))
+    style(ax)
+    ax.grid(False, axis="x")
+    for arm, color, ls in lines:
+        pts = []
+        for x, model in enumerate(("haiku", "sonnet")):
+            col = wide[f"{model}:{arm}"].dropna()
+            est, lo, hi = R.cluster_boot(col.tolist(), clus[col.index].tolist())
+            pts.append(est)
+            print(f"{model}:{arm}: {est:.3f} [{lo:.3f}, {hi:.3f}] (n={len(col)})")
+            ax.errorbar(x, est, yerr=[[est - lo], [hi - est]], color=color, linewidth=1, capsize=3, zorder=2)
+        ax.plot([0, 1], pts, color=color, linestyle=ls, linewidth=2, marker="o", markersize=8,
+                markeredgecolor="white", markeredgewidth=1.5, zorder=3)
+        dy = {"captions": 4, "sonnetcaptions": -4}.get(arm, 0)  # the two caption lines end 0.08 apart
+        ax.annotate(f"{names[arm]} {pts[1]:.2f}", (1, pts[1]), xytext=(10, dy), textcoords="offset points",
+                    fontsize=7.5, color=INK, va="center")
+        ax.annotate(f"{pts[0]:.2f}", (0, pts[0]), xytext=(-10, 0), textcoords="offset points", fontsize=7.5,
+                    color=INK, va="center", ha="right")
+    ax.set_xticks([0, 1])
+    ax.set_xticklabels(["Haiku reads", "Sonnet reads"], fontsize=8, color=INK)
+    ax.set_xlim(-0.35, 1.9)
+    ax.set_ylim(0.3, 0.9)
+    ax.set_ylabel("accuracy (297 questions)", fontsize=8, color=MUTED)
+    ax.spines["bottom"].set_visible(False)
+    ax.tick_params(axis="x", length=0)
+    fig.tight_layout()
+    for ext in ("png", "pdf"):
+        fig.savefig(FIG / f"caption_index_fig3_readers.{ext}", dpi=200)
+    print(f"-> {FIG / 'caption_index_fig3_readers.png'}")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("cmd", choices=["cost", "types"])
+    ap.add_argument("cmd", choices=["cost", "types", "readers"])
     args = ap.parse_args()
-    {"cost": cmd_cost, "types": cmd_types}[args.cmd](args)
+    {"cost": cmd_cost, "types": cmd_types, "readers": cmd_readers}[args.cmd](args)
 
 
 if __name__ == "__main__":
