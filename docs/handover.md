@@ -16,8 +16,18 @@ The newest session is at the top. Older sessions stay below because other docs l
      - The whole-video index costs half as much; Q\* is 1.2.
      - Resampling a caption from identical input changes 10–17% of answers.
      - Figure 1 now leaves out the 448 px and whole-video variants.
-  3. Discussion §8 skeleton written (2026-10-22). It adds Table 5, a descriptive split of Sonnet's headroom by video type: perception shortfall vs. index loss, which answers "the captioner is misled too". The user's hand-label notes are now in §8.3. Still open: CIs and the optional C11 (a captioner prompt that knows the question family; not approved).
-  4. Remaining gaps: the reader-strength figure, Fig. 2 colours, and Haiku retention CIs.
+  3. Discussion §8 skeleton written (2026-10-22). It adds Table 5, a descriptive split of Sonnet's headroom by video type: perception shortfall vs. index loss, which answers "the captioner is misled too". The user's hand-label notes are now in §8.3.
+  4. **Analysis gaps closed (2026-10-22, log D3, no calls):**
+     - Table 5 has clustered CIs. The index loss is ≈ 0 on plain and two-clip videos, +0.18 on reversed and +0.27 on stacked.
+     - There is now a Haiku version of Table 5.
+     - Haiku retention CIs: every index but self-captions excludes 1.
+     - Fig. 3, a reader slope chart: `plots.py readers`.
+     - Fig. 2's colours are now apart from the reader colours.
+     - The reconstruction-phase numbers are cited in §8.2–8.3.
+  5. **Next:**
+     - C11 is planned for the week of 2026-10-26: a captioner prompt that knows the question family. Log it with predictions first.
+     - Then turn the skeleton into prose: Results → Discussion → Setup → Intro, Abstract and Related work.
+     - Before submission: a public pre-registration archive (user) and a repeat of Q7.
 
 # 2026-10-20 (night) → C3–C6 done, G5 = case 1; draft v1; C7 audit queued
 

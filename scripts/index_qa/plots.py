@@ -163,20 +163,21 @@ def cmd_readers(args):
     fig, ax = plt.subplots(figsize=(4.2, 3.6))
     style(ax)
     ax.grid(False, axis="x")
-    for arm, color, ls in lines:
+    for i, (arm, color, ls) in enumerate(lines):
+        xs = [x + (i - 1.5) * 0.04 for x in (0, 1)]  # dodge, so the CIs at one reader do not overlap
         pts = []
-        for x, model in enumerate(("haiku", "sonnet")):
+        for x, model in zip(xs, ("haiku", "sonnet")):
             col = wide[f"{model}:{arm}"].dropna()
             est, lo, hi = R.cluster_boot(col.tolist(), clus[col.index].tolist())
             pts.append(est)
             print(f"{model}:{arm}: {est:.3f} [{lo:.3f}, {hi:.3f}] (n={len(col)})")
             ax.errorbar(x, est, yerr=[[est - lo], [hi - est]], color=color, linewidth=1, capsize=3, zorder=2)
-        ax.plot([0, 1], pts, color=color, linestyle=ls, linewidth=2, marker="o", markersize=8,
+        ax.plot(xs, pts, color=color, linestyle=ls, linewidth=2, marker="o", markersize=8,
                 markeredgecolor="white", markeredgewidth=1.5, zorder=3)
-        dy = {"captions": 4, "sonnetcaptions": -4}.get(arm, 0)  # the two caption lines end 0.08 apart
-        ax.annotate(f"{names[arm]} {pts[1]:.2f}", (1, pts[1]), xytext=(10, dy), textcoords="offset points",
+        dy = {"frames5": 7, "captions": -5}.get(arm, 0)  # Sonnet on frames and on Gemini captions end 0.01 apart
+        ax.annotate(f"{names[arm]} {pts[1]:.2f}", (1.1, pts[1]), xytext=(4, dy), textcoords="offset points",
                     fontsize=7.5, color=INK, va="center")
-        ax.annotate(f"{pts[0]:.2f}", (0, pts[0]), xytext=(-10, 0), textcoords="offset points", fontsize=7.5,
+        ax.annotate(f"{pts[0]:.2f}", (-0.1, pts[0]), xytext=(-4, 0), textcoords="offset points", fontsize=7.5,
                     color=INK, va="center", ha="right")
     ax.set_xticks([0, 1])
     ax.set_xticklabels(["Haiku reads", "Sonnet reads"], fontsize=8, color=INK)

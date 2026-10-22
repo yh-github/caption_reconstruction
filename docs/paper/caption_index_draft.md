@@ -27,7 +27,7 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 
 **Headline (case 1):** "Given exactly the reader's frames, a stronger captioner's question-blind captions make a cheap reader more accurate (+0.06 to +0.15). Turning the frames into text does not (≤ +0.09 for Haiku; −0.09 for Sonnet). A caption index lets a 20–25× cheaper reader answer at 0–9 points below the strong reader on frames, and repays itself within 2–4 questions per video. What it loses is what a question-blind captioner does not write down: the comparison between stacked copies, and reversals."
 
-**Tension to resolve while writing:** claims 1 and 2 say the captioner adds usable information. Claims 2a, 4 and 5 say question-blindness caps it. Both hold: the captioner helps a reader below the cap (Haiku) and hurts one above it (Sonnet). Fig. 3 could show this as reader strength on frames vs. accuracy on captions.
+**Tension to resolve while writing:** claims 1 and 2 say the captioner adds usable information. Claims 2a, 4 and 5 say question-blindness caps it. Both hold: the captioner helps a reader below the cap (Haiku) and hurts one above it (Sonnet). **Fig. 3** (`docs/paper/figures/caption_index_fig3_readers.png`) shows this: from Haiku to Sonnet, frames rise 0.61 → 0.80 and cross both indexes; Sonnet captions stay at 0.71; Gemini video captions rise 0.74 → 0.79. The CIs in Fig. 3 are per arm; the paired differences (claim 2a, C3c) are tighter.
 
 ---
 
@@ -117,7 +117,13 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 ## 3. Theory (short)
 
 - **Prop. 1 (garbling bound).** A caption made from the reader's own frames cannot add information about the video, for an unbounded reader. For a fixed, bounded reader, it can add *usable* information (Xu et al. 2020), and that is what the captioner effect measures.
-  - **Retention**, (captions − question only) / (frames − question only), is the share of the frames' gain the index keeps. For Sonnet (C8): Gemini video captions 0.98 [0.87, 1.11]; its own captions 0.77 [0.66, 0.88]. For Haiku, every index retains more than the frames give (point estimates: self-captions 1.15, Sonnet captions 1.47, Gemini frame captions 1.88), because Haiku on frames is below what the captions hold (claim 2a). The Haiku CIs are not computed yet.
+  - **Retention**, (captions − question only) / (frames − question only), is the share of the frames' gain the index keeps. For Sonnet (C8): Gemini video captions 0.98 [0.87, 1.11]; its own captions 0.77 [0.66, 0.88]. For Haiku, every index's point estimate exceeds 1 because Haiku on frames is below what the captions hold (claim 2a). The CIs exclude 1 for every index but its own captions (D3, over clip clusters):
+    - self-captions 1.15 [0.91, 1.46];
+    - Sonnet captions 1.47 [1.18, 1.95];
+    - Gemini video captions 1.62 [1.33, 2.10];
+    - Gemini frame captions 1.88 [1.53, 2.51].
+
+    The variants (appendix): Haiku retains 1.48 on Sonnet's 448 px captions, 1.53 on its whole-video captions and 1.55 on Gemini frame-clip captions. Sonnet retains 0.82 and 0.80 on its own 448 px and whole-video captions.
 - **Corollary.** The total caption effect = source + captioner + modality, plus a visual budget term when the visual tokens differ.
 - **Prop. 2 (break-even).** Q\* = C(τ) / (c_f − c_τ): the captioning cost over the per-question saving. With a reader downgrade, c_τ is the cheap reader's cost.
 - **Prop. 4 (price of being question-blind)** is now used. C5b stacked (+0.22) and claim 4 are its evidence: a question-aware description recovers what the question-blind caption omits.
@@ -287,23 +293,24 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 ### 8.1 What the benchmark tests when the captioner is also misled
 - **The concern:** TempCompass's manipulated videos mislead models. The captioner is a model, so a low score may only mean that the captioner was fooled.
 - **Answer:** the system under test is the whole index: a model writes once without the question, and the reader answers later. A captioner that can be misled is part of that system, not a confound. The arms separate the two causes, because the same model also reads the same pixels with the question in view.
-- **Table 5** (descriptive, Sonnet as captioner and reader; split of headroom by type):
+- **Table 5** (D3, descriptive; Sonnet as captioner and reader; split of headroom by type; 95% CIs over clip clusters):
   - perception shortfall = 1 − frames: the model fails even when it sees the question, so frames lose this too;
   - index loss = frames − own captions: it saw the answer when asked but did not write it down blind;
   - retention = (captions − question only) / (frames − question only).
 
 | Type (n) | Question only | Frames | Own captions | Perception shortfall | Index loss | Retention |
 |---|---|---|---|---|---|---|
-| plain (137) | 0.61 | 0.89 | 0.88 | 0.11 | 0.01 | 0.95 |
-| two-clip (45) | 0.29 | 0.91 | 0.91 | 0.09 | 0.00 | 1.00 |
-| reversed (74) | 0.18 | 0.64 | 0.46 | 0.36 | 0.18 | 0.62 |
-| stacked (41) | 0.32 | 0.66 | 0.39 | 0.34 | 0.27 | 0.21 |
-| all (297) | 0.41 | 0.80 | 0.71 | 0.20 | 0.09 | 0.77 |
+| plain (137) | 0.61 | 0.89 | 0.88 | 0.11 [0.06, 0.16] | +0.01 [−0.03, +0.06] | 0.95 [0.79, 1.12] |
+| two-clip (45) | 0.29 | 0.91 | 0.91 | 0.09 [0.02, 0.17] | +0.00 [−0.07, +0.06] | 1.00 [0.91, 1.12] |
+| reversed (74) | 0.18 | 0.64 | 0.46 | 0.36 [0.25, 0.48] | **+0.18** [+0.05, +0.30] | 0.62 [0.35, 0.88] |
+| stacked (41) | 0.32 | 0.66 | 0.39 | 0.34 [0.17, 0.51] | **+0.27** [+0.09, +0.47] | 0.21 [−0.27, 0.67] |
+| all (297) | 0.41 | 0.80 | 0.71 | 0.20 [0.15, 0.26] | +0.09 [+0.04, +0.14] | 0.77 [0.64, 0.90] |
 
 - **Reading:**
-  - On natural video (plain), the index keeps almost everything (0.95).
+  - On natural video (plain), the index keeps almost everything (0.95). The index loss is ≈ 0 on plain and two-clip videos, and its CIs exclude 0 only on reversed and stacked.
   - On reversed videos, the model is misled even when it looks with the question in view (0.36 shortfall; wrong answers equal the prior answer 0.59 of the time, C8). Writing blind loses another 0.18.
-  - On stacked videos, the model can see the comparison when asked (0.66), but blind captions keep almost none of it (0.21). This is the price of being question-blind (Prop. 4, C5b +0.22).
+  - On stacked videos, the model can see the comparison when asked (0.66), but blind captions keep little of it (0.21; the CI is wide). This is the price of being question-blind (Prop. 4, C5b +0.22).
+- **Haiku version** (Haiku reads Sonnet's captions; appendix table): the index loss is negative overall, −0.09 [−0.15, −0.04], so the captions beat Haiku's own frames, mostly on two-clip videos (−0.33 [−0.48, −0.20]); plain −0.05 [−0.11, +0.00], reversed −0.07 and stacked −0.02 (CIs include 0). Haiku's perception shortfall is 0.39 overall and ≈ 0.6 on reversed and stacked. Its retention by type is unstable where its frames are barely above its question-only score (stacked: 0.41 vs. 0.34), so it is not reported by type.
 - **Role of the hand labels:** they test whether the judge correctly sorts caption failures into three kinds:
   - misstatement: the captioner was misled and wrote it;
   - omission: the captioner did not commit;
@@ -314,23 +321,24 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
   - The confirmatory prompt is generic by design.
   - A prompt that names the benchmark's tricks (reversal, stacking) tells the index the test, and any gain from it would not generalize.
   - **Optional C11 (not run):** a prompt that knows the question family but not the tricks ("note direction, speed, order of events and changes of attributes"). It would measure how much of the index loss closes when the captioner knows what kind of question will come, between question-blind (now) and question-aware (C5).
-- **Missing:**
-  - clustered CIs for Table 5;
-  - the same table for Haiku on Sonnet captions (its frames are below its captions, claim 2a);
-  - (the hand-label notes are now in §8.3, and κ in §4.4.)
+- The hand-label notes are in §8.3, and κ is in §4.4.
 
 ### 8.2 Why the baselines are hard to beat
 - **The prior is strong:** the question alone scores 0.41 for both readers (C8a); 0.61 on plain videos.
 - **Errors fall back to the prior:** on reversed videos, Sonnet's wrong answers equal its question-only answer 0.59–0.74 of the time, across frames and caption arms (uniform 0.43; C8). The caption helps only where it contradicts the prior, and blind captioners rarely write that.
 - **Omission dominates:** 0.61–0.73 of wrong answers on captions come from captions that are silent on the question (C7). Misstatement is 0.15–0.28 and reader error 0.05–0.17.
 - **More pixels do not help the Claude captioner:** C9a +0.003 at 3.6× the visual tokens. The loss is in what gets written, not in what is seen.
-- **The value depends on the reader:** the same index helps Haiku (retention > 1) and hurts Sonnet (0.77). Whether an index "beats the baseline" depends on which reader the baseline uses (claim 2a, the cap).
-- **Reconstruction phase (old paper, `docs/paper/draft.md`):** continuity baselines were as strong as the models. ⟨cite: caption copy ≈ Claude; frame copy 87.5% on recognition⟩
-- **Missing:** the reader-strength figure (gaps table).
+- **The value depends on the reader** (Fig. 3): the same index helps Haiku (Sonnet captions: retention 1.47 [1.18, 1.95]) and hurts Sonnet (0.77 [0.64, 0.90]). Reading frames gains 0.19 from Haiku to Sonnet; reading Sonnet's captions gains 0.00. Whether an index "beats the baseline" depends on which reader the baseline uses (claim 2a, the cap).
+- **Reconstruction phase (`docs/paper/captions_vs_frames.md`, §4):** continuity baselines were as strong as the models.
+  - An 8B LLM in-filling masked captions lost to copying the nearest caption.
+  - On forced-choice recognition (160 items), Haiku from captions was level with caption copy (51.2% vs. 45.6%), and frame copy (87.5%) was level with Opus (85.0%).
+  - Sonnet's generated captions only drew level with caption copy (text rank 22.3 vs. 23.6).
 
 ### 8.3 Why caption utility is hard to evaluate
 - **No question-free reference:** a caption is right or wrong only relative to a question. The same caption is complete for "what happens" and silent for "which copy is faster".
-- **Similarity metrics track style:** in the reconstruction phase, cos_sim correlated with caption repetitiveness (APCS_T, r = +0.61). Per-second and order-free scoring gave opposite headlines.
+- **Similarity metrics track style:** in the reconstruction phase, cos_sim correlated with caption repetitiveness (APCS_T, Spearman ρ = +0.61; `docs/experiments/evaluation_and_metrics_decision_dossier.md`). Per-second and order-free scoring gave opposite headlines:
+  - per-second rank had no headroom (the true caption was level with caption copy, −0.2 ranks);
+  - order-free rank showed Claude's fills clearly beating caption copy (`captions_vs_frames.md` §4).
 - **"Silent" and "wrong" overlap:**
   - The judge found forward narration in only 0.28–0.45 of reversed failures, against a prediction of ≥ 0.50. A caption that never states a direction is consistent with both readings.
   - The hand labels show the same overlap: all 5 judge/hand disagreements are captions the user left "silent" and the judge decided. The hard items in the user's notes fall into four kinds:
@@ -374,10 +382,11 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 | ~~Sonnet question-only arm~~ | Done (C8): 0.414; claim 5 holds for Sonnet | — | 7-day quota 12% → 16% for C8 + C9 |
 | ~~Claim 3 and the captioner's visual budget~~ | Done (C9): 448 px captions do not close the 9 points (C9a +0.003) | — | (above) |
 | ~~Window length on short videos~~ | Done (C10): whole-video captions are no better (+0.01), and cost half as much per video | — | 7-day quota 17% → 19% |
-| Discussion §8 (skeleton written) | Why the baselines are hard to beat and caption utility hard to measure; what the benchmark tests when the captioner is also misled (Table 5) | clustered CIs for Table 5; the Haiku version; cite the reconstruction-phase numbers | none |
-| Optional C11: captioner prompt that knows the question family | Splits the index loss into not knowing the kind of question vs. not knowing the question (between now and C5) | Sonnet captions with an aspect-aware prompt (no benchmark tricks named); Haiku and Sonnet read | ≈ C10's quota (7-day +2–3%); user decides |
-| Figure for the reader-strength tension (claim 2a) | Explains why one index helps Haiku and hurts Sonnet | plot: x = reader on frames, y = reader on each index | none |
-| Colour consistency | Fig. 1 uses orange for Sonnet; Fig. 2 uses orange for Haiku self-captions | Fig. 2: a hue per arm that avoids the reader colours, or the reader colours with two shades | none |
+| ~~Discussion §8 numbers~~ | Done (D3): Table 5 with clustered CIs, the Haiku version, and the reconstruction-phase numbers cited | — | — |
+| ~~Haiku retention CIs~~ | Done (D3, §3): CIs exclude 1 for every index but self-captions | — | — |
+| C11 (planned for the week of 2026-10-26): captioner prompt that knows the question family | Splits the index loss into not knowing the kind of question vs. not knowing the question (between now and C5) | Sonnet captions with an aspect-aware prompt (no benchmark tricks named); Haiku and Sonnet read | ≈ C10's quota (7-day +2–3%) |
+| ~~Figure for the reader-strength tension (claim 2a)~~ | Done: Fig. 3, a slope chart by reader | — | — |
+| ~~Colour consistency~~ | Done: Fig. 2 uses palette slots 3–7, which Fig. 1's reader colours don't use; Fig. 3 reuses Fig. 2's caption hues | — | — |
 | Literature: done (N2, no scoop). Repeat Q7 before submission | New work weekly | rerun the §10.3 queries | this session's quota |
 | Public pre-registration archive | Reviewers can't verify local commits | an anonymous repository or OSF, before submission | user |
 | Open-weights reader | "All readers are closed" | G5 is case 1, so this is optional for ACL main; decide at G9 | Kaggle |

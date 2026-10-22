@@ -1280,6 +1280,37 @@ No new calls. These analyses are descriptive: the point estimates of Table 5 (dr
 - **Figure 3** (`plots.py readers`): a slope chart of accuracy by reader (Haiku, Sonnet) for question only, frames, and the two indexes both readers read (Sonnet captions, Gemini video captions). Each point has a 95% CI over clip clusters. It shows the tension of claim 2a: frames gain with the reader, and the indexes barely do.
 - **Figure 2:** new colours, so that no hue means a reader in one figure and an arm in another.
 
+**Result (2026-10-22; `reader.py headroom` and `plots.py readers`, run once; output in `results/index_qa/reports/headroom.txt` and `fig3.txt`).**
+- **Table 5, Sonnet on its own captions** (95% CIs over clip clusters):
+  - The index loss is ≈ 0 on plain (+0.01 [−0.03, +0.06]) and two-clip (+0.00) videos.
+  - It is clearly positive on reversed (+0.18 [+0.05, +0.30]) and stacked (+0.27 [+0.09, +0.47]) videos.
+  - The perception shortfall is 0.36 [0.25, 0.48] on reversed videos and 0.34 [0.17, 0.51] on stacked.
+  - Retention: plain 0.95 [0.79, 1.12], reversed 0.62 [0.35, 0.88], stacked 0.21 [−0.27, 0.67], all 0.77 [0.64, 0.90].
+- **Haiku on Sonnet captions:**
+  - The index loss is −0.09 [−0.15, −0.04] overall, mostly two-clip (−0.33 [−0.48, −0.20]); plain −0.05 [−0.11, +0.00].
+  - The perception shortfall is 0.39 overall, and 0.62 and 0.59 on reversed and stacked.
+  - Retention by type is unstable where frames barely beat the question alone (stacked: CI [−4.0, undefined]), so it is not reported by type.
+- **Retention per index, overall (clustered CIs):**
+  - Haiku:
+    - self-captions 1.15 [0.91, 1.46];
+    - Sonnet captions 1.47 [1.18, 1.95];
+    - Sonnet 448 px 1.48;
+    - Sonnet whole-video 1.53;
+    - Gemini frame-clip 1.55;
+    - Gemini video 1.62 [1.33, 2.10];
+    - Gemini frame 1.88 [1.53, 2.51].
+
+    Every CI but the self-captions' excludes 1.
+  - Sonnet: own captions 0.77 [0.64, 0.90], 448 px 0.82, whole-video 0.80, Gemini video 0.98 [0.85, 1.13].
+- **Figure 3:** accuracy by reader, with 95% CIs over clip clusters:
+  - frames 0.613 → 0.798;
+  - Sonnet captions 0.707 → 0.710;
+  - Gemini video captions 0.737 → 0.791;
+  - question only 0.411 → 0.414.
+
+  The frames line crosses both index lines.
+- **Reading:** the index loss is concentrated where the video departs from the prior (reversed) or where a comparison must be chosen in advance (stacked). On natural video, a question-blind index loses nothing measurable for the strong reader.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
