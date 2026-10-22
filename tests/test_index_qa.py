@@ -12,7 +12,8 @@ from index_qa import reader  # noqa: E402
 from index_qa.reader import (ARMS, CAPTIONER_LONG_EDGE, CAPTIONERS, CLAUDE_CAPTIONER, FRAMES_ALL, HIGH, INDEX_SOURCE, LOW,  # noqa: E402
                              PROMPTS, QSTAR_PAIRS, clip_clusters, cluster_boot, contrast_boot, list_usd, paired_boot,
                              parse, qstar_boot, retention_boot, spearman, thinking_tokens)
-from index_qa.caption import LENGTH_CLAUSE, frames_prompt, whole_prompt  # noqa: E402
+from index_qa.caption import (ASPECT_BULLET, LAST_BULLET, LENGTH_CLAUSE, end_line, frames_prompt,  # noqa: E402
+                              whole_prompt, with_aspects)
 from index_qa.self_caption import captioner  # noqa: E402
 
 
@@ -149,10 +150,28 @@ def test_claude_captioner_folders_match_the_reader_arms():
     assert captioner("sonnet") == "claude-sonnet-5-5-frames"
     assert captioner("sonnet", 448) == "claude-sonnet-5-5-frames448"
     assert captioner("sonnet", whole=True) == "claude-sonnet-5-5-frames-whole"
+    assert captioner("sonnet", whole=True, aspects=True) == "claude-sonnet-5-5-frames-aspects-whole"
     for arm, model in CLAUDE_CAPTIONER.items():
         assert arm in ARMS and CAPTIONERS[arm] == captioner(model, CAPTIONER_LONG_EDGE.get(arm, tc.LONG_EDGE),
-                                                            arm == "sonnetwhole")
+                                                            arm in ("sonnetwhole", "sonnetaspects"),
+                                                            arm == "sonnetaspects")
         assert arm in INDEX_SOURCE
+
+
+def test_with_aspects_adds_only_the_bullet():
+    base = whole_prompt(12, 12.0, 3)
+    p = with_aspects(base)
+    assert ASPECT_BULLET in p and p.replace(ASPECT_BULLET + "\n", "") == base
+    assert p.index(ASPECT_BULLET) < p.index(LAST_BULLET)
+    assert "revers" not in ASPECT_BULLET.lower() and "stack" not in ASPECT_BULLET.lower()  # no benchmark tricks
+
+
+def test_latest_skips_a_partial_row(tmp_path, monkeypatch):
+    monkeypatch.setattr(reader, "OUT", tmp_path)
+    (tmp_path / "haiku.jsonl").write_text('{"item": "a", "status": "ok"}\n{"item": "b", "sta')
+    assert list(reader.latest("haiku")) == ["a"]
+    end_line(tmp_path / "haiku.jsonl")
+    assert (tmp_path / "haiku.jsonl").read_text().endswith('"sta\n')
 
 
 def test_whole_prompt_scales_only_the_length_limit():

@@ -14,8 +14,12 @@ image tokens by the same rule, so all captioners spend the same visual tokens on
     .venv/bin/python scripts/index_qa/self_caption.py --set confirm --model sonnet --limit 3   # C3's 3-call check
     .venv/bin/python scripts/index_qa/self_caption.py --set confirm --model sonnet --long-edge 448   # C9
     .venv/bin/python scripts/index_qa/self_caption.py --set confirm --model sonnet --whole   # C10
+    .venv/bin/python scripts/index_qa/self_caption.py --set confirm --model sonnet --whole --aspects   # C11
 --whole (C10) captions each video once from all its frames (the frames5 frames of every window, in time order),
-with caption.whole_prompt: the same prompt, with the length limit times the number of windows.
+with caption.whole_prompt: the same prompt, with the length limit times the number of windows. --aspects (C11, with
+--whole) adds caption.ASPECT_BULLET, naming the kinds of question the captions will serve (read by sonnetaspects).
+A caption file is written to a temporary name and then renamed, so a reader running at the same time never sees a
+partial one; a stopped run resumes where it left off.
 Writes results/index_qa/captions/<captioner>/<video_id>/<pp>.json (captioner(): Haiku's are read by reader.py's
 selfcaptions arm, Sonnet's by sonnetcaptions, Sonnet's from 448 px frames by sonnetcaptions448, Sonnet's whole-video
 ones, as window 00, by sonnetwhole) and one row per attempt to results/index_qa/self_captions.jsonl.
@@ -34,18 +38,21 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import caption_pieces as cp  # noqa: E402
 from index_qa import tempcompass as tc  # noqa: E402
-from index_qa.caption import WHOLE, caption_path, frames_prompt as prompt_for, whole_prompt  # noqa: E402
+from index_qa.caption import (ASPECTS, WHOLE, caption_path, end_line, frames_prompt as prompt_for,  # noqa: E402
+                              whole_prompt, with_aspects)
 from unshuffle.claude_reader import EFFORT, MODELS, call_claude  # noqa: E402
 
 LOG = tc.OUT / "self_captions.jsonl"
 
 
-def captioner(model: str, long_edge: int = tc.LONG_EDGE, whole: bool = False) -> str:
+def captioner(model: str, long_edge: int = tc.LONG_EDGE, whole: bool = False, aspects: bool = False) -> str:
     """The captions folder of a Claude captioner. Haiku keeps K2's name ("-self": it captions for itself as the
     reader); other models caption for another reader, named like Gemini's frame captions ("-frames"). Frames at
-    another size than the reader's add it to the name (C9: "-frames448"); one caption per video adds WHOLE (C10)."""
+    another size than the reader's add it to the name (C9: "-frames448"); the aspect bullet adds ASPECTS (C11); one
+    caption per video adds WHOLE last (C10)."""
     name = "claude-haiku-5-5-self" if model == "haiku" else f"{MODELS[model]}-frames"
     name = name if long_edge == tc.LONG_EDGE else f"{name}{long_edge}"
+    name = f"{name}{ASPECTS}" if aspects else name
     return f"{name}{WHOLE}" if whole else name
 
 
@@ -65,11 +72,14 @@ def main() -> None:
     ap.add_argument("--long-edge", type=int, default=tc.LONG_EDGE,
                     help="frame size (C9: 448, frames from tempcompass.py frames --long-edge 448)")
     ap.add_argument("--whole", action="store_true", help="one caption per video from all its frames (C10)")
+    ap.add_argument("--aspects", action="store_true", help="add the aspect bullet (C11; with --whole)")
     ap.add_argument("--max-5h", type=float, default=0.7)
     ap.add_argument("--max-7d", type=float, default=0.9)
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
-    model_id, name = MODELS[args.model], captioner(args.model, args.long_edge, args.whole)
+    if args.aspects and not args.whole:
+        sys.exit("--aspects is defined for whole-video captions only (C11): add --whole")
+    model_id, name = MODELS[args.model], captioner(args.model, args.long_edge, args.whole, args.aspects)
 
     jobs = []
     for q in tc.first_per_dim(tc.items(args.set_), args.per_dim):
@@ -81,7 +91,8 @@ def main() -> None:
         if args.whole:
             frames = [f for fs in wframes for f in fs]
             if not caption_path(name, v, 0).exists():
-                jobs.append((v, 0, 0, wins[-1][1], frames, whole_prompt(len(frames), wins[-1][1], len(wins))))
+                prompt = whole_prompt(len(frames), wins[-1][1], len(wins))
+                jobs.append((v, 0, 0, wins[-1][1], frames, with_aspects(prompt) if args.aspects else prompt))
             continue
         for p, ((s, e), frames) in enumerate(zip(wins, wframes)):
             if not caption_path(name, v, p).exists():
@@ -94,6 +105,7 @@ def main() -> None:
             v, p, s, e, frames, prompt = jobs[0]
             print(f"--- {v} window {p}: {len(frames)} frames\n{prompt}")
         return
+    end_line(LOG)
     with LOG.open("a") as log:
         for n, (v, p, s, e, frames, prompt) in enumerate(jobs):
             for attempt in (1, 2):
@@ -128,11 +140,13 @@ def main() -> None:
                 continue
             dest = caption_path(name, v, p)
             dest.parent.mkdir(parents=True, exist_ok=True)
-            dest.write_text(json.dumps(dict(
+            tmp = dest.with_suffix(".tmp")
+            tmp.write_text(json.dumps(dict(
                 video_id=v, window=p, start_s=s, end_s=e, caption=caption, captioner=model_id,
                 effort=args.effort, frames=[str(f.relative_to(tc.ROOT)) for f in frames],
                 prompt_sha256=hashlib.sha256(prompt.encode()).hexdigest()[:16], usage=res.get("usage"),
                 model_usage=res.get("modelUsage")), indent=1))
+            tmp.replace(dest)
             if util_5h is not None and util_5h >= args.max_5h:
                 sys.exit(f"5-hour quota use reached {util_5h:.0%}; stopping")
             if util_7d is not None and util_7d >= args.max_7d:

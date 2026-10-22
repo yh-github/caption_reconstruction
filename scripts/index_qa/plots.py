@@ -34,9 +34,10 @@ LABEL = {"blind": "question only", "frame1": "1 frame", "frames5": "5 frames", "
          "describe5": "describe, answer", "selfcaptions": "self-captions", "sonnetcaptions": "Sonnet captions",
          "frameclipcaptions": "Gemini frame-clip capt.", "framecaptions": "Gemini frame capt.",
          "captions": "Gemini video capt.", "sonnetcaptions448": "Sonnet captions 448 px",
-         "sonnetwhole": "Sonnet whole-video capt."}
-# Caption variants left out of Fig. 1 (robustness checks, in Table 1): C9's 448 px and C10's whole-video captions
-FIG1_SKIP = {"sonnetcaptions448", "sonnetwhole"}
+         "sonnetwhole": "Sonnet whole-video capt.", "sonnetaspects": "Sonnet aspect-aware capt."}
+# Caption variants left out of Fig. 1 (robustness checks, in Table 1): C9's 448 px, C10's whole-video and C11's
+# aspect-aware captions
+FIG1_SKIP = {"sonnetcaptions448", "sonnetwhole", "sonnetaspects"}
 # Label offsets (points) in the Q = inf panel, where the caption arms crowd at one cost; Sonnet labels go left
 OFFSET = {("haiku", "captions"): (5, 4), ("haiku", "frameclipcaptions"): (5, 0), ("haiku", "sonnetcaptions"): (5, -11),
           ("haiku", "selfcaptions"): (5, -6), ("sonnet", "frames5"): (-6, 4)}

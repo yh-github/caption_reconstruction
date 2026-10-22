@@ -1311,6 +1311,45 @@ No new calls. These analyses are descriptive: the point estimates of Table 5 (dr
   The frames line crosses both index lines.
 - **Reading:** the index loss is concentrated where the video departs from the prior (reversed) or where a comparison must be chosen in advance (stacked). On natural video, a question-blind index loses nothing measurable for the strong reader.
 
+### C11 — A captioner that knows the kinds of question (written 2026-10-22, committed before any C11 call)
+
+**Why.** Draft §8.1 splits Sonnet's index loss (+0.09 overall; +0.18 on reversed and +0.27 on stacked videos, D3) from its perception shortfall. The captioner sees the frames but not the question. C11 asks how much of the index loss closes when the captioner knows the *kinds* of question that will come, but not the question itself. That places the index between question-blind (now) and question-aware (C5, describe then answer). The user asked whether the captioner prompt should change, because the captioner is also misled (2026-10-22).
+
+**Arm `sonnetaspects`.**
+- Sonnet captions each confirmatory video once, from all of its frames5 frames. This is exactly C10's `sonnetwhole` call: the same frames, the same length limit, effort medium.
+- One bullet is added before the prompt's last bullet (`caption.ASPECT_BULLET`): "The description will be used later to answer questions about the actions, the speed of the movements, the direction of the movements, the order of the events, and changes in the attributes of things (such as size, colour, shape or state). State these whenever the frames show them."
+  - It names TempCompass's five aspects in general terms.
+  - It does not name how the benchmark's videos are made: no reversal, stacking or concatenation (test `test_with_aspects_adds_only_the_bullet`).
+  - It does not ask for comparisons.
+- Haiku and Sonnet read the captions with `sonnetwhole`'s reader prompt, so the reader does not know the captioner's prompt changed.
+- The confirmatory captioner prompt is unchanged. C11 is exploratory.
+
+**Predictions** (95% CIs over questions and over clip clusters; by type over clip clusters):
+
+| Term | Prediction |
+|---|---|
+| C11a: Haiku, aspects − whole | **+0.03** (plain +0.01, two-clip 0.00, reversed +0.04, stacked +0.08) |
+| C11b: Sonnet, aspects − whole | **+0.03** (same by type) |
+| C11c: Haiku on aspects − Sonnet on frames | −0.05 |
+| C11d: Sonnet on own aspects − its frames | −0.05 (C10d was −0.077: ≈ 40% of the index loss closes) |
+| Captioner input tokens, aspects − whole, same video | a constant: the bullet alone (≈ 50–70) |
+| Words per caption, median ratio aspects / whole | 1.05 (same limit) |
+| Says the clip runs backwards ("revers", "backward", "rewind") | reversed videos +0.05 over whole; other videos +0.00 |
+| Index $ per video; Q\* vs. Sonnet on frames | ≈ C10 (0.0049; 1.2–1.3) |
+
+**Readings, set now.**
+- **C11b ≥ +0.04 with a CI above 0:** knowing the kinds of question buys a measurable part of the index loss. If the gain sits on stacked videos, the loss there is about choosing what to write. If it sits on reversed videos, the captioner could see the direction when told to state it, so part of the "perception shortfall" was attention.
+- **C11a and C11b ≈ 0:** naming the aspects does not help. Only the question itself (C5) recovers the loss, which strengthens Prop. 4: the price is of not knowing the question, not of not knowing the task.
+- **Plain videos drop (≤ −0.03):** the bullet invites statements the frames do not support. Check by reading the captions of the lost questions.
+- **Reversal mentions rise without accuracy:** the captioner states direction more, but the readers don't use it.
+
+**Run (resumable; `scripts/index_qa/run_c11.sh`, committed with this entry).**
+1. **3-call check** (`run_c11.sh check`): 3 captions. Inspect them, and check that the input tokens are `sonnetwhole`'s plus a constant. If the check fails, stop and investigate.
+2. **Run** (`run_c11.sh run`): the captions, with Haiku and Sonnet reading each video as soon as its caption exists (to save wall-clock time), then `reader.py c11` and `cost`, run once.
+   - Stop rules: captions `--max-5h 0.7 --max-7d 0.5`, reads `--max-5h 0.8`; after a stop, the script waits for the 5-hour reset.
+   - `run_c11.sh stop` stops everything, and `run` again resumes: caption files are written atomically, and a partial reader row is skipped and its item rerun.
+   - Expected: about 50 min of compute and a 7-day quota rise of about +2%.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).

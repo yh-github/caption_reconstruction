@@ -44,6 +44,13 @@ MODE = "tc_isolated"
 GEMINI_LEAD = "Describe what happens in the attached 5-second video clip,"
 LENGTH_CLAUSE = "in one or two sentences of at most 45 words in total"
 WHOLE = "-whole"  # suffix of a captioner folder with one caption per video (C10), not per window
+# C11: a bullet, added before the prompt's last one, that names the kinds of question the captions will serve
+# (TempCompass's five aspects, in general terms) but not how the benchmark's videos are made
+ASPECTS = "-aspects"  # infix of a captioner folder whose captions were written with ASPECT_BULLET (C11)
+ASPECT_BULLET = ("* The description will be used later to answer questions about the actions, the speed of the "
+                 "movements, the direction of the movements, the order of the events, and changes in the attributes "
+                 "of things (such as size, colour, shape or state). State these whenever the frames show them.")
+LAST_BULLET = '* If a description cannot be generated, write "ERROR".'
 
 
 def prompt_for(base: str, dur: float) -> str:
@@ -72,6 +79,13 @@ def whole_prompt(n_frames: int, dur: float, n_windows: int) -> str:
     return p.replace(LENGTH_CLAUSE, f"in at most {2 * n_windows} sentences of at most {45 * n_windows} words in total")
 
 
+def with_aspects(prompt: str) -> str:
+    """A caption prompt with ASPECT_BULLET inserted before its last bullet (C11); nothing else changes."""
+    if LAST_BULLET not in prompt:
+        sys.exit("the caption prompt changed; update LAST_BULLET")
+    return prompt.replace(LAST_BULLET, f"{ASPECT_BULLET}\n{LAST_BULLET}")
+
+
 def frames_content(frames: list[Path], prompt: str):
     return cp.types.Content(parts=[*(cp.types.Part(inline_data=cp.types.Blob(data=f.read_bytes(), mime_type="image/jpeg"))
                                      for f in frames), cp.types.Part(text=prompt)])
@@ -98,6 +112,18 @@ def visual_tokens(mode: str) -> dict[tuple[str, int], int]:
             out[r["video_id"], r["piece"]] = sum(d["token_count"] for d in r["usage"].get("prompt_tokens_details", [])
                                                  if d["modality"] in ("VIDEO", "IMAGE"))
     return out
+
+
+def end_line(path: Path) -> None:
+    """End a JSONL file's last line if a stopped run left it partial, so the next row starts on its own line (the
+    partial row is then skipped by readers of the file)."""
+    if path.exists() and path.stat().st_size:
+        with path.open("rb") as f:
+            f.seek(-1, 2)
+            partial = f.read(1) != b"\n"
+        if partial:
+            with path.open("a") as f:
+                f.write("\n")
 
 
 def caption_path(model: str, video_id: str, p: int) -> Path:
