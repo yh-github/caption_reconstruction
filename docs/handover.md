@@ -16,7 +16,7 @@ The newest session is at the top. Older sessions stay below because other docs l
      - The whole-video index costs half as much; Q\* is 1.2.
      - Resampling a caption from identical input changes 10–17% of answers.
      - Figure 1 now leaves out the 448 px and whole-video variants.
-  3. Open, for the user to decide: a Discussion §8 on why caption utility is hard to measure (draft gaps table). It could use the user's notes on the hard hand-label items.
+  3. Discussion §8 skeleton written (2026-10-22). It adds Table 5, a descriptive split of Sonnet's headroom by video type: perception shortfall vs. index loss, which answers "the captioner is misled too". Still open: CIs, the user's hand-label notes, and the optional C11 (a captioner prompt that knows the question family; not approved).
   4. Remaining gaps: the reader-strength figure, Fig. 2 colours, and Haiku retention CIs.
 
 # 2026-10-20 (night) → C3–C6 done, G5 = case 1; draft v1; C7 audit queued
