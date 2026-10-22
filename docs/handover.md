@@ -24,9 +24,14 @@ The newest session is at the top. Older sessions stay below because other docs l
      - Fig. 3, a reader slope chart: `plots.py readers`.
      - Fig. 2's colours are now apart from the reader colours.
      - The reconstruction-phase numbers are cited in §8.2–8.3.
-  5. **Next:**
-     - C11 is planned for the week of 2026-10-26: a captioner prompt that knows the question family. Log it with predictions first.
-     - Then turn the skeleton into prose: Results → Discussion → Setup → Intro, Abstract and Related work.
+  5. **C11 is done (2026-10-22, 31 min; `scripts/index_qa/run_c11.sh`, resumable, reads follow the captions).**
+     - Aspect-aware whole-video captions: Sonnet reading them +0.040 [+0.003, +0.081], Haiku +0.027 (CI includes 0). Both match the +0.03 prediction.
+     - Sonnet's index loss against its frames halves (−0.077 → −0.037).
+     - Stacked is not fixed (0.39, the same as the per-window captions), and reversal mentions do not rise.
+     - The captions are 15% longer.
+     - Recorded in the log's C11 *Result*, draft claim 4a, §8.1, Table 1 and the Q\* table.
+  6. **Next:**
+     - Turn the skeleton into prose: Results → Discussion → Setup → Intro, Abstract and Related work.
      - Before submission: a public pre-registration archive (user) and a repeat of Q7.
 
 # 2026-10-20 (night) → C3–C6 done, G5 = case 1; draft v1; C7 audit queued

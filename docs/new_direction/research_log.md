@@ -1357,6 +1357,45 @@ No new calls. These analyses are descriptive: the point estimates of Table 5 (dr
 - The captions state direction and order more explicitly than C10's ("draws a wavy, dotted teal line that stretches rightward", "straight vertical lines downward"; the forest's colour sequence step by step).
 - The stacked two-circle video is "nothing moves" under both prompts (1 fps frames). That is perception, not the prompt.
 
+**Result (2026-10-22; `run_c11.sh run`, 07:55–08:26 UTC; `reader.py c11` and `cost` run once; output in `results/index_qa/reports/c11.txt` and `cost.txt`).**
+- **Calls:** 297 captions and 297 reads each by Haiku and Sonnet. Every call was ok and every answer parsed.
+- **Timing:** captions took 21 min. Reads followed the captions and ended 7 and 9 min after them, so the whole run took 31 min.
+- **Quota:** 7-day 22% → 25%; 5-hour ≈ 48% at the end.
+
+| | Prediction | Result (95% CI over questions; clustered) |
+|---|---|---|
+| Input tokens, aspects − whole | constant ≈ 50–70 | **74 for all 297 videos** |
+| Words, median ratio | 1.05 | **1.15** (median 86 vs. 76) |
+| Says the clip runs backwards: reversed / other videos | +0.05 / +0.00 | **0.05 vs. 0.08** (4 vs. 6 of 74) / 0.00 vs. 0.00 |
+| **C11a, Haiku, aspects − whole** | **+0.03** | **+0.027** [−0.013, +0.067]; [−0.011, +0.066]. By type: plain +0.02, two-clip +0.07, reversed +0.01, stacked +0.02 |
+| **C11b, Sonnet, aspects − whole** | **+0.03** | **+0.040** [+0.003, +0.081]; [+0.000, +0.081]. By type: plain +0.02, two-clip +0.02, reversed +0.04 [−0.05, +0.14], **stacked +0.12 [+0.00, +0.26]** |
+| C11c, Haiku on aspects − Sonnet on frames | −0.05 | **−0.051** [−0.104, +0.000]; stacked −0.27 |
+| C11d, Sonnet on own aspects − its frames | −0.05 | **−0.037** [−0.081, +0.007]; [−0.089, +0.014]. Plain +0.03, two-clip +0.04, reversed −0.08, stacked −0.27 [−0.49, −0.05] |
+| Index $ per video; Q\* vs. Sonnet on frames | ≈ 0.0049; 1.2–1.3 | 0.00527; **1.3** [1.3, 1.4] |
+
+- **Accuracy:**
+
+  | Reader | Aspect captions | Whole-video captions (C10) | Per-window captions | Frames |
+  |---|---|---|---|---|
+  | Haiku | 0.747 | 0.721 | 0.707 | — |
+  | Sonnet | 0.761 | 0.721 | 0.710 | 0.798 |
+- **Reading (rules set in advance):**
+  - C11b sits exactly at the threshold of the first reading (+0.040). Its question-level CI is above 0, and its clustered CI touches 0.
+  - C11a matches its prediction, and its CI includes 0.
+  - **Say:** knowing the kinds of question buys a small gain (+0.03 to +0.04), consistent in sign across readers and types. It closes about half of Sonnet's index loss against its own frames (C10d −0.077 → C11d −0.037).
+- **Where the gain is, and two caveats (descriptive, not planned):**
+  1. **Stacked:**
+     - Sonnet's +0.12 on stacked videos recovers C10's whole-video loss there (C10b stacked −0.12): `sonnetwhole` 0.27 → `sonnetaspects` 0.39, which equals the per-window captions (0.39).
+     - Against the per-window captions, the aspect captions gain on plain (+0.04), two-clip (+0.05) and reversed (+0.09) videos, and not on stacked (0.00 for Sonnet, −0.05 for Haiku).
+     - So the bullet does not fix the stacked comparison: Sonnet on frames stays +0.27 ahead. That loss needs the question (C5b), as Prop. 4 says.
+  2. **Length:**
+     - The aspect captions are 15% longer at the same limit, so part of the gain may be more words, not the right words. C11 does not separate the two.
+     - Reversal mentions did not rise (0.05 vs. 0.08). On reversed videos, the gain (+0.04 Sonnet, +0.01 Haiku; CIs include 0) comes from stating direction more explicitly, not from noticing the reversal.
+- **Resampling noise (C10):** a fresh caption alone changes 10–17% of answers. So a gain of +0.03–0.04 averaged over 297 questions is the scale this design can detect, and the by-type terms (n = 41–137) cannot be told apart from noise except stacked for Sonnet, whose CI touches 0.
+- **For the paper:**
+  - §8.1 can report the middle point between question-blind and question-aware: knowing the kinds of question closes about half of the index loss for Sonnet, and none of the stacked loss.
+  - The cheapest index that comes closest to Sonnet on frames is now Haiku on aspect captions: −0.051, Q\* 1.3.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
