@@ -38,6 +38,10 @@ results/*
 results/index_qa/*
 !results/index_qa/kill_test_items.json
 !results/index_qa/confirm_items.json
+# the user's 40 hand labels that validate the C7 audit judge (κ in research_log.md C7)
+!results/index_qa/audit/
+results/index_qa/audit/*
+!results/index_qa/audit/hand_labels.csv
 test_logs/
 test_results/
 .test_lock*

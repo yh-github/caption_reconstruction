@@ -10,13 +10,13 @@ The newest session is at the top. Older sessions stay below because other docs l
 - **Literature (N2, `related_work_caption_index.md` §10):** no scoop on Q1–Q7. The closest papers are Caption This, Reason That; GEASS; and Seeing and Solving.
 - **Quota:** 7-day 12% → 16% for C8 + C9.
 - **Next:**
-  1. The user fills `results/index_qa/audit/hand_labels.csv`. Then run `audit.py agree` and update Table 4 and claims 4, 5 and 7.
+  1. **Hand labels done (2026-10-22):** agreement 0.88, κ = 0.81, so Table 4 keeps the judge's labels. All 5 disagreements are the user's "silent". Recorded in log C7 (judge check), draft claims 4 and 7, and §4.4. The sheet now has a `note` column and is tracked in git.
   2. **C10 is done** (one Sonnet caption per video, arm `sonnetwhole`; log C10 *Result*, draft claim 3a and §4.7).
      - Splitting into 5 s windows costs nothing: +0.013 (Haiku), +0.010 (Sonnet).
      - The whole-video index costs half as much; Q\* is 1.2.
      - Resampling a caption from identical input changes 10–17% of answers.
      - Figure 1 now leaves out the 448 px and whole-video variants.
-  3. Discussion §8 skeleton written (2026-10-22). It adds Table 5, a descriptive split of Sonnet's headroom by video type: perception shortfall vs. index loss, which answers "the captioner is misled too". Still open: CIs, the user's hand-label notes, and the optional C11 (a captioner prompt that knows the question family; not approved).
+  3. Discussion §8 skeleton written (2026-10-22). It adds Table 5, a descriptive split of Sonnet's headroom by video type: perception shortfall vs. index loss, which answers "the captioner is misled too". The user's hand-label notes are now in §8.3. Still open: CIs and the optional C11 (a captioner prompt that knows the question family; not approved).
   4. Remaining gaps: the reader-strength figure, Fig. 2 colours, and Haiku retention CIs.
 
 # 2026-10-20 (night) → C3–C6 done, G5 = case 1; draft v1; C7 audit queued

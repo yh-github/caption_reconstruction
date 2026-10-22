@@ -991,7 +991,12 @@ This is the paper's qualitative analysis, and it tests A3's readings.
 - **Run.**
   - **3-call check:** the first label was checked by hand and is right. It was a stacked sunrise, where the caption names one sun and no speeds, and the judge said "silent".
   - **Labels:** 442 items, all labelled; 7-day quota 7% → 9%.
-  - **Hand-label sheet:** `results/index_qa/audit/hand_labels.csv`, 40 items, blind (prompt only). **κ is pending the user's labels.** Until then, every number below is the judge's.
+  - **Hand-label sheet:** `results/index_qa/audit/hand_labels.csv`, 40 items, blind (prompt only). Every number below is the judge's.
+- **Judge check (2026-10-22; `audit.py agree`): agreement 0.88 (35/40), Cohen's κ = 0.81 ≥ 0.6,** so the judge's labels stand (rule above). Bootstrap over the 40 items (10,000 draws, seed 0): 95% CI [0.64, 0.96], so the lower end is also above 0.6.
+  - **The judge is never confused between "correct" and "wrong":** it agrees on all 11 of the user's "correct" labels and all 11 of the user's "wrong" ones.
+  - **All 5 disagreements are the user's "silent":** the judge said "correct" 3 times (items 3, 18, 19) and "wrong" 2 times (items 1, 20). The judge settles borderline captions where the user leaves them undecided, so its "silent" shares are, if anything, an undercount.
+  - **Labelling was blind to the judge, but not to a Claude reading.** The user labelled in a session with Claude (Opus), which never showed the judge's labels. Claude did point out caption details before the user settled six items (1, 3, 11, 18, 20, 25). Three of those labels changed from the user's first instinct (1: correct → silent; 18: wrong → silent; 20: correct or silent → silent). With the first-instinct labels, κ is also 0.81: the changes move which items disagree, not how many.
+  - **The user's notes** are in the sheet's `note` column. Item 25 (a reversed wall) is "correct" only given the task's knowledge that videos may be reversed; the judge's prompt doesn't say so, and the judge also said "correct" from "debris tumble upward".
 - **Wrong answers by the judge's label of the captions** (share: reader error "correct" / misstatement "wrong" / omission "silent"; n wrong), with the prediction:
 
 | Reader arm | Correct | Wrong | Silent | n | Prediction |
@@ -1012,7 +1017,7 @@ This is the paper's qualitative analysis, and it tests A3's readings.
   - Plain: silent 0.60–0.80.
   - Two-clip: few errors (1–8 per arm), mostly reader errors, where the captions state the order but the reader still answered wrongly.
 - **Reading:** a question-blind caption fails mainly by leaving out what the question asks, and less often by stating the wrong thing. This fits the cap of the C3 result: once the fact is missing, no reader can recover it. It also fits Prop. 4 and C5b on stacked videos (+0.22 for a description that sees the question).
-- **Caveat:** Sonnet is both the judge and one of the captioners. If κ with the hand labels is < 0.6, only the hand-labelled sample is reported (pre-registered above).
+- **Caveat:** Sonnet is both the judge and one of the captioners. If κ with the hand labels is < 0.6, only the hand-labelled sample is reported (pre-registered above). κ is 0.81 (judge check above), so the judge's labels are reported.
 
 ### C8 — Sonnet with the question only (written 2026-10-21, committed before any C8 call)
 

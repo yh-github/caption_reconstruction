@@ -1,0 +1,830 @@
+key,prompt,label,note
+selfcaptions|tcc032|1062609286_concat_2|speed,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 7.3 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A dashboard-style eco gauge animates as the battery-level ring counts down across the five frames, from 0% to 14%, 33%, 52%, and then 71%, while the power-meter arc on the right shifts. The setting is a futuristic blue-lit car instrument display.
+5-7.3 s: A futuristic dashboard shows two circular battery gauges labeled ECO and POWER. The lower battery indicator fills steadily from about 43% to 62%, while the upper one holds at 100%. The camera stays fixed on the glowing blue interface.
+
+Question: What is happening to the battery charge above?
+A. increasing at a faster speed than the battery charge below
+B. increasing at a slower speed than the battery charge below
+C. increasing at the same speed as the battery charge below
+
+The correct answer is A. increasing at a faster speed than the battery charge below
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",silent,borderline silent/wrong: 0-5 s says the ring 'counts down' and doesn't say which gauge; 5-7.3 s says the upper gauge holds at 100%
+sonnetcaptions|tcc027|1075338140_concat_2|speed,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 5.4 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A shiny metallic sphere rolls along a curving pink ribbon that winds over soft blue wavy surfaces, moving from the left toward the right and back down along the undulating path. The 3D-rendered scene has a smooth pastel blue background, and the camera shifts slightly.
+
+Question: Compared to the ball below, how would you describe the speed of the ball above?
+A. same
+B. slower
+C. faster
+
+The correct answer is C. faster
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",silent,only one sphere mentioned
+frameclipcaptions|tcc162|1091143117_1094219575_0|order,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 5.1 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A closed human eye in the top panel of a split-screen video opens to reveal a bright blue iris, while a pale pink flower blooms against a black background in the bottom panel.
+
+Question: Which event happens first in the video?
+A. A flower is wilting
+B. Both events happen at the same time
+C. An eye is opening
+
+The correct answer is B. Both events happen at the same time
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",silent,
+frameclipcaptions|tcc210|1086688682|attribute_change,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 9.5 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A traffic light glows red in an urban setting. Tall modern skyscrapers with glass facades rise in the background under an overcast sky.
+5-9.5 s: A traffic light shines a steady green signal while hanging from a pole, framed from a low angle against the backdrop of tall modern skyscrapers.
+
+Question: What is the attribute change occurring to the traffic lights?
+A. Changing color sequence
+B. Dimming brightness
+C. Switching off
+D. Blinking rapidly
+
+The correct answer is A. Changing color sequence
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",correct,red->green only; 'sequence' not stated; other options excluded by 'steady'
+captions|tcc299|1099984801_reverse|direction,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 8 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A starry night sky brightens as the moon rises over snow-covered mountain peaks in this timelapse. Wispy clouds sweep past the illuminated mountainsides, revealing a small glowing structure perched on a lower ridge.
+5-8 s: In this time-lapse video, wispy clouds sweep rapidly across a starry night sky above snow-capped mountain peaks, illuminated by a brilliant, glowing moon.
+
+Question: In what direction are the clouds heading?
+A. towards the camera
+B. upward
+C. downward
+D. away from the camera
+
+The correct answer is D. away from the camera
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",silent,"no direction, just 'sweep across'"
+captions|tcc261|3411228673_reverse|direction,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 5.5 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A drone flies forward between modern glass skyscrapers toward a tree-lined street in an urban area. Lush green hills rise in the background beneath a partly cloudy blue sky.
+
+Question: In which direction is the camera moving?
+A. backwards
+B. forwards
+C. downwards
+D. upwards
+
+The correct answer is C. downwards
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",wrong,"'drone flies forward' = camera forward in a drone shot, states option B"
+frameclipcaptions|tcc171|1067268403_1064645467_0|order,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 12 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: Offshore wind turbines rotate in the sea at sunset in the top panel of a split-screen video, while a man in a business suit removes his jacket at an outdoor gym in the bottom panel.
+5-10 s: An offshore wind turbine rotates over the ocean at sunset in the top panel of a split screen, while in the bottom panel, a businessman takes off his suit jacket at an outdoor fitness park.
+10-12 s: In a split-screen video, offshore wind turbines turn over the sea at sunset on top, while a man in a white shirt and tie puts on his black jacket at an outdoor fitness park below.
+
+Question: What is happening in the first event of the video?
+A. A man is doing exercise while wind turbines are rotating
+B. Wind turbines are rotating
+C. A man is doing exercise
+
+The correct answer is A. A man is doing exercise while wind turbines are rotating
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",correct,
+sonnetcaptions|tcc290|1095939659_reverse|direction,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 9.8 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: Concentric glowing orange neon rings pulse on an orange background, then the left side darkens and the rings sweep away to the right, shrinking into thin arcs that fade into darkness before the full set of rings reappears in the final frame.
+5-9.8 s: Glowing orange neon rings expand and pulse outward from the center, sweeping as partial arcs on a dark background, then forming full concentric circles before breaking into arcs again. The abstract animation has a warm golden glow and shifting, rotating curved light lines.
+
+Question: What is the direction of the light's movement?
+A. Clockwise
+B. Anticlockwise
+C. Straight forward
+D. Downwards
+
+The correct answer is B. Anticlockwise
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",silent,
+captions|tcc036|1084518106_concat_2|speed,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 7.1 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A white semi-truck travels along a highway running through rural farmland under the morning sunlight. Viewed from a high angle, the truck drives along the road bordered by a golden grain field, green crops, and distant woodland.
+5-7.1 s: A white semi-truck drives down an asphalt highway between golden and green crop fields toward a forest, captured from a high-angle aerial perspective as the camera tracks forward.
+
+Question: How does the speed of the truck above compare to the truck below?
+A. the same speed
+B. faster
+C. slower
+
+The correct answer is C. slower
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",silent,only one truck mentioned
+frameclipcaptions|tcc126|1067268406_1067427023_2|order,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 19.9 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: In a time-lapse, snow rapidly melts from a patch of ground to reveal vibrant green grass, dry leaves, and soil beneath. As the snow recedes, only small patches of translucent ice remain among the grass blades.
+5-10 s: Small patches of snow rapidly melt and disappear among green blades of grass, brown leaves, and twigs in a time-lapse.
+10-15 s: A white hatchback overtakes the forward-moving camera along an empty highway bridge. Wind turbines and streetlights line the roadway under a pastel sunset sky as the car drives into the distance.
+15-19.9 s: The camera follows behind a white car as it drives down an empty bridge at sunset. Wind turbines and lampposts line the side of the road against a soft, glowing sky.
+
+Question: What is happening second in the video?
+A. a white car is driving
+B. snow particles are melting
+C. a white car is driving while snow particles are melting simultaneously
+
+The correct answer is A. a white car is driving
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",correct,
+selfcaptions|tcc142|1082268005_1063373449_0|order,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 6 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A 3D-rendered red spiky virus particle floats in a blurred pink and grey setting, while above it on a white background a small white object grows into a cluster of white and dark blue cubes that scatter outward. Camera view appears static.
+5-6 s: The clip shifts from a white-background 3D render of a blue cube-built bowl shape scattered with yellow and white cubes to a hazy microscopic view of red, spiky virus-like spheres drifting among blue and green particles.
+
+Question: What is the first event in the video?
+A. planet earth is assembling from toy bricks
+B. viruses are dissolving
+C. The events are happening simultaneously
+
+The correct answer is C. The events are happening simultaneously
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",correct,"borderline: 0-5 s 'while above it' = simultaneous; 5-6 s 'shifts from cubes to viruses' suggests sequence, but it is a 1 s window; 'planet earth' not named"
+frameclipcaptions|tcc005|1100058499_concat_2|speed,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 4.5 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-4.5 s: A man dressed in black athletic wear skips rope, alternating his feet inside a spacious, hazy gym as bright sunlight streams through large windows behind him.
+
+Question: How does the man above jump rope, relative to the man below?
+A. the same speed
+B. slower
+C. faster
+
+The correct answer is C. faster
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",silent,only one man mentioned
+captions|tcc209|23370985_reverse|attribute_change,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 5.6 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A mound of crushed ice slowly rotates clockwise in a macro close-up shot, showcasing its glistening, crystalline texture under cool lighting.
+5-5.6 s: A mound of crushed ice rotates slowly against a dark background, its sparkling crystalline surface glistening under cool light.
+
+Question: What is happening to the ice crystal?
+A. freezing
+B. melting
+C. shattering
+
+The correct answer is B. melting
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",silent,no change to the ice mentioned
+sonnetcaptions|tcc235|1059072773_reverse|attribute_change,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 11.5 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A cream-colored liquid, resembling condensed milk, spreads in an irregular puddle across a pink surface. A small blob gradually rises at its center, forming a lumpy mound while the puddle's edges widen slightly. The camera view stays steady throughout.
+5-10 s: A pale cream-colored liquid puddle with a rounded blob in the center gradually shrinks and is drawn back inward, reversing a spill until only a smooth, round, cream-colored dome remains. The setting is a plain pink background.
+10-11.5 s: A pale, creamy round scoop, resembling ice cream or a cabbage-like ball, sits still on a flat pink background. Its texture appears slightly different between frames, with a soft shadow beside it. The camera stays fixed and nothing else moves.
+
+Question: What is happening to the ice cream?
+A. melting
+B. freezing
+C. evaporating
+D. solidifying
+
+The correct answer is D. solidifying
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",correct,
+framecaptions|tcc011|1092813279_concat_2|speed,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 5 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A blonde woman in black sportswear performs push-ups on a red outdoor sports court. She lowers her chest toward the ground, pushes back up into a plank position, and begins lowering down for another repetition.
+
+Question: What is the speed of the woman above's push ups compared to the woman below?
+A. same speed
+B. faster
+C. slower
+
+The correct answer is B. faster
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",silent,only one woman mentioned
+framecaptions|tcc259|3411228673|direction,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 5.5 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: The camera flies forward between two modern glass skyscrapers, offering an aerial view of a tree-lined boulevard flanked by high-rise residential buildings that lead toward lush green hills under a partly cloudy sky.
+
+Question: What is the path of movement in the video?
+A. flying downwards
+B. flying forwards
+C. flying backwards
+D. flying upwards
+
+The correct answer is D. flying upwards
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",wrong,'flies forward' states option B
+framecaptions|tcc181|1098710341_reverse|attribute_change,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 24.7 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A stream of water is poured from above into a clear glass already filled with water, set against a plain white background.
+5-10 s: Water is poured from above in a steady stream into a clear glass against a plain white background, stirring up small bubbles inside the liquid.
+10-15 s: Shown in reverse, water flows upward out of a clear drinking glass into a stream above, emptying the glass against a plain white background.
+15-20 s: Water is poured into a clear drinking glass against a white background as a person's hand holding a clear plastic water bottle lowers into the frame from the top right.
+20-24.7 s: A hand finishes pouring water from a clear plastic bottle into a glass and pulls the bottle out of the frame, leaving the glass standing alone against a plain white background.
+
+Question: In whay way is the glass changing?
+A. Water was disappearing from the glass
+B. The glass was heated
+C. Water was poured into the glass
+D. A chemical reaction occurred in the glass
+
+The correct answer is A. Water was disappearing from the glass
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",wrong,4 of 5 windows say poured in (option C); only 10-15 s says emptying
+framecaptions|tcc242|1021488277_reverse|direction,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 8.1 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A person's hand brings half of a sliced pineapple into the frame and places it onto a vibrant pink surface. The pineapple is cut lengthwise, exposing its yellow flesh and green leafy crown.
+5-8.1 s: A hand pulls away from a halved pineapple lying cut-side up on a bright pink background, leaving the fruit stationary.
+
+Question: What action is taking place in the video?
+A. The pineapple is being dropped by a person.
+B. The pineapple is being rotated by a person.
+C. The pineapple is being pushed forward by a person.
+D. The pineapple is being picked up by a person.
+
+The correct answer is A. The pineapple is being dropped by a person.
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",silent,"'places it onto' the surface: not 'dropped', and matches no other option; first instinct was wrong"
+selfcaptions|tcc239|1086105089|attribute_change,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 8.3 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A camera slowly tilts up from a blue sky with white clouds to reveal a partially built concrete office tower with exposed floor slabs and a red construction crane. The crane swings toward the upper floors as the camera moves higher, showing the unfinished building's open-framed, glass-curtained facade reflecting clouds.
+5-8.3 s: The camera slowly drifts upward along a glass office building covered in blue reflective panels, with white clouds and blue sky reflected across its grid of windows. The shot moves from the lower facade toward the top, and the clouds shift and roll across the glass as it goes.
+
+Question: How is the building changing?
+A. growing taller
+B. staying the same
+C. getting shorter
+
+The correct answer is A. growing taller
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",silent,"unfinished tower + crane hints at construction, but no growth is described"
+selfcaptions|tcc228|23370985|attribute_change,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 5.6 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A close-up of blue-tinted crushed ice crystals sparkles under soft light as the camera slowly drifts closer, blurring the nearer crystals. The frozen pile fills the frame against a dark background.
+5-5.6 s: A close-up of loose, glittering ice crystals or snow in cool blue and white tones fills the frame. Nothing visibly moves, and the camera view stays steady across the frames.
+
+Question: What transformation is taking place in the ice crystal?
+A. cracking
+B. unchanged
+C. melting
+D. forming
+
+The correct answer is D. forming
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",silent,borderline silent/wrong: no transformation described; 5-5.6 s 'nothing visibly moves' leans B (unchanged)
+selfcaptions|tcc148|1080990179_1086820415_0|order,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 6 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A halved apple on a black background gradually ages, its flesh turning from pale yellow to golden-brown and shriveled while its red skin wrinkles. Below, turquoise ocean waves with white foam crash and shift across the frame.
+5-6 s: The clip shifts from a close-up of a shiny golden, apple-shaped ornament with red-orange trim on a black background to an overhead view of turquoise ocean water, where white foam swirls as waves break.
+
+Question: Which event occurs first in the video?
+A. A big wave is shown
+B. Both events occur simultaneously
+C. An apple is drying out
+
+The correct answer is B. Both events occur simultaneously
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",correct,"same pattern as item 11: 0-5 s 'Below, ... waves' = simultaneous; 1 s window 'shifts from ... to' suggests sequence"
+selfcaptions|tcc023|1100319395_concat_1|speed,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 7.4 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: Nothing visibly changes across the clip. Two identical white outline circles, each with a small filled white dot on its right edge, sit one above the other against a black background, and the camera stays still.
+5-7.4 s: A white circle outline with a small white filled dot on its right edge sits at the top of a black frame, with an identical one below it. Across the three frames, the two figures stay motionless, with no visible change in position or movement, against a plain black background with faint watermark text.
+
+Question: What is the speed of the white circle above?
+A. faster than the white circle below
+B. rotating at the same speed as the white circle below
+C. slower than the white circle below
+
+The correct answer is A. faster than the white circle below
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",wrong,"both circles 'motionless', identical: implies same speed (B)"
+selfcaptions|tcc176|1059072773_1059718130_0|order,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 10.5 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A pale, crumpled ball floating in a pink sky gradually smooths out and reshapes into a dome with a wavy, flared base, while the sun rises over a cloudy orange horizon below.
+5-10 s: A white, cloud-like shape shaped like a dove-to-blob figure drifts across the pink sky above a sunset, gradually stretching and reshaping its wings over five seconds. Below, a bright orange sun sits low over layered clouds, and the camera stays fixed.
+
+Question: What is the order of events in the video?
+A. Sun rising and then ice cream melting
+B. Ice cream melting and then sun rising
+C. Sun rising and ice cream melting at the same time
+
+The correct answer is C. Sun rising and ice cream melting at the same time
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",correct,'while' = simultaneous; ice cream not named (crumpled ball / dome)
+frameclipcaptions|tcc181|1098710341_reverse|attribute_change,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 24.7 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: Water is poured from above into a clear glass filled with water, creating bubbles inside against a plain white background.
+5-10 s: A stream of clear water pours from above into a transparent glass already filled with water, creating bubbles and subtle ripples against a plain white background.
+10-15 s: Clear water is poured in a steady stream into a transparent glass set against a plain white background.
+15-20 s: Water is poured into a clear glass standing on a white surface against a plain white background. A hand holding a ribbed plastic bottle enters the frame from the top right, continuing to pour the stream of water into the glass.
+20-24.7 s: A person pours water from a plastic bottle into a clear glass and quickly pulls the bottle away. The glass then remains still against a plain white background.
+
+Question: In whay way is the glass changing?
+A. Water was disappearing from the glass
+B. The glass was heated
+C. Water was poured into the glass
+D. A chemical reaction occurred in the glass
+
+The correct answer is A. Water was disappearing from the glass
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",wrong,all windows say poured in (option C)
+sonnetcaptions|tcc238|1099738787_reverse|attribute_change,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 11.2 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: Pieces of gray, rocky debris tumble upward from the bottom of a black screen, building into a dense, jagged pile that eventually fills the frame as a flat, textured gray concrete-like surface, then breaks apart again, leaving only fragments at the bottom.
+5-10 s: A mass of pale, jagged chunks and powdery material rises from the bottom of the frame against a black background, gradually filling the lower half as fragments tumble and drift upward, forming a rough, crumbling gray surface edge.
+10-11.2 s: A gray concrete-like wall shatters, with large shards and fragments flying across the top of the frame against a black background. A second later, the debris has cleared, leaving a plain, speckled gray textured surface filling the screen.
+
+Question: What is the attribute change of the concrete wall?
+A. rebuilding
+B. shrinking
+C. disappearing
+D. falling apart
+
+The correct answer is A. rebuilding
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",correct,"borderline: correct only given task knowledge that videos may be reversed (debris tumbles upward); without it S or W - 0-5 s 'breaks apart again', 10-11.2 s 'shatters'"
+sonnetcaptions|tcc294|1088497853|direction,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 5.3 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A drone flies forward and descends toward an old stone church with a small red-brick bell tower, circling slightly to reveal its ruined walls. Autumn trees, a road, and distant mountains under a clear blue sky surround the sunlit site.
+
+Question: What is the direction of the movement in the video?
+A. leftwards
+B. upwards
+C. rightwards
+D. downwards
+
+The correct answer is B. upwards
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",wrong,'descends' states option D
+framecaptions|tcc266|1100319395_reverse|direction,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 7.4 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A solid white circle rotates around the perimeter of a thin white ring against a solid black background, forming a minimalist loading animation.
+5-7.4 s: A graphic of a solid white circle resting at the top of a thin white circular outline remains stationary against a solid black background.
+
+Question: What direction is the circular pattern moving?
+A. clockwise
+B. moving towards the camera
+C. counter-clockwise
+D. moving away from the camera
+
+The correct answer is C. counter-clockwise
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",silent,"rotates, but no direction given"
+captions|tcc026|1075338140_concat_1|speed,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 5.4 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A shiny silver sphere rolls continuously along a wavy pink ribbon in a seamless 3D animation. The undulating track curves over a soft, minimalist background of rolling pastel blue hills.
+
+Question: Compared to the ball below, how would you describe the speed of the ball above?
+A. slower
+B. same
+C. faster
+
+The correct answer is A. slower
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",silent,only one sphere mentioned
+frameclipcaptions|tcc009|1098153561_concat_2|speed,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 7.9 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A vertically split screen shows a sunlit forest path, where the foliage in the upper frame transitions from lush green to vibrant autumn colors while the lower frame remains green throughout.
+5-7.9 s: In a vertically split-screen view, the camera moves forward down a sunlit forest path, contrasting golden autumn leaves on top with lush green summer foliage on the bottom as the sun shines through the canopy.
+
+Question: In relation to the speed of the forest below, how does the speed of color change in the forest above appear?
+A. Faster
+B. Slower
+C. Equally fast
+
+The correct answer is A. Faster
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",correct,"upper changes green->autumn, lower 'remains green throughout'"
+framecaptions|tcc280|1075484900|direction,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 8.6 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A mother holds her baby in a brightly lit room as the father leans in close. Both parents smile lovingly at the infant, who happily looks around and laughs.
+5-8.6 s: A smiling mother and father look lovingly at their baby, with the mother holding the infant and gently resting her head against the child's in a bright room.
+
+Question: In what direction is the child moving in relation to the man?
+A. Backward
+B. Forward
+C. Turning away from the man
+D. Turning towards the man
+
+The correct answer is C. Turning away from the man
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",silent,no direction of the child's movement mentioned
+selfcaptions|tcc278|1098785169|direction,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 10.5 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A spiral galaxy with glowing orange-yellow core and purple-blue arms slowly rotates against a dark starfield, with a lens flare at the upper left. The camera drifts gradually toward the galaxy, and a faint ""shutterstock"" watermark is visible across the middle.
+5-10 s: A spiral galaxy with glowing blue and purple arms slowly rotates against a dark starfield, while the camera drifts gently forward through space. The galaxy's golden core stays centered and bright throughout the clip, with a faint lens flare at the left edge.
+
+Question: In which direction is the galaxy rotating?
+A. backward
+B. counter clockwise
+C. clockwise
+D. forward
+
+The correct answer is C. clockwise
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",silent,"rotates, but no direction given"
+frameclipcaptions|tcc235|1059072773_reverse|attribute_change,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 11.5 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: An unseen object pushes up from beneath a puddle of creamy liquid on a bright pink surface, raising a smooth conical mound in the center of the spill.
+5-10 s: Played in reverse, a puddle of melted vanilla ice cream gradually retracts back into a solid round scoop against a pink background.
+10-11.5 s: A scoop of pale peach ice cream melts slightly, settling downward on a smooth, solid pink surface.
+
+Question: What is happening to the ice cream?
+A. melting
+B. freezing
+C. evaporating
+D. solidifying
+
+The correct answer is D. solidifying
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",correct,
+captions|tcc146|1024867412_1034049020_1|order,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 11 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A fluffy brown-and-white dog wearing oversized sunglasses sits in the driver's seat with its paws resting on the steering wheel, panting happily as the car drives down a sunny residential street.
+5-10 s: A dog wearing sunglasses sits behind a car's steering wheel before the clip cuts to a woman walking along an outdoor wall. Dressed in denim shorts and a jacket, she rolls a bright blue paint stripe across the surface behind her.
+10-11 s: A woman wearing a denim jacket and shorts walks away from the camera down a sunny sidewalk beside a painted wall, carrying a blue bottle in her hand.
+
+Question: What is the order of events in the video?
+A. A dog is driving, then a girl is walking on the street
+B. A girl is walking on the street, then a dog is driving
+C. A girl is walking on the street while a dog is simultaneously driving
+
+The correct answer is A. A dog is driving, then a girl is walking on the street
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",correct,
+sonnetcaptions|tcc250|1073914229_reverse|direction,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 4 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-4 s: A red passenger train travels along a curved track from the upper right toward the lower left, passing beside a row of green trees. The aerial view looks down on lush green vineyards or farmland, and the train moves out of frame toward the bottom left.
+
+Question: In what manner are the trains traveling?
+A. stopped
+B. in the same direction
+C. towards each other
+D. away from each other
+
+The correct answer is D. away from each other
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",silent,only one train mentioned
+selfcaptions|tcc051|1042819039|speed,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 4 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-4 s: Pedestrians stream across a large intersection with white striped crosswalks, seen from above. Over the four seconds, the crowd thins in the center as a vehicle drives through the crossing. The camera stays fixed.
+
+Question: In what manner is the video being shown?
+A. in real-time
+B. in time-lapse
+C. in slow motion
+
+The correct answer is B. in time-lapse
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",silent,"borderline silent/correct: 'time-lapse' not stated, but crowd thinning within 4 s hints at it"
+sonnetcaptions|tcc180|1099116143_reverse|attribute_change,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 7.5 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: Small bubbles cling to the inside of a glass and drift slowly as a glowing pink liquid sits in the lower part of the frame. The liquid's surface shifts slightly, with a foamy white edge, against a dark background in a close-up shot.
+5-7.5 s: A white foam rises and billows inside a glass of bubbly pink liquid, spilling upward and filling the upper part of the glass. The liquid gradually turns deeper red as fizzing bubbles stream through it. The close-up view is against a dark background.
+
+Question: How is the appearance of the pink liquid affected?
+A. White foam appears on the surface
+B. It becomes blue
+C. White foam disappears from the surface
+D. It becomes green
+
+The correct answer is C. White foam disappears from the surface
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",wrong,'white foam rises and billows' states option A
+frameclipcaptions|tcc179|1072453637|order,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 15 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A military fighter jet flies directly toward the viewer against a hazy, overcast sky backlit by bright sunlight, banking slightly as it cruises through the air.
+5-10 s: A military fighter jet flies across a cloudy sky and launches two missiles from its wings, which streak forward leaving fiery smoke trails as the aircraft continues its flight.
+10-15 s: A military fighter jet flies across a cloudy sky and fires two missiles from beneath it. The missiles streak forward, leaving trails of smoke behind as the aircraft continues its flight.
+
+Question: What did the fighter jet do first in the video?
+A. shooting two missiles
+B. shooting one missile
+C. shooting three missiles
+D. shooting four missiles
+
+The correct answer is B. shooting one missile
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",wrong,'launches two missiles' states option A
+sonnetcaptions|tcc023|1100319395_concat_1|speed,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 7.4 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: Nothing moves in the clip: two identical white outline circles, each with a small solid white dot on its right edge, are stacked vertically on a black background. All five frames look the same, and the camera stays still.
+5-7.4 s: Nothing moves across the three frames: a static black screen shows two identical white circle outlines stacked vertically, each with a small solid white dot attached at its right edge. The camera stays fixed and the scene is minimal and abstract, like an icon graphic.
+
+Question: What is the speed of the white circle above?
+A. faster than the white circle below
+B. rotating at the same speed as the white circle below
+C. slower than the white circle below
+
+The correct answer is A. faster than the white circle below
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",wrong,"'nothing moves', identical circles: implies same speed (B), as item 22"
+captions|tcc265|1073831006_reverse|direction,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 24.5 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A herd of zebras gallops across a dry savanna plain, moving past tall golden grass in the background. The camera pans right, following the closely grouped animals as they run together.
+5-10 s: A herd of zebras gallops in slow motion across a dry plain, running toward the right against a background of tall golden grass.
+10-15 s: A herd of zebras gallops across an open savanna, splashing through a shallow pool of water on the ground. Tall golden grass stands in the background under a clear sky.
+15-20 s: A herd of zebras runs rapidly through shallow water, splashing vigorously as the camera tracks them toward the right. Tall golden grass and dry savanna vegetation stand in the background.
+20-24.5 s: A herd of zebras gallops rapidly through shallow water, splashing vigorously as they run across the frame. They move toward the right against a backdrop of tall, dry savanna grass.
+
+Question: Which direction are the zebras heading?
+A. downward
+B. leftward
+C. rightward
+D. upward
+
+The correct answer is B. leftward
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",wrong,'toward the right' states option C
+captions|tcc238|1099738787_reverse|attribute_change,"You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is 11.2 seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+0-5 s: A concrete wall crumbles and breaks apart against a black background, sending debris and stone fragments flying before cutting to black and displaying more fractured concrete chunks.
+5-10 s: Fragments of concrete crumble and fall downward as a cracked grey concrete slab rises from the bottom of the frame against a black background.
+10-11.2 s: Debris and dust crumble and fall down from the jagged top edge of a gray, textured concrete slab against a black background.
+
+Question: What is the attribute change of the concrete wall?
+A. rebuilding
+B. shrinking
+C. disappearing
+D. falling apart
+
+The correct answer is A. rebuilding
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- ""correct"": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- ""wrong"": the descriptions state, or clearly imply, a different option.
+- ""silent"": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {""label"": ""<correct|wrong|silent>"", ""evidence"": ""<a short quote from the descriptions, or an empty string>""}",wrong,'crumbles and breaks apart' states option D; 'slab rises' (5-10 s) is the only hint of A
