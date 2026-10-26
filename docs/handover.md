@@ -2,6 +2,19 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
+# 2026-10-26 → C12 (open-weights reader) ready for Kaggle; ACL template; draft fixes
+
+**Start here: the log's C12 entry** (predictions written, committed in `7a65fb1` before any call).
+- **C12:** Qwen2.5-VL-7B-Instruct (float16 on Kaggle's 2×T4) reads the 297 confirmatory questions in 8 arms, and captions the 761 windows itself (`qwencaptions`).
+  - Code: `open_reader.py bundle` → `local/kaggle_c12.zip`; `qwen_kaggle.py` runs on Kaggle (`--stage smoke`, then `--stage all`); `open_reader.py import <outputs>` refuses any prompt that differs from `reader.build`'s; then `reader.py c12`, once.
+  - Checked without a GPU: a full round trip with fake outputs, and the runner on CPU with a tiny random Qwen test model.
+  - Qwen was chosen over Llama 3.2 Vision because it takes many images per prompt, fits 2×T4 unquantized, and counts visual tokens almost as Claude does (0.82 of Claude's on our frames).
+  - **The user runs it on Kaggle.** The local Kaggle CLI is broken (it points at a missing python3.9), so the zip goes up through the website.
+- **Draft:** review notes 1, 5 and 6 applied (23–26×, Q\* 1.2–3.7; clustered retention CIs; hand-label caveat in Appendix C). The claims table is no longer "§0". Notes 2 and 4 wait for the main-text cut, which waits until C12 and the items below are done (user, 2026-10-26).
+- **ACL template:** `docs/paper/acl2027/` (acl-org/acl-style-files @ d5adc82). TeX Live is no longer installed on this machine, so nothing is compiled yet.
+- **Pre-registration finding:** the GitHub repo is public, but nothing was pushed between Oct 14 and Oct 26 (GitHub activity API). So C1–C11's entries have no third-party timestamp before their runs, only local commit dates. Push each new entry before its run (C12 first).
+- **Next:** C12 smoke → run → import → `c12` → Result; LaTeX setup; the pre-registration archive (user decides); then the main-text cut and prose.
+
 # 2026-10-21 → C8, C9 and the literature pass done; draft v1.1
 
 **Start here: `docs/paper/caption_index_draft.md` §0 and its gaps section.** The log has C8 and C9 *Result* sections and entry N2 (the literature pass).
