@@ -8,6 +8,8 @@ bundle  writes local/kaggle_c12/ and local/kaggle_c12.zip for qwen_kaggle.py:
           as its path. A qwencaptions prompt is built with <<CAPTION p>> in place of Qwen's caption of window p,
           which qwen_kaggle.py fills in;
         - the frames those prompts use, at their repo paths; qwen_kaggle.py; manifest.json.
+        Kaggle allows 1,000 files in an upload it unzips, so local/kaggle_c12_upload.zip holds only kaggle_c12.zip
+        (Kaggle then unzipped both levels; qwen_kaggle.py also extracts an archive itself if needed).
 import  reads qwen_kaggle.py's outputs (its out folder, or a .tar.gz / .zip of it): writes Qwen's captions to
         results/index_qa/captions/<CAPTIONERS["qwencaptions"]>/, and the reads, as reader rows, to
         results/index_qa/open/qwen.jsonl (reader.rows_path), replacing that file. Every window must have a caption,
@@ -101,9 +103,13 @@ def cmd_bundle(args):
         for f in sorted(BUNDLE.rglob("*")):
             if f.is_file():
                 z.write(f, f.relative_to(BUNDLE))
+    # Kaggle unzips an uploaded dataset and allows at most 1,000 files, so the upload is a zip holding only zp.
+    up = BUNDLE.with_name(BUNDLE.name + "_upload.zip")
+    with zipfile.ZipFile(up, "w", zipfile.ZIP_STORED) as z:
+        z.write(zp, zp.name)
     print(f"{len(jobs)} caption jobs, {len(reads)} reader prompts ({len(reads) // len(ARMS)} questions x {len(ARMS)} "
-          f"arms), {len(frames)} frames -> {BUNDLE}/ and {zp} ({zp.stat().st_size / 1e6:.1f} MB); commit {commit[:7]}"
-          + (" (DIRTY tree: commit before the run)" if dirty else ""))
+          f"arms), {len(frames)} frames -> {BUNDLE}/ and {zp} ({zp.stat().st_size / 1e6:.1f} MB), uploaded to Kaggle "
+          f"as {up}; commit {commit[:7]}" + (" (DIRTY tree: commit before the run)" if dirty else ""))
 
 
 def _rows(path: Path) -> list[dict]:

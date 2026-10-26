@@ -1439,10 +1439,11 @@ No new calls. These analyses are descriptive: the point estimates of Table 5 (dr
 - By-type terms are descriptive. Resampling noise (C10) does not apply to greedy decoding, but caption choice still does.
 
 **Run (on Kaggle; the user runs it).**
-1. `open_reader.py bundle` writes `local/kaggle_c12.zip` (29.5 MB: 761 caption jobs, 2,376 reader prompts, 3,345 frames, `qwen_kaggle.py`, and the exporting commit in `manifest.json`). It is uploaded as a private Kaggle dataset.
+1. `open_reader.py bundle` writes `local/kaggle_c12.zip` (29.5 MB: 761 caption jobs, 2,376 reader prompts, 3,345 frames, `qwen_kaggle.py`, and the exporting commit in `manifest.json`). It is uploaded as a private Kaggle dataset. Kaggle unzips an upload and allows at most 1,000 files, so the upload is `local/kaggle_c12_upload.zip`, which holds only `kaggle_c12.zip`. Kaggle then unzipped both levels, so the bundle's files sit directly in the dataset folder and `qwen_kaggle.py` runs from there with its default `--input /kaggle/input` (2026-10-26, before any call; packaging only, the bundle is unchanged).
 2. **Smoke check** (`qwen_kaggle.py --stage smoke`): 3 captions and 12 reads (6 questions × question only and frames). Passes if the model loads on 2×T4, the captions are English sentences under the length limit, and at least 10 of the 12 answers parse. If float16 gives garbage, retry with `--fp32-vision`, then stop and investigate.
 3. **Run** (`--stage all`, as a committed "Save & Run All" version): captions, then reads. It resumes if rerun. Expected: 2–5 h of GPU time, within one 12 h session.
 4. Locally: `open_reader.py import <outputs>`, then `reader.py c12`, run once. The output goes to `results/index_qa/reports/c12.txt`.
+- Timing (2026-10-26): this entry and its predictions were committed (7a65fb1) before any Qwen call. Their first public push (about 15:15 +0200) came after the smoke check (3 captions and 12 reads, which passed and were seen) and after the full run started, but before any output of the full run was seen.
 - Already checked without a GPU (2026-10-26): the full round trip with fake outputs (every prompt equal to `reader.build`'s, then `c12` runs), and the runner's code path on CPU with a tiny random Qwen2.5-VL test model.
 
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
