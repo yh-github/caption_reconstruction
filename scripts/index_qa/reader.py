@@ -24,6 +24,10 @@ Arms (per 5 s window; Claude image tokens by the ceil(w/28) x ceil(h/28) rule, 2
               into windows (C10)
     sonnetaspects  sonnetwhole with one prompt bullet that names the kinds of question to come (self_caption.py
               --model sonnet --whole --aspects; caption.ASPECT_BULLET). The reader's prompt is sonnetwhole's (C11)
+    qwencaptions  Qwen2.5-VL-7B's own isolated caption of each window's frames5 frames, with the self-captions'
+              prompt: selfcaptions for the open-weights reader (C12; written on Kaggle by qwen_kaggle.py)
+Open-weights readers (OPEN_MODELS, C12) do not run here: open_reader.py exports these prompts for qwen_kaggle.py and
+imports its outputs to results/index_qa/open/<model>.jsonl, which latest() and the analyses read like Claude's rows.
 Calls are isolated exactly as in scripts/unshuffle/claude_reader.py (whose call_claude this reuses): a fresh
 `claude -p` per item, no tools, empty MCP config, empty working directory, prompt caching off, pinned model ID.
 A format failure gets one retry; after that the item scores as wrong.
@@ -46,6 +50,7 @@ A format failure gets one retry; after that the item scores as wrong.
     .venv/bin/python scripts/index_qa/reader.py c8           # C8: Sonnet with the question only
     .venv/bin/python scripts/index_qa/reader.py c9           # C9: Sonnet captions of 448 px frames
     .venv/bin/python scripts/index_qa/reader.py c10          # C10: one Sonnet caption per video
+    .venv/bin/python scripts/index_qa/reader.py c12          # C12: the open-weights reader (open_reader.py)
 Outputs (append-only; the latest row per item counts): results/index_qa/claude/<model>.jsonl and
 <model>__events.jsonl, as in the unshuffle reader.
 """
@@ -68,21 +73,27 @@ from index_qa.caption import (ASPECTS, CAPTIONS, MODE, WHOLE, caption_windows, c
 from unshuffle.claude_reader import EFFORT, MODELS, call_claude  # noqa: E402
 
 ARMS = ["blind", "captions", "frame1", "frames5", "selfcaptions", "framecaptions", "frameclipcaptions",
-        "sonnetcaptions", "describe5", "frames5_448", "sonnetcaptions448", "sonnetwhole", "sonnetaspects"]
+        "sonnetcaptions", "describe5", "frames5_448", "sonnetcaptions448", "sonnetwhole", "sonnetaspects",
+        "qwencaptions"]
 K0_ARMS = ARMS[:4]
+# Open-weights readers (C12): run on Kaggle by qwen_kaggle.py, never by cmd_run
+OPEN_MODELS = {"qwen": "Qwen/Qwen2.5-VL-7B-Instruct"}
+OPEN_OUT = tc.OUT / "open"
 # Caption arms -> the captioner whose window (or, for a WHOLE captioner, video) captions they read (Claude's:
 # self_caption.captioner)
 CAPTIONERS = {"captions": "gemini-3.8-flash", "selfcaptions": "claude-haiku-5-5-self",
               "framecaptions": "gemini-3.8-flash-frames", "frameclipcaptions": "gemini-3.8-flash-frameclip",
               "sonnetcaptions": "claude-sonnet-5-5-frames", "sonnetcaptions448": "claude-sonnet-5-5-frames448",
               "sonnetwhole": f"claude-sonnet-5-5-frames{WHOLE}",
-              "sonnetaspects": f"claude-sonnet-5-5-frames{ASPECTS}{WHOLE}"}
+              "sonnetaspects": f"claude-sonnet-5-5-frames{ASPECTS}{WHOLE}",
+              "qwencaptions": "qwen2.5-vl-7b-instruct-self"}
 # caption.py --input that writes each Gemini caption arm, and self_caption.py --model (and --long-edge, --whole,
 # --aspects) for each Claude one
 CAPTION_INPUT = {"captions": "video", "framecaptions": "frames", "frameclipcaptions": "frameclip"}
 CLAUDE_CAPTIONER = {"selfcaptions": "haiku", "sonnetcaptions": "sonnet", "sonnetcaptions448": "sonnet",
                     "sonnetwhole": "sonnet", "sonnetaspects": "sonnet"}
 CAPTIONER_LONG_EDGE = {"sonnetcaptions448": 448}
+OPEN_CAPTIONER = {"qwencaptions": "qwen"}
 # Frame arms that show every frame of a window, with the frame size and the answer template
 FRAMES_ALL = {"frames5": (tc.LONG_EDGE, "mcq.txt"), "describe5": (tc.LONG_EDGE, "mcq_describe.txt"),
               "frames5_448": (448, "mcq.txt")}
@@ -106,8 +117,9 @@ def _image(path: Path) -> dict:
                                         "data": base64.b64encode(path.read_bytes()).decode()}}
 
 
-def build(item: dict) -> tuple[list[dict], str]:
-    """The user message's content blocks, and a loggable copy of the prompt (images as file paths)."""
+def build(item: dict, image=_image) -> tuple[list[dict], str]:
+    """The user message's content blocks, and a loggable copy of the prompt (images as file paths). `image` makes an
+    image block from a frame path (open_reader.py exports paths instead of base64)."""
     P, arm, v = parts(), item["arm"], item["video_id"]
     dur = tc.duration_s(v)
     wins = tc.windows(dur)
@@ -131,7 +143,8 @@ def build(item: dict) -> tuple[list[dict], str]:
                      + (f"self_caption.py --model {CLAUDE_CAPTIONER[arm]} --long-edge "
                         f"{CAPTIONER_LONG_EDGE.get(arm, tc.LONG_EDGE)}{' --whole' if whole else ''}"
                         f"{' --aspects' if ASPECTS in CAPTIONERS[arm] else ''} first"
-                        if arm in CLAUDE_CAPTIONER else f"caption.py --input {CAPTION_INPUT[arm]} first"))
+                        if arm in CLAUDE_CAPTIONER else "qwen_kaggle.py, then open_reader.py import"
+                        if arm in OPEN_CAPTIONER else f"caption.py --input {CAPTION_INPUT[arm]} first"))
         body = "\n".join(f"{P['window_label'].format(start=s, end=round(e, 1))} {c}"
                          for (s, e), c in zip(caption_windows(v, CAPTIONERS[arm]), caps))
         text = f"{head}\n\n{body}\n\n{tail}"
@@ -148,7 +161,7 @@ def build(item: dict) -> tuple[list[dict], str]:
                 label = P["frame_label"].format(t=s + int(f.stem.split("_")[1]))
                 blocks.append({"type": "text", "text": label})
                 log.append(label)
-            blocks.append(_image(f))
+            blocks.append(image(f))
             log.append(f"[image {f.relative_to(tc.ROOT)}]")
     blocks.append({"type": "text", "text": tail})
     log.append(tail)
@@ -198,7 +211,7 @@ def record(item: dict, model: str, effort: str, attempt: int, out: dict) -> dict
 
 
 def rows_path(model: str) -> Path:
-    return OUT / f"{model}.jsonl"
+    return (OPEN_OUT if model in OPEN_MODELS else OUT) / f"{model}.jsonl"
 
 
 def latest(model: str) -> dict[str, dict]:
@@ -397,7 +410,7 @@ def confirm_table():
     import pandas as pd
     qs = tc.items("confirm")
     keep = {q["item"] for q in qs}
-    rows = [r for m in ("haiku", "sonnet") for r in latest(m).values() if r["question_item"] in keep]
+    rows = [r for m in ("haiku", "sonnet", *OPEN_MODELS) for r in latest(m).values() if r["question_item"] in keep]
     if not rows:
         sys.exit("no confirmatory rows")
     df = pd.DataFrame(rows)
@@ -990,6 +1003,61 @@ def cmd_c11(args):
     type_effects(wide, C11_TERMS, vtype, clus)
 
 
+# C12 (research log): the open-weights reader, Qwen2.5-VL-7B, on the arms of the main decomposition
+C12_ARMS = ["qwen:blind", "qwen:frames5", "qwen:qwencaptions", "qwen:selfcaptions", "qwen:sonnetcaptions",
+            "qwen:frameclipcaptions", "qwen:framecaptions", "qwen:captions"]
+C12_TERMS = [("C12a modality (P2 for Qwen)", "qwen:qwencaptions", "qwen:frames5", -0.01),
+             ("C12b captioner at identical input, Sonnet (C3a for Qwen)", "qwen:sonnetcaptions", "qwen:qwencaptions",
+              +0.09),
+             ("C12c captioner at identical input, Haiku", "qwen:selfcaptions", "qwen:qwencaptions", +0.05),
+             ("C12d captioner at about matched tokens, Gemini (C2a for Qwen)", "qwen:frameclipcaptions",
+              "qwen:qwencaptions", +0.08),
+             ("C12e captioner with Gemini's image budget (P3 for Qwen)", "qwen:framecaptions", "qwen:qwencaptions",
+              +0.14),
+             ("C12f index vs. frames (S3 for Qwen)", "qwen:captions", "qwen:frames5", +0.12),
+             ("C12g the cap: Qwen vs. Haiku on Sonnet's captions", "qwen:sonnetcaptions", "haiku:sonnetcaptions",
+              -0.05),
+             ("C12h question-only floor, Qwen vs. Haiku", "qwen:blind", "haiku:blind", 0.00)]
+C12_RETENTION = [("qwen:qwencaptions", 0.95), ("qwen:sonnetcaptions", 1.40), ("qwen:captions", 1.60)]
+
+
+def cmd_c12(args):
+    """C12's statistics (research log): Qwen2.5-VL-7B (greedy, on Kaggle) on the main decomposition's arms; its
+    caption and reader tokens; the terms with 95% CIs over questions and over clip clusters, by video type; Qwen's
+    retention per index. An unparsed answer counts as wrong."""
+    wide, vtype, clus = confirm_frame()
+    if missing := [a for a in C12_ARMS if a not in wide]:
+        sys.exit(f"not run yet: {missing}")
+    rows = [r for r in latest("qwen").values() if r["question_item"] in wide.index]
+    print(f"qwen rows: {len(rows)}; status: "
+          + ", ".join(f"{s} {sum(r['status'] == s for r in rows)}" for s in sorted({r['status'] for r in rows})))
+    for arm in [a.split(":")[1] for a in C12_ARMS]:
+        u = [r["usage"] for r in rows if r["arm"] == arm]
+        t, vis = sorted(x["input_tokens"] for x in u), sorted(x["visual_tokens"] for x in u)
+        print(f"  qwen:{arm}: median input tokens {t[len(t) // 2]}, visual {vis[len(vis) // 2]} (n={len(u)})")
+    caps = [json.loads(f.read_text()) for f in (CAPTIONS / CAPTIONERS["qwencaptions"]).glob("*/*.json")]
+    if caps:
+        vis = sorted(c["usage"]["visual_tokens"] for c in caps)
+        words = sorted(len(c["caption"].split()) for c in caps)
+        print(f"Qwen captions: {len(caps)} windows; visual tokens per window median {vis[len(vis) // 2]}; words median "
+              f"{words[len(words) // 2]}, max {words[-1]}; ERROR or empty {sum(cp.is_error(c['caption']) or not c['caption'].strip() for c in caps)}")
+    cols = C12_ARMS + [c for c in ("haiku:blind", "haiku:frames5", "haiku:sonnetcaptions", "sonnet:frames5") if c in wide]
+    print("\naccuracy by video type:")
+    acc = wide[cols].groupby(vtype).mean().reindex(tc.VIDEO_TYPES).T.round(2)
+    acc["all"] = wide[cols].mean().round(3)
+    print(acc.to_string())
+    print("\neffects:")
+    type_effects(wide, C12_TERMS, vtype, clus)
+    print("\nQwen's retention, (captions - question only) / (frames - question only), 95% CI over questions; "
+          "clustered:")
+    for arm, pred in C12_RETENTION:
+        x = wide[[arm, "qwen:frames5", "qwen:blind"]].dropna()
+        cols3 = [x[c].tolist() for c in (arm, "qwen:frames5", "qwen:blind")]
+        est, lo, hi = retention_boot(*cols3)
+        _, clo, chi = retention_boot(*cols3, clusters=clus[x.index].tolist())
+        print(f"  {arm}: {est:.2f} [{lo:.2f}, {hi:.2f}]; [{clo:.2f}, {chi:.2f}] (n={len(x)}; prediction {pred:.2f})")
+
+
 # C4 (research log): arms read on both videos of a minimal pair, and the terms on pair accuracy
 C4_ARMS = ["haiku:frames5", "haiku:selfcaptions", "haiku:sonnetcaptions", "haiku:captions", "sonnet:frames5",
            "sonnet:sonnetcaptions"]
@@ -1217,12 +1285,13 @@ def main():
     sub.add_parser("cost")
     ty = sub.add_parser("types")
     ty.add_argument("--set", dest="set_", choices=list(tc.SETS), default="confirm")
-    for name in ("c4", "c5", "c6", "c8", "c9", "c10", "c11", "headroom"):
+    for name in ("c4", "c5", "c6", "c8", "c9", "c10", "c11", "c12", "headroom"):
         sub.add_parser(name)
     args = ap.parse_args()
     {"run": cmd_run, "check": cmd_check, "confirm": cmd_confirm, "c2": cmd_c2, "c3": cmd_c3,
      "thinking": cmd_thinking, "cost": cmd_cost, "types": cmd_types, "c4": cmd_c4, "c5": cmd_c5,
-     "c6": cmd_c6, "c8": cmd_c8, "c9": cmd_c9, "c10": cmd_c10, "c11": cmd_c11, "headroom": cmd_headroom}[args.cmd](args)
+     "c6": cmd_c6, "c8": cmd_c8, "c9": cmd_c9, "c10": cmd_c10, "c11": cmd_c11, "c12": cmd_c12,
+     "headroom": cmd_headroom}[args.cmd](args)
 
 
 if __name__ == "__main__":

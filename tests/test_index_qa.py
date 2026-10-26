@@ -308,3 +308,26 @@ def test_audit_parse_label_and_kappa():
     assert parse_label("no json") == (None, "")
     assert cohen_kappa(["a", "b", "a", "b"], ["a", "b", "a", "b"]) == 1.0
     assert abs(cohen_kappa(["a", "a", "b", "b"], ["a", "b", "a", "b"])) < 1e-12
+
+
+def test_qwen_render_logs_like_build_and_fills_caption_slots():
+    from index_qa.open_reader import SLOT
+    from index_qa.qwen_kaggle import render
+    blocks = [{"type": "text", "text": "head"}, {"type": "text", "text": "0-5 s:"},
+              {"type": "image", "path": "local/f/00_0.jpg"}, {"type": "text", "text": "tail"}]
+    parts, frames, log = render(blocks, None)
+    assert log == "head\n0-5 s:\n[image local/f/00_0.jpg]\ntail"  # reader.build's log format
+    assert frames == ["local/f/00_0.jpg"]
+    assert [p.get("text") for p in parts] == ["head\n", "0-5 s:\n", None, "tail"]  # a newline after each text block
+    text = f"intro\n\n0-5 s: {SLOT.format(p=0)}\n5-10 s: {SLOT.format(p=1)}\n\nQ"
+    parts, frames, log = render([{"type": "text", "text": text}], {0: "a dog runs", 1: "it stops"})
+    assert log == "intro\n\n0-5 s: a dog runs\n5-10 s: it stops\n\nQ" and parts[0]["text"] == log and not frames
+
+
+def test_open_reader_is_c12_and_reads_own_folder():
+    assert "qwencaptions" in ARMS and "qwencaptions" in CAPTIONERS and "qwencaptions" not in CLAUDE_CAPTIONER
+    assert "qwencaptions" not in INDEX_SOURCE  # captioned on a free GPU: no list price
+    assert reader.rows_path("qwen").parent.name == "open" and reader.rows_path("haiku").parent.name == "claude"
+    assert all(a.split(":")[0] == "qwen" for a in reader.C12_ARMS)
+    assert {t[1] for t in reader.C12_TERMS} | {t[2] for t in reader.C12_TERMS} <= set(reader.C12_ARMS) | {
+        "haiku:sonnetcaptions", "haiku:blind"}

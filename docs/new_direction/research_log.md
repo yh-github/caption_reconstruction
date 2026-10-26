@@ -1396,6 +1396,55 @@ No new calls. These analyses are descriptive: the point estimates of Table 5 (dr
   - §8.1 can report the middle point between question-blind and question-aware: knowing the kinds of question closes about half of the index loss for Sonnet, and none of the stacked loss.
   - The cheapest index that comes closest to Sonnet on frames is now Haiku on aspect captions: −0.051, Q\* 1.3.
 
+### C12 — An open-weights reader: Qwen2.5-VL-7B on the main decomposition (written 2026-10-26, committed before any C12 call)
+
+**Why.** Every reader so far is a closed model run through a CLI, with its system prompt and no temperature control (draft §7). That is the most likely reviewer objection. The plan kept an open-weights reader as optional (plan §6, G7). With G5 settled as case 1 it is not needed for the claim, but the user chose to run it (2026-10-26) because Kaggle's GPUs are free. C12 asks whether claims 1, 2 and 2a hold for an open reader that anyone can rerun.
+
+**Model.** Qwen2.5-VL-7B-Instruct (`Qwen/Qwen2.5-VL-7B-Instruct`), float16, split over Kaggle's two T4s. It was chosen over Llama 3.2 11B Vision for three reasons:
+- Qwen2.5-VL takes many images in one prompt. Llama 3.2 Vision was trained on one image per prompt, and our frame arms show up to 30.
+- Its 7B weights fit two T4s in float16 without quantization. Llama's 11B would need 8-bit.
+- It counts visual tokens almost as Claude does (28 px per token): over the C12 frames, Qwen gets 0.82 of Claude's visual tokens (224×126 → 32 vs. 40, because Qwen rounds the height and Claude rounds it up).
+
+**Arms (all on the 297 confirmatory questions; 2,376 reads).**
+- `blind`, `frames5`, and six caption arms: `qwencaptions`, `selfcaptions` (Haiku's), `sonnetcaptions`, `frameclipcaptions`, `framecaptions` and `captions` (Gemini's).
+- **`qwencaptions` is new.** Qwen captions each of the 761 confirmatory windows from exactly the frames5 frames, with the self-captions' prompt (`caption.frames_prompt`), images before the prompt. These are the open reader's own captions, so `qwencaptions − frames5` is the modality effect for Qwen.
+- Every reader prompt is `reader.build`'s, exported by `open_reader.py bundle`. `open_reader.py import` refuses any read whose logged prompt differs from `reader.build`'s.
+
+**Deviations from the Claude arms (fixed now):**
+- Decoding is greedy (with the shipped repetition penalty), so there is no retry: a greedy retry repeats itself. An unparsed answer scores as wrong.
+- Qwen's default system prompt replaces the CLI's.
+- Content parts are joined into one chat message, with a newline after each text block. Claude received separate content blocks.
+- No thinking. Qwen2.5-VL-Instruct does not think.
+- No cost account: the GPU is free, so Q\* is not defined for Qwen. Tokens are logged.
+
+**Predictions** (95% CIs over questions and over clip clusters; by type over clip clusters). Expected accuracies: question only 0.40, frames 0.58, own captions 0.57, Sonnet captions 0.66, Gemini video captions 0.70.
+
+| Term | Prediction |
+|---|---|
+| C12a modality: Qwen captions − frames (P2 for Qwen) | **−0.01** |
+| C12b captioner at identical input: Sonnet captions − Qwen captions (C3a for Qwen) | **+0.09** |
+| C12c captioner at identical input: Haiku captions − Qwen captions | +0.05 |
+| C12d captioner at about matched tokens: Gemini frame-clip captions − Qwen captions (C2a) | +0.08 |
+| C12e Gemini frame captions − Qwen captions (P3 for Qwen) | +0.14 |
+| C12f index vs. frames: Gemini video captions − frames (S3 for Qwen) | +0.12 |
+| C12g the cap: Qwen − Haiku, both reading Sonnet captions | −0.05 |
+| C12h question-only floor: Qwen − Haiku | 0.00 |
+| Retention (captions − question only) / (frames − question only): own, Sonnet, Gemini video captions | 0.95, 1.40, 1.60 |
+
+**Readings, set now.**
+- **Claim 1 holds for an open reader** if C12b's CI excludes 0 on the positive side. If C12b ≈ 0 but C12e is positive, only Gemini's larger visual budget helps Qwen, as in C2b.
+- **Claim 2 holds** if C12a's upper bound is below +0.09. A modality effect of IsoBench's size (≥ +0.15) would mean that text is easier for a weak open reader. That would narrow claim 2 to the Claude readers.
+- **Claim 2a (the cap)** holds if C12g's CI includes 0 and |C12g| ≤ 0.05. If Qwen is clearly below Haiku on the same captions (≤ −0.08 with a CI below 0), the cap is reached only by readers with at least Haiku's text skill. Then the paper says so.
+- **If frames help Qwen little** (frames − question only < 0.08), Qwen cannot use up to 30 small images in one prompt. The terms against `frames5` (C12a, C12f) then measure that, not the modality, and the paper reports them as a limit of the reader.
+- By-type terms are descriptive. Resampling noise (C10) does not apply to greedy decoding, but caption choice still does.
+
+**Run (on Kaggle; the user runs it).**
+1. `open_reader.py bundle` writes `local/kaggle_c12.zip` (29.5 MB: 761 caption jobs, 2,376 reader prompts, 3,345 frames, `qwen_kaggle.py`, and the exporting commit in `manifest.json`). It is uploaded as a private Kaggle dataset.
+2. **Smoke check** (`qwen_kaggle.py --stage smoke`): 3 captions and 12 reads (6 questions × question only and frames). Passes if the model loads on 2×T4, the captions are English sentences under the length limit, and at least 10 of the 12 answers parse. If float16 gives garbage, retry with `--fp32-vision`, then stop and investigate.
+3. **Run** (`--stage all`, as a committed "Save & Run All" version): captions, then reads. It resumes if rerun. Expected: 2–5 h of GPU time, within one 12 h session.
+4. Locally: `open_reader.py import <outputs>`, then `reader.py c12`, run once. The output goes to `results/index_qa/reports/c12.txt`.
+- Already checked without a GPU (2026-10-26): the full round trip with fake outputs (every prompt equal to `reader.build`'s, then `c12` runs), and the runner's code path on CPU with a tiny random Qwen2.5-VL test model.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
