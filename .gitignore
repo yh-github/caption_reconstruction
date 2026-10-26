@@ -56,6 +56,8 @@ test_results/
 *.brf
 *.out
 *.toc
+*.fls
+*.fdb_latexmk
 
 # Test reports
 coverage_report.txt
