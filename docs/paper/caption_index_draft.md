@@ -6,7 +6,7 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 
 ---
 
-## 0. Claims and evidence
+## Claims and evidence (working table, not a section of the paper)
 
 | # | Claim (as the paper would state it) | Evidence | Status |
 |---|---|---|---|
@@ -14,7 +14,7 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 | 2 | **Text itself is not easier for the reader.** The reader's own captions of its frames are no better than the frames, and for a strong reader they are worse. | Haiku: P2 +0.030 [−0.034, +0.094]. Sonnet on its own captions: −0.088 [−0.135, −0.044], cl. [−0.140, −0.036] | **Backed.** Haiku gives a bound of ≤ +0.09; Sonnet gives a cost. |
 | 2a | **The question-blind caption caps accuracy, whatever the reader.** On Sonnet's captions, Haiku and Sonnet score the same. | Haiku 0.707 vs. Sonnet 0.710 on Sonnet captions: −0.003 [−0.047, +0.040] (C3 result, unplanned) | **New, exploratory.** One captioner. On Gemini video captions Sonnet leads Haiku by 0.054, so the cap is not reached with every index. |
 | 2b | …**except on two-clip videos, where captions help a weak reader** (+0.22 accuracy; +0.36 pair accuracy). | A3; C4a two-clip +0.36 [+0.16, +0.56]; C3b two-clip +0.33 [+0.20, +0.48] | **Backed.** The mechanism is open: describing in one call gives two-clip +0.09 [−0.06, +0.24] (C5a), below the self-captions by −0.13 [−0.30, +0.02] (C5b). This leans to "a separate call per window", without showing it. |
-| 3 | **The index pays through the reader downgrade, not through fewer tokens.** A cheap reader on a strong captioner's captions costs ~1/25 per question and repays the captioning within 2–4 questions per video. Its accuracy cost depends on the captioner. | Q\* 1.8–3.7 (A2); the Claude chain, Sonnet captions once and Haiku answers vs. Sonnet answers: Q\* 2.3 [2.2, 2.4], accuracy **−0.091** [−0.145, −0.040]. Gemini frame captions: Q\* 3.7, accuracy −0.007 [−0.057, +0.044]. Same-reader savings: 18% (Haiku), 30% (Sonnet). **C9:** Sonnet captioning 448 px frames (720 visual tokens per window) does not close the Claude gap: C9a +0.003 [−0.037, +0.047]; Haiku on them vs. Sonnet on frames −0.088 [−0.138, −0.037], Q\* 3.0 | **Backed for cost.** "Close to the strong reader" holds only for Gemini frame captions (≈ 5,500 visual tokens per window). The Claude chain loses 9 points, and C9 shows the loss is not the captioner's 224 px frames: it sits on reversed (−0.18) and stacked (−0.24) videos, as in claims 4–5. **Reword: the index trades ≈ 0–9 points for a 20–25× lower query cost.** |
+| 3 | **The index pays through the reader downgrade, not through fewer tokens.** A cheap reader on a strong captioner's captions costs 1/23 to 1/26 per question and repays the captioning within 1.2–3.7 questions per video. Its accuracy cost depends on the captioner. | Q\* 1.2–3.7 (A2, C10, C11); the Claude chain, Sonnet captions once and Haiku answers vs. Sonnet answers: Q\* 2.3 [2.2, 2.4], accuracy **−0.091** [−0.145, −0.040]. Gemini frame captions: Q\* 3.7, accuracy −0.007 [−0.057, +0.044]. Same-reader savings: 18% (Haiku), 30% (Sonnet). **C9:** Sonnet captioning 448 px frames (720 visual tokens per window) does not close the Claude gap: C9a +0.003 [−0.037, +0.047]; Haiku on them vs. Sonnet on frames −0.088 [−0.138, −0.037], Q\* 3.0 | **Backed for cost.** "Close to the strong reader" holds only for Gemini frame captions (≈ 5,500 visual tokens per window). The Claude chain loses 9 points, and C9 shows the loss is not the captioner's 224 px frames: it sits on reversed (−0.18) and stacked (−0.24) videos, as in claims 4–5. **Reword: the index trades ≈ 0–9 points for a 23–26× lower query cost.** |
 | 4a | *(exploratory, C11)* **Telling the captioner the kinds of question (not the question) helps a little, but not with the stacked comparison.** | C11b +0.040 [+0.003, +0.081] (Sonnet), C11a +0.027 [−0.013, +0.067] (Haiku), both as predicted (+0.03). Sonnet on its own aspect captions vs. its frames −0.037 (C10d −0.077). Against per-window captions: stacked 0.39 vs. 0.39 (Sonnet) | **Weakly backed** (the clustered CI touches 0). Captions are 15% longer, so more words may explain part of it. Reversal mentions do not rise. Supports Prop. 4: the stacked loss needs the question itself (C5b). |
 | 3a | *(robustness, cost)* **Splitting short videos into 5 s windows costs nothing; one caption per video halves the index cost.** | C10a +0.013 [−0.027, +0.057] (Haiku), C10b +0.010 [−0.030, +0.051] (Sonnet); one-window control ≈ 0. Whole-video index $0.0049 vs. $0.0091 per video; Q\* 1.2 [1.2, 1.3] vs. Sonnet on frames, at −0.077 | **Backed** (exploratory, predicted +0.00). By type, reversed +0.12 for Haiku, and stacked leans negative; descriptive. |
 | 4 | **Question-blind captions drop comparisons between things shown at the same time** (stacked clips at two speeds), even from a strong captioner. The loss comes from not seeing the question, not from the text. | C4 stacked pairs: caption arms' pair accuracy 0.10–0.20 vs. Sonnet on frames 0.51; C4c −0.34 [−0.60, −0.08]; C4e −0.41 [−0.62, −0.23]; same-answer rate above Sonnet on frames' in 3 of 4 caption arms. C5b stacked: a description that sees the question beats question-blind self-captions by **+0.22 [+0.09, +0.37]**. | **Backed** (exploratory, written in advance in C4, C5 and C7). The audit (C7) labels 0.93–1.00 of stacked failures "silent" in every arm (predicted ≥ 0.70). Judge vs. hand labels κ = 0.81. |
@@ -26,7 +26,7 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 | — | *Dropped:* "the captioner's knowledge" | No arm separates perceiving, recognizing and writing (D2) | We say "captioner effect" |
 | — | *Dropped:* "a captioner that reports reversals more often fixes reversed clips" | C3a reversed +0.01 | Folded into claim 5 |
 
-**Headline (case 1):** "Given exactly the reader's frames, a stronger captioner's question-blind captions make a cheap reader more accurate (+0.06 to +0.15). Turning the frames into text does not (≤ +0.09 for Haiku; −0.09 for Sonnet). A caption index lets a 20–25× cheaper reader answer at 0–9 points below the strong reader on frames, and repays itself within 2–4 questions per video. What it loses is what a question-blind captioner does not write down: the comparison between stacked copies, and reversals."
+**Headline (case 1):** "Given exactly the reader's frames, a stronger captioner's question-blind captions make a cheap reader more accurate (+0.06 to +0.15). Turning the frames into text does not (≤ +0.09 for Haiku; −0.09 for Sonnet). A caption index lets a 23–26× cheaper reader answer at 0–9 points below the strong reader on frames, and repays itself within 1.2–3.7 questions per video. What it loses is what a question-blind captioner does not write down: the comparison between stacked copies, and reversals."
 
 **Tension to resolve while writing:** claims 1 and 2 say the captioner adds usable information. Claims 2a, 4 and 5 say question-blindness caps it. Both hold: the captioner helps a reader below the cap (Haiku) and hurts one above it (Sonnet). **Fig. 3** (`docs/paper/figures/caption_index_fig3_readers.png`) shows this: from Haiku to Sonnet, frames rise 0.61 → 0.80 and cross both indexes; Sonnet captions stay at 0.71; Gemini video captions rise 0.74 → 0.79. The CIs in Fig. 3 are per arm; the paired differences (claim 2a, C3c) are tighter.
 
@@ -40,7 +40,7 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 - Findings:
   - The captioner effect is +0.15 (P3), +0.08 at matched visual tokens (C2a), and +0.06 within one model family at identical input (C3a).
   - The modality effect is ≤ +0.09 for Haiku and −0.09 for Sonnet.
-  - The index pays through the reader downgrade: Q\* ≈ 2–4 questions per video, at 0–9 points of accuracy.
+  - The index pays through the reader downgrade: a 23–26× cheaper query, Q\* 1.2–3.7 questions per video, at 0–9 points of accuracy.
 - Where captions fail: minimal pairs show that question-blind captions lose the comparison in stacked clips (pair accuracy 0.10–0.20 vs. 0.51) and narrate reversed clips forward. A question-aware description recovers the stacked loss (+0.22). An audit of the wrong answers finds that 61–73% come from captions that are silent on the question, and only 5–17% from the reader.
 
 ---
@@ -119,7 +119,7 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 ## 3. Theory (short)
 
 - **Prop. 1 (garbling bound).** A caption made from the reader's own frames cannot add information about the video, for an unbounded reader. For a fixed, bounded reader, it can add *usable* information (Xu et al. 2020), and that is what the captioner effect measures.
-  - **Retention**, (captions − question only) / (frames − question only), is the share of the frames' gain the index keeps. For Sonnet (C8): Gemini video captions 0.98 [0.87, 1.11]; its own captions 0.77 [0.66, 0.88]. For Haiku, every index's point estimate exceeds 1 because Haiku on frames is below what the captions hold (claim 2a). The CIs exclude 1 for every index but its own captions (D3, over clip clusters):
+  - **Retention**, (captions − question only) / (frames − question only), is the share of the frames' gain the index keeps. CIs are over clip clusters throughout. For Sonnet (C8, D3): Gemini video captions 0.98 [0.85, 1.13]; its own captions 0.77 [0.64, 0.90]. For Haiku, every index's point estimate exceeds 1 because Haiku on frames is below what the captions hold (claim 2a). The CIs exclude 1 for every index but its own captions (D3, over clip clusters):
     - self-captions 1.15 [0.91, 1.46];
     - Sonnet captions 1.47 [1.18, 1.95];
     - Gemini video captions 1.62 [1.33, 2.10];
@@ -136,7 +136,7 @@ Target: ACL 2027 (ARR, January 2027), long paper (8 pages). **G5 is case 1** (C3
 
 ## 4. Results
 
-*Prose v1 (2026-10-22). For review, the headings name the §0 claim each subsection backs; the tags go before submission.*
+*Prose v1 (2026-10-22). For review, the headings name the claim (claims table) each subsection backs; the tags go before submission.*
 
 All results are on the 297 confirmatory questions, and no question is missing from any arm. P1–P3 were pre-registered (C1) and carry 98.33% CIs. Every other comparison is exploratory: it was written down with a predicted value before its first call, and its analysis was run once. These carry 95% paired bootstrap CIs over questions. "cl." marks a CI from resampling the 156 clusters of videos that share a filmed clip; the two kinds of CI agree throughout (Appendix D). Differences are in accuracy, so +0.064 is 6.4 points.
 
@@ -189,7 +189,7 @@ The modality effect asks whether a reader does better on its own words than on t
 
 **Figure 3.** Accuracy by reader for the question alone, 5 frames, and the two indexes both readers read. 95% CIs over clip clusters. The frames line crosses both index lines.
 
-Figure 3 shows why. From Haiku to Sonnet, accuracy on frames rises from 0.613 to 0.798, while accuracy on Sonnet's captions stays flat (0.707 → 0.710; paired difference −0.003 [−0.047, +0.040]). Once the video is in these captions, a reader that costs 17× less per question loses nothing, and a stronger reader gains nothing. We read this as a cap: a question-blind caption bounds any reader's accuracy by what the caption holds. Haiku on frames is below the cap of Sonnet's captions and gains from them; Sonnet is above it and loses. The cap depends on the index. Sonnet reads Gemini's video captions better than its own (0.791 vs. 0.710, +0.081 [+0.034, +0.128]), and keeps 0.98 [0.87, 1.11] of its frames' gain over the question alone on them, against 0.77 [0.66, 0.88] on its own captions (retention, §3). This pattern was not predicted: it appeared in C3, and it is exploratory.
+Figure 3 shows why. From Haiku to Sonnet, accuracy on frames rises from 0.613 to 0.798, while accuracy on Sonnet's captions stays flat (0.707 → 0.710; paired difference −0.003 [−0.047, +0.040]). Once the video is in these captions, a reader that costs 17× less per question loses nothing, and a stronger reader gains nothing. We read this as a cap: a question-blind caption bounds any reader's accuracy by what the caption holds. Haiku on frames is below the cap of Sonnet's captions and gains from them; Sonnet is above it and loses. The cap depends on the index. Sonnet reads Gemini's video captions better than its own (0.791 vs. 0.710, +0.081 [+0.034, +0.128]), and keeps 0.98, cl. [0.85, 1.13], of its frames' gain over the question alone on them, against 0.77, cl. [0.64, 0.90], on its own captions (retention, §3). This pattern was not predicted: it appeared in C3, and it is exploratory.
 
 Haiku's advantage on captions does not come from starving the frames. At 448 px, Haiku's frames take 2,676 input tokens per question, 1.76× the 224 px arm, and gain +0.037 [−0.010, +0.084] (C6a). Captions at ≈ 1,280 input tokens still beat them: Gemini frame captions by +0.141 [+0.088, +0.195], Gemini video captions by +0.088 [+0.037, +0.138], and Sonnet captions by +0.057 [+0.003, +0.111]. The advantage sits on two-clip videos (+0.31 to +0.38), and for Gemini frame captions also on plain and reversed ones. On stacked videos, every caption arm is within ±0.07 of the 448 px frames.
 
@@ -301,12 +301,14 @@ In short, a caption index trades 0–9 points of accuracy against the strong rea
 
 ### Review notes on §4–5 (delete after review)
 
-1. **Headline numbers moved with C10 and C11.** Per question, Haiku on an index from a stronger captioner costs 1/23 to 1/26 of Sonnet on frames (1/23 to 1/25 for the per-window indexes; 1/22 on its self-captions), and Q\* now spans 1.2–3.7 (the whole-video and aspect-aware indexes are below 2). §0's headline, claim 3 and the abstract still say "20–25×" and "2–4 questions". §5 uses the new ranges; the other sections change when they are drafted.
-2. **C11 is now reported in §4.5**, so §8.1 can keep the interpretation (the question-blind → task-aware → question-aware gradient) and drop the repeated numbers.
+Decided 2026-10-26 (the user accepted the recommendations): notes 1, 5 and 6 are applied; 2 and 4 wait until the main-text cut; 3 is done at assembly.
+
+1. ~~**Headline numbers moved with C10 and C11.**~~ Applied: the claims table's headline, claim 3 and the abstract now say 23–26× and Q\* 1.2–3.7 (1/23 to 1/25 for the per-window indexes; 1/22 on Haiku's self-captions).
+2. **C11 is now reported in §4.5**, so §8.1 can keep the interpretation (the question-blind → task-aware → question-aware gradient) and drop the repeated numbers. *Waits for the main-text cut.*
 3. **Table numbers:** the Q\* table is Table 6, but it appears before Table 5 (§8.1). Renumber at assembly.
-4. **Length:** §4–5 are about 3,500 words (without the tables), with 4 tables and 3 figures, which is more than an 8-page paper has room for. Candidates for the appendix: Table 1's variant rows (448 px captions, whole-video, aspect-aware, frame-clip), the thinking paragraph, and the per-arm by-type audit numbers.
-5. **Hand labels:** written as "one author labelled 40 items … blind to [the judge]". The note that Claude pointed out caption details on 6 items (κ unchanged with first-instinct labels) is left for Appendix B/C.
-6. **Retention CIs:** §4.2 uses the question-level CIs (0.98 [0.87, 1.11], 0.77 [0.66, 0.88]), as §3 does; §8.2 uses the clustered ones (0.77 [0.64, 0.90]). Pick one convention.
+4. **Length:** §4–5 are about 3,500 words (without the tables), with 4 tables and 3 figures, which is more than an 8-page paper has room for. Candidates for the appendix: Table 1's variant rows (448 px captions, whole-video, aspect-aware, frame-clip), the thinking paragraph, and the per-arm by-type audit numbers. *Waits for the main-text cut.*
+5. ~~**Hand labels.**~~ Applied: the text keeps "one author labelled 40 items … blind to [the judge]"; the note that Claude pointed out caption details on 6 items (κ unchanged with first-instinct labels) is listed under Appendix C.
+6. ~~**Retention CIs.**~~ Applied: retention CIs are over clip clusters everywhere (§3, §4.2, §8), the project's standard for clustered data.
 
 ---
 
@@ -435,7 +437,7 @@ In short, a caption index trades 0–9 points of accuracy against the strong rea
 
 - A. Prompts: caption, reader, describe-then-answer, audit.
 - B. The development phase (K0–K2) and how it set the hypotheses; predictions against results (C1–C7).
-- C. Amendments, deviations, and the term mapping (D2).
+- C. Amendments, deviations, and the term mapping (D2). Includes the hand-label caveat (C7): the labels were blind to the judge, but made in a session where Claude (Opus) pointed out caption details on 6 items; κ is 0.81 with the first-instinct labels too.
 - D. Tables by aspect and by video type; clustered CIs.
 - E. The minimal-pair construction (C4), with pair results by group.
 - F. Release: code, captions, raw outputs; TempCompass licence (CC BY-NC).
