@@ -51,6 +51,7 @@ A format failure gets one retry; after that the item scores as wrong.
     .venv/bin/python scripts/index_qa/reader.py c9           # C9: Sonnet captions of 448 px frames
     .venv/bin/python scripts/index_qa/reader.py c10          # C10: one Sonnet caption per video
     .venv/bin/python scripts/index_qa/reader.py c12          # C12: the open-weights reader (open_reader.py)
+    .venv/bin/python scripts/index_qa/reader.py tables       # the paper's generated tables (docs/paper/acl2027)
 Outputs (append-only; the latest row per item counts): results/index_qa/claude/<model>.jsonl and
 <model>__events.jsonl, as in the unshuffle reader.
 """
@@ -68,8 +69,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import caption_pieces as cp  # noqa: E402
 from index_qa import tempcompass as tc  # noqa: E402
-from index_qa.caption import (ASPECTS, CAPTIONS, MODE, WHOLE, caption_windows, captions, end_line,  # noqa: E402
-                              visual_tokens)
+from index_qa.caption import (ASPECTS, CAPTIONS, MODE, WHOLE, caption_path, caption_windows, captions,  # noqa: E402
+                              end_line, visual_tokens)
 from unshuffle.claude_reader import EFFORT, MODELS, call_claude  # noqa: E402
 
 ARMS = ["blind", "captions", "frame1", "frames5", "selfcaptions", "framecaptions", "frameclipcaptions",
@@ -1021,6 +1022,27 @@ C12_TERMS = [("C12a modality (P2 for Qwen)", "qwen:qwencaptions", "qwen:frames5"
 C12_RETENTION = [("qwen:qwencaptions", 0.95), ("qwen:sonnetcaptions", 1.40), ("qwen:captions", 1.60)]
 
 
+CAPTION_WORD_LIMIT = 45  # caption.frames_prompt: "at most 45 words in total" per 5 s window
+
+
+def caption_lengths(arms=("qwencaptions", "selfcaptions", "sonnetcaptions", "frameclipcaptions", "framecaptions",
+                          "captions")):
+    """Words per caption on the confirmatory windows, per captioner, and the share over the prompt's limit. Added to
+    C12 after its entry, when Qwen's captions ran over the limit (descriptive)."""
+    print(f"caption words per window, confirmatory windows (prompt limit {CAPTION_WORD_LIMIT}):")
+    vids = sorted({q["video_id"] for q in tc.items("confirm")})
+    for arm in arms:
+        model = CAPTIONERS[arm]
+        words = sorted(len(json.loads(f.read_text())["caption"].split()) for v in vids
+                       for p in range(len(caption_windows(v, model))) if (f := caption_path(model, v, p)).exists())
+        if not words:
+            print(f"  {arm}: none yet")
+            continue
+        over = sum(w > CAPTION_WORD_LIMIT for w in words)
+        print(f"  {arm} ({model}): n={len(words)}, median {words[len(words) // 2]}, mean "
+              f"{sum(words) / len(words):.1f}, max {words[-1]}, over the limit {over / len(words):.2f}")
+
+
 def cmd_c12(args):
     """C12's statistics (research log): Qwen2.5-VL-7B (greedy, on Kaggle) on the main decomposition's arms; its
     caption and reader tokens; the terms with 95% CIs over questions and over clip clusters, by video type; Qwen's
@@ -1038,9 +1060,9 @@ def cmd_c12(args):
     caps = [json.loads(f.read_text()) for f in (CAPTIONS / CAPTIONERS["qwencaptions"]).glob("*/*.json")]
     if caps:
         vis = sorted(c["usage"]["visual_tokens"] for c in caps)
-        words = sorted(len(c["caption"].split()) for c in caps)
-        print(f"Qwen captions: {len(caps)} windows; visual tokens per window median {vis[len(vis) // 2]}; words median "
-              f"{words[len(words) // 2]}, max {words[-1]}; ERROR or empty {sum(cp.is_error(c['caption']) or not c['caption'].strip() for c in caps)}")
+        print(f"Qwen captions: {len(caps)} windows; visual tokens per window median {vis[len(vis) // 2]}; ERROR or "
+              f"empty {sum(cp.is_error(c['caption']) or not c['caption'].strip() for c in caps)}")
+    caption_lengths()
     cols = C12_ARMS + [c for c in ("haiku:blind", "haiku:frames5", "haiku:sonnetcaptions", "sonnet:frames5") if c in wide]
     print("\naccuracy by video type:")
     acc = wide[cols].groupby(vtype).mean().reindex(tc.VIDEO_TYPES).T.round(2)
@@ -1056,6 +1078,49 @@ def cmd_c12(args):
         est, lo, hi = retention_boot(*cols3)
         _, clo, chi = retention_boot(*cols3, clusters=clus[x.index].tolist())
         print(f"  {arm}: {est:.2f} [{lo:.2f}, {hi:.2f}]; [{clo:.2f}, {chi:.2f}] (n={len(x)}; prediction {pred:.2f})")
+
+
+# The paper's appendix table of accuracy by video type and aspect: arm -> row label, in row order
+PAPER_ARMS = {"blind": "question only", "frame1": "1 frame", "frames5": "5 frames", "frames5_448": "5 frames, 448\\,px",
+              "describe5": "describe, then answer", "selfcaptions": "self-captions",
+              "sonnetcaptions": "Sonnet captions", "sonnetcaptions448": "Sonnet captions, 448\\,px",
+              "sonnetwhole": "Sonnet whole-video", "sonnetaspects": "Sonnet aspect-aware",
+              "frameclipcaptions": "Gemini frame-clip", "framecaptions": "Gemini frame",
+              "captions": "Gemini video", "qwencaptions": "Qwen captions"}
+PAPER_TABLES = tc.ROOT / "docs/paper/acl2027/generated"
+
+
+def cmd_tables(args):
+    """Writes the paper's generated tables (docs/paper/acl2027/generated/*.tex) from the confirmatory rows: accuracy by
+    video type and by aspect, for every arm of every reader."""
+    import pandas as pd
+    qs, _, _ = confirm_table()
+    wide, vtype, _ = confirm_frame()
+    aspect = pd.Series({x["item"]: x["dim"] for x in qs})[wide.index]
+    aspects = sorted(aspect.unique())
+    lines = []
+    for model in ("haiku", "sonnet", *OPEN_MODELS):
+        cols = [f"{model}:{a}" for a in PAPER_ARMS if f"{model}:{a}" in wide]
+        if not cols:
+            continue
+        by_t = wide[cols].groupby(vtype).mean().reindex(tc.VIDEO_TYPES).T
+        by_a = wide[cols].groupby(aspect).mean().reindex(aspects).T
+        lines.append("\\midrule")
+        for c in cols:
+            vals = [*by_t.loc[c], *by_a.loc[c], wide[c].mean()]
+            lines.append(f"{model.capitalize()}, {PAPER_ARMS[c.split(':')[1]]} & "
+                         + " & ".join(f"{v:.2f}" for v in vals) + " \\\\")
+    n_t = vtype.value_counts().reindex(tc.VIDEO_TYPES)
+    n_a = aspect.value_counts().reindex(aspects)
+    head = (" & ".join(["Reader, input", *(f"{t.replace('_', '-')} ({n_t[t]})" for t in tc.VIDEO_TYPES),
+                        *(f"{a.replace('attribute_change', 'attr.')} ({n_a[a]})" for a in aspects),
+                        f"all ({len(wide)})"]) + " \\\\")
+    PAPER_TABLES.mkdir(parents=True, exist_ok=True)
+    out = PAPER_TABLES / "acc_by_type_aspect.tex"
+    out.write_text("% Generated by scripts/index_qa/reader.py tables; do not edit.\n"
+                   f"\\begin{{tabular}}{{@{{}}l{'r' * (len(tc.VIDEO_TYPES) + len(aspects) + 1)}@{{}}}}\n\\toprule\n"
+                   + head + "\n" + "\n".join(lines) + "\n\\bottomrule\n\\end{tabular}\n")
+    print(f"{out}: {sum(l.endswith(chr(92) * 2) for l in lines)} rows")
 
 
 # C4 (research log): arms read on both videos of a minimal pair, and the terms on pair accuracy
@@ -1285,13 +1350,13 @@ def main():
     sub.add_parser("cost")
     ty = sub.add_parser("types")
     ty.add_argument("--set", dest="set_", choices=list(tc.SETS), default="confirm")
-    for name in ("c4", "c5", "c6", "c8", "c9", "c10", "c11", "c12", "headroom"):
+    for name in ("c4", "c5", "c6", "c8", "c9", "c10", "c11", "c12", "headroom", "tables"):
         sub.add_parser(name)
     args = ap.parse_args()
     {"run": cmd_run, "check": cmd_check, "confirm": cmd_confirm, "c2": cmd_c2, "c3": cmd_c3,
      "thinking": cmd_thinking, "cost": cmd_cost, "types": cmd_types, "c4": cmd_c4, "c5": cmd_c5,
      "c6": cmd_c6, "c8": cmd_c8, "c9": cmd_c9, "c10": cmd_c10, "c11": cmd_c11, "c12": cmd_c12,
-     "headroom": cmd_headroom}[args.cmd](args)
+     "headroom": cmd_headroom, "tables": cmd_tables}[args.cmd](args)
 
 
 if __name__ == "__main__":
