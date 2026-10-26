@@ -13,6 +13,9 @@
 \usepackage{booktabs}
 \usepackage{amsmath}
 \usepackage{xcolor}
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily\scriptsize, breaklines=true, columns=fullflexible, keepspaces=true,
+  frame=single, framesep=3pt, xleftmargin=4pt, xrightmargin=4pt}
 
 \graphicspath{{../figures/}}
 
@@ -42,34 +45,25 @@
 \maketitle
 
 \begin{abstract}
-\draftnote{Bullets, to be written as prose.}
-\begin{itemize}
-\item Setting: captions as a one-time, question-independent index of short videos, read later by an LLM.
-\item Question: when and why does a reader answer better from the index than from frames, and what does it cost?
-\item Design: an information control. The captioner sees exactly the reader's frames, which splits the caption effect into source, visual budget, captioner and modality effects. Pre-registered on 297 TempCompass questions, with exploratory follow-ups each logged with predictions before running.
-\item Findings: the captioner effect is +0.15 (P3), +0.08 at matched visual tokens, and +0.06 within one model family at identical input. The modality effect is ≤ +0.09 for Haiku and −0.09 for Sonnet. The index pays through the reader downgrade: a 23–26× cheaper query, \qstar{} 1.2–3.7 questions per video, at 0–9 points of accuracy.
-\item Where captions fail: minimal pairs show that question-blind captions lose the comparison in stacked clips (pair accuracy 0.10–0.20 vs.\ 0.51) and narrate reversed clips forward. A question-aware description recovers the stacked loss (+0.22). An audit of the wrong answers finds that 61–73\% come from captions that are silent on the question, and only 5–17\% from the reader.
-\end{itemize}
+Captions written once per video window, without the questions, can serve as an index from which a cheaper text reader answers later questions. We ask when such an index lets a reader answer better than it does from the frames, why, and at what cost. The captioner sees exactly the reader's frames, which splits the effect of captions into source, visual budget, captioner and modality effects. On 297 TempCompass questions, with a pre-specified main test, a stronger captioner's captions raise a Claude Haiku reader's accuracy by 0.15 over Haiku's own captions of the same frames, by 0.08 at matched visual tokens, and by 0.06 within one model family at identical input. Turning frames into text does not help by itself: Haiku gains at most 0.09 from its own captions, and Claude Sonnet loses 0.09. The index pays through the cheaper reader: Haiku on a stronger captioner's index costs 1/23 to 1/26 of Sonnet on frames per question, repays the captioning within 1.2--3.7 questions per video, and is 0--9 points less accurate. Question-blind captions lose the comparison between two copies of a clip shown at once, and the direction of reversed clips; 61--73\% of wrong answers come from captions that do not decide the question.
 \end{abstract}
 
 \section{Introduction}
-\draftnote{Bullets, to be written as prose.}
-\begin{itemize}
-\item \textbf{Motivation.} Captioning a video is paid once; questions come later and repeatedly. Caption-then-reason pipelines are widely used \citep{llovi,videotree,silvr}, and ``caption once, reuse'' is now published for long video \citep{cfd,capmem,sprout}. Two questions are open:
-  \begin{enumerate}
-  \item When the captions win, \textbf{why}? Did the captioner see more, spend more visual tokens, write differently, or is text easier to read than pixels?
-  \item \textbf{Does it pay}, counting the captioning and the reader's full per-question cost?
-  \end{enumerate}
-\item \textbf{Approach.} The information control (Proposition~1): give the captioner exactly the frames the reader sees. Then any caption advantage is usable information added by the captioner or by the modality, not information about the video.
-\item \textbf{Contributions:}
-  \begin{enumerate}
-  \item A decomposition of the caption effect into source, visual budget, captioner and modality effects, with arms that change one thing each, in two model families (\S\ref{sec:effects}, Table~\ref{tab:effects}).
-  \item A pre-registered test plus a within-family replication at identical input: the captioner effect is positive, and the modality effect is ≤ +0.09 (and negative for a strong reader) (\S\ref{sec:captioner}--\ref{sec:modality}).
-  \item A cost account per question (input, output and thinking tokens, list-price dollars) and the break-even \qstar{} (\S\ref{sec:cost}).
-  \item What question-blind captions lose, shown with minimal pairs, a question-aware control and a caption audit (\S\ref{sec:types}--\ref{sec:audit}).
-  \end{enumerate}
-\item \textbf{Scope:} short videos (≈ 10\,s), multiple choice, one benchmark.
-\end{itemize}
+
+Many video question answering systems first caption the video and then reason over the text \citep{llovi,videotree,silvr}. When the captions are written once and reused for every later question, they act as an index: captioning is paid once, and each question costs only a text read. Recent work builds such indexes for long video \citep{cfd,capmem,sprout}. Two questions remain open. First, when a reader answers better from captions than from frames, the reason is unclear. The captioner may have seen more of the video, spent more visual tokens, or been a stronger model, or text may be easier for the reader than pixels. Second, whether the index pays depends on the full cost per question and on the one-time cost of captioning.
+
+We hold the information fixed. The captioner receives exactly the frames the reader would see. A caption made from these frames cannot contain information about the video that the frames lack (Proposition~1), so an accuracy gain from captions is information that the reader can use more easily, not new information. Arms that change one thing at a time then split the effect of captions into four parts: the source the captioner sees (the video or the reader's frames), the visual tokens it spends, the captioner model, and the modality (a reader's own captions against its own frames). We use two model families: Claude Haiku and Sonnet read, and Haiku, Sonnet and Gemini caption. The data are 297 multiple-choice questions from TempCompass \citep{tempcompass}, on videos with a median length of 10\,s. The main test was specified on a separate development set, before the test questions were run, and each follow-up was logged with a predicted value before it ran.
+
+The captioner matters. With Haiku reading, Gemini's captions of the reader's frames beat Haiku's own captions of them by 0.15; at matched visual tokens the gain is 0.08, and Sonnet's captions of identical input give 0.06. The modality does not: Haiku is no more accurate on its own captions than on the frames they describe (+0.03, CI up to +0.09), and Sonnet is 0.09 less accurate on its own. On Sonnet's captions both readers score 0.71, so a question-blind caption bounds accuracy by what it contains, whatever the reader. For one reader, Gemini's video captions save 18--30\% per question against the frames. The saving that matters comes from switching to a cheaper reader: Haiku on a stronger captioner's index costs 1/23 to 1/26 of Sonnet on frames, and the index repays its captioning within 1.2--3.7 questions per video, at 0 to 9 points of accuracy. The losses are concentrated. When two copies of a clip play one above the other at different speeds, question-blind captions do not say which is faster, although the same model, shown the frames with the question, often answers correctly; on reversed clips they describe the forward event or do not state a direction.
+
+Our contributions are:
+\begin{enumerate}
+\item A decomposition of the effect of captions into source, visual budget, captioner and modality effects, with arms that change one thing each, in two model families (\S\ref{sec:effects}).
+\item A pre-specified test and a replication within one model family at identical input. The captioner effect is positive, and the modality effect is at most +0.09 for a weak reader and negative for a strong one (\S\ref{sec:captioner}--\ref{sec:modality}).
+\item A cost account per question, from input, output and thinking tokens at list price, and the break-even number of questions per video (\S\ref{sec:cost}).
+\item An account of what question-blind captions lose, from minimal pairs, a question-aware control and an audit of wrong answers (\S\ref{sec:types}--\ref{sec:aware}).
+\end{enumerate}
+The study is limited to short videos, multiple-choice questions and one benchmark.
 
 \section{Setup}
 
@@ -484,7 +478,80 @@ all (297) & 0.41 & 0.80 & 0.71 & 0.20 [0.15, 0.26] & +0.09 [+0.04, +0.14] & 0.77
 
 \section{Prompts}
 \label{app:prompts}
-\pending{caption, reader, describe-then-answer and audit prompts}
+
+All prompts are given exactly as sent. Text in braces is filled in per call.
+
+\paragraph{Caption prompt.} Every captioner gets the same prompt. For frames (Haiku, Sonnet, and Gemini's frame and frame-clip captions), the first sentence is:
+\begin{lstlisting}
+The attached images are {n} frames from a {d}-second video clip, taken one second apart and shown in time order. Describe what happens in the clip, in one or two sentences of at most 45 words in total.
+\end{lstlisting}
+For Gemini's video captions, it is ``Describe what happens in the attached 5-second video clip, in one or two sentences of at most 45 words in total.'' The rest is the same for all:
+\begin{lstlisting}
+* Start with what happens: what the people, animals or machines do, or, if nothing in the clip acts, how the scene or the camera view changes.
+* Then add the details that set this moment apart: the key objects and any on-screen text, but do not transcribe subtitles, clocks, timestamps, dates or numbering (such as day, part or step numbers), and leave out watermarks and channel logos.
+* Describe the setting in a few words at most.
+* Mention camera movement only when the camera clearly moves.
+* Describe what is seen, not what is heard.
+* Include enough details so someone who hasn't seen the video could understand what's happening.
+* If a description cannot be generated, write "ERROR".
+\end{lstlisting}
+The whole-video captions (\S\ref{sec:robust}) get all of a video's frames in one call, and the length clause scales with the number of windows (for two windows: ``in at most 4 sentences of at most 90 words in total''). The aspect-aware captions (\S\ref{sec:aware}) add one bullet before the last:
+\begin{lstlisting}
+* The description will be used later to answer questions about the actions, the speed of the movements, the direction of the movements, the order of the events, and changes in the attributes of things (such as size, colour, shape or state). State these whenever the frames show them.
+\end{lstlisting}
+
+\paragraph{Reader prompt.}
+\begin{lstlisting}
+Answer a multiple-choice question about a video clip that is {duration} seconds long. There is no sound.
+
+{modality}
+
+{evidence}
+
+Question: {stem}
+{options}
+
+Answer with JSON only, in this format: {"answer": "<letter>"}, with one of the letters {letters}.
+\end{lstlisting}
+The evidence is the frames or the captions, each window labelled with its time span (``0-5 s:''). The modality sentence is, for frames:
+\begin{lstlisting}
+The video was split into windows of 5 seconds (the last one may be shorter). Each window is shown as its frames taken one second apart, in time order.
+\end{lstlisting}
+for captions:
+\begin{lstlisting}
+The video was split into windows of 5 seconds (the last one may be shorter). Each window is given as a short description of what can be seen in it, in time order. Each description was written by an AI model that watched only that one window, without sound, and knew nothing about the rest of the video.
+\end{lstlisting}
+for whole-video captions:
+\begin{lstlisting}
+The video is given as a single description of what can be seen in it. The description was written by an AI model that watched the whole video, without sound.
+\end{lstlisting}
+for one frame per window, ``\ldots{} Each window is shown as one frame from its middle, in time order.''; and for the question only, ``You cannot see the video. Give your best guess from the question and options alone.''
+
+\paragraph{Describe, then answer.} The reader prompt with frames, with the last paragraph replaced by:
+\begin{lstlisting}
+First describe each window in one sentence, in time order: what can be seen in it and what happens. Then answer. Answer with JSON only, in this format: {"windows": ["<window 1>", "<window 2>", ...], "answer": "<letter>"}, with one description per window and one of the letters {letters}.
+\end{lstlisting}
+
+\paragraph{Audit judge (\S\ref{sec:audit}).}
+\begin{lstlisting}
+You are checking whether written descriptions of a video contain the answer to a question about it.
+
+The video is {duration} seconds long, without sound. It was split into windows of 5 seconds (the last one may be shorter). An AI model wrote one description per window, seeing only that one window and not the question:
+
+{captions}
+
+Question: {stem}
+{options}
+
+The correct answer is {answer}. {answer_text}
+
+Judge the descriptions only, not what you think the video shows. Choose one label:
+- "correct": the descriptions state the correct answer, or imply it clearly enough that a careful reader would choose it.
+- "wrong": the descriptions state, or clearly imply, a different option.
+- "silent": the descriptions do not decide between the options: the fact needed is missing or too vague.
+
+Answer with JSON only, in this format: {"label": "<correct|wrong|silent>", "evidence": "<a short quote from the descriptions, or an empty string>"}
+\end{lstlisting}
 
 \section{Development phase and predictions}
 \pending{how the development set set the hypotheses; predictions against results}
@@ -494,12 +561,21 @@ all (297) & 0.41 & 0.80 & 0.71 & 0.20 [0.15, 0.26] & +0.09 [+0.04, +0.14] & 0.77
 
 \section{Tables by aspect and by video type}
 \label{app:tables}
-\pending{by-aspect and by-type tables, clustered CIs, retention of the variants, the Haiku headroom table, all exploratory terms}
+Table~\ref{tab:acc_all} gives the accuracy of every arm by video type and by aspect. Every stacked question is about speed, and every two-clip question is about order, so the two breakdowns overlap.
+
+\begin{table*}[t]
+\centering
+\resizebox{\textwidth}{!}{\input{generated/acc_by_type_aspect.tex}}
+\caption{Accuracy by video type and by aspect, every arm (297 confirmatory questions; n in brackets).}
+\label{tab:acc_all}
+\end{table*}
+
+\pending{effects by video type with clustered CIs, retention of the variants, the Haiku headroom table, all exploratory terms with their predictions}
 
 \section{Minimal-pair construction}
 \pending{construction and pair results by group}
 
 \section{Release}
-\pending{code, captions, raw outputs; TempCompass licence (CC BY-NC)}
+We release the code, every caption, and every reader and judge output (prompt, raw answer, parsed answer and token counts per call), with the log of predictions written before each run. \pending{anonymized link for review.} The videos and questions are TempCompass's \citep{tempcompass}, under CC BY-NC 4.0; we do not redistribute the videos or frames, and the captions, which describe them, are released under the same licence.
 
 \end{document}
