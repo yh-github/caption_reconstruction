@@ -1322,6 +1322,49 @@ def cmd_cost(args):
         print(f"  {a} vs. {b}: Q* = {est:.1f} [{lo:.1f}, {hi:.1f}] (never in {never:.0%} of resamples; n={len(q)}); "
               f"$/question {usd.loc[q, a].mean():.6f} vs. {usd.loc[q, b].mean():.6f}; accuracy {dacc:+.3f} "
               f"[{dlo:+.3f}, {dhi:+.3f}]")
+    qstar_by_length(df, vid)
+
+
+# Window counts for qstar_by_length: TempCompass's mean is added at run time; 12 = 1 min, 120 = 10 min
+LENGTHS = [12, 120, float("inf")]
+
+
+def qstar_by_length(df, vid: dict[str, str]):
+    """D5: Q* and the per-question cost ratio projected to longer videos, for the QSTAR_PAIRS with a per-window
+    caption index. A reader's cost per question is its measured mean plus its input tokens per window (the slope of
+    input tokens on the window count, which is exact by construction) times its input price per extra window; output
+    and thinking tokens stay at their mean (an assumption: they do not grow with W on these clips). The index costs
+    its mean per window times W, since every window is a separate call. Assumes the reader reads every window."""
+    import numpy as np
+    wins = {v: len(caption_windows(v, CAPTIONERS["captions"])) for v in set(vid.values())}
+    df = df.assign(W=[wins[vid[i]] for i in df.question_item])
+    w_bar = df.W.mean()
+    per_win = {}
+    print(f"\nD5: projected to longer videos (W windows of 5 s; TempCompass mean W = {w_bar:.2f}). Input tokens per "
+          "window (slope) and Q*, per-question cost ratio captions / frames:")
+    for a, b in QSTAR_PAIRS:
+        cap = a.split(":")[1]
+        if cap in ("sonnetwhole", "sonnetaspects") or a not in set(df.arm) or b not in set(df.arm):
+            continue
+        cost = {}
+        for arm in (a, b):
+            d = df[df.arm == arm]
+            slope = np.polyfit(d.W, d.in_tok, 1)[0]
+            cost[arm] = (d.usd.mean(), slope * PRICES[arm.split(":")[0]][0] / 1e6, slope)
+        if cap not in per_win:
+            per_win[cap] = float(np.mean(list(index_usd(cap).values())))
+        k = per_win[cap]
+        cells = []
+        for w in [w_bar] + LENGTHS:
+            if w == float("inf"):
+                save = cost[b][1] - cost[a][1]
+                cells.append(f"W=inf: Q* {k / save:.1f}" if save > 0 else "W=inf: never")
+                continue
+            ca, cb = (cost[x][0] + cost[x][1] * (w - w_bar) for x in (a, b))
+            qs = k * w / (cb - ca) if cb > ca else float("inf")
+            cells.append(f"W={w:.1f}: Q* {qs:.1f}, ratio {ca / cb:.2f}")
+        print(f"  {a} ({cost[a][2]:.0f} tok/window) vs. {b} ({cost[b][2]:.0f}); index ${k:.5f}/window: "
+              + "; ".join(cells))
 
 
 def main():
