@@ -1601,13 +1601,13 @@ Captioning:
   - On restart, each captioner runs as 3 parallel processes (`self_caption.py --shard K/3`, a stable hash of video and window, so the shards never overlap), and the 5-hour guard is 0.95 instead of 0.7. The 7-day guard stays at 0.9.
   - The calls, prompts and settings are unchanged, and so is every caption's content definition. The order in which windows are captioned changed, which can't affect a caption.
   - At 13:47 UTC, at the user's request, the 5-hour guard was raised to 0.99, to use the window fully before the reset. 5-hour use was then 0.77.
-- **Amendment 1 (13:52 UTC, before any reader call on this question's captions): question `egd017` is dropped from every arm.**
+- **Amendment 1 (13:51 UTC, before any reader call on this question's captions): question `egd017` is dropped from every arm.**
   - Its video (`083c5e8e-…`) is black for its first 95 s. That was checked by decoding the video directly, so it is not a frame-extraction error. 95 of its 180 frames, windows 0–18, are near-black.
   - Sonnet answered "ERROR" twice on those windows, which is what the caption prompt asks for when no description can be made. Haiku answered ERROR once, then described "a solid black screen".
   - This follows C1's amendment 2: a question with a window that has no caption is dropped from every arm (`tc.EXCLUDED`).
   - Its question-only and frame reads (Haiku: question only, 1 frame, 5 frames; Sonnet: question only, 5 frames) were already made. They are dropped as well.
   - E1 now has 39 questions.
-- **Fix to `self_caption.py`.** Its "first call failed" stop now fires only on a CLI failure, not on an "ERROR" caption. Before the fix, this video's windows stopped 3 of the 6 shards. Restarted at 13:52 UTC.
+- **Fix to `self_caption.py`.** Its "first call failed" stop now fires only on a CLI failure, not on an "ERROR" caption. Before the fix, this video's windows stopped 3 of the 6 shards. Restarted at 13:51 UTC.
 
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
