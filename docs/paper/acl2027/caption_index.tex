@@ -32,7 +32,7 @@
 \DeclareUnicodeCharacter{03C4}{\ensuremath{\tau}}
 \DeclareUnicodeCharacter{221E}{\ensuremath{\infty}}
 
-\newcommand{\qstar}{\ensuremath{Q^*}}
+\newcommand{\qbe}{\ensuremath{Q_{\mathrm{BE}}}}
 \newcommand{\pending}[1]{\textbf{\textcolor{red}{[PENDING: #1]}}}
 \newcommand{\draftnote}[1]{\textcolor{blue}{[#1]}}
 \newcommand{\cl}{cl.}
@@ -45,7 +45,7 @@
 \maketitle
 
 \begin{abstract}
-Captions written once per video window, without the questions, can serve as an index from which a cheaper text reader answers later questions. We ask when such an index lets a reader answer better than it does from the frames, why, and at what cost. The captioner sees exactly the reader's frames, which splits the effect of captions into source, visual budget, captioner and modality effects. On 297 TempCompass questions, with a pre-specified main test, a stronger captioner's captions raise a Claude Haiku reader's accuracy by 0.15 over Haiku's own captions of the same frames, by 0.08 at matched visual tokens, and by 0.06 within one model family at identical input; for an open-weights reader (Qwen2.5-VL-7B) the gain is 0.13. Turning frames into text does not help by itself: Haiku gains at most 0.09 from its own captions, and Claude Sonnet and Qwen lose 0.09 and 0.12. The index pays through the cheaper reader: Haiku on a stronger captioner's index costs 1/23 to 1/26 of Sonnet on frames per question, repays the captioning within 1.2--3.7 questions per video, and is 0--9 points less accurate. Question-blind captions lose the comparison between two copies of a clip shown at once, and the direction of reversed clips; 61--73\% of wrong answers come from captions that do not decide the question.
+Captions written once per video window, without the questions, can serve as an index from which a cheaper text reader answers later questions. We ask when such an index lets a reader answer better than it does from the frames, why, and at what cost. The captioner sees exactly the reader's frames, which splits the effect of captions into source, visual budget, captioner and modality effects. On 297 TempCompass questions, with a pre-specified main test, a stronger captioner's captions raise a Claude Haiku reader's accuracy by 0.15 over Haiku's own captions of the same frames, by 0.08 at matched visual tokens, and by 0.06 within one model family at identical input; for an open-weights reader (Qwen2.5-VL-7B) the gain is 0.13. Turning frames into text does not help by itself: Haiku gains at most 0.09 from its own captions, and Claude Sonnet and Qwen lose 0.09 and 0.12. The index pays through the cheaper reader: Haiku on a stronger captioner's index costs 1/23 to 1/26 of Sonnet on frames per question, repays the captioning within 1.2--3.7 questions per video, and is 0--9 points less accurate. On unmanipulated videos, Sonnet's own question-blind index keeps 0.95 of the gain its frames give over the question alone. The losses sit in the benchmark's built stress tests: question-blind captions lose the comparison between two copies of a clip shown at once, and the direction of reversed clips; 61--73\% of wrong answers come from captions that do not decide the question.
 \end{abstract}
 
 \section{Introduction}
@@ -54,13 +54,13 @@ Many video question answering systems first caption the video and then reason ov
 
 We hold the information fixed. The captioner receives exactly the frames the reader would see. A caption made from these frames cannot contain information about the video that the frames lack (Proposition~1), so an accuracy gain from captions is information that the reader can use more easily, not new information. Arms that change one thing at a time then split the effect of captions into four parts: the source the captioner sees (the video or the reader's frames), the visual tokens it spends, the captioner model, and the modality (a reader's own captions against its own frames). We use two model families: Claude Haiku and Sonnet read, and Haiku, Sonnet and Gemini caption. An open-weights model, Qwen2.5-VL-7B, reads the main arms and captions for itself. The data are 297 multiple-choice questions from TempCompass \citep{tempcompass}, on videos with a median length of 10\,s. The main test was specified on a separate development set, before the test questions were run, and each follow-up was logged with a predicted value before it ran.
 
-The captioner matters. With Haiku reading, Gemini's captions of the reader's frames beat Haiku's own captions of them by 0.15; at matched visual tokens the gain is 0.08, and Sonnet's captions of identical input give 0.06. The modality does not: Haiku is no more accurate on its own captions than on the frames they describe (+0.03, CI up to +0.09), and Sonnet is 0.09 less accurate on its own. Both results hold for an open-weights reader, Qwen2.5-VL-7B with greedy decoding: Sonnet's captions beat its own by 0.13, and its own cost it 0.12 against its frames. On Sonnet's captions both Claude readers score 0.71, so a question-blind caption bounds accuracy by what it contains, whatever the reader. The saving comes from switching to a cheaper reader: Haiku on a stronger captioner's index costs 1/23 to 1/26 of Sonnet on frames, and the index repays its captioning within 1.2--3.7 questions per video, at 0 to 9 points of accuracy. The losses are concentrated. When two copies of a clip play one above the other at different speeds, question-blind captions do not say which is faster, although the same model, shown the frames with the question, often answers correctly; on reversed clips they describe the forward event or do not state a direction.
+The captioner matters; the modality does not. With Haiku reading, Gemini's captions of the reader's frames beat Haiku's own by 0.15, and by 0.08 at matched visual tokens; Sonnet's captions of identical input give 0.06. Haiku is no more accurate on its own captions than on the frames they describe (+0.03, CI up to +0.09), and Sonnet is 0.09 less accurate on its own. An open-weights reader (Qwen2.5-VL-7B, greedy decoding) replicates both. On Sonnet's captions both Claude readers score 0.71: a question-blind caption bounds accuracy by what it contains, whatever the reader. The saving comes from a cheaper reader: 1/23 to 1/26 of Sonnet on frames per question, repaid within 1.2--3.7 questions per video, at 0 to 9 points of accuracy. The losses are concentrated. On unmanipulated videos, Sonnet on its own captions is within 0.01 of its frames. When two copies of a clip play at different speeds, question-blind captions do not say which is faster, although the same model, shown the question, often sees it; on reversed clips they describe the forward event or state no direction.
 
 Our contributions are:
 \begin{enumerate}
 \item A decomposition of the effect of captions into source, visual budget, captioner and modality effects, with arms that change one thing each, in two model families (\S\ref{sec:effects}).
-\item A pre-specified test, a replication within one model family at identical input, and a replication with an open-weights reader. The captioner effect is positive, and the modality effect is at most +0.09 for a weak reader and negative for readers that see the frames better than their own captions hold (\S\ref{sec:captioner}--\ref{sec:modality}, \S\ref{sec:robust}).
-\item A cost account per question, from input, output and thinking tokens at list price, and the break-even number of questions per video (\S\ref{sec:cost}).
+\item A pre-specified test, with replications within one model family at identical input and with an open-weights reader: the captioner effect is positive, and the modality effect at most +0.09 (\S\ref{sec:captioner}--\ref{sec:modality}, \S\ref{sec:robust}).
+\item A cost account per question from input, output and thinking tokens, and the break-even number of questions per video, also projected to longer videos (\S\ref{sec:cost}).
 \item An account of what question-blind captions lose, from minimal pairs, a question-aware control and an audit of wrong answers (\S\ref{sec:types}--\ref{sec:aware}).
 \end{enumerate}
 The study is limited to short videos, multiple-choice questions and one benchmark.
@@ -106,6 +106,7 @@ Claude Haiku 5.5 and Sonnet 5.5 read (pinned model IDs, effort medium) through \
 
 \subsection{The four effects}
 \label{sec:effects}
+Each effect compares two arms that differ in one thing, with Haiku reading (Table~\ref{tab:effects}). \emph{Source}: captions of the video against captions of the reader's frames. \emph{Visual budget}: one captioner's captions of the same frames at two visual-token counts. \emph{Captioner}: two captioners' captions of the same frames at equal or matched visual tokens. \emph{Modality}: the reader on its own captions of its frames against the reader on those frames. In the Claude chain the first two are zero by design; Gemini's video, frame-clip and frame captions measure them. Along each chain the terms add up to the total.
 
 \begin{table*}[t]
 \centering
@@ -132,7 +133,15 @@ The main test, P1--P3, was set on the development set and pre-registered before 
 
 \section{Theory}
 \label{sec:theory}
-A caption made from the reader's own frames is a garbling of them, so for an unbounded reader it cannot add information about the video (Proposition~1). A bounded reader can still get more \emph{usable} information \citep{xu2020usable} from a good caption than from the pixels, and that is what the captioner effect measures. The total effect of captions is then the sum of the source, captioner and modality effects, plus a visual-budget term when the visual tokens differ. \textbf{Retention}, (captions − question only) / (frames − question only), is the share of the frames' gain over the question alone that an index keeps. \textbf{Proposition~2} gives the break-even: an index $\tau$ that costs $C(\tau)$ per video and $c_\tau$ per question pays for itself, against frames at $c_f$, after $\qstar = C(\tau) / (c_f − c_\tau)$ questions per video. With a reader downgrade, $c_\tau$ is the cheaper reader's cost. \textbf{Proposition~3}: a question-aware description recovers what a question-blind caption omits, so a loss that disappears when the question is shown is an omission, not a limit of text.
+\textbf{Proposition~1 (garbling).} A caption made from the reader's own frames is a garbling of them, so for an unbounded reader it cannot add information about the video. A bounded reader can still get more \emph{usable} information \citep{xu2020usable} from a good caption than from the pixels, and that is what the captioner effect measures. The total effect of captions is then the sum of the source, captioner and modality effects, plus a visual-budget term when the visual tokens differ.
+
+\textbf{Proposition~2 (break-even).} An index $\tau$ that costs $C(\tau)$ per video and $c_\tau$ per question pays for itself, against frames at $c_f$ per question, after
+\[ \qbe = \frac{C(\tau)}{c_f - c_\tau} \]
+questions per video, the break-even quantity. With a reader downgrade, $c_\tau$ is the cheaper reader's cost. If each of $W$ windows is captioned in its own call at cost $k$, and costs the reader $s_f$ as frames and $s_\tau$ as text, then $\qbe \to k / (s_f - s_\tau)$ as $W$ grows: on long videos the per-window prices set the break-even, not the fixed prompt.
+
+\textbf{Proposition~3 (omission).} A question-aware description recovers what a question-blind caption omits, so a loss that disappears when the question is shown is an omission, not a limit of text.
+
+\textbf{Retention}, (captions − question only) / (frames − question only), is the share of the frames' gain over the question alone that an index keeps.
 
 \section{Results}
 \label{sec:results}
@@ -244,11 +253,11 @@ S, Sonnet capt. & 0.430 & 0.40 & 0.10 & 0.80 & 0.39 \\
 \subsection{Why caption arms fail: an audit}
 \label{sec:audit}
 
-For every caption set and question that a reader got wrong in one of seven reader arms (442 items; two readers share some caption sets), a judge (Sonnet) saw the captions, the question, the options and the correct answer. It labelled the captions as stating the correct option (so the error is the reader's), stating a wrong option (a misstatement), or deciding neither (an omission), and quoted the caption as evidence (prompt in Appendix~\ref{app:prompts}). Table~\ref{tab:audit} gives each label's share of each arm's wrong answers.
+For every caption set and question that a reader got wrong in one of seven reader arms (442 items; two readers share some caption sets), a judge (Sonnet) saw the captions, question, options and correct answer, and labelled the captions as stating the correct option (a reader error), a wrong option (a misstatement), or neither (an omission), quoting the caption as evidence (Appendix~\ref{app:prompts}; Table~\ref{tab:audit}).
 
 Omission dominates: 0.61--0.73 of every arm's wrong answers come from captions that do not decide the question. Misstatements are 0.15--0.28, and reader errors only 0.05--0.17, below the predicted 0.15--0.25. A fact missing from the index cannot be read from it by any reader, which fits the cap of \S\ref{sec:modality}. By video type, the stacked prediction held: in every arm, 0.93--1.00 of stacked failures are omissions (predicted ≥ 0.70). The reversed prediction failed. Misstatement, that is forward narration, is 0.28--0.45 of reversed failures, below the predicted ≥ 0.50, and omission is 0.45--0.62. On reversed videos, captions narrate the forward event or do not commit to a direction.
 
-The judge also wrote one of the caption sets it labels. As a check, one author labelled 40 items, stratified by the judge's label and blind to it: κ = 0.81 [0.64, 0.96], above the threshold of 0.6 set in advance. All 5 disagreements are items the author left ``silent'' and the judge decided, so if anything Table~\ref{tab:audit} undercounts omission. The audit by video type is in Appendix~\ref{app:extra}.
+The judge also wrote one of the caption sets it labels. One author's 40 labels, stratified by the judge's label and blind to it, agree at κ = 0.81 [0.64, 0.96] (threshold 0.6, set in advance); all 5 disagreements are items the author left ``silent'', so if anything Table~\ref{tab:audit} undercounts omission. The audit by video type is in Appendix~\ref{app:extra}.
 
 \begin{table}[t]
 \centering
@@ -283,7 +292,7 @@ Two arms move the captioner toward the question. Neither changes the confirmator
 \subsection{Robustness checks and nulls}
 \label{sec:robust}
 
-\paragraph{An open-weights reader.} The Claude readers run through a CLI, with its system prompt and no control of temperature. Qwen2.5-VL-7B-Instruct, with greedy decoding and the same prompts, reads eight arms and captions every window from exactly the 5 frames. Unparsed answers (49 of 2,376, all refusals) count as wrong; dropping them moves every term by 0.02 or less. Qwen uses the frames well (+0.26 over the question alone; 0.657, above Haiku's 0.613), but its own captions are the weakest in the study, even for itself (Haiku's are +0.067 [+0.020, +0.114] better). The captioner effect replicates: Sonnet's captions of the same frames +0.125, \cl{} [+0.070, +0.182]. The modality again brings no gain, but a cost: −0.121 (predicted −0.01, as if Qwen were a weaker Haiku). Gemini's video captions add only +0.040 [−0.010, +0.091] over Qwen's frames (predicted +0.12; for Haiku +0.125), in line with Qwen's stronger frame reading.
+\paragraph{An open-weights reader.} The Claude readers run through a CLI, with its system prompt and no control of temperature. Qwen2.5-VL-7B-Instruct, with greedy decoding and the same prompts, reads eight arms and captions every window from exactly the 5 frames. Unparsed answers (49 of 2,376, all refusals) count as wrong; dropping them moves every term by 0.02 or less. Qwen reads frames well (0.657, above Haiku's 0.613), but its own captions are the weakest in the study, even for itself (Haiku's are +0.067 [+0.020, +0.114] better). Besides the captioner and modality effects (\S\ref{sec:captioner}--\ref{sec:modality}; the modality cost of −0.121 was predicted as −0.01), Gemini's video captions add only +0.040 [−0.010, +0.091] over Qwen's frames (predicted +0.12).
 
 \paragraph{Other checks (Appendix~\ref{app:extra}).} One Sonnet caption per video instead of one per window does no better (+0.013 with Haiku reading, +0.010 with Sonnet; predicted ≈ 0), at half the index cost. Re-captioning with identical input changes 10--17\% of answers, so a comparison between caption arms needs many questions, and the by-type terms are noisy. The pre-registered aspect contrast (P1) did not pass: −0.101 [−0.231, +0.028] for Sonnet, half the predicted −0.20.
 
@@ -309,18 +318,20 @@ all (297) & 0.41 & 0.80 & 0.71 & 0.20 [0.15, 0.26] & +0.09 [+0.04, +0.14] & 0.77
 \section{Cost and break-even}
 \label{sec:cost}
 
-\paragraph{Accounting.} We price every call at list price: Claude Haiku 5.5 at \$0.10 / \$0.50 and Sonnet 5.5 at \$2 / \$10 per million input / output tokens, with thinking billed as output (this equals the CLI's reported cost on every call), and Gemini captioning at \$0.50 / \$3.00. A reader's cost per question, $c$, is the mean over the 297 questions, and an index's cost per video, $C(\tau)$, is the cost of captioning all its windows once. \qstar{} follows Proposition~2; its CIs resample questions, and so videos, since each video has one question.
+\paragraph{Accounting.} We price every call at list price: Claude Haiku 5.5 at \$0.10 / \$0.50 and Sonnet 5.5 at \$2 / \$10 per million input / output tokens, with thinking billed as output (this equals the CLI's reported cost on every call), and Gemini captioning at \$0.50 / \$3.00. A reader's cost per question, $c$, is the mean over the 297 questions, and an index's cost per video, $C(\tau)$, is the cost of captioning all its windows once. \qbe{} follows Proposition~2; its CIs resample questions, and so videos, since each video has one question.
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
-\includegraphics[width=\columnwidth]{caption_index_fig1_cost.pdf}
-\caption{Accuracy against list-price \$ per question (log scale), one point per arm, with the index cost spread over Q = 1, 10 and infinitely many questions per video. Circles are frame arms, and squares are index arms. The 448\,px caption, whole-video and aspect-aware variants are in Table~\ref{tab:variants} only.}
+\includegraphics[width=\textwidth]{caption_index_fig1_cost.pdf}
+\caption{Accuracy against list-price \$ per question (log scale), one point per arm, with the index cost spread over Q = 1, 10 and infinitely many questions per video. Circles are frame arms, and squares are index arms. Question only (0.41 for both readers) is below the axis; the 448\,px caption, whole-video and aspect-aware variants are in Table~\ref{tab:variants} only.}
 \label{fig:cost}
-\end{figure}
+\end{figure*}
 
-\paragraph{For one reader, the index saves little.} Against 5 frames, Gemini video captions save 18\% per question for Haiku and 30\% for Sonnet. The fixed reader prompt (≈ 1,025 tokens) dominates the input: captions cut the video-content tokens to 43\% of the frames', but the input tokens only to 81\%. So for one reader the index repays slowly: Sonnet on Gemini video captions after $\qstar = 5.8$ [5.2, 6.5], at equal accuracy (−0.007 [−0.054, +0.040]), and Haiku on them only after 202 [156, 279], though 0.125 more accurate than on its frames.
+\paragraph{For one reader, the index saves little.} Against 5 frames, Gemini video captions save 18\% per question for Haiku and 30\% for Sonnet. The fixed reader prompt (≈ 1,025 tokens) dominates the input: captions cut the video-content tokens to 43\% of the frames', but the input tokens only to 81\%. So for one reader the index repays slowly: Sonnet on Gemini video captions after $\qbe = 5.8$ [5.2, 6.5], at equal accuracy (−0.007 [−0.054, +0.040]), and Haiku on them only after 202 [156, 279], though 0.125 more accurate than on its frames.
 
-\paragraph{The reader downgrade is what pays.} Per question, Haiku on any index written by a stronger captioner costs 1/23 to 1/26 of Sonnet on frames (Table~\ref{tab:main}), and the index repays its captioning within 1.2--3.7 questions per video (Table~\ref{tab:qstar} in Appendix~\ref{app:extra}). At 10 questions per video (Figure~\ref{fig:cost}, middle), every index Haiku reads costs less than half of Sonnet on frames, captioning included. The accuracy cost of the downgrade depends on the index. Gemini frame captions let Haiku match Sonnet on frames (−0.007 [−0.057, +0.044]), but they are the most expensive index (\$0.0146 per video), because Gemini's image path spends ≈ 5,500 visual tokens per window. In the Claude chain, where Sonnet captions once and Haiku answers, the cost is −0.091 [−0.145, −0.040] at $\qstar = 2.3$; aspect-aware captions bring it to −0.051 [−0.104, +0.000] at $\qstar = 1.3$. In short, a caption index trades 0--9 points of accuracy against the strong reader on frames for a 23--26× cheaper query, and repays itself within 1.2--3.7 questions per video.
+\paragraph{The reader downgrade is what pays.} Per question, Haiku on any index written by a stronger captioner costs 1/23 to 1/26 of Sonnet on frames (Table~\ref{tab:main}), and the index repays its captioning within 1.2--3.7 questions per video (Table~\ref{tab:qbe} in Appendix~\ref{app:extra}). At 10 questions per video (Figure~\ref{fig:cost}, middle), every index Haiku reads costs less than half of Sonnet on frames, captioning included. The accuracy cost of the downgrade depends on the index. Gemini frame captions let Haiku match Sonnet on frames (−0.007 [−0.057, +0.044]), but they are the most expensive index (\$0.0146 per video), because Gemini's image path spends ≈ 5,500 visual tokens per window. In the Claude chain, where Sonnet captions once and Haiku answers, the cost is −0.091 [−0.145, −0.040] at $\qbe = 2.3$; aspect-aware captions bring it to −0.051 [−0.104, +0.000] at $\qbe = 1.3$. In short, a caption index trades 0--9 points of accuracy against the strong reader on frames for a 23--26× cheaper query, and repays itself within 1.2--3.7 questions per video.
+
+\paragraph{Longer videos.} Projected by Proposition~2 to videos whose every window is read (Appendix~\ref{app:extra}), captions save more per question as videos grow, but \qbe{} does not fall, because captioning grows with every window too: for the reader downgrade it rises from 1.8--3.7 to 4.5--8.9 at one minute.
 
 \section{Related work}
 \label{sec:related}
@@ -332,31 +343,21 @@ all (297) & 0.41 & 0.80 & 0.71 & 0.20 [0.15, 0.26] & +0.09 [+0.04, +0.14] & 0.77
 
 \section{Discussion}
 \label{sec:discussion}
-\subsection{What the benchmark tests when the captioner is also misled}
 \label{sec:misled}
-TempCompass's built videos mislead models, and the captioner is a model, so a low score might only mean that the captioner was fooled. But the system under test is the whole index: a model writes once without the question, and a reader answers later. A captioner that can be misled is part of that system, not a confound, and the arms separate the two causes, because the same model also reads the same pixels with the question in view. Table~\ref{tab:headroom} (descriptive) splits Sonnet's headroom into a perception shortfall, 1 − frames (it fails even when it sees the question), and an index loss, frames − own captions (it saw the answer when asked but did not write it down blind). On plain and two-clip videos the index loss is ≈ 0, and the index keeps 0.95--1.00 of the frames' gain. On reversed videos, Sonnet is misled even with the question in view (shortfall 0.36), and writing blind loses another 0.18. On stacked videos it sees the comparison when asked (0.66), but its blind captions keep little of it (retention 0.21, with a wide CI). This is the price of being question-blind (Proposition~3). For Haiku the index loss is negative, −0.09 [−0.15, −0.04], mostly on two-clip videos (Appendix~\ref{app:extra}). The caption prompt does not mention the benchmark's manipulations, so the captioner is blind to the test as well as to the question.
-
-\subsection{Why the baselines are hard to beat, and caption utility hard to evaluate}
-A caption is a question-blind summary shaped by the captioner's prior, and its value lies where the video departs from that prior. The prior is strong: the question alone scores 0.40--0.41 for every reader, and 0.61 on plain videos for Sonnet. On reversed videos, wrong answers fall back to it (\S\ref{sec:types}), so a caption helps there only where it contradicts the prior, and omission is 0.61--0.73 of wrong answers on captions. Whether an index beats the frames also depends on the reader: the same captions help Haiku (retention 1.47, \cl{} [1.18, 1.95]) and cost Sonnet (0.77, \cl{} [0.64, 0.90]).
-
-A caption has no question-free reference: the same caption is complete for ``what happens'' and silent for ``which copy is faster''. Similarity to a reference can track style instead: in an earlier phase of this project, cosine similarity to the reference caption correlated with caption repetitiveness (Spearman ρ = +0.61; Appendix~\ref{app:extra}). ``Silent'' and ``wrong'' overlap, since a caption that never states a direction fits both, and one caption is one sample (\S\ref{sec:robust}). Our design therefore measures utility through a fixed reader, with self-caption, frames and question-only controls (without them a ``caption effect'' mixes captioner, modality and prior), minimal pairs, results by video type, and many questions per comparison.
+\textbf{What the benchmark tests when the captioner is also misled.} TempCompass's built videos mislead models, and the captioner is a model, so a low score might only mean that the captioner was fooled. But the system under test is the whole index, and the arms separate the two causes, because the same model also reads the same pixels with the question in view. Table~\ref{tab:headroom} (descriptive) splits Sonnet's headroom into a perception shortfall, 1 − frames, and an index loss, frames − own captions (seen when asked, not written down blind). On plain and two-clip videos the index loss is ≈ 0, and the index keeps 0.95--1.00 of the frames' gain. On reversed videos Sonnet is misled even with the question in view (shortfall 0.36), and writing blind loses another 0.18; on stacked videos it sees the comparison when asked (0.66), but its blind captions keep little of it (retention 0.21, wide CI). For Haiku the index loss is negative, −0.09 [−0.15, −0.04], mostly on two-clip videos (Appendix~\ref{app:extra}).
+\textbf{Why the baselines are hard to beat.} A caption is a question-blind summary shaped by the captioner's prior, and its value lies where the video departs from that prior. The prior is strong (the question alone scores 0.40--0.41 for every reader), and whether an index beats the frames depends on the reader: the same captions help Haiku (retention 1.47, \cl{} [1.18, 1.95]) and cost Sonnet (0.77, \cl{} [0.64, 0.90]). Without self-caption, frames and question-only controls, a ``caption effect'' mixes captioner, modality and prior.
 
 \section{Conclusion}
-Given exactly the reader's frames, a stronger captioner's question-blind captions make Claude Haiku and an open 7B reader more accurate, while no reader gains more than 0.09 from its own captions. The index pays through the cheaper reader, at 1/23 to 1/26 of the cost per question and break-even within 1.2--3.7 questions per video. It loses what a captioner does not write without the question, the comparison between two copies of a clip and the direction of reversed clips; on these, the frames or a description made with the question in view did better (\S\ref{sec:aware}).
+Given exactly the reader's frames, a stronger captioner's question-blind captions make Claude Haiku and an open 7B reader more accurate, while no reader gains more than 0.09 from its own captions. The index pays through the cheaper reader. It loses what a captioner does not write without the question: the comparison between two copies of a clip and the direction of reversed clips.
 
 \section*{Limitations}
-\begin{itemize}
-\item One benchmark; short clips; multiple choice only.
-\item Closed readers run through a CLI: its system prompt is included, and there is no temperature control. Mitigations: pinned IDs, isolation checked on every call, released outputs, and an open-weights reader with greedy decoding that replicates the captioner and modality results (\S\ref{sec:robust}). It is one 7B model, and it runs with its own default system prompt.
-\item Claude reading Claude. Mitigations: the Gemini chain and the Qwen reader.
-\item Development → confirmatory drop of Haiku on frames (0.70 → 0.61); about half of it is the mix of video types.
-\item Questions share filmed clips. Mitigation: clustered CIs.
-\item Thinking is decided per call by the model (effort medium), so it is observed, not controlled.
-\item Question-blind captions drop what the question needs and the captioner did not write (stacked comparisons, reversals). Since the same model recovers the stacked comparison when it describes the frames with the question in view (\S\ref{sec:aware}), this is a limit of question-blind indexes, not only of our captioners.
-\item Most claims beyond P1--P3 are exploratory. Each follow-up was predicted in writing before its run, but the cap, the thinking pattern and the by-type analysis of C1 and C2 were not.
-\item The audit's judge (Sonnet) also wrote one of the caption sets it judges. Mitigation: the 40 hand labels and κ.
-\item 54\% of the confirmatory videos are manipulated (reversed, stacked, two-clip), so overall accuracies mix natural video with stress tests; plain videos are reported separately (Table~\ref{tab:headroom}).
-\end{itemize}
+\textbf{Scope.} We test one benchmark, short clips (median 9.7\,s) and multiple-choice questions. 54\% of the confirmatory videos are manipulated (reversed, stacked, two-clip), so overall accuracies mix natural video with stress tests; plain videos are reported separately (Table~\ref{tab:headroom}). The costs for longer videos (\S\ref{sec:cost}) are projections from short clips, for a reader that reads every window. All captions follow one generic, question-blind prompt that does not mention the benchmark's manipulations; captions written for retrieval or question answering may keep more.
+
+\textbf{Readers.} The closed readers run through a CLI, so its system prompt is part of every input and temperature is not controlled. Thinking is decided per call by the model (effort medium), so it is observed, not controlled. Mitigations are pinned model IDs, isolation checked on every call, released outputs, and an open-weights reader with greedy decoding that replicates the captioner and modality results (\S\ref{sec:robust}); it is one 7B model, with its own default system prompt. In the main chain Claude reads Claude's captions; the Gemini chain and the Qwen reader check this. Haiku's accuracy on frames dropped from the development to the confirmatory set (0.70 to 0.61); about half of the drop is the different mix of video types.
+
+\textbf{Inference.} Questions share filmed clips, so we also report CIs over clip clusters. Most claims beyond the pre-registered test are exploratory: each follow-up was predicted in writing before it ran, but the cap, the thinking pattern and the analysis by video type of the first two runs were not. The audit's judge (Sonnet) also wrote one of the caption sets it judges; 40 blind hand labels check it (κ = 0.81).
+
+\textbf{Question-blind captions} drop what the question needs and the captioner did not write (stacked comparisons, reversals). Since the same model recovers the stacked comparison when it describes the frames with the question in view (\S\ref{sec:aware}), this is a limit of question-blind indexes, not only of our captioners.
 
 \bibliography{caption_index}
 
@@ -636,7 +637,7 @@ S, Sonnet aspect-aware & 0.761 & 1,215 & 28.97 & 5.27 \\
 \setlength{\tabcolsep}{3pt}
 \resizebox{\columnwidth}{!}{\begin{tabular}{@{}lrr@{}}
 \toprule
-Index & \qstar{} & Acc.\ difference \\
+Index & \qbe{} & Acc.\ difference \\
 \midrule
 Gemini video & 1.8 [1.7, 2.0] & −0.061 [−0.111, −0.010] \\
 Gemini frame-clip & 1.9 [1.8, 2.1] & −0.074 [−0.125, −0.024] \\
@@ -647,8 +648,8 @@ Sonnet aspect-aware & 1.3 [1.3, 1.4] & −0.051 [−0.104, +0.000] \\
 Gemini frame & 3.7 [3.5, 4.0] & −0.007 [−0.057, +0.044] \\
 \bottomrule
 \end{tabular}}
-\caption{Reader downgrade: Haiku on an index against Sonnet on 5 frames. \qstar{} is the number of questions per video after which the index costs less in total (95\% CI over questions).}
-\label{tab:qstar}
+\caption{Reader downgrade: Haiku on an index against Sonnet on 5 frames. \qbe{} is the number of questions per video after which the index costs less in total (95\% CI over questions).}
+\label{tab:qbe}
 \end{table}
 
 \begin{table*}[t]
@@ -688,7 +689,9 @@ all (297) & 0.41 & 0.61 & 0.71 & 0.39 [0.33, 0.44] & −0.09 [−0.15, −0.04] 
 
 \paragraph{Audit by video type.} Two-clip failures are few (1--8 per arm) and mostly reader errors, where the captions state the order and the reader still answers wrongly. Plain failures are 0.60--0.80 omission; stacked failures 0.93--1.00. The hard items fall into four kinds: a static description that fits a wrong option; a near-synonym of an option; a 1\,s last window that contradicts the long first one; and an answer that needs knowledge of the task (debris ``tumbling upward'' means ``rebuilding'' only to a reader who knows that clips may be reversed).
 
-\paragraph{More on cost.} Sonnet on its own captions repays after $\qstar = 8.9$ [7.8, 10.2], at −0.088. Haiku on Sonnet captions is +0.057 more accurate than Haiku on 448\,px frames and cheaper per question, and repays after 57.5 [53.3, 62.1]. Latency does not favour captions: the median call on captions is 0.1--1.1\,s slower than on frames with the same reader (CLI wall clock with start-up, not controlled for time of day). Thinking is 2--5\% of reader tokens.
+\paragraph{More on cost.} Sonnet on its own captions repays after $\qbe = 8.9$ [7.8, 10.2], at −0.088. Haiku on Sonnet captions is +0.057 more accurate than Haiku on 448\,px frames and cheaper per question, and repays after 57.5 [53.3, 62.1]. Latency does not favour captions: the median call on captions is 0.1--1.1\,s slower than on frames with the same reader (CLI wall clock with start-up, not controlled for time of day). Thinking is 2--5\% of reader tokens.
+
+\paragraph{Longer videos.} The clips average 2.6 windows, so the fixed reader prompt is a large share of each question's cost. We project the measured costs by Proposition~2: each arm's cost per question is its mean plus its input tokens per window (exact by construction: 200 for frames, 63--87 for captions) at its input price per extra window, and the index costs its mean per window times $W$. This assumes that output and thinking tokens do not grow with $W$, and that the reader reads every window. For one reader, the saving per question grows with length: Gemini video captions cost Haiku 0.82 of the frames' price per question at 2.6 windows, 0.59 at one minute (12 windows) and 0.38 at ten minutes (120), and Sonnet 0.70, 0.53 and 0.37. The break-even does not fall, because captioning grows with every window too: Haiku's \qbe{} stays at 203--214, and Sonnet's rises from 5.9 to a limit of 10.7, since its fixed saving (less thinking on captions) counts for less on long videos. For the reader downgrade, the per-window indexes' \qbe{} of 1.8--3.7 rises to 4.5--8.9 at one minute and to a limit of 7.2--14.5, while the cost per question falls from 1/25 to 1/50 of Sonnet on frames. The limit does not depend on the reader's fixed prompt, including the CLI's. A reader that retrieves a few windows instead of reading all saves less per question, so for it these \qbe{} are lower bounds.
 
 \paragraph{The reconstruction phase.} Before this study, the project masked a gap of 1\,s clips in 60\,s videos and reconstructed it from the surrounding captions or by interpolating frame embeddings. Continuity baselines were as strong as the models: an 8B LLM in-filling the masked captions lost to copying the nearest caption, and on forced-choice recognition (160 items), Haiku from captions was level with caption copy (51.2\% vs.\ 45.6\%), and frame copy (87.5\%) was level with Opus (85.0\%). Cosine similarity to the reference caption correlated with caption repetitiveness (Spearman ρ = +0.61), and per-second and order-free scoring gave opposite headlines. This is why the present study measures utility through a reader rather than similarity.
 
