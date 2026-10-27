@@ -1586,6 +1586,16 @@ Captioning:
 
 **Then.** Write E2 (`ego_confirm`, 160 questions): main tests, numeric predictions from E1, and their CIs. Commit, push and archive it before any `ego_confirm` call.
 
+**Run notes** (added after the start; facts only, no results):
+- **Pre-run evidence.** E1 was pushed to GitHub at 13:14 UTC on 2026-10-27 (`00cf257`). The user then submitted a Software Heritage "Save code now" request, before the first E1 call.
+- **Check (13:19 UTC):** `run_e1.sh check` ran 3 Haiku and 3 Sonnet window captions and one 180-image Haiku read. All succeeded, with isolation confirmed. Quota was 5-hour 11% and 7-day 40%.
+- **A CLI change since TempCompass.**
+  - A caption call now takes 1,417 input tokens (Haiku) and 1,396 (Sonnet), with 240 of them visual.
+  - On TempCompass (Oct 20) the two models took equal counts for equal input. Now Haiku's are 21 higher, and the non-visual part is ≈ 60–85 tokens larger.
+  - So the CLI's built-in system prompt changed, and it now differs by model. Within E1 this changes nothing. In cost comparisons with TempCompass, it shifts the fixed prompt by ≈ 5–8%.
+- **Caption length.** Haiku's EgoSchema window captions run longer than on TempCompass: median 56 words on the 3 checked windows, against 45. Sonnet's are 43, against 42. The prompt is unchanged.
+- **Full run** started at 13:20 UTC: `setsid nohup scripts/index_qa/run_e1.sh run`, detached from the session.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).

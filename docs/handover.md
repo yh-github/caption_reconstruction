@@ -2,7 +2,36 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
-# 2026-10-27 (night) → EgoSchema first (user's decision); pipeline ready; E1 written
+# 2026-10-27 (evening) → E1 (EgoSchema development run) is RUNNING, detached
+
+**Start here: research log E1 and its run notes.** Then `scripts/index_qa/run_e1.sh status`.
+
+**What is running.** `run_e1.sh run`, started at 13:20 UTC on 2026-10-27 with `setsid nohup`, so it survives this session. It does:
+- Haiku and Sonnet window captions in parallel, 1,440 each;
+- then Sonnet's 40 whole-video captions;
+- Haiku's reads (6 arms × 40) and Sonnet's reads (3 arms × 40), each following the captions as they appear.
+
+It stops itself on the quota guards and resumes after the 5-hour reset (`quota_wait.py`). Expect a few hours in all.
+
+**How to pick up:**
+1. `scripts/index_qa/run_e1.sh status` shows what is left. `pgrep -fa run_e1` shows whether it still runs.
+2. Logs: `logs/orchestrator_e1.log` (start, done, quota waits), `logs/e1_cap_{haiku,sonnet,whole}.log`, `logs/e1_read_{haiku,sonnet}.log`, `logs/run_e1.out`.
+3. If it stopped, for example after a reboot: run `setsid nohup scripts/index_qa/run_e1.sh run > logs/run_e1.out 2>&1 < /dev/null &` again. Everything resumes, because caption files are atomic and partial reader rows are rerun. `run_e1.sh stop` stops it.
+4. When the orchestrator log says "done", the next steps are:
+   - **Write the E1 analysis.** There's no `reader.py e1` yet. It should give accuracy per arm; E1's predicted terms with paired bootstrap CIs; the measured Q_BE at W = 36 against D5's projection; and the output and thinking tokens per arm against TempCompass. Note: the TempCompass analyses use `tc.video_type`, which raises on EgoSchema IDs, so the E1 analysis must not call them.
+   - Then write **E2** (`ego_confirm`, 160 questions; main tests with numeric predictions from E1). Commit it, push it, ask the user for the Software Heritage visit, and only then fetch the `ego_confirm` videos and frames (`egoschema.py fetch --set ego_confirm`, `tempcompass.py frames --set ego_confirm`; frames take ≈ 15 s per video) and run.
+   - **NExT-QA** is reassessed after E2 (`nextqa_plan.md`).
+5. Not committed yet: `scripts/index_qa/run_e1.sh`, E1's run notes in the log, and this handover.
+
+**Quota (watch this).**
+- The first 3 minutes moved the 5-hour window from 0.11 to 0.20. That figure includes this session's own Opus use.
+- List-price proxy per call: Sonnet window caption $0.0037, Sonnet 5-frame read at 180 images $0.022, Haiku 5-frame read $0.001, Haiku caption $0.0002. E1 ≈ $9 in all, 60% of it Sonnet's window captions.
+- Expect several 5-hour pauses, and perhaps 20–35% of the 7-day quota (7-day was 40% at the start; the guard stops at 0.9).
+- **E2 at 160 videos would be ≈ 4× E1.** Decide its size, or a lower-cost captioner setting, from E1's measured quota use before writing E2.
+
+**Known so far.** All checks passed. A CLI update made the fixed prompt ≈ 60–85 tokens longer than on Oct 20, and it now differs by model (Haiku +21; see the run notes). Quota at the start: 5-hour 11%, 7-day 40%.
+
+# 2026-10-27 (afternoon) → EgoSchema first (user's decision); pipeline ready; E1 written
 
 **Start here: research log E1.**
 - **Pipeline.** `scripts/index_qa/egoschema.py` samples the question sets and fetches only the needed videos from the 106 GB of zips (HTTP range requests, ≈ 3 s per video). `tempcompass.py` routes UUID video IDs to `local/egoschema/`, so `self_caption.py` and `reader.py` work with `--set ego_dev` and `--set ego_confirm` unchanged. There are 4 new tests (41 pass).

@@ -1,6 +1,6 @@
 # Plan: a second benchmark (NExT-QA), a length test (EgoSchema) and query-ready captions
 
-Written 2026-10-27, after the external review (`argon_review.md`) and log D5. This is a proposal: no call has been made and nothing is pre-registered. Each stage below needs its own research-log entry with numeric predictions, pushed and archived on Software Heritage before its first call (handover rule).
+Written 2026-10-27, after the external review (`argon_review.md`) and log D5. **Status (2026-10-27 evening): EgoSchema is under way.** Stage D's development run is log E1, running; see the handover. NExT-QA (stages A–C) is reassessed after EgoSchema's confirmatory run (E2). The rest of this document is the plan as written. Each stage below needs its own research-log entry with numeric predictions, pushed and archived on Software Heritage before its first call (handover rule).
 
 ## 1. Why: what the paper rests on now
 

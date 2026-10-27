@@ -11,7 +11,15 @@ Paper: `docs/paper/acl2027/caption_index.tex` (source of truth; build with `late
 - [ ] **Software Heritage identifier:** add it to §2.4 and Appendix G at camera-ready (withheld for review; the URL names the account). URL in `docs/handover.md` (2026-10-27).
 - [ ] Repeat literature query Q7 (new work since Oct 21) in the week before submission (`related_work_caption_index.md` §10.3).
 - [ ] Final read by the author; then submit to ARR (January 2027 cycle; check the exact date).
-- [ ] Optional, needs calls: none planned. Any new experiment needs a log entry committed and pushed, plus a Software Heritage "Save code now" visit, before its first call.
+- [x] External review (Gemini, `docs/new_direction/argon_review.md`) applied; Q\* renamed Q_BE; Q_BE by video length (log D5).
+- [ ] **Strengthening round (user, 2026-10-27): EgoSchema first, NExT-QA reassessed afterwards** (`docs/new_direction/nextqa_plan.md`). Any new run needs a log entry committed and pushed, plus a Software Heritage "Save code now" visit, before its first call.
+  - [x] Feasibility (log D6): partial download from the zips; a 180-image `claude -p` call.
+  - [x] `egoschema.py`; samples `ego_dev` (40) and `ego_confirm` (160); E1 written and pushed (`00cf257`); Software Heritage visit requested by the user.
+  - [ ] **E1 development run: RUNNING** since 2026-10-27 13:20 UTC (`scripts/index_qa/run_e1.sh status`; handover).
+  - [ ] E1 analysis (`reader.py e1`, to write): accuracy per arm, predicted terms with CIs, Q_BE at W = 36 against D5.
+  - [ ] E2 entry (confirmatory, 160 questions) with numeric predictions from E1; commit, push, Software Heritage; then fetch, frames, run, analysis.
+  - [ ] Reassess NExT-QA; query-ready captions (plan §4, stage C).
+  - [ ] Paper: a length / second-benchmark section (the main text must stay at 8 pages).
 
 Full reasoning, verified numbers and the evaluation design are in the paper-readiness assessment (2026-10-05):
 https://claude.ai/code/artifact/26353452-f893-49df-85ac-d3a85c9becd2
