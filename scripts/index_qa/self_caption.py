@@ -56,6 +56,11 @@ def captioner(model: str, long_edge: int = tc.LONG_EDGE, whole: bool = False, as
     return f"{name}{WHOLE}" if whole else name
 
 
+def shard_of(video_id: str, window: int, n_shards: int) -> int:
+    """A window's shard: stable across runs, so parallel processes started at different times never overlap."""
+    return int(hashlib.sha256(f"{video_id}|{window}".encode()).hexdigest(), 16) % n_shards
+
+
 def blocks_for(prompt: str, frames: list[Path]) -> list[dict]:
     imgs = [{"type": "image", "source": {"type": "base64", "media_type": "image/jpeg",
                                          "data": base64.b64encode(f.read_bytes()).decode()}} for f in frames]
@@ -73,6 +78,9 @@ def main() -> None:
                     help="frame size (C9: 448, frames from tempcompass.py frames --long-edge 448)")
     ap.add_argument("--whole", action="store_true", help="one caption per video from all its frames (C10)")
     ap.add_argument("--aspects", action="store_true", help="add the aspect bullet (C11; with --whole)")
+    ap.add_argument("--shard", default="0/1",
+                    help="K/N: only the windows (or videos) whose stable hash is K mod N, so N processes can caption "
+                         "the same set in parallel without overlap")
     ap.add_argument("--max-5h", type=float, default=0.7)
     ap.add_argument("--max-7d", type=float, default=0.9)
     ap.add_argument("--dry-run", action="store_true")
@@ -97,7 +105,8 @@ def main() -> None:
         for p, ((s, e), frames) in enumerate(zip(wins, wframes)):
             if not caption_path(name, v, p).exists():
                 jobs.append((v, p, s, e, frames, prompt_for(len(frames), e - s)))
-    jobs = jobs[: args.limit]
+    k, n_shards = map(int, args.shard.split("/"))
+    jobs = [j for j in jobs if shard_of(j[0], j[1], n_shards) == k][: args.limit]
     print(f"{len(jobs)} {'videos' if args.whole else 'windows'} to caption with {model_id} (effort {args.effort}) "
           f"into {name}")
     if args.dry_run:
