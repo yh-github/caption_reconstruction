@@ -1600,6 +1600,7 @@ Captioning:
   - E1 was stopped at ≈ 245 captions per model; nothing was lost, because caption files are atomic.
   - On restart, each captioner runs as 3 parallel processes (`self_caption.py --shard K/3`, a stable hash of video and window, so the shards never overlap), and the 5-hour guard is 0.95 instead of 0.7. The 7-day guard stays at 0.9.
   - The calls, prompts and settings are unchanged, and so is every caption's content definition. The order in which windows are captioned changed, which can't affect a caption.
+  - At 13:47 UTC, at the user's request, the 5-hour guard was raised to 0.99, to use the window fully before the reset. 5-hour use was then 0.77.
 
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 

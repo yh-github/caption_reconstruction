@@ -7,14 +7,14 @@
 #                                      # its captions exist
 #   scripts/index_qa/run_e1.sh status  # what is left
 #   scripts/index_qa/run_e1.sh stop    # stop everything (calls in flight are lost and redone on resume)
-# Quota stop rules: --max-5h 0.95 (raised from E1's 0.7 on 2026-10-27, run notes), --max-7d 0.9; after a stop, wait
+# Quota stop rules: --max-5h 0.99 (raised from E1's 0.7 on 2026-10-27 at the user's request, run notes), --max-7d 0.9; after a stop, wait
 # for the 5-hour reset. NSHARDS=3 by default (environment variable). Logs: logs/orchestrator_e1.log,
 # logs/e1_cap_<job>_<k>.log, logs/e1_read_{haiku,sonnet}.log. Edit this file only while it is stopped.
 cd "$(dirname "$0")/../.." || exit 1
 PY=.venv/bin/python
 QW=scripts/index_qa/quota_wait.py
 NSHARDS=${NSHARDS:-3}
-MAX5H=0.95
+MAX5H=0.99
 SC="scripts/index_qa/self_caption.py --set ego_dev"
 declare -A CAP=([haiku]="$SC --model haiku" [sonnet]="$SC --model sonnet" [whole]="$SC --model sonnet --whole")
 declare -A ARMS=([haiku]="blind frame1 frames5 selfcaptions sonnetcaptions sonnetwhole"
