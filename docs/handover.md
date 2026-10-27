@@ -6,10 +6,12 @@ The newest session is at the top. Older sessions stay below because other docs l
 
 - **Review:** `docs/new_direction/argon_review.md` (Gemini). The fixes applied are listed in log D5. The main text still ends on page 8, with 16 pages in total, no overfull boxes and no undefined references.
 - **New analysis (D5, no calls):** Q\* projected to longer videos. The saving per question grows with length, but Q\* doesn't fall. For the reader downgrade, Q\* rises from 1.8–3.7 to 4.5–8.9 at 1 min.
-- **Open with the user:** how to strengthen the paper before ARR:
-  - a second, natural benchmark;
-  - longer videos;
-  - smarter question-blind captions (structured, or listing anticipated questions) against the generic prompt.
+- **Open with the user:** how to strengthen the paper before ARR. The proposal is **`docs/new_direction/nextqa_plan.md`**:
+  - NExT-QA, development and confirmatory runs (natural video, median ≈ 31 s, so *not* long);
+  - query-ready question-blind captions (structured, and anticipated questions);
+  - optionally EgoSchema (3 min, 36 windows) as the length test.
+  - It maps each paper claim to the result that would strengthen or weaken it.
+  - Correction: the API takes up to 600 images per request on 1M-context models, so 180 frames per call is possible. The `claude -p` behaviour is still to be checked.
   - Not decided yet. Any run needs a log entry with predictions, pushed and archived on Software Heritage, before its first call.
 
 # 2026-10-27 (end) → paper complete except the review link; no experiments left
