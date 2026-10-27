@@ -1595,6 +1595,11 @@ Captioning:
   - So the CLI's built-in system prompt changed, and it now differs by model. Within E1 this changes nothing. In cost comparisons with TempCompass, it shifts the fixed prompt by ≈ 5–8%.
 - **Caption length.** Haiku's EgoSchema window captions run longer than on TempCompass: median 56 words on the 3 checked windows, against 45. Sonnet's are 43, against 42. The prompt is unchanged.
 - **Full run** started at 13:20 UTC: `setsid nohup scripts/index_qa/run_e1.sh run`, detached from the session.
+- **Change to the run, not the design (13:35 UTC, user's request):**
+  - The 7-day quota window was 2.4 h from its reset, with 58% unused, so unused quota would be lost.
+  - E1 was stopped at ≈ 245 captions per model; nothing was lost, because caption files are atomic.
+  - On restart, each captioner runs as 3 parallel processes (`self_caption.py --shard K/3`, a stable hash of video and window, so the shards never overlap), and the 5-hour guard is 0.95 instead of 0.7. The 7-day guard stays at 0.9.
+  - The calls, prompts and settings are unchanged, and so is every caption's content definition. The order in which windows are captioned changed, which can't affect a caption.
 
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 

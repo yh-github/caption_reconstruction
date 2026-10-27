@@ -6,7 +6,7 @@ The newest session is at the top. Older sessions stay below because other docs l
 
 **Start here: research log E1 and its run notes.** Then `scripts/index_qa/run_e1.sh status`.
 
-**What is running.** `run_e1.sh run`, started at 13:20 UTC on 2026-10-27 with `setsid nohup`, so it survives this session. It does:
+**What is running.** `run_e1.sh run`, started at 13:20 UTC on 2026-10-27 with `setsid nohup`, so it survives this session. It was restarted at 13:37 UTC with 3 parallel processes per captioner (`NSHARDS=3`; `self_caption.py --shard K/3`) and the 5-hour guard at 0.95; see the E1 run notes. Per-shard logs are `logs/e1_cap_<job>_<k>.log`. It does:
 - Haiku and Sonnet window captions in parallel, 1,440 each;
 - then Sonnet's 40 whole-video captions;
 - Haiku's reads (6 arms × 40) and Sonnet's reads (3 arms × 40), each following the captions as they appear.
@@ -25,7 +25,7 @@ It stops itself on the quota guards and resumes after the 5-hour reset (`quota_w
 1. **Is E1 done?**
    - `scripts/index_qa/run_e1.sh status`: done when everything shows 0 left. `pgrep -fa run_e1` shows whether it still runs. `tail logs/orchestrator_e1.log` says "done" at the end, or shows the quota waits.
    - If it stopped without finishing (a reboot, or the 7-day guard at 0.9), resume with `setsid nohup scripts/index_qa/run_e1.sh run > logs/run_e1.out 2>&1 < /dev/null &`. Caption files are atomic and partial reader rows are rerun. If the 7-day guard stopped it, ask the user before resuming. `run_e1.sh stop` stops everything.
-   - Logs: `logs/orchestrator_e1.log`, `logs/e1_cap_{haiku,sonnet,whole}.log`, `logs/e1_read_{haiku,sonnet}.log`. The reader logs fill only when each reader round ends, because grep buffers its output.
+   - Logs: `logs/orchestrator_e1.log`, `logs/e1_cap_<job>_<k>.log` (from the 13:37 restart; earlier: `logs/e1_cap_{haiku,sonnet}.log`), `logs/e1_read_{haiku,sonnet}.log`. The reader logs fill only when each reader round ends, because grep buffers its output.
 2. **Measure E1's quota use** before deciding E2's size. Compare the first and last `util_7d` and `util_5h` in E1's rows (`results/index_qa/self_captions.jsonl` and `results/index_qa/claude/{haiku,sonnet}.jsonl`, items starting `egd`), and the list-price total. E2 at 160 videos costs ≈ 4× E1 (≈ $35 list).
 3. **Write the E1 analysis.** Add `cmd_e1` to `reader.py`, run it once, and save the output to `results/index_qa/reports/e1.txt`. It should report:
    - accuracy per arm, with 95% paired bootstrap CIs (`paired_boot`, one question per video);
