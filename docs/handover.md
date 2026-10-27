@@ -2,6 +2,27 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
+# 2026-10-27 (end) → paper complete except the review link; no experiments left
+
+**Start here: `docs/paper/acl2027/caption_index.pdf`** (build: `latexmk -pdf caption_index.tex` in `docs/paper/acl2027/`). The checklist is section C at the top of `docs/TODO.md`.
+
+**State.**
+- **Experiments:** all done (K0–K2, C1–C12). No further calls are planned. Any new one needs a log entry committed and pushed, plus a Software Heritage "Save code now" visit, before its first call.
+- **Paper:** 16 pages. The main text (abstract to Conclusion) ends on page 8, with Limitations on page 8 and References from page 9.
+  - Appendices: A prompts; B development phase and all 50 predicted terms against results (Table `tab:preds`; 39/50 predictions inside the CI, 37/41 after C1, 42/44 signs right); C amendments and deviations; D tables by type and aspect (Table `tab:bytype`, clustered CIs); E additional results; F minimal pairs; G release.
+  - No overfull boxes and no undefined references.
+- **Review done this session:**
+  - Every decimal number in the `.tex` was traced to the log, a report or `docs/TODO.md` (log D4).
+  - Unsupported wording was removed: "changes sign with reader strength" (Haiku's +0.03 includes 0), "not with model size" (Haiku's size is unknown), "loses nothing" (now "nothing measurable"), "would not generalize", "increasingly". "Stronger captioner" is now defined in §2.2.
+  - Fig. 3 now includes Qwen (`plots.py readers`).
+  - The Haiku headroom table no longer reports retention by type (D3 rule).
+- **Left for the user:**
+  1. An anonymized code link for review (Appendix G `\pending`; e.g. anonymous.4open.science).
+  2. The Software Heritage identifier at camera-ready (withheld for review, because the URL names the account).
+  3. Repeat literature query Q7 in the week before submission.
+  4. A final read, then submit to ARR (January 2027 cycle; check the date).
+- **Legacy docs:** `docs/paper/caption_index_draft.md` keeps only the claims table and is behind the `.tex`. `docs/paper/draft.md` is the old reconstruction paper.
+
 # 2026-10-27 → C12 done; paper updated; next is the review and the main-text cut
 
 **Start here: the log's C12 *Result*.**

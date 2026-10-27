@@ -1479,6 +1479,13 @@ No new calls. These analyses are descriptive: the point estimates of Table 5 (dr
 - **Sensitivity without the 49 refusals (added after the result; descriptive):** every reading holds, and the effects shrink by 0.01–0.02. Clustered: C12a −0.103 [−0.152, −0.055], C12b +0.106 [+0.052, +0.164], C12g −0.041 [−0.090, +0.010], C12h +0.000, own-caption retention 0.62 [0.43, 0.79].
 - **For the paper:** the closed-reader limitation gets an answer. The captioner effect and the absence of a modality gain replicate on an open model run with greedy decoding that anyone can rerun. The cap is reached by a 7B reader overall, but cross-window reasoning on text needs at least Haiku. Qwen's rows go into Table 2 (accuracy only; no cost, since the GPU is free) and the generated appendix table.
 
+### D4 — Paper assembly checks (2026-10-27; no calls, descriptive)
+
+- **Predictions against results, over all 50 accuracy differences with a numeric prediction (P1–C12h; paper Appendix B, Table `tab:preds`):** the prediction lies inside the result's CI for 39 of 50, and for 37 of the 41 after C1. Of the 44 non-zero predictions, 42 have the result's sign (exceptions: P2 and S2, both set from the 50 development questions). The median |estimate − prediction| is 0.021. The misses after C1 are C4e and C12a, C12d, C12f.
+- **Figure 3** (`plots.py readers`) now has Qwen as a third reader, ordered by accuracy on frames: Haiku 0.613, Qwen 0.657, Sonnet 0.798. On Sonnet's captions: 0.707, 0.660, 0.710; on Gemini video captions: 0.737, 0.697, 0.791; question only: 0.411, 0.397, 0.414 (95% CIs over clip clusters in `fig3` output).
+- **Haiku's retention by video type stays unreported,** as D3 decided (the stacked CI is unbounded); the paper's Haiku headroom table gives retention overall only.
+- **Number audit:** every decimal number in `caption_index.tex` appears in this log, in `results/index_qa/reports/*.txt`, or (for the reconstruction phase) in `docs/TODO.md`, except simple derivations (0.185 = 0.798 − 0.613; 1.76 = 2,676 / 1,520; 3.6 = 720 / 200; cost columns scaled by 10³ or 10⁴; 0.021 above).
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).

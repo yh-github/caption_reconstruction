@@ -1,5 +1,18 @@
 # TODO
 
+## C. Caption-index paper (current direction since 2026-10-18; target ACL 2027 via ARR, January 2027)
+
+Paper: `docs/paper/acl2027/caption_index.tex` (source of truth; build with `latexmk -pdf caption_index.tex` in that folder). Experiments, predictions and results: `docs/new_direction/research_log.md` (K0–C12). Session state: top of `docs/handover.md`.
+
+- [x] Experiments K0–K2 (development), C1 (pre-registered) and C2–C12 (exploratory, each predicted before its run); all analyses run once, reports in `results/index_qa/reports/`.
+- [x] Main text within 8 pages; Appendices A–G written (A prompts, B predictions vs. results for all 50 terms, C amendments and deviations, D tables by type and aspect, E additional results, F minimal pairs, G release).
+- [x] Every number in the paper traced to the log or a report (2026-10-27; log D4).
+- [ ] **Anonymized code link for review** (Appendix G, the one remaining `\pending`): e.g. anonymous.4open.science on the GitHub repo. Needs the user's login.
+- [ ] **Software Heritage identifier:** add it to §2.4 and Appendix G at camera-ready (withheld for review; the URL names the account). URL in `docs/handover.md` (2026-10-27).
+- [ ] Repeat literature query Q7 (new work since Oct 21) in the week before submission (`related_work_caption_index.md` §10.3).
+- [ ] Final read by the author; then submit to ARR (January 2027 cycle; check the exact date).
+- [ ] Optional, needs calls: none planned. Any new experiment needs a log entry committed and pushed, plus a Software Heritage "Save code now" visit, before its first call.
+
 Full reasoning, verified numbers and the evaluation design are in the paper-readiness assessment (2026-10-05):
 https://claude.ai/code/artifact/26353452-f893-49df-85ac-d3a85c9becd2
 
