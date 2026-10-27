@@ -48,6 +48,8 @@ EXCLUDED = {
     "tcc132|1058907236_1021488277_1|order": "frame captions: window 1 answered ERROR (spliced clips)",
     "tcc153|1022115337|order": "video captions: windows 0-1 blocked (PROHIBITED_CONTENT)",
     "tcc169|1096238125_1098970151_1|order": "frame captions: window 1 answered ERROR (spliced clips)",
+    # E1 run notes: the video is black for its first 95 s; Sonnet answered ERROR twice on those windows
+    "egd017|083c5e8e-4546-40e9-857e-b9b967e5007a": "Sonnet captions: windows 0-18 answered ERROR (black screen)",
 }
 WINDOW_S = 5
 LONG_EDGE = 224

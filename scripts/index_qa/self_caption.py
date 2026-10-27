@@ -144,7 +144,9 @@ def main() -> None:
             print(f"  [{n + 1}/{len(jobs)}] {v} window {p} ({len(frames)} frames): ok={ok} {words} words "
                   f"in={in_tok} 5h={util_5h} 7d={util_7d} {out['seconds']}s", flush=True)
             if not ok:
-                if n == 0:
+                # stop if the first call failed in the CLI; a caption of "ERROR" is the captioner's own answer (the
+                # prompt asks for it when no description can be written) and is handled by EXCLUDED, not here
+                if n == 0 and not cp.is_error(caption):
                     sys.exit(f"first call failed; stopping ({out['stderr'][-300:]})")
                 continue
             dest = caption_path(name, v, p)
