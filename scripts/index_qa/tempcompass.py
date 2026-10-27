@@ -10,7 +10,9 @@ t = 5p + k s (k = 0..4, t < duration), the 1 fps instants the captioner samples,
 Question sets (docs/new_direction/research_log.md): "dev", the 100 development questions (K0-K2); "confirm", 60 per
 aspect on the 310 videos the dev set does not use (C1); and "pairs", C4's minimal pairs: each confirmatory question
 asked, with its own wording and option order, on a sibling video (one built from the same filmed clip) whose correct
-option differs (sample_pairs).
+option differs (sample_pairs). "ego_dev" and "ego_confirm" are EgoSchema questions (egoschema.py samples them); a
+video ID that is a UUID is an EgoSchema video, with its video and frames under local/egoschema/, so windows, frames,
+captions and reads work the same for both benchmarks.
 
     .venv/bin/python scripts/index_qa/tempcompass.py sample [--set confirm|pairs]   # writes the set's items file
     .venv/bin/python scripts/index_qa/tempcompass.py frames [--set confirm] [--long-edge 448]   # the set's frames
@@ -33,8 +35,12 @@ ROOT = Path(__file__).resolve().parents[2]
 TC = ROOT / "local/tempcompass"
 VIDEOS = TC / "videos"
 FRAMES = TC / "frames"
+EGO = ROOT / "local/egoschema"
 OUT = ROOT / "results/index_qa"
-SETS = {"dev": OUT / "kill_test_items.json", "confirm": OUT / "confirm_items.json", "pairs": OUT / "pairs_items.json"}
+SETS = {"dev": OUT / "kill_test_items.json", "confirm": OUT / "confirm_items.json", "pairs": OUT / "pairs_items.json",
+        "ego_dev": OUT / "ego_dev_items.json", "ego_confirm": OUT / "ego_confirm_items.json"}
+EGO_SETS = {"ego_dev", "ego_confirm"}
+UUID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
 ITEMS = SETS["dev"]
 # C1 amendment 2 (research log): questions dropped from every arm, before any reader call on the Gemini captions,
 # because the captioner returned no caption for one of their windows
@@ -204,8 +210,13 @@ def source_clips(video_id: str) -> list[str]:
     return [video_id.split("_")[0]]
 
 
+def is_ego(video_id: str) -> bool:
+    """EgoSchema video IDs are UUIDs; TempCompass ones are digits and underscores."""
+    return bool(UUID.fullmatch(video_id))
+
+
 def video_path(video_id: str) -> Path:
-    return VIDEOS / f"{video_id}.mp4"
+    return (EGO / "videos" if is_ego(video_id) else VIDEOS) / f"{video_id}.mp4"
 
 
 def duration_s(video_id: str) -> float:
@@ -228,7 +239,8 @@ def frame_times(start: float, end: float) -> list[int]:
 
 def frame_path(video_id: str, p: int, k: int, long_edge: int = LONG_EDGE) -> Path:
     """The reader frames; frames at another size (C6: 448 px) go to frames_<long_edge>/."""
-    root = FRAMES if long_edge == LONG_EDGE else TC / f"frames_{long_edge}"
+    base = EGO if is_ego(video_id) else TC
+    root = base / "frames" if long_edge == LONG_EDGE else base / f"frames_{long_edge}"
     return root / video_id / f"{p:02d}_{k}.jpg"
 
 
@@ -271,6 +283,8 @@ def main():
     ap.add_argument("--long-edge", type=int, default=LONG_EDGE)
     args = ap.parse_args()
     if args.cmd == "sample":
+        if args.set_ in EGO_SETS:
+            sys.exit("EgoSchema sets are sampled by scripts/index_qa/egoschema.py sample")
         path = SETS[args.set_]
         if path.exists():
             sys.exit(f"{path} exists; a sample is fixed once drawn")

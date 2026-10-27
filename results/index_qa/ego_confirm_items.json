@@ -1,0 +1,2242 @@
+[
+ {
+  "video_id": "c50c237d-28b2-4907-8730-31060589eb68",
+  "dim": "egoschema",
+  "stem": "Summarize the main components of the activity performed by c throughout the video, highlighting any distinct instances or pattern changes.",
+  "options": {
+   "A": "C sews a piece of fabric.",
+   "B": "Carefully, c knits a piece of fabric with dedication and skill.",
+   "C": "Carefully, c skillfully crochets a lovely piece of fabric, creating art.",
+   "D": "C embroiders a piece of fabric.",
+   "E": "In the studio, c carefully paints a decorative piece of fabric for display."
+  },
+  "answer": "D",
+  "item": "egc000|c50c237d-28b2-4907-8730-31060589eb68"
+ },
+ {
+  "video_id": "2faa1516-ed55-4a96-a4be-09c402cf2c76",
+  "dim": "egoschema",
+  "stem": "What is the overall objective of the actions performed by c throughout this video?",
+  "options": {
+   "A": "To make a cotton wool sculpture.",
+   "B": "To make a cotton wool hat.",
+   "C": "To make cotton wool balls.",
+   "D": "To make a cotton wool wig.",
+   "E": "To make a cotton wool beard."
+  },
+  "answer": "C",
+  "item": "egc001|2faa1516-ed55-4a96-a4be-09c402cf2c76"
+ },
+ {
+  "video_id": "cd2e4351-de59-4511-ab43-36c37b388a8d",
+  "dim": "egoschema",
+  "stem": "What was the primary goal of c's actions throughout the video, and how did his interactions with the carton box evolve during the course of the video?",
+  "options": {
+   "A": "C's primary goal was to cut open the carton box.",
+   "B": "C's primary goal was to move the carton box.",
+   "C": "C's primary goal was to measure the carton box.",
+   "D": "C's primary goal was to draw a line on the carton box.",
+   "E": "C's primary goal was to cover the marker with the cover."
+  },
+  "answer": "A",
+  "item": "egc002|cd2e4351-de59-4511-ab43-36c37b388a8d"
+ },
+ {
+  "video_id": "cd5fc9e9-7a80-4bd6-a175-f07ad35ee7f6",
+  "dim": "egoschema",
+  "stem": "In terms of efficiency, which sequences of actions did c perform in the video that demonstrate an effective cleaning method?: students' ability to compress information from the video rather than just listing the actions that happened in the video.",
+  "options": {
+   "A": "C cleaned the toilet, sink, floor, and instant shower in a counterclockwise order. she started by cleaning the instant shower, then the sink, then the floor, and finally the toilet.",
+   "B": "C cleaned the toilet, sink, floor, and instant shower in a random order. she did not clean the objects in any particular order.",
+   "C": "C cleaned the toilet, sink, floor, and instant shower in a specific order based on their location in the bathroom. she started by cleaning the object that was closest to the door, then the object that was next closest to the door, and so on.",
+   "D": "C cleaned the toilet, sink, floor, and instant shower in a clockwise order. she started by cleaning the toilet, then the sink, then the floor, and finally the instant shower.",
+   "E": "C cleaned the toilet, sink, floor, and instant shower in a specific order based on their level of difficulty to clean. she started by cleaning the object that was easiest to clean, then the object that was next easiest to clean, and so on."
+  },
+  "answer": "D",
+  "item": "egc003|cd5fc9e9-7a80-4bd6-a175-f07ad35ee7f6"
+ },
+ {
+  "video_id": "20e97dbe-dfd5-489c-9244-bad5064ccbb1",
+  "dim": "egoschema",
+  "stem": "Describe the key sequence of events taking place in this video that shows c's process of creating art. focus on summarizing the workflow rather than listing individual actions.",
+  "options": {
+   "A": "C commences by carefully examining the art board. they then skillfully lift the paintbrush and gently paint on the art board's surface. persistently, they continue to do this, wiping the brush on the cloth frequently, until they are ultimately satisfied and finished.",
+   "B": "C starts by looking at the cloth. they then lift the paintbrush and wipe it on the cloth. they then lift the paintbrush and paint on the art board. they continue to do this, wiping the brush on the cloth frequently, until they are finished.",
+   "C": "C starts by looking at the laptop. they then lift the paintbrush and wipe it on a cloth. they then lift the paintbrush and paint on the art board. they continue to do this, wiping the brush on the cloth frequently, until they are finished.",
+   "D": "Initially, c starts by attentively observing the sky. next, they then gently lift the paintbrush and carefully paint on the sky's surface. diligently, they continue performing this task, frequently wiping the brush on the cloth, until they finally complete the artwork.",
+   "E": "Initially, c starts by carefully observing the flowers. afterward, they then gently lift the paintbrush and skillfully paint on the flowers. persistently, they continue to do this essential task, wiping the brush on the cloth frequently, until they finally are finished."
+  },
+  "answer": "C",
+  "item": "egc004|20e97dbe-dfd5-489c-9244-bad5064ccbb1"
+ },
+ {
+  "video_id": "88254e8e-6d05-4d2d-98b4-cd76f6412ac3",
+  "dim": "egoschema",
+  "stem": "What was the purpose of the series of actions that c took in both the room and the bathrooms?",
+  "options": {
+   "A": "While at home, c was diligently cleaning the bathroom area.",
+   "B": "Earlier today, c was diligently painting the bathroom walls and ceiling.",
+   "C": "Recently, c was actively engaged in remodeling the bathroom interior.",
+   "D": "C was repairing the bathroom.",
+   "E": "C was installing tiles in the bathroom."
+  },
+  "answer": "E",
+  "item": "egc005|88254e8e-6d05-4d2d-98b4-cd76f6412ac3"
+ },
+ {
+  "video_id": "5748bb14-fa12-4c6e-b0cd-e2cdadb75889",
+  "dim": "egoschema",
+  "stem": "Analyze the sequence of events in the video, then identify and explain the significance of c interacting with the black bag.",
+  "options": {
+   "A": "C interacts with the black bag to clean it.",
+   "B": "Cleverly, c interacts with the inconspicuous black bag, intending to conceal and hide it securely.",
+   "C": "The character c interacts with the mysterious black bag, intending to properly throw it away.",
+   "D": "C interacts with the black bag to get a better grip on the paint brush.",
+   "E": "Casually, c interacts with the sizeable black bag, intending to carefully put it away."
+  },
+  "answer": "D",
+  "item": "egc006|5748bb14-fa12-4c6e-b0cd-e2cdadb75889"
+ },
+ {
+  "video_id": "776d7dcf-6a44-4db3-9d37-8a75635388c0",
+  "dim": "egoschema",
+  "stem": "What is the significance of c's actions involving the electronic scale and mixing the dough in the video?",
+  "options": {
+   "A": "C is using the electronic scale to measure the amount of dough, and the mixer to mix the dough.",
+   "B": "C is using the electronic scale to measure the amount of flour, and the mixer to mix the flour.",
+   "C": "Carefully, c is utilizing the precise electronic scale to accurately measure the required amount of water, and employing the mixer to effectively mix the water.",
+   "D": "Currently, c is diligently utilizing the electronic scale to precisely gauge the amount of yeast needed, and employing the mixer to blend the yeast effectively.",
+   "E": "Carefully, c is utilizing the precise electronic scale to accurately measure the required amount of salt, and employing the mixer to effectively blend the salt."
+  },
+  "answer": "A",
+  "item": "egc007|776d7dcf-6a44-4db3-9d37-8a75635388c0"
+ },
+ {
+  "video_id": "84389a11-7dc2-4e1d-80b1-e44d8787424a",
+  "dim": "egoschema",
+  "stem": "Describe how c's actions transition from focusing on the book to the tablet. what key events signify this shift in focus?",
+  "options": {
+   "A": "The subject's focus noticeably shifts away from the book, transitioning towards the tablet, as she carefully adjusts the camera position.",
+   "B": "The subject's focus shifts from the book to the tablet when she drops the pencil.",
+   "C": "The subject's focus evidently shifts from the book to the tablet as she persistently drags the nearby chair.",
+   "D": "The subject's focus noticeably shifts from the book over to the tablet when she carefully opens the tablet device, revealing its content.",
+   "E": "The subject's focus shifts from the book to the tablet when she stands up and walks into the room."
+  },
+  "answer": "E",
+  "item": "egc008|84389a11-7dc2-4e1d-80b1-e44d8787424a"
+ },
+ {
+  "video_id": "628e252f-e743-4054-92fd-b0ed6983571d",
+  "dim": "egoschema",
+  "stem": "What are the primary activities c and the man are engaged in, and how do they differ in focus or involvement with the dog?",
+  "options": {
+   "A": "C is making breakfast, while the man is playing with the dog.",
+   "B": "Currently, c is actively playing with the dog outdoors, while the man is occupied making breakfast inside.",
+   "C": "Currently, c and the man are both actively engaged in preparing breakfast together.",
+   "D": "C and the man are both playing with the dog.",
+   "E": "Currently, c is working diligently, while the man is happily playing with the dog nearby."
+  },
+  "answer": "A",
+  "item": "egc009|628e252f-e743-4054-92fd-b0ed6983571d"
+ },
+ {
+  "video_id": "0a8109fe-15b9-4f5c-b5f2-993013cb216b",
+  "dim": "egoschema",
+  "stem": "In your own words, what was the primary function of the scrapper throughout the video? discuss how it contributed to the overall process without mentioning specific actions.",
+  "options": {
+   "A": "Inaccurately, the wrong response to question 2 states: the primary purpose of the scrapper throughout the entire video is to effectively remove excess dough from the wooden plank.",
+   "B": "Inaccurately, question 2's incorrect response states: the primary purpose of the scrapper present in the video is to shape and form the dumplings.",
+   "C": "Inaccurately, the wrong answer to question 2 states: the primary function of the scrapper, as shown in the video, is essentially to knead the dough.",
+   "D": "The wrong answer to question 2 is: the primary function of the scrapper throughout the video is to roll out the dough.",
+   "E": "The correct answer to question 2 is: the primary function of the scrapper throughout the video is to cut the dough into small pieces."
+  },
+  "answer": "E",
+  "item": "egc010|0a8109fe-15b9-4f5c-b5f2-993013cb216b"
+ },
+ {
+  "video_id": "8bebd8f4-f4e4-40bc-8bee-8db39904b85e",
+  "dim": "egoschema",
+  "stem": "In the context of the entire video, how would you describe the primary focus of c's actions in terms of his goals and the objects he interacted with?",
+  "options": {
+   "A": "C is cleaning and preparing the kitchen.",
+   "B": "C is cooking.",
+   "C": "Currently, c is in the process of enjoying their meal.",
+   "D": "Currently, c is occupied with doing their laundry task.",
+   "E": "Currently, c is in the bathroom, taking a refreshing shower."
+  },
+  "answer": "A",
+  "item": "egc011|8bebd8f4-f4e4-40bc-8bee-8db39904b85e"
+ },
+ {
+  "video_id": "a01f7c76-f257-4e86-aa86-9ce823fc5a74",
+  "dim": "egoschema",
+  "stem": "How would you briefly describe the overall theme of the video, considering the variety of actions performed by c?",
+  "options": {
+   "A": "Currently, c is actively working on demolishing a wall with care.",
+   "B": "C is building a wall.",
+   "C": "Currently, c is diligently working on repairing a damaged wall.",
+   "D": "C is cleaning a wall.",
+   "E": "Currently, c is actively painting a wall with dedication."
+  },
+  "answer": "B",
+  "item": "egc012|a01f7c76-f257-4e86-aa86-9ce823fc5a74"
+ },
+ {
+  "video_id": "4b7495f1-e2c2-4d69-bbf4-c2dabeb5e634",
+  "dim": "egoschema",
+  "stem": "Which parts of the video can be considered most essential to achieving c's ultimate goal and why? consider the impact of these parts on the overall process.",
+  "options": {
+   "A": "The most essential parts of the video are the parts where c grinds the iron rods and marks them with chalk.",
+   "B": "The most crucial and essential parts of the video involve the instances where object c rolls down a nylon on the iron rods effortlessly.",
+   "C": "The most crucial and essential parts of the video involve the segments where character c picks up and handles the iron rods.",
+   "D": "The most crucial and essential parts of the video involve the segments where character c places down the iron rods carefully.",
+   "E": "The most essential parts of the video are the parts where c turns the iron rods."
+  },
+  "answer": "A",
+  "item": "egc013|4b7495f1-e2c2-4d69-bbf4-c2dabeb5e634"
+ },
+ {
+  "video_id": "3223ece4-dc21-4ca9-8e78-2af8036ec4e8",
+  "dim": "egoschema",
+  "stem": "Describe how c's actions progress towards the final goal, and what key modification does he make to the vespa scooter?",
+  "options": {
+   "A": "C's actions progress towards the final goal of replacing the engine bearing in the vespa scooter.",
+   "B": "C's actions progress towards the final goal of replacing the plastic panel in the vespa scooter.",
+   "C": "C's actions progress towards the final goal of replacing the battery in the vespa scooter.",
+   "D": "C's actions progress towards the final goal of removing the screws on the vespa scooter seat.",
+   "E": "C's actions progress towards the final goal of removing the screws on the metal guard."
+  },
+  "answer": "C",
+  "item": "egc014|3223ece4-dc21-4ca9-8e78-2af8036ec4e8"
+ },
+ {
+  "video_id": "3311f1b2-495a-4712-9989-ef8519be3cc7",
+  "dim": "egoschema",
+  "stem": "In the context of selecting and organizing clothes, explain the significance of the different actions performed by c and how they collectively contribute to the overall purpose.",
+  "options": {
+   "A": "The various actions executed by c are all crucial in the process of cleaning clothes efficiently. c initially removes the clothes he is currently wearing, then places them in the washing machine. next, he washes the clothes thoroughly, and dries them in the dryer. finally, c methodically folds the clothes and organizes them away.",
+   "B": "The different actions performed by c are all essential in the process of selecting and organizing clothes. c first removes the clothes that he is currently wearing, and then puts them on a hanger. he then hangs the clothes on a rod, and takes a new outfit from the closet. c tries on the new outfit, and looks in the mirror to see how it looks. if he is not happy with the outfit, he will take it off and try on another one. once c finds an outfit that he is happy with, he will put it on and wear it.",
+   "C": "The different actions performed by c are all essential in the process of ironing clothes. c first removes the clothes that he is currently wearing, and then puts them on an ironing board. he then irons the clothes, and puts them away.",
+   "D": "The various distinct actions executed by c are all fundamentally essential in the comprehensive process of mending clothes. initially, c carefully removes the clothes that he is currently wearing, and then diligently looks for any tears or holes. subsequently, he skillfully mends the tears or holes, afterwards, he neatly puts the clothes away.",
+   "E": "The various actions executed by individual c are all crucial in the sewing process of garments. initially, c removes the clothes he is presently wearing, and then carefully dismantles them. following that, he skillfully sews the clothes back together and neatly stores them away."
+  },
+  "answer": "B",
+  "item": "egc015|3311f1b2-495a-4712-9989-ef8519be3cc7"
+ },
+ {
+  "video_id": "951ccf40-1a99-4138-a441-4edf16af5446",
+  "dim": "egoschema",
+  "stem": "What is the main task that c is repetitively performing throughout the entirety of the video, and what purpose do you think this serves in the overall context of the video?",
+  "options": {
+   "A": "C is repetitively picking up bricks from the ground and throwing them in the air.",
+   "B": "C is repetitively picking up bricks from the ground and placing them on top of a stack.",
+   "C": "Constantly and repeatedly, c is picking up bricks from the ground and persistently placing them into his pocket.",
+   "D": "Constantly, c is repetitively picking up bricks from the ground, then skillfully using them to construct a stable wall.",
+   "E": "Continuously, c is persistently picking up bricks from the ground and skillfully using them to construct a durable house."
+  },
+  "answer": "B",
+  "item": "egc016|951ccf40-1a99-4138-a441-4edf16af5446"
+ },
+ {
+  "video_id": "b6c66baa-f923-42e1-846f-e5fb2c6466bf",
+  "dim": "egoschema",
+  "stem": "Provide a concise summary of the process c engages in throughout the video, and explain how the repetition of certain actions helps to achieve the desired result.",
+  "options": {
+   "A": "Carefully, c kneads the dough persistently until it becomes hard and dry, as desired.",
+   "B": "C kneads the dough until it is soft and fluffy.",
+   "C": "Carefully, c kneads the dough persistently until it becomes light, airy, and perfectly elastic.",
+   "D": "Carefully, c skillfully kneads the dough consistently until it eventually achieves a golden brown color.",
+   "E": "C kneads the dough until it is smooth and elastic."
+  },
+  "answer": "E",
+  "item": "egc017|b6c66baa-f923-42e1-846f-e5fb2c6466bf"
+ },
+ {
+  "video_id": "9f440443-9672-47a0-89ee-8a9b22e0431a",
+  "dim": "egoschema",
+  "stem": "What was the primary focus of the actions in the video, and how did these actions contribute to the overarching objective?",
+  "options": {
+   "A": "C was preparing a meal.",
+   "B": "C was cleaning the kitchen.",
+   "C": "C was doing laundry.",
+   "D": "C was working on a project.",
+   "E": "C was taking a nap."
+  },
+  "answer": "A",
+  "item": "egc018|9f440443-9672-47a0-89ee-8a9b22e0431a"
+ },
+ {
+  "video_id": "59c88bb6-c714-402b-a504-796b671ef785",
+  "dim": "egoschema",
+  "stem": "What can you infer about the key goal c is attempting to achieve within this video, judging by their actions?",
+  "options": {
+   "A": "C is trying to fold the wallpaper.",
+   "B": "Currently, c is attempting to place the wallpaper carefully in the dustbin for disposal.",
+   "C": "C is trying to remove all of the wallpaper from the room.",
+   "D": "Currently, c is attempting to walk around the room, exploring the area.",
+   "E": "Curiously, c is cautiously attempting to reach out and touch the intriguing wallpaper nearby."
+  },
+  "answer": "C",
+  "item": "egc019|59c88bb6-c714-402b-a504-796b671ef785"
+ },
+ {
+  "video_id": "fcff46e4-9e6f-4934-a59f-72a6e6538b0e",
+  "dim": "egoschema",
+  "stem": "Summarize the main process that c carries out during the video and highlight similarities and differences observed at various stages.",
+  "options": {
+   "A": "C creates a pottery from scratch.",
+   "B": "C cleans a pottery with a sponge, then decorates it with clay.",
+   "C": "Person c diligently repairs a damaged pottery piece skillfully.",
+   "D": "Creatively, c meticulously paints a beautiful pottery piece with care.",
+   "E": "A customer named 'c' successfully sells their beautifully crafted pottery."
+  },
+  "answer": "B",
+  "item": "egc020|fcff46e4-9e6f-4934-a59f-72a6e6538b0e"
+ },
+ {
+  "video_id": "20520eff-abdf-4d4f-94ad-cc751a8960d0",
+  "dim": "egoschema",
+  "stem": "Summarize the overall process c undergoes to shape, modify, and finalize the pottery piece, focusing on the core techniques utilized.",
+  "options": {
+   "A": "C first centers the clay on the pottery wheel, then uses a modelling tool to shape it into a vase. she then smoothes the surface of the vase with her hands and the modelling tool. finally, she removes the vase from the pottery wheel and cleans the modelling tool.",
+   "B": "C first centers the clay on the pottery wheel, then uses a modelling tool to shape it into a bowl. she then smoothes the surface of the bowl with her hands and the modelling tool. finally, she removes the bowl from the pottery wheel and cleans the modelling tool.",
+   "C": "C first centers the clay on the pottery wheel, then uses a modelling tool to shape it into a plate. she then smoothes the surface of the plate with her hands and the modelling tool. finally, she removes the plate from the pottery wheel and cleans the modelling tool.",
+   "D": "C first centers the clay on the pottery wheel, then uses a modelling tool to shape it into a cup. she then smoothes the surface of the cup with her hands and the modelling tool. finally, she removes the cup from the pottery wheel and cleans the modelling tool.",
+   "E": "C initially centers the clay carefully on the pottery wheel, then skillfully uses a modelling tool to shape it into a pot. she then smoothly smoothes the pot's surface using her hands and the modelling tool. ultimately, she removes the finished pot from the pottery wheel and diligently cleans the modelling tool."
+  },
+  "answer": "B",
+  "item": "egc021|20520eff-abdf-4d4f-94ad-cc751a8960d0"
+ },
+ {
+  "video_id": "30e895e3-c176-43aa-9471-e9027f0b9518",
+  "dim": "egoschema",
+  "stem": "Considering the main actions in the video, how would you summarize the video's central activity, and what role does the interaction with the girl play in this context?",
+  "options": {
+   "A": "While c is meticulously cleaning a shelf, the brief interaction with the girl serves as a minor interruption, but ultimately does not affect the central activity being performed.",
+   "B": "Currently, c is constructing a shelf diligently. the fleeting interaction with the girl serves as a brief interruption, yet it does not impact or influence the central activity significantly.",
+   "C": "C is painting a shelf. the interaction with the girl is a brief distraction, but does not affect the central activity.",
+   "D": "C is repairing a shelf. the interaction with the girl is a brief interruption, but does not affect the central activity.",
+   "E": "Currently, c is diligently decorating a shelf. the brief, friendly interaction with the girl momentarily interrupts, but ultimately does not affect the central activity at hand."
+  },
+  "answer": "C",
+  "item": "egc022|30e895e3-c176-43aa-9471-e9027f0b9518"
+ },
+ {
+  "video_id": "00b9a0de-c59e-49cb-a127-6081e2fb8c8e",
+  "dim": "egoschema",
+  "stem": "What was the primary purpose of the cup of water in this video, and how did it contribute to the overall painting process?",
+  "options": {
+   "A": "To provide a source of water for the paintbrush.",
+   "B": "To provide a place to store the paintbrush.",
+   "C": "To provide a place to dispose of the paintbrush.",
+   "D": "To provide a place to rest the paintbrush.",
+   "E": "To clean the paintbrush."
+  },
+  "answer": "E",
+  "item": "egc023|00b9a0de-c59e-49cb-a127-6081e2fb8c8e"
+ },
+ {
+  "video_id": "8d8954ef-5b61-46f6-9829-67bb3994501c",
+  "dim": "egoschema",
+  "stem": "Provide a high-level summary of the main tasks c performs in the video and explain how these tasks are related to each other.",
+  "options": {
+   "A": "C heads towards the laundry room, places his laundry carefully in the washing machine, and afterwards proceeds to the nearby store.",
+   "B": "C goes to the laundry room, puts his laundry in the washing machine, and then goes to the park.",
+   "C": "Casually, c goes to the shared laundry room, carefully puts his soiled laundry in the washing machine, and afterwards, he promptly goes to the nearby gym.",
+   "D": "Casually, c goes to the nearby laundry room, places his laundry neatly in the washing machine, and soon after, heads to catch a movie.",
+   "E": "C goes to the laundry room, puts his laundry in the washing machine, and then goes back to his apartment."
+  },
+  "answer": "E",
+  "item": "egc024|8d8954ef-5b61-46f6-9829-67bb3994501c"
+ },
+ {
+  "video_id": "e0c9d250-fce2-49b5-8559-60d3925329be",
+  "dim": "egoschema",
+  "stem": "Based on the actions taken by c in this video, how would you concisely describe c's overall goal and the key tools used during the process?",
+  "options": {
+   "A": "The primary objective of c's overall goal is to precisely cut the wood pieces. the essential key tools used during this woodworking process are the saw and the chisel.",
+   "B": "C's overall goal is to smooth and refine the wood pieces. the key tools used during the process are the hand planer and the sander.",
+   "C": "C's overall primary goal is to efficiently assemble the wood pieces together. the essential key tools utilized during this assembly process are the hammer and nails.",
+   "D": "C's overall goal is to paint the wood pieces. the key tools used during the process are the brush and the paint.",
+   "E": "The primary objective of c's overall goal is to effectively varnish the wooden pieces. the crucial tools employed during this process are the brush and the varnish itself."
+  },
+  "answer": "B",
+  "item": "egc025|e0c9d250-fce2-49b5-8559-60d3925329be"
+ },
+ {
+  "video_id": "0a8b2c9d-b54c-4811-acf3-5977895d2445",
+  "dim": "egoschema",
+  "stem": "Describe the overall process that c is engaged in throughout the video, and how his actions contribute to accomplishing this activity.",
+  "options": {
+   "A": "C is cleaning the kitchen.",
+   "B": "C is preparing a snack.",
+   "C": "C is making a cheese sauce.",
+   "D": "C is making a cheese fondue.",
+   "E": "C is cooking a meal."
+  },
+  "answer": "E",
+  "item": "egc026|0a8b2c9d-b54c-4811-acf3-5977895d2445"
+ },
+ {
+  "video_id": "4feae43e-cef6-46a0-a256-28b6e210b6a2",
+  "dim": "egoschema",
+  "stem": "After observing the video, which sequence of actions signify a shift in focus between c and the man, and what is the primary reason for this shift?",
+  "options": {
+   "A": "The sequence of actions that signify a shift in focus between c and the man is when the man starts to run towards the hoop more often.",
+   "B": "The sequence of actions that signify a shift in focus between c and the man is when c starts to pass the ball to the man more often.",
+   "C": "The sequence of actions that signify a shift in focus between c and the man is when the man starts to pass the ball to c more often.",
+   "D": "The sequence of actions that signify a shift in focus between c and the man is when c starts to shoot the ball more often.",
+   "E": "The sequence of actions that signify a shift in focus between c and the man is when c starts to dunk the ball more often."
+  },
+  "answer": "D",
+  "item": "egc027|4feae43e-cef6-46a0-a256-28b6e210b6a2"
+ },
+ {
+  "video_id": "aafd0923-bfdb-4271-960e-02a4a5a75ed3",
+  "dim": "egoschema",
+  "stem": "What are the main locations and activities c is involved in throughout the video? focus on summarizing and comparing her actions in different locations.",
+  "options": {
+   "A": "C is involved in the kitchen and the bathroom. in the kitchen, she picks up throw pillows from the floor and places them on the counter. she also arranges a cloth on the counter and some magazines on a table. in the bathroom, she picks up pillows from the floor and places them on the bed. she also arranges a cloth on the bed and a duvet.",
+   "B": "C is involved in the living room and the kitchen. in the living room, she picks up throw pillows from the floor and places them on the couch. she also arranges a cloth on the couch and some magazines on a coffee table. in the kitchen, she picks up pillows from the floor and places them on the counter. she also arranges a cloth on the counter and some magazines on a table.",
+   "C": "C is involved in the bedroom and the bathroom. in the bedroom, she picks up pillows from the floor and places them on the bed. she also arranges a cloth on the bed and a duvet. in the bathroom, she picks up pillows from the floor and places them on the bed. she also arranges a cloth on the bed and a duvet.",
+   "D": "C is involved in the living room and the bedroom. in the living room, she picks up throw pillows from the floor and places them on the couch. she also arranges a cloth on the couch and some magazines on a coffee table. in the bedroom, she picks up pillows from the floor and places them on the bed. she also arranges a cloth on the bed and a duvet.",
+   "E": "C is involved in the living room, the bedroom, and the kitchen. in the living room, she picks up throw pillows from the floor and places them on the couch. she also arranges a cloth on the couch and some magazines on a coffee table. in the bedroom, she picks up pillows from the floor and places them on the bed. she also arranges a cloth on the bed and a duvet. in the kitchen, she picks up pillows from the floor and places them on the counter. she also arranges a cloth on the counter and some magazines on a table."
+  },
+  "answer": "D",
+  "item": "egc028|aafd0923-bfdb-4271-960e-02a4a5a75ed3"
+ },
+ {
+  "video_id": "6c8fe7a9-3917-4397-b73b-90d93371b008",
+  "dim": "egoschema",
+  "stem": "What were the primary steps c followed to attach the planks to the stair railing? consider summarizing the entire process, including the tools used and any changes in his approach.",
+  "options": {
+   "A": "C drilled the plank on the stair railing with the drill driver, then placed the plank on the stair railing and drove in the wood screws with the hammer.",
+   "B": "Carefully, c drilled the plank on the stair railing with the hammer, after that, c placed the plank on the stair railing meticulously and drove in the wood screws securely with the drill driver.",
+   "C": "Carefully, c placed the wooden plank on the stair railing, then firmly drilled the plank onto the stair railing utilizing the drill driver, and finally drove in the wood screws using the hammer.",
+   "D": "Carefully, c placed the sturdy plank on the stair railing, then firmly drilled the wooden plank onto the stair railing using the hammer, and finally drove in the wood screws with the dependable drill driver.",
+   "E": "C drilled the plank on the stair railing with the drill driver, then placed the plank on the stair railing and drove in the wood screws with the drill driver."
+  },
+  "answer": "E",
+  "item": "egc029|6c8fe7a9-3917-4397-b73b-90d93371b008"
+ },
+ {
+  "video_id": "b7657449-42cf-47bc-9092-c9ab2d240bea",
+  "dim": "egoschema",
+  "stem": "What are the main steps involved in the woman and c's collaborative process during their interaction in the laboratory?",
+  "options": {
+   "A": "The woman, along with c, are diligently preparing a meal together inside the laboratory.",
+   "B": "The woman and c collaboratively prepare a chemical solution by measuring and mixing various chemicals in a conical flask.",
+   "C": "The woman, along with c, are diligently cleaning the laboratory together.",
+   "D": "The woman, in collaboration with colleague c, are diligently conducting a scientific experiment together.",
+   "E": "The woman and c are playing a game."
+  },
+  "answer": "B",
+  "item": "egc030|b7657449-42cf-47bc-9092-c9ab2d240bea"
+ },
+ {
+  "video_id": "530a5959-0ba6-4fde-9b19-494ef51fed33",
+  "dim": "egoschema",
+  "stem": "In the context of the video, discuss the role of social interactions, distractions, and the characters' behavior in relation to the primary activity.",
+  "options": {
+   "A": "The social interactions in the video are negative. the man and the girl are both seen arguing with each other. this is likely making their meal less enjoyable.",
+   "B": "The social interactions in the video are neutral. the man and the girl are both seen eating their meal in silence. this is likely not having a significant impact on their meal experience.",
+   "C": "The social interactions in the video are nonexistent. the man and the girl are both seen eating their meal alone. this is likely making their meal less enjoyable.",
+   "D": "The social interactions in the video are forced. the man and the girl are both seen talking to each other only because they feel obligated to. this is likely making their meal less enjoyable.",
+   "E": "The social interactions in the video are positive. the man and the girl are both seen interacting with each other in a friendly and supportive way."
+  },
+  "answer": "E",
+  "item": "egc031|530a5959-0ba6-4fde-9b19-494ef51fed33"
+ },
+ {
+  "video_id": "e1b7dd94-23cd-4a26-89cd-e5d4f88f596d",
+  "dim": "egoschema",
+  "stem": "Identify a central theme throughout the video, and discuss the specific actions that correspond to this theme.",
+  "options": {
+   "A": "The central theme throughout the video is efficiency.",
+   "B": "The central theme throughout the video is cleanliness.",
+   "C": "The central theme throughout the video is organization.",
+   "D": "The central theme throughout the video is resource utilization.",
+   "E": "The central theme throughout the video is handwashing."
+  },
+  "answer": "B",
+  "item": "egc032|e1b7dd94-23cd-4a26-89cd-e5d4f88f596d"
+ },
+ {
+  "video_id": "68cd8a82-f3ea-4816-8dca-045616a41f25",
+  "dim": "egoschema",
+  "stem": "Taking into account the majority of the actions performed by c, what can you deduce was the central objective within the garage environment?",
+  "options": {
+   "A": "The central objective within the garage environment was to clean the garage.",
+   "B": "The central objective within the garage environment was to fix a bolt.",
+   "C": "The central objective within the garage environment was to assemble a piece of furniture.",
+   "D": "The central objective within the garage environment was to repair a car.",
+   "E": "The central objective within the garage environment was to build a birdhouse."
+  },
+  "answer": "B",
+  "item": "egc033|68cd8a82-f3ea-4816-8dca-045616a41f25"
+ },
+ {
+  "video_id": "a5dd1b46-d83e-4c50-818d-7c9ef882ff3f",
+  "dim": "egoschema",
+  "stem": "Considering the various tasks c completed in the kitchen, what general theme can be concluded from the video?",
+  "options": {
+   "A": "In the kitchen, c was hurriedly preparing a quick, delicious meal for lunchtime.",
+   "B": "In the cozy kitchen, c was enthusiastically preparing a scrumptious, delicious meal.",
+   "C": "C was preparing a healthy meal.",
+   "D": "C was preparing a fancy meal.",
+   "E": "C was enthusiastically getting ready to prepare a traditional, delicious meal for everyone."
+  },
+  "answer": "C",
+  "item": "egc034|a5dd1b46-d83e-4c50-818d-7c9ef882ff3f"
+ },
+ {
+  "video_id": "d38b4b2b-3422-4618-ab2a-6f0d08f13e00",
+  "dim": "egoschema",
+  "stem": "Based on the actions performed by c, what are the two main activities that c engages in throughout the video?",
+  "options": {
+   "A": "Daily activities include resting, sleeping, consuming food, and eating nutritious meals.",
+   "B": "Engaging in both working diligently and enjoying leisurely playing activities.",
+   "C": "Watching tv and cleaning.",
+   "D": "Reading and writing.",
+   "E": "Engaging in essential chores like cooking and cleaning tasks."
+  },
+  "answer": "C",
+  "item": "egc035|d38b4b2b-3422-4618-ab2a-6f0d08f13e00"
+ },
+ {
+  "video_id": "876d37d8-07f5-4508-b458-631b3e2c6fab",
+  "dim": "egoschema",
+  "stem": "Considering the high-level details in the video, how would you summarize the central objective that c is trying to accomplish?",
+  "options": {
+   "A": "C is trying to color a picture.",
+   "B": "C is trying to arrange the containers on the table.",
+   "C": "C is trying to fix the camera.",
+   "D": "C is trying to pick up the crayons.",
+   "E": "C is trying to put the papers in the crayon box."
+  },
+  "answer": "A",
+  "item": "egc036|876d37d8-07f5-4508-b458-631b3e2c6fab"
+ },
+ {
+  "video_id": "39860abe-ce5a-4e57-a234-b25b0e81beec",
+  "dim": "egoschema",
+  "stem": "Among all the actions in the video, which ones can be considered the most essential for achieving the desired outcome, and why?",
+  "options": {
+   "A": "The most essential actions for achieving the desired outcome are cleaning the window and the wall.",
+   "B": "The most essential actions for achieving the desired outcome are dipping the paint brush into the paint container and painting the edge of the window and the wall.",
+   "C": "The most crucial and essential actions for successfully achieving the desired outcome primarily involve repairing the window and the wall.",
+   "D": "The most crucial and essential actions for successfully achieving the desired outcome involve meticulously decorating both the window and the wall surfaces.",
+   "E": "The most essential actions for successfully achieving the desired outcome primarily involve protecting both the window and the adjacent wall."
+  },
+  "answer": "B",
+  "item": "egc037|39860abe-ce5a-4e57-a234-b25b0e81beec"
+ },
+ {
+  "video_id": "5782e464-db9e-4bee-88f7-6c2f6727854b",
+  "dim": "egoschema",
+  "stem": "As a general summary, what is the main activity that c is performing throughout the video, and what two types of seeds does he deal with using the same process?",
+  "options": {
+   "A": "Currently, c is actively cooking chia seeds and nutritious wheat in the kitchen.",
+   "B": "Currently, c is carefully cleaning chia seeds and wheat grains as a task.",
+   "C": "C is grinding chia seeds and wheat.",
+   "D": "Carefully, c is sorting and separating chia seeds from wheat kernels efficiently.",
+   "E": "C is packaging chia seeds and wheat."
+  },
+  "answer": "C",
+  "item": "egc038|5782e464-db9e-4bee-88f7-6c2f6727854b"
+ },
+ {
+  "video_id": "c4bdfb22-e10a-49a0-a8fe-60ec2b966b56",
+  "dim": "egoschema",
+  "stem": "Based on the actions performed by the woman in the video, determine her primary goal and support your conclusion with relevant evidence from the video.",
+  "options": {
+   "A": "The woman's primary goal is to work in the grocery store. she is stocking shelves and helping customers.",
+   "B": "The woman's primary goal is to buy groceries. she is shopping for items such as cereal, milk, and cookies.",
+   "C": "The woman's primary goal is to socialize. she is talking to other shoppers and employees.",
+   "D": "The woman's primary goal is to relax. she is listening to music and taking pictures.",
+   "E": "The woman's primary goal is to document her shopping trip. she is taking pictures of the items she buys and the people she sees."
+  },
+  "answer": "B",
+  "item": "egc039|c4bdfb22-e10a-49a0-a8fe-60ec2b966b56"
+ },
+ {
+  "video_id": "aebf3455-59b7-4071-a7d2-18d053c38f8f",
+  "dim": "egoschema",
+  "stem": "What is the overarching goal of the actions taken by both c and the man throughout the video, and how do their techniques differ?",
+  "options": {
+   "A": "The primary, overarching goal of the various actions taken by both c and the man in the video is to efficiently repair a broken light fixture together.",
+   "B": "The primary, overarching goal driving the actions taken by both individual c and the man appearing throughout the entire video is to successfully remove a specific light fixture.",
+   "C": "The overarching goal of the actions taken by both c and the man throughout the video is to clean a light fixture.",
+   "D": "The primary, overarching goal of the various actions taken by both c and the man throughout the entire video is simply to replace a malfunctioning light bulb.",
+   "E": "The overarching goal of the actions taken by both c and the man throughout the video is to install a new light fixture."
+  },
+  "answer": "E",
+  "item": "egc040|aebf3455-59b7-4071-a7d2-18d053c38f8f"
+ },
+ {
+  "video_id": "90c3f31b-3b44-4b9a-a684-cef313a45c32",
+  "dim": "egoschema",
+  "stem": "Analyze how c's interactions with various objects (e.g., stool, paint can, paint brush, craft model) throughout the video contribute to the overall outcome of the video.",
+  "options": {
+   "A": "C's interactions with various objects (e.g., stool, paint can, paint brush, craft model) throughout the video contribute to the overall outcome of the video by helping him to learn about the process of painting. for example, he uses the stool to get a better view of the model, he uses the paint can to see how the paint looks, and he uses the paint brush to experiment with different techniques.",
+   "B": "C's interactions with various objects (e.g., stool, paint can, paint brush, craft model) throughout the video contribute to the overall outcome of the video by helping him to complete the task of painting the model. for example, he uses the stool to reach the paint cans, he uses the paint brush to apply the paint to the model, and he uses the craft model as the object to be painted.",
+   "C": "C's interactions with various objects (e.g., stool, paint can, paint brush, craft model) throughout the video contribute to the overall outcome of the video by helping him to relax and de-stress. for example, he uses the stool to sit down and take a break, he uses the paint can to make a mess and get some energy out, and he uses the paint brush to create something beautiful.",
+   "D": "C's interactions with various objects (e.g., stool, paint can, paint brush, craft model) throughout the video contribute to the overall outcome of the video by helping him to connect with his creativity. for example, he uses the stool to get a better view of the model, he uses the paint can to see how the paint looks, and he uses the paint brush to experiment with different techniques.",
+   "E": "C's interactions with various objects (e.g., stool, paint can, paint brush, craft model) throughout the video contribute to the overall outcome of the video by helping him to express himself. for example, he uses the stool to sit down and think about what he wants to paint, he uses the paint can to make a mess and get some energy out, and he uses the paint brush to create something beautiful."
+  },
+  "answer": "B",
+  "item": "egc041|90c3f31b-3b44-4b9a-a684-cef313a45c32"
+ },
+ {
+  "video_id": "05f1fc03-0c9e-4fd4-9d85-bb7be4e69234",
+  "dim": "egoschema",
+  "stem": "Describe the overall goal achieved by c throughout the video and explain how the various trowels were used in working with the cement cast.",
+  "options": {
+   "A": "C is attempting diligently to break the solid cement cast surrounding it.",
+   "B": "C is attempting to carefully remove the solid cement cast from their body.",
+   "C": "C is trying to repair the cement cast.",
+   "D": "C is smoothing the cement cast with a flooring trowel and a bucket trowel.",
+   "E": "C is attempting to creatively embellish the sturdy cement cast for aesthetics."
+  },
+  "answer": "D",
+  "item": "egc042|05f1fc03-0c9e-4fd4-9d85-bb7be4e69234"
+ },
+ {
+  "video_id": "27829009-0f7e-4217-ac44-468c564e1275",
+  "dim": "egoschema",
+  "stem": "Rather than listing all the actions, provide a concise description of c's activity between breaks and how it contributes to the overall video.",
+  "options": {
+   "A": "C takes some paint from the paint can with the paint brush, and then puts the paint brush back in the paint can.",
+   "B": "C takes some paint from the paint can with the paint brush, and then wipes the paint brush on a rag.",
+   "C": "C takes some paint from the paint can with the paint brush, and then throws the paint brush away.",
+   "D": "C takes some paint from the paint can with the paint brush, and then eats the paint brush.",
+   "E": "C takes some paint from the paint can with the paint brush, and then paints the wall with the paint brush."
+  },
+  "answer": "E",
+  "item": "egc043|27829009-0f7e-4217-ac44-468c564e1275"
+ },
+ {
+  "video_id": "5f584429-b12b-4b15-9975-bf0cbfeaf2bc",
+  "dim": "egoschema",
+  "stem": "What actions can be inferred as the primary steps involved in constructing the wooden frame in this video?",
+  "options": {
+   "A": "C cuts wood, measures the frame, and secures the frame.",
+   "B": "C skillfully cuts wood, meticulously measures the frame, then carefully paints the frame beautifully.",
+   "C": "C diligently cuts wood, carefully measures the frame, skillfully nails the frame, ensuring accuracy.",
+   "D": "Carefully, c cuts wood pieces, precisely measures the frame size, and securely glues the frame together.",
+   "E": "C cuts wood, measures the frame, and sands the frame."
+  },
+  "answer": "A",
+  "item": "egc044|5f584429-b12b-4b15-9975-bf0cbfeaf2bc"
+ },
+ {
+  "video_id": "adfb2285-406f-4cbf-8a6c-52e7b222215d",
+  "dim": "egoschema",
+  "stem": "Describe the central goal of the video and explain how the two primary tools used help achieve this goal.",
+  "options": {
+   "A": "The principal objective of this video is to demonstrate grinding an aluminum piece effectively. the two main tools employed are a grinder and a hammer, both essential. the grinder functions to remove material from the aluminum, while the hammer serves the purpose of shaping the aluminum.",
+   "B": "The primary aim of the video revolves around cutting an aluminum piece. the two main tools utilized are a saw and a hammer. to cut the aluminum, the saw is employed, while the hammer effectively shapes the aluminum.",
+   "C": "The central goal of the video is to weld an aluminum piece. the two primary tools used are a welding machine and a hammer. the welding machine is used to melt the aluminum, and the hammer is used to shape the molten aluminum.",
+   "D": "The central objective of the video focuses on polishing an aluminum piece meticulously. the two main tools utilized include a precise polisher and a sturdy hammer. the polisher effectively removes scratches from the aluminum surface, and the hammer skillfully reshapes the aluminum piece.",
+   "E": "The central goal of the video is to paint an aluminum piece. the two primary tools used are a paintbrush and a hammer. the paintbrush is used to apply paint to the aluminum, and the hammer is used to shape the aluminum."
+  },
+  "answer": "C",
+  "item": "egc045|adfb2285-406f-4cbf-8a6c-52e7b222215d"
+ },
+ {
+  "video_id": "319b2c1d-e7cf-4fad-9230-4610c69fdccc",
+  "dim": "egoschema",
+  "stem": "In this video, what is c's overarching process that includes molding, filling, pouring, and scraping?",
+  "options": {
+   "A": "C molds the clay, fills the mold with water, and pours the water into the mold.",
+   "B": "C molds the clay, fills the mold with sand, and pours the sand into the mold.",
+   "C": "Carefully, c molds the clay precisely, fills the mold gently with air, and pours the air meticulously into the mold itself.",
+   "D": "Casually, c molds the moist clay, carefully fills the mold with fine sand, and gently throws the sand into the prepared mold.",
+   "E": "Carefully, c molds the clay, then fills the created mold with sand, and finally puts the packed sand in the mold."
+  },
+  "answer": "B",
+  "item": "egc046|319b2c1d-e7cf-4fad-9230-4610c69fdccc"
+ },
+ {
+  "video_id": "47f4c828-f238-459f-91c3-6b221db54c5b",
+  "dim": "egoschema",
+  "stem": "Describe the overall sequence of events in the video, paying special attention to how the character interacts with objects and maintains cleanliness throughout their activities in the kitchen.",
+  "options": {
+   "A": "The main character creates a sandwich, and subsequently enjoys eating it.",
+   "B": "The main character skillfully prepares a meal, later consumes and enjoys it wholeheartedly.",
+   "C": "The character prepares a meal, eats it, and then uses their laptop.",
+   "D": "The primary character simply prepares a tasty snack and subsequently consumes it with pleasure.",
+   "E": "The character prepares a meal, eats it, and then uses their phone."
+  },
+  "answer": "C",
+  "item": "egc047|47f4c828-f238-459f-91c3-6b221db54c5b"
+ },
+ {
+  "video_id": "5e43992d-adb3-4bf0-8d8e-221b895b7c9a",
+  "dim": "egoschema",
+  "stem": "What are the key elements involved in preparing the dish and in what sequence do they occur? provide a concise summary, focusing on essential information.",
+  "options": {
+   "A": "The key elements involved in preparing the dish are parsley, onion, salt, vinegar, and spices. the parsley is washed and chopped, the onion is chopped, the salt is added, the vinegar is added, and the spices are added. the dish is then served.",
+   "B": "The key elements involved in preparing the dish are parsley, onion, salt, vinegar, and spices. the parsley is washed and squeezed, the onion is chopped, the salt is added, the vinegar is added, and the spices are added. the dish is then cooked.",
+   "C": "The key elements involved in preparing the dish are parsley, onion, salt, vinegar, and spices. the parsley is washed and squeezed, the onion is chopped, the salt is added, the vinegar is added, and the spices are added. the dish is then stored in the refrigerator.",
+   "D": "The key elements involved in preparing the dish are parsley, onion, salt, vinegar, and spices. the parsley is washed and chopped, the onion is chopped, the salt is added, the vinegar is added, and the spices are added. the dish is then cooked and served.",
+   "E": "The key elements involved in preparing the dish are parsley, onion, salt, vinegar, and spices. the parsley is washed and squeezed, the onion is chopped, the salt is added, the vinegar is added, and the spices are added. the dish is then cooked, stored in the refrigerator, and served."
+  },
+  "answer": "B",
+  "item": "egc048|5e43992d-adb3-4bf0-8d8e-221b895b7c9a"
+ },
+ {
+  "video_id": "a4663dd4-73e2-4e2a-b66b-731527a10c2c",
+  "dim": "egoschema",
+  "stem": "How would you summarize the primary task that 'c' is carrying out throughout the video and describe the general process? consider only the most essential steps.",
+  "options": {
+   "A": "C is making a salad.",
+   "B": "C is making soup.",
+   "C": "C is making macaroni and cheese.",
+   "D": "C is cooking broccoli.",
+   "E": "C is making a stir-fry."
+  },
+  "answer": "D",
+  "item": "egc049|a4663dd4-73e2-4e2a-b66b-731527a10c2c"
+ },
+ {
+  "video_id": "fdd956f1-b988-4623-b54d-097f8a03fd11",
+  "dim": "egoschema",
+  "stem": "Based on the actions performed by c in the video, what do you think is the main objective of her activity?",
+  "options": {
+   "A": "C is cleaning the desk.",
+   "B": "C is preparing to paint a picture.",
+   "C": "C is painting a picture on the desk.",
+   "D": "C is taking a break from painting.",
+   "E": "C is getting ready to clean up her painting supplies."
+  },
+  "answer": "C",
+  "item": "egc050|fdd956f1-b988-4623-b54d-097f8a03fd11"
+ },
+ {
+  "video_id": "9d83c60a-5d84-4bea-8325-56beed585df2",
+  "dim": "egoschema",
+  "stem": "Considering the interactions between c and the woman, how would you describe the overall dynamics between them throughout the video?",
+  "options": {
+   "A": "C and the woman are arguing.",
+   "B": "C and the woman are giving each other directions.",
+   "C": "C and the woman are flirting.",
+   "D": "C and the woman are having a friendly conversation.",
+   "E": "C and the woman are strangers who are just passing the time."
+  },
+  "answer": "D",
+  "item": "egc051|9d83c60a-5d84-4bea-8325-56beed585df2"
+ },
+ {
+  "video_id": "3e700f0b-b4a9-4000-92b7-f0fa3be55161",
+  "dim": "egoschema",
+  "stem": "In the context of the video, discuss the most important sequence of interactions between c and the lady, focusing on the purpose of their conversation.",
+  "options": {
+   "A": "C and the lady are discussing the weather.",
+   "B": "Casually, c and the lady engage in discussing the recent news events together.",
+   "C": "C and the lady are discussing the ingredients for a meal.",
+   "D": "During the conversation, both c and the lady are ardently discussing their plans for the day's activities.",
+   "E": "Currently, c and the lady engage in a conversation, discussing their respective families' details."
+  },
+  "answer": "C",
+  "item": "egc052|3e700f0b-b4a9-4000-92b7-f0fa3be55161"
+ },
+ {
+  "video_id": "941978b4-19f2-4ca8-8dce-0b8777022c3f",
+  "dim": "egoschema",
+  "stem": "Based on c's actions throughout the video, which parts of the video would you consider most critical for understanding the objective of c's work? describe the significance of these actions in the context of c's project.",
+  "options": {
+   "A": "The most critical parts of the video for understanding the objective of c's work are when c lays the frame on the plank, when c adjusts the sharpening stone and hammer on the plank, and when c grabs a box of tools from a corner of the workshop.",
+   "B": "The most critical parts of the video for understanding the objective of c's work are when c cuts the casing of the frame with the dovetail saw, when c breaks the casing off the frame with the hammer and sharpening stone, and when c measures the casing of the frame with the measuring tape.",
+   "C": "The most critical parts of the video for comprehending the main objective of c's work include moments when c opens the toolbox, notably when c takes a dovetail saw from the toolbox, and finally when c closes the toolbox.",
+   "D": "The most critical parts of the video for effectively understanding the objective of c's work are when c pushes the toolbox with his leg, when c skillfully adjusts the plank on the table, and when c precisely cuts the casing of the frame with the dovetail saw.",
+   "E": "Among the most critical parts of the video for understanding the primary objective of c's work are instances when c turns the frame around the plank, when c expertly adjusts the plank on the table surface, and crucially when c carefully cuts the casing of the frame using the precise dovetail saw."
+  },
+  "answer": "B",
+  "item": "egc053|941978b4-19f2-4ca8-8dce-0b8777022c3f"
+ },
+ {
+  "video_id": "402503fc-6f1b-4865-aea2-98f82349f1a4",
+  "dim": "egoschema",
+  "stem": "Explain how c's actions throughout the video contributed to completing a specific task in a concise manner. what was the primary intent or goal behind the actions?",
+  "options": {
+   "A": "Throughout the entire video, c's actions consistently contribute to successfully completing the task of building a house efficiently.",
+   "B": "C's actions throughout the video contribute to completing the task of soldering a metal rod.",
+   "C": "C's actions throughout the video contribute to completing the task of cooking a meal.",
+   "D": "Throughout the entire video, c's actions consistently contribute to successfully completing the task of cleaning a room efficiently.",
+   "E": "C's consistent actions throughout the entire video significantly contribute to successfully completing the task of writing a well-structured paper."
+  },
+  "answer": "B",
+  "item": "egc054|402503fc-6f1b-4865-aea2-98f82349f1a4"
+ },
+ {
+  "video_id": "752578b3-efa3-4312-96d7-0bed2ea7576a",
+  "dim": "egoschema",
+  "stem": "What is the overall objective that c is trying to achieve throughout these actions in the video, and how do the different steps contribute to this objective?",
+  "options": {
+   "A": "C is trying to clean her laptop.",
+   "B": "C is trying to organize her supplies.",
+   "C": "C is trying to make a cup of tea.",
+   "D": "C is trying to create a painting.",
+   "E": "C is trying to answer a phone call."
+  },
+  "answer": "D",
+  "item": "egc055|752578b3-efa3-4312-96d7-0bed2ea7576a"
+ },
+ {
+  "video_id": "72d99202-1167-4dba-a5bc-07c16b5cb849",
+  "dim": "egoschema",
+  "stem": "What is the recurrent activity performed by c in the video, and how does it contrast with the woman's activities?",
+  "options": {
+   "A": "C continuously picks up and drops sachets of corn flakes from the kitchen shelf, again and again. contrarily, the woman does not perform this action.",
+   "B": "C repeatedly picks up and drops cans of chicken noodle soup from the kitchen shelf. the woman does not perform this action.",
+   "C": "Continuously, c picks up and drops cans of soup from the kitchen cabinet numerous times. however, the woman refrains from performing this particular action.",
+   "D": "Consistently, c repeatedly picks up and drops bowls from the kitchen cabinet. meanwhile, the woman does not perform this action at all.",
+   "E": "C repeatedly picks up and drops pots from the kitchen cabinet. the woman does not perform this action."
+  },
+  "answer": "B",
+  "item": "egc056|72d99202-1167-4dba-a5bc-07c16b5cb849"
+ },
+ {
+  "video_id": "d56e2a13-81ff-4431-9446-7b257b5646b6",
+  "dim": "egoschema",
+  "stem": "In your own words, describe the most significant action or sequence of actions that contributed to the accomplishment of c's objective. explain why you believe this part of the video is crucial.",
+  "options": {
+   "A": "The most significant action or sequence of actions that contributed to the accomplishment of c's objective is the picking up of the clothes.",
+   "B": "The most significant action or sequence of actions that contributed to the accomplishment of c's objective is the placing of the clothes in the wardrobe.",
+   "C": "The most significant action or sequence of actions that contributed to the accomplishment of c's objective is the folding of the clothes.",
+   "D": "The most significant action or sequence of actions that contributed to the accomplishment of c's objective is the cleaning of the bed.",
+   "E": "The most significant action or sequence of actions that contributed to the accomplishment of c's objective is the sorting of the clothes."
+  },
+  "answer": "C",
+  "item": "egc057|d56e2a13-81ff-4431-9446-7b257b5646b6"
+ },
+ {
+  "video_id": "07fefc78-cfd2-4e04-8489-8ce4287158dd",
+  "dim": "egoschema",
+  "stem": "Summarize the primary elements involved in the process depicted in the video, focusing on the essential components.",
+  "options": {
+   "A": "In the process portrayed in the video, the primary elements involved are clay, water, and a mold. the clay is utilized to create the desired shape, while the water keeps the clay moist, preventing cracks, and the mold securely holds the clay in its place.",
+   "B": "The primary elements involved in the process depicted in the video are clay, sand, and a stick. the clay is used to create the desired shape, the sand is used to keep the clay moist and prevent it from cracking, and the stick is used to mold the clay into the desired shape.",
+   "C": "The primary elements involved in the process depicted in the video are clay, paint, and a brush. the clay is utilized to create the desired shape or form, while the paint serves to artistically decorate the clay surface, and the brush is skillfully used for applying the paint.",
+   "D": "The primary elements involved in the process shown in the video are clay, fire, and a kiln. the clay is skillfully used to create the desired shape, the fire effectively hardens the clay, and the kiln is crucially employed to control the temperature of the fire.",
+   "E": "The primary elements involved in the process depicted in the video are clay, soil, and a box. the clay is used to create the desired shape, the soil is used to keep the clay moist and prevent it from cracking, and the box is used to hold the clay and soil in place."
+  },
+  "answer": "E",
+  "item": "egc058|07fefc78-cfd2-4e04-8489-8ce4287158dd"
+ },
+ {
+  "video_id": "c5b9ddd5-2ebb-41a5-a66e-45e9f7739a71",
+  "dim": "egoschema",
+  "stem": "What was the primary goal behind all the actions performed by c in the video, and how did the methods of achieving this goal evolve throughout the video?",
+  "options": {
+   "A": "Carefully, c was attempting to cut the paper with precision.",
+   "B": "Cautiously, c was attempting to carefully polish and clean a sharp knife.",
+   "C": "C was trying to clean a knife.",
+   "D": "C was attempting to break a knife, making an effort to snap it.",
+   "E": "C was trying to sharpen a knife."
+  },
+  "answer": "E",
+  "item": "egc059|c5b9ddd5-2ebb-41a5-a66e-45e9f7739a71"
+ },
+ {
+  "video_id": "8670020b-15c9-4ea9-acb5-71613dac2e9d",
+  "dim": "egoschema",
+  "stem": "How would you describe the interaction between c and the woman and its significance in the context of the overall video?",
+  "options": {
+   "A": "The verbal interaction that occurred between person c and the woman appeared quite hostile and tense.",
+   "B": "The interaction between c and the woman was romantic.",
+   "C": "The communication and interaction between individual c and the woman remained highly professional throughout.",
+   "D": "Surprisingly, the interaction between c and the woman was practically nonexistent in that situation.",
+   "E": "The interaction between c and the woman was brief and friendly."
+  },
+  "answer": "E",
+  "item": "egc060|8670020b-15c9-4ea9-acb5-71613dac2e9d"
+ },
+ {
+  "video_id": "b4c9ae36-dc6b-488f-83c8-6bf423a56ac6",
+  "dim": "egoschema",
+  "stem": "In the overall process observed in the video, can you highlight two to three critical moments that were essential for the success of the final outcome? explain your reasoning.",
+  "options": {
+   "A": "In the overall process, the two critical moments crucial for success are when the dough is thoroughly mixed and when the adequately risen dough is ready.",
+   "B": "In the entire procedure, the two most critical moments are when the dough is carefully shaped and when the perfectly mixed dough is ultimately baked.",
+   "C": "The two crucial moments in the entire procedure are when the dough is thoroughly kneaded and when the dough is properly baked.",
+   "D": "The two critical moments in the overall process are when the dough is mixed and when the dough is kneaded.",
+   "E": "The two critical moments in the overall process are when the dough is kneaded and when the dough is scored."
+  },
+  "answer": "E",
+  "item": "egc061|b4c9ae36-dc6b-488f-83c8-6bf423a56ac6"
+ },
+ {
+  "video_id": "8412d579-54b7-47ee-92e5-68b9c845dc59",
+  "dim": "egoschema",
+  "stem": "What are the different types of equipment and tools that c uses throughout the process, and how do they contribute to his overall efficiency and productivity?",
+  "options": {
+   "A": "C uses a wooden peel board, an oven, a tray, and an oven peel.",
+   "B": "C uses a wooden peel board, an oven, a tray, and a dough cutter.",
+   "C": "C uses a wooden peel board, an oven, a tray, and a rolling pin.",
+   "D": "C uses a wooden peel board, an oven, and a tray.",
+   "E": "C uses a wooden peel board, an oven, a tray, and a whisk."
+  },
+  "answer": "D",
+  "item": "egc062|8412d579-54b7-47ee-92e5-68b9c845dc59"
+ },
+ {
+  "video_id": "e7a2678d-7df8-4c44-bd2b-dbc5652ef7f2",
+  "dim": "egoschema",
+  "stem": "Considering the video as a whole, identify and discuss three critical tasks performed by c, explaining why they serve an essential purpose in the context of this video.",
+  "options": {
+   "A": "The three critical tasks performed by the person in the video are washing the dishes, cooking, and setting the table.** this is not correct because the person in the video does not wash any dishes, cook anything, or set the table.",
+   "B": "**the three critical tasks performed by the person in the video are putting away the utensils, cleaning up the counter, and organizing the fridge.**",
+   "C": "The three critical tasks performed by the person in the video are taking out the trash, cleaning up the counter, and organizing the fridge.** this is not correct because the person in the video does not take out the trash.",
+   "D": "The three critical tasks performed by the person in the video are organizing the fridge, cleaning up the counter, and putting away the utensils.** this is not correct because the person in the video organizes the fridge last.",
+   "E": "The three critical tasks performed by the person in the video are cleaning up the counter, putting away the utensils, and organizing the fridge.** this is not correct because the person in the video cleans up the counter second."
+  },
+  "answer": "B",
+  "item": "egc063|e7a2678d-7df8-4c44-bd2b-dbc5652ef7f2"
+ },
+ {
+  "video_id": "05defeef-40bd-4b08-b341-72879a6cf63e",
+  "dim": "egoschema",
+  "stem": "What is the overall process and purpose of the actions performed by c in the video?",
+  "options": {
+   "A": "C is molding bricks with mortar and wet clay.",
+   "B": "Currently, c is diligently working on constructing a wall.",
+   "C": "Currently, artist c is diligently working on creating a unique sculpture.",
+   "D": "Currently, young c is actively playing and having fun with mud.",
+   "E": "C is doing a science experiment."
+  },
+  "answer": "A",
+  "item": "egc064|05defeef-40bd-4b08-b341-72879a6cf63e"
+ },
+ {
+  "video_id": "b58ab03f-3520-4916-81b8-2c42e3d0d31d",
+  "dim": "egoschema",
+  "stem": "Based on the video, what is the primary task c is focused on, and how does this task change or evolve throughout the video?",
+  "options": {
+   "A": "C is focused on operating a phone.",
+   "B": "Concentratedly, c is primarily focused on meticulously cleaning his arm thoroughly.",
+   "C": "C is consistently focused on moving around within the confines of the workshop space.",
+   "D": "Currently, c is primarily focused on taking a well-deserved break for rejuvenation.",
+   "E": "C is focused on cutting wood with a table saw."
+  },
+  "answer": "E",
+  "item": "egc065|b58ab03f-3520-4916-81b8-2c42e3d0d31d"
+ },
+ {
+  "video_id": "662d710e-54ea-4e63-bfc3-8f4e14873fd4",
+  "dim": "egoschema",
+  "stem": "How would you compress the overall purpose of c's actions in the video into a single, concise statement?",
+  "options": {
+   "A": "C's overall purpose in the video is to warm up.",
+   "B": "C's overall purpose in the video is to cool down.",
+   "C": "C's overall purpose in the video is to play soccer.",
+   "D": "C's overall purpose in the video is to celebrate.",
+   "E": "C's overall purpose in the video is to reflect on the game."
+  },
+  "answer": "C",
+  "item": "egc066|662d710e-54ea-4e63-bfc3-8f4e14873fd4"
+ },
+ {
+  "video_id": "5194fe97-3fbc-4e3a-860b-4eb7fac7482b",
+  "dim": "egoschema",
+  "stem": "Instead of listing individual details, what is the overarching objective c is trying to achieve in this video, considering all the actions taken with the electric drill and the metal frame?",
+  "options": {
+   "A": "C is trying to remove tile residues from the hole saw of the electric drill.",
+   "B": "C is trying to hold the electric drill in both hands.",
+   "C": "C is trying to drill into the hole in the tile with the electric drill in both hands.",
+   "D": "C is trying to place the electric drill in both hands on the tile.",
+   "E": "C is trying to fix a metal frame into a tile."
+  },
+  "answer": "E",
+  "item": "egc067|5194fe97-3fbc-4e3a-860b-4eb7fac7482b"
+ },
+ {
+  "video_id": "51688142-10e7-48ab-adef-2caa5448b456",
+  "dim": "egoschema",
+  "stem": "How does the introduction of the palm frond contribute to the development of the final product, and why might c have chosen to include it?",
+  "options": {
+   "A": "The palm frond contributes to the development of the final product by providing a structural element.",
+   "B": "The versatile palm frond significantly contributes to the development of the final product by providing a highly functional and essential element.",
+   "C": "The palm frond contributes to the development of the final product by providing a decorative element.",
+   "D": "The palm frond significantly contributes to the ultimate development of the final product by reliably providing a crucial protective element.",
+   "E": "The palm frond significantly contributes to the development of the final product by providing an essential nutritional element, enriching its value."
+  },
+  "answer": "C",
+  "item": "egc068|51688142-10e7-48ab-adef-2caa5448b456"
+ },
+ {
+  "video_id": "e67de76c-1058-49a7-a47e-12736da4ffc0",
+  "dim": "egoschema",
+  "stem": "Based on the actions performed by the woman and c, determine the critical moments in the video when they accomplish their respective tasks and care for the bearded dragon and the playing cards. how do these moments illustrate their priorities?",
+  "options": {
+   "A": "The critical moments in the video are when c picks up the bottle from the table, touches the cards on the table, and picks up the cards from the table. these moments illustrate his priority of playing with the cards.",
+   "B": "The critical moments in the video are when the woman and c are both playing with the cards. these moments illustrate their shared priority of playing with the cards.",
+   "C": "The critical moments in the video are when the woman and c are both caring for the bearded dragon. these moments illustrate their shared priority of caring for the bearded dragon.",
+   "D": "The critical moments in the video are when the woman plays with the bearded dragon and c plays with the cards. these moments illustrate their different priorities.",
+   "E": "The critical moments in the video are when the woman feeds the bearded dragon water, cleans it, and puts it in a container. these moments illustrate her priority of caring for the bearded dragon."
+  },
+  "answer": "E",
+  "item": "egc069|e67de76c-1058-49a7-a47e-12736da4ffc0"
+ },
+ {
+  "video_id": "dbb357c2-18b4-4ab9-a6f9-5f1512153f70",
+  "dim": "egoschema",
+  "stem": "Based on the high-level details from the video, what overall goal is c trying to achieve, and how does their approach change over time?",
+  "options": {
+   "A": "It appears that c is persistently attempting to scratch the surface of the table.",
+   "B": "C is trying to smooth the table.",
+   "C": "Currently, c is attempting to carefully wipe down the entire table surface.",
+   "D": "In this situation, c is attempting to firmly hold and support the table.",
+   "E": "C is trying to walk around."
+  },
+  "answer": "B",
+  "item": "egc070|dbb357c2-18b4-4ab9-a6f9-5f1512153f70"
+ },
+ {
+  "video_id": "410a6007-f759-4f9a-8196-0dad61934929",
+  "dim": "egoschema",
+  "stem": "Summarize the overarching focus of the video, considering the primary activity shared by both c and the child. how does this activity evolve throughout the video?",
+  "options": {
+   "A": "C and the child play a card game together. the child is initially interested in the game, but becomes bored and distracted after a while. c tries to keep the child's attention, but eventually gives up and puts the cards away.",
+   "B": "C and the young child calmly watch a movie together. at first, the child is pretty interested in the movie, but later becomes bored and easily distracted after a while. patiently, c tries to keep the child's attention focused, but eventually gives up and turns off the movie.",
+   "C": "C and the young child engage in playing a board game together. at first, the child shows interest in the game, but soon becomes bored and easily distracted. c makes an effort to maintain the child's attention, but ultimately admits defeat and puts the game away.",
+   "D": "C and the child read a book together. the child is initially interested in the book, but becomes bored and distracted after a while. c tries to keep the child's attention, but eventually gives up and puts the book away.",
+   "E": "C and the young child play outside together cheerfully. the child is initially very interested in playing, but gradually becomes bored and distracted after a while. c persistently tries to keep the child's attention, but eventually admits defeat and goes inside."
+  },
+  "answer": "A",
+  "item": "egc071|410a6007-f759-4f9a-8196-0dad61934929"
+ },
+ {
+  "video_id": "ec5eddb0-8c4b-4d06-8e45-00f221b1dd25",
+  "dim": "egoschema",
+  "stem": "What is the overall purpose of c's actions in the video and how do they contribute to the narrative of the video?",
+  "options": {
+   "A": "C's actions are purposefully designed to effectively train the dog in a proper manner.",
+   "B": "C's deliberate actions are purposely intended to prominently display and show off the dog.",
+   "C": "C's actions are intended to make the dog tired.",
+   "D": "C's actions are intended to provide exercise and companionship for the dog.",
+   "E": "In this situation, c's actions are specifically intended to ultimately make the dog quite happy."
+  },
+  "answer": "D",
+  "item": "egc072|ec5eddb0-8c4b-4d06-8e45-00f221b1dd25"
+ },
+ {
+  "video_id": "4e0e4bbb-a86c-4c8d-bd05-87a52f037561",
+  "dim": "egoschema",
+  "stem": "Throughout the video, what specific actions or events could be considered as turning points or key moments that may alter the character's approach or objective?",
+  "options": {
+   "A": "The turning point in the video is when c starts to cut the weeds.",
+   "B": "The turning point in the video is when c starts to touch the plants.",
+   "C": "The turning point in the video is when c starts to walk around the garden.",
+   "D": "The turning point in the video is when c starts to examine the plants.",
+   "E": "The turning point in the video is when c starts to fold the stems of the plants."
+  },
+  "answer": "A",
+  "item": "egc073|4e0e4bbb-a86c-4c8d-bd05-87a52f037561"
+ },
+ {
+  "video_id": "456447c2-98ca-4285-94dc-d2f0d1b398f6",
+  "dim": "egoschema",
+  "stem": "How would you describe the overall end goal of c's actions throughout the video, demonstrating an understanding of his various card and game piece manipulations?",
+  "options": {
+   "A": "C is trying to build a house of cards.",
+   "B": "C is trying to sort the cards by suit.",
+   "C": "C is trying to find a matching pair of cards.",
+   "D": "C is trying to make a pattern with the cards.",
+   "E": "C is trying to win a game of solitaire."
+  },
+  "answer": "E",
+  "item": "egc074|456447c2-98ca-4285-94dc-d2f0d1b398f6"
+ },
+ {
+  "video_id": "fab4561a-c738-458c-93ca-6ec084204bc8",
+  "dim": "egoschema",
+  "stem": "Describe the most critical stages in the construction process that occur in the video, accounting for how they contribute to the overall progress.",
+  "options": {
+   "A": "The most critical stages in the construction process are framing the house and putting on the roof.",
+   "B": "The most critical stages in the construction process are finishing the interior and landscaping the yard.",
+   "C": "The most critical stages in the construction process are obtaining the necessary permits and hiring qualified workers.",
+   "D": "The most critical stages in the construction process are planning the project and budgeting for the costs.",
+   "E": "The most critical stages in the construction process are digging the foundation and laying the bricks."
+  },
+  "answer": "E",
+  "item": "egc075|fab4561a-c738-458c-93ca-6ec084204bc8"
+ },
+ {
+  "video_id": "6a0b0189-25fd-46f8-9d1a-99912de3d5f5",
+  "dim": "egoschema",
+  "stem": "In the context of the entire video, which actions most contribute to the overall theme and why? analyze the importance of these activities as they relate to the main story being portrayed.",
+  "options": {
+   "A": "The evidence of c's actions, as seen in the video, clearly demonstrates that she is notably a lazy and utterly irresponsible individual.",
+   "B": "C's actions in the video show that she is a creative and imaginative person.",
+   "C": "C's actions in the video show that she is a caring and responsible person.",
+   "D": "The subtle cues in c's actions throughout the video evidently demonstrate that she is a rather shy, introverted person by nature.",
+   "E": "The video displays c's actions, clearly indicating that she is a confident, self-assured, and outgoing person, effortlessly socializing."
+  },
+  "answer": "C",
+  "item": "egc076|6a0b0189-25fd-46f8-9d1a-99912de3d5f5"
+ },
+ {
+  "video_id": "5f8fa774-ebfd-4721-b060-b33e166f1f93",
+  "dim": "egoschema",
+  "stem": "Considering all the actions in the video, how did c modify their method in checking and sharpening the knife to optimize the process?",
+  "options": {
+   "A": "C modified their method in checking and sharpening the knife by using a whetstone instead of an electric knife sharpener. this helped to give the knife a sharper edge. they also sharpened the knife at a higher angle, which helped to make the edge more durable.",
+   "B": "C modified their method in checking and sharpening the knife by using a honing steel instead of an electric knife sharpener. this helped to straighten the knife's edge. they also sharpened the knife at a lower angle, which helped to make the edge more forgiving.",
+   "C": "C modified their method in checking and sharpening the knife by using a ceramic knife sharpener instead of an electric knife sharpener. this helped to give the knife a sharper edge that was also more durable. they also sharpened the knife at a higher angle, which helped to make the edge more resistant to chipping.",
+   "D": "C modified their method in checking and sharpening the knife by using a manual knife sharpener instead of an electric knife sharpener. this helped to give the knife a sharper edge that was also more durable. they also sharpened the knife at a lower angle, which helped to make the edge more resistant to chipping.",
+   "E": "C modified their method in checking and sharpening the knife by using a towel to wrap around the knife. this helped to protect their hands from the sharp blade. they also adjusted the electric knife sharpener to a lower setting, which helped to prevent the knife from becoming too sharp."
+  },
+  "answer": "E",
+  "item": "egc077|5f8fa774-ebfd-4721-b060-b33e166f1f93"
+ },
+ {
+  "video_id": "f671a773-cb56-49ed-ae8c-a529c977b33d",
+  "dim": "egoschema",
+  "stem": "Identify the most important activities c performs during the process of assembling and refining the metal parts, and explain why these steps are crucial to ensuring the desired outcome.",
+  "options": {
+   "A": "Among the most crucial activities c performs throughout the process of assembling and refining the metal parts are accurately cutting the rods to size, meticulously sanding the rods, and uniformly painting the rods.",
+   "B": "The most crucial activities performed by c during the process of assembling and refining the metal parts include drilling holes in the rods, threading the rods accurately, and securely fastening the rods together for stability.",
+   "C": "The most crucial activities c executes during the process of assembling and refining the metal components are bending the rods, accurately shaping the rods, and meticulously polishing the rods for precision.",
+   "D": "The most important activities c performs during the process of assembling and refining the metal parts are assembling the rods, disassembling the rods, and cleaning the rods.",
+   "E": "The most important activities c performs during the process of assembling and refining the metal parts are welding the rods to the pipe, hammering the rods into place, and grinding the metal."
+  },
+  "answer": "E",
+  "item": "egc078|f671a773-cb56-49ed-ae8c-a529c977b33d"
+ },
+ {
+  "video_id": "640ad606-0376-48cb-bc6a-14bc34ec4eaa",
+  "dim": "egoschema",
+  "stem": "Describe the process c follows throughout the video to prepare the jackfruit seeds. how do her steps change over time, and what do you think is her primary goal?",
+  "options": {
+   "A": "C eats the jackfruit seeds.",
+   "B": "C peels the jackfruit seeds, cuts them in half, and removes the flesh.",
+   "C": "Casually, c throws the discarded jackfruit seeds away without hesitation.",
+   "D": "Concerning gardening, plants the jackfruit seeds diligently.",
+   "E": "Casually, c hands over the abundant jackfruit seeds to an appreciative individual nearby."
+  },
+  "answer": "B",
+  "item": "egc079|640ad606-0376-48cb-bc6a-14bc34ec4eaa"
+ },
+ {
+  "video_id": "689396c1-fc87-48f1-bdaf-00bc5efb3d4f",
+  "dim": "egoschema",
+  "stem": "What was the main dish prepared in the video, and which key ingredients were used?",
+  "options": {
+   "A": "In the video, the main dish skillfully prepared by the chef is a delicious, hearty soup.",
+   "B": "The main dish prepared in the video is a salad.",
+   "C": "In the video, the primary dish skillfully prepared by the chef is a delicious curry.",
+   "D": "In the video, the primary main dish showcased and prepared is indeed a delicious stew.",
+   "E": "The main dish prepared in the video is a stir-fry of spring onions, peppers, and leaves."
+  },
+  "answer": "E",
+  "item": "egc080|689396c1-fc87-48f1-bdaf-00bc5efb3d4f"
+ },
+ {
+  "video_id": "bcf9aba0-a4b6-4210-8823-025f43f2631f",
+  "dim": "egoschema",
+  "stem": "How does the sequence of actions involving the use of glue and magnet(s) on the magnetic animals capture the essence of the video in a single statement?",
+  "options": {
+   "A": "C uses glue to attach the magnetic animals to the table.",
+   "B": "C uses glue to attach magnets to the magnetic animals.",
+   "C": "C uses glue to attach the magnetic animals to the wall.",
+   "D": "C uses glue to attach the magnetic animals to each other.",
+   "E": "C uses glue to attach the magnetic animals to a piece of paper."
+  },
+  "answer": "B",
+  "item": "egc081|bcf9aba0-a4b6-4210-8823-025f43f2631f"
+ },
+ {
+  "video_id": "e06849ca-1988-434e-ad69-757f60086ef8",
+  "dim": "egoschema",
+  "stem": "Describe the primary goal or objective of the game being played, keeping the main actions in mind.",
+  "options": {
+   "A": "The primary goal or objective of the game being played is to have fun. the participants do this by playing the game and interacting with each other in a way that is enjoyable for them.",
+   "B": "The primary goal or objective of the game being played is to win by getting the best hand of cards. the participants do this by carefully manipulating the cards and dice in order to try to get the best possible hand.",
+   "C": "The primary goal or objective of the game being played is fundamentally to learn new skills effectively. the eager participants accomplish this by actively playing the game and diligently paying attention to how the game's mechanics are played.",
+   "D": "The primary goal or objective of the game being played is to help players relax. the participants achieve this by engaging in the game and taking their mind off of their worries and troubles.",
+   "E": "The primary goal or objective of the game being played involves fostering socialization. the participants achieve this by actively playing the game and interacting with each other within a friendly social setting."
+  },
+  "answer": "B",
+  "item": "egc082|e06849ca-1988-434e-ad69-757f60086ef8"
+ },
+ {
+  "video_id": "796151ae-22ad-434d-9cb3-ea79096cfce7",
+  "dim": "egoschema",
+  "stem": "Considering the significant parts of the video, what would you infer is the primary objective of c's work?",
+  "options": {
+   "A": "C's primary objective is to make a sculpture.",
+   "B": "C's primary objective is to make a vase.",
+   "C": "C's primary objective is to make a pot.",
+   "D": "C's primary objective is to make a plate.",
+   "E": "C's primary objective is to make bricks."
+  },
+  "answer": "E",
+  "item": "egc083|796151ae-22ad-434d-9cb3-ea79096cfce7"
+ },
+ {
+  "video_id": "111b7189-cc45-438c-8144-ded1eed0f6c2",
+  "dim": "egoschema",
+  "stem": "What are the key techniques and steps c utilized to work with the clay and clay mould throughout the video? please summarize them succinctly.",
+  "options": {
+   "A": "C uses a hoe to shape the clay into bricks.",
+   "B": "C uses a clay mould to shape the clay into bricks.",
+   "C": "Carefully, c employs his skillful hands to progressively mold the clay into sturdy bricks.",
+   "D": "Carefully, c employs a wheel for shaping the clay effectively into well-formed bricks.",
+   "E": "C skillfully uses a high-temperature kiln to carefully shape the malleable clay into strong, durable bricks."
+  },
+  "answer": "B",
+  "item": "egc084|111b7189-cc45-438c-8144-ded1eed0f6c2"
+ },
+ {
+  "video_id": "dfcbcf89-e268-4106-85ba-7875d19bd5e4",
+  "dim": "egoschema",
+  "stem": "Describe the process the character, c, goes through in the video from preparing a dish to cleaning up after tasting it, and compare it to a similar experience you've had in a kitchen. what are the primary differences in the approach and ingredients?",
+  "options": {
+   "A": "C opens a jar of ground pepper, picks up a bottle of soy sauce, and pours some soy sauce into the pot. she then puts the jar of ground pepper and the bottle of soy sauce away in a kitchen cabinet. c then mixes the contents of the pot with a spoon. finally, she eats the contents of the pot.",
+   "B": "C carefully opens a jar of ground pepper, swiftly picks up a bottle of soy sauce, and pours some soy sauce into the pot. she then diligently puts the jar of ground pepper and the bottle of soy sauce away in a nearby kitchen cabinet. c then thoroughly mixes the contents of the pot with a sturdy spoon. finally, she confidently places the pot in the preheated oven.",
+   "C": "C opens a jar of ground pepper, picks up a bottle of soy sauce, and pours some soy sauce into the pot. she then puts the jar of ground pepper and the bottle of soy sauce away in a kitchen cabinet. c then mixes the contents of the pot with a spoon. finally, she tastes the contents of the pot and spits it out.",
+   "D": "C carefully opens a jar of finely ground pepper, picks up a nearby bottle of soy sauce, and gently pours some soy sauce into the pot. she then puts the jar of ground pepper and the bottle of soy sauce away neatly in a kitchen cabinet. c then thoroughly mixes the contents of the pot with a spoon. finally, she graciously serves the contents of the pot to an awaiting guest.",
+   "E": "C carefully opens a jar of ground pepper, picks up a nearby bottle of soy sauce, and slowly pours some soy sauce into the pot. she then puts the jar of ground pepper and the bottle of soy sauce neatly away in a kitchen cabinet. c diligently mixes the contents of the pot with a spoon. eventually, she takes a captivating picture of the pot's contents."
+  },
+  "answer": "C",
+  "item": "egc085|dfcbcf89-e268-4106-85ba-7875d19bd5e4"
+ },
+ {
+  "video_id": "7ba34dd0-aa19-49ae-9bb9-81247f21e39e",
+  "dim": "egoschema",
+  "stem": "Describe the role of the man in this video and how he aids in c's work. focus on the essential contributions the man makes to the process.",
+  "options": {
+   "A": "The man helps c by cleaning the table and providing him with a bucket.",
+   "B": "The man helps c by kneading the dough.",
+   "C": "The helpful man supports c by diligently rolling out the dough evenly.",
+   "D": "The kind man willingly assists c by carefully cutting the dough with precision.",
+   "E": "The kind man generously helps person c by skillfully baking the dough for them."
+  },
+  "answer": "A",
+  "item": "egc086|7ba34dd0-aa19-49ae-9bb9-81247f21e39e"
+ },
+ {
+  "video_id": "0f181d98-5036-4990-b397-62e934e168ef",
+  "dim": "egoschema",
+  "stem": "Can you summarize the primary objective and the steps c took throughout the video to achieve it? ensure your answer captures the essence of the video without listing all actions.",
+  "options": {
+   "A": "The main aim of c's primary objective was to create and build a new, sturdy wooden bench.",
+   "B": "The primary objective for c was to thoroughly repair and restore the wooden bench.",
+   "C": "C's primary objective was to thoroughly clean and sanitize the wooden bench's surface.",
+   "D": "C's primary objective was to disassemble the wooden bench. he did this by removing nails from the bench with a nail gun, adjusting nails with his hand, and detaching wooden parts from the bench.",
+   "E": "C's primary objective was to paint the wooden bench."
+  },
+  "answer": "D",
+  "item": "egc087|0f181d98-5036-4990-b397-62e934e168ef"
+ },
+ {
+  "video_id": "b53ce673-003f-415f-a6f7-9057dc6a5b2c",
+  "dim": "egoschema",
+  "stem": "Identify the most critical moments in the video and explain how they are essential to the video's overarching narrative.",
+  "options": {
+   "A": "In the video, the most critical moments occur when individual 'c' pauses to take a break and check their phone.",
+   "B": "The most critical moments in the video are when c chops the broccoli, washes the chopping board, and stirs the food.",
+   "C": "The most crucial moments captured in the video involve when character c walks deliberately towards the cabinet and subsequently opens the cabinet door.",
+   "D": "The most critical moments in the video are when c opens the tap and picks the washing brush.",
+   "E": "The most crucial moments featured in the video involve when c meticulously rinses the knife, then proceeds to carefully close the tap."
+  },
+  "answer": "B",
+  "item": "egc088|b53ce673-003f-415f-a6f7-9057dc6a5b2c"
+ },
+ {
+  "video_id": "00f93e1e-cf4e-4835-88b4-4ad68216e86f",
+  "dim": "egoschema",
+  "stem": "What is the overarching theme of the video, considering the activities performed by both characters?",
+  "options": {
+   "A": "The overarching central theme presented in the video is that individuals can be both sociable and independent simultaneously. the visual content demonstrates that it is entirely possible to be both connected to others meaningfully and to savor solitary moments, emphasizing that it is crucial to find a harmonious balance between these two aspects.",
+   "B": "The overarching theme of the video is that people can be both engaged in challenging activities and enjoying leisurely activities at the same time. the video shows that it is possible to be both productive and relaxed, and that it is important to find a balance between the two.",
+   "C": "The primary, overarching theme presented in the video emphasizes that individuals can truly be both creative and practical simultaneously. the enlightening video demonstrates the realistic possibility of being both highly imaginative and remarkably efficient, while stressing the significance of discovering an equilibrium between these two essential aspects.",
+   "D": "The overarching theme of the video is that people can be both ambitious and humble. the video shows that it is possible to be both driven and modest, and that it is important to find a balance between the two.",
+   "E": "The primary overarching theme presented in the video is that individuals can simultaneously possess and exhibit both intelligence and emotional aspects. effectively, the video demonstrates that the coexistence of rational and intuitive qualities is feasible, emphasizing the significance of establishing equilibrium between these two crucial elements."
+  },
+  "answer": "B",
+  "item": "egc089|00f93e1e-cf4e-4835-88b4-4ad68216e86f"
+ },
+ {
+  "video_id": "a6f20af7-21e8-4ee9-aa66-f23056ecab48",
+  "dim": "egoschema",
+  "stem": "Identify the primary task c was engaged in throughout the video, and how did their actions progress from start to finish?",
+  "options": {
+   "A": "In the morning, c was diligently cleaning the entire kitchen area.",
+   "B": "C was preparing a meal.",
+   "C": "C was chopping vegetables.",
+   "D": "In the cozy kitchen, c was energetically cooking potatoes with care.",
+   "E": "In the kitchen, c was diligently making a fresh, delicious salad."
+  },
+  "answer": "B",
+  "item": "egc090|a6f20af7-21e8-4ee9-aa66-f23056ecab48"
+ },
+ {
+  "video_id": "9442baab-3daf-4b8d-9ad5-f8c5269ad78f",
+  "dim": "egoschema",
+  "stem": "In testing your ability to compress information from the video, what was the main technique used by c in perfecting the shape and structure of the flower pot?",
+  "options": {
+   "A": "C used a dry hand to smoothen the flower pot.",
+   "B": "C used a wet hand to smoothen the flower pot.",
+   "C": "Carefully, c employed a specific tool to effortlessly smoothen the surface of the clay flower pot.",
+   "D": "Carefully, c utilized her delicate fingers to gently smoothen the surface of the flower pot.",
+   "E": "Carefully, c utilized a brush to gently smoothen the surface of the flower pot."
+  },
+  "answer": "B",
+  "item": "egc091|9442baab-3daf-4b8d-9ad5-f8c5269ad78f"
+ },
+ {
+  "video_id": "1a463736-fb76-45e4-862f-5bd77f5ee60e",
+  "dim": "egoschema",
+  "stem": "How was technology incorporated into the process during the later part of the video, and why might it have been relevant for the artist?",
+  "options": {
+   "A": "The artist used a computer to design the 3d model. this was relevant for the artist because it allowed him to create a more complex and detailed model than he could have done by hand.",
+   "B": "The artist used a printer to print out the 3d model. this was relevant for the artist because it allowed him to create a physical object that he could then work on and modify.",
+   "C": "The artist used a camera to take pictures of the process. this was relevant for the artist because it allowed him to document the process and share it with others.",
+   "D": "The artist used a social media platform to share the finished product. this was relevant for the artist because it allowed him to get feedback from others and promote his work.",
+   "E": "The artist used a phone to look up reference images. this was relevant for the artist because it allowed him to see what other people had done with similar materials and techniques."
+  },
+  "answer": "E",
+  "item": "egc092|1a463736-fb76-45e4-862f-5bd77f5ee60e"
+ },
+ {
+  "video_id": "bbe35aed-1c92-42de-8f50-7004cdae317e",
+  "dim": "egoschema",
+  "stem": "What seems to be the primary setting and interaction between c and the child throughout the video?",
+  "options": {
+   "A": "Currently, c is leisurely walking around the entire house all by themselves.",
+   "B": "Currently, c is joyfully playing with a young child in their spacious living room.",
+   "C": "A child is holding onto c's waist as they move around the house.",
+   "D": "Currently, c is actively cooking delicious meals in the kitchen space.",
+   "E": "C is taking a shower in the bathroom."
+  },
+  "answer": "C",
+  "item": "egc093|bbe35aed-1c92-42de-8f50-7004cdae317e"
+ },
+ {
+  "video_id": "bd5c107d-3d17-418c-a315-9d6b85072aef",
+  "dim": "egoschema",
+  "stem": "Describe the main focus of the video, considering the different objects and materials that c works with throughout the video.",
+  "options": {
+   "A": "Currently, c is diligently working on repairing a broken camera.",
+   "B": "Currently, person c is meticulously disassembling a camera piece by piece.",
+   "C": "Currently, c is diligently cleaning and maintaining a camera.",
+   "D": "C is taking pictures with a camera.",
+   "E": "C is building a model of a camera."
+  },
+  "answer": "E",
+  "item": "egc094|bd5c107d-3d17-418c-a315-9d6b85072aef"
+ },
+ {
+  "video_id": "f6aa3c15-ffa5-4e9f-9c92-bb2d21847281",
+  "dim": "egoschema",
+  "stem": "Summarize the main theme of the video in two steps: preparation of the tire and post-preparation activities. including the most relevant details in both steps.",
+  "options": {
+   "A": "The primary focus of the instructional video is to demonstrate how to effectively change a tire. the two essential steps involved in this straightforward process are:",
+   "B": "The primary focus of the video presentation is to demonstrate the correct method for rotating vehicle tires. the procedure involves these two essential steps:",
+   "C": "The primary focus and main theme of the video is demonstrating how to effectively balance tires. the two crucial steps involved in this procedure are:",
+   "D": "The main theme of the video is to show how to align tires. the two steps involved in this process are:",
+   "E": "The main theme of the video is to show how to prepare a wheel for wheel alignment and balancing. the two steps involved in this process are:"
+  },
+  "answer": "E",
+  "item": "egc095|f6aa3c15-ffa5-4e9f-9c92-bb2d21847281"
+ },
+ {
+  "video_id": "3993ba01-6a9f-49ad-b9f8-2e4083509c6e",
+  "dim": "egoschema",
+  "stem": "What might be the overall purpose of c and the woman's actions during the video, and how do these actions indicate their possible intentions or goals?",
+  "options": {
+   "A": "C and the woman are trying to find a way to escape the house.",
+   "B": "C and the woman are trying to find a way to turn off the lights.",
+   "C": "C and the woman are trying to find a way to open the door.",
+   "D": "C and the woman are trying to find a way to get to the top of the stairs.",
+   "E": "C and the woman are exploring the house and interacting with the objects inside."
+  },
+  "answer": "E",
+  "item": "egc096|3993ba01-6a9f-49ad-b9f8-2e4083509c6e"
+ },
+ {
+  "video_id": "a92f9b78-f316-409b-9302-71d626f96813",
+  "dim": "egoschema",
+  "stem": "Rather than listing individual actions, explain what the primary goal of the character in the video is, and describe the process they undertake to achieve this goal. consider how the character compresses multiple actions to make their workflow efficient.",
+  "options": {
+   "A": "The foremost, primary goal of the individual featured in the video presentation is to skillfully cook a meal.",
+   "B": "The primary goal of the person in the video is to wash the dishes. they do this by first gathering all of the dishes, then washing them one by one. they use a variety of tools and techniques to wash the dishes, including a sink, a faucet, a scouring pad, dish soap, and a measuring cup. they also rinse the dishes after washing them.",
+   "C": "The primary objective of the individual featured in the video is to thoroughly clean the entire kitchen area.",
+   "D": "The primary goal of the individual featured in the video is to efficiently prepare a delicious meal.",
+   "E": "The primary goal of the person in the video is to make tea."
+  },
+  "answer": "B",
+  "item": "egc097|a92f9b78-f316-409b-9302-71d626f96813"
+ },
+ {
+  "video_id": "cd882b7a-0766-4582-8388-3990b009b11b",
+  "dim": "egoschema",
+  "stem": "Describe the different materials and tools c utilized to achieve the main action of the video, and explain the role of each in the process without listing individual actions.",
+  "options": {
+   "A": "C used a knife, sandpaper, and a pair of gloves.",
+   "B": "C used a knife, sandpaper, and a piece of paper.",
+   "C": "C used a knife, sandpaper, scissors, and a towel.",
+   "D": "C used a knife, sandpaper, and a table.",
+   "E": "C used a knife, sandpaper, and a chair."
+  },
+  "answer": "C",
+  "item": "egc098|cd882b7a-0766-4582-8388-3990b009b11b"
+ },
+ {
+  "video_id": "2e22aafd-1fbb-4e73-ab6f-d8f628b66ba1",
+  "dim": "egoschema",
+  "stem": "In the context of the video, what key activity does c engage in multiple times during the sequence, and what is their primary objective in doing so?",
+  "options": {
+   "A": "C assembles the washing machine.",
+   "B": "C looks around.",
+   "C": "C puts the machine down.",
+   "D": "C walks forward.",
+   "E": "C cleans the mats."
+  },
+  "answer": "E",
+  "item": "egc099|2e22aafd-1fbb-4e73-ab6f-d8f628b66ba1"
+ },
+ {
+  "video_id": "8dea8a9c-df89-4a86-946e-12378ec817c0",
+  "dim": "egoschema",
+  "stem": "Summarize in one sentence the overall goal and motivation for c\u2019s actions throughout the video.",
+  "options": {
+   "A": "Currently, individual c is actively attempting to read through the various books.",
+   "B": "Currently, c is attempting to efficiently organize and arrange the books.",
+   "C": "Currently, c is actively attempting to carefully repair and restore the damaged books.",
+   "D": "C is trying to clean the books.",
+   "E": "C is trying to steal the books."
+  },
+  "answer": "D",
+  "item": "egc100|8dea8a9c-df89-4a86-946e-12378ec817c0"
+ },
+ {
+  "video_id": "66032b30-cf5a-4c41-bc2d-b4ca772f0488",
+  "dim": "egoschema",
+  "stem": "What is the primary activity c is engaged in throughout the video, and how do his actions with various tools contribute to that task?",
+  "options": {
+   "A": "C is engaged in measuring various objects in the video. he uses a foldable ruler to measure the length, width, and height of several objects, including a piece of wood, a plank of wood, and a piece of trim.",
+   "B": "Currently, c is actively engaged in the process of building a piece of furniture meticulously.",
+   "C": "C is currently engaged in the process of repairing a damaged piece of furniture meticulously.",
+   "D": "C is engaged in cleaning a piece of furniture.",
+   "E": "Currently, c is actively engaged in organizing and assembling a specific piece of furniture."
+  },
+  "answer": "A",
+  "item": "egc101|66032b30-cf5a-4c41-bc2d-b4ca772f0488"
+ },
+ {
+  "video_id": "1a22bcef-adcd-4bf7-ab3a-5a1a0a8b1edf",
+  "dim": "egoschema",
+  "stem": "Sythesize the information from the video and provide a brief, high-level description of the overall cooking technique used in this video. be concise and avoid listing individual actions.",
+  "options": {
+   "A": "In this video, the primary, overall cooking technique employed is boiling. boiling, as a cooking method, involves preparing food in water or another liquid that reaches boiling point. generally, the food is cooked until reaching a tender state. this prevalent cooking method is suitable for vegetables, pasta, and eggs.",
+   "B": "The overall cooking technique used in this video is baking. baking is a cooking method that involves cooking food in an oven. the food is typically cooked until it is golden brown and cooked through. baking is a common cooking method for bread, cakes, and pies.",
+   "C": "In this instructional video, the primary cooking technique demonstrated is roasting. roasting is a popular cooking method that requires heating food in an oven at high temperatures. generally, the food is cooked until it reaches a browned, fully cooked state. this technique is frequently utilized when preparing meat, poultry, and various vegetables.",
+   "D": "In this video, the overall cooking technique demonstrated is grilling. grilling is a particular cooking method that involves preparing food over direct heat. generally, the food is cooked until it becomes browned and properly cooked through. grilling is quite a common cooking method, typically used for meat, poultry, and various vegetables.",
+   "E": "The overall cooking technique used in this video is stir-frying. stir-frying is a cooking method that involves cooking food quickly over high heat in a small amount of oil. the food is typically cut into small pieces so that it cooks quickly. stir-frying is a popular cooking method in many asian cuisines."
+  },
+  "answer": "E",
+  "item": "egc102|1a22bcef-adcd-4bf7-ab3a-5a1a0a8b1edf"
+ },
+ {
+  "video_id": "f55b9e19-8dbf-49d1-aa0c-499adf0fa9d0",
+  "dim": "egoschema",
+  "stem": "Why would c perform specific techniques to handle specific items (like chopsticks, spoons, and bowls) throughout the video, and how do these techniques show her prioritizing cleanliness?",
+  "options": {
+   "A": "C washes the chopsticks, spoons, and bowls by holding them with one hand and scrubbing them with the sponge in her other hand. she then rinses them off and places them in the sink.",
+   "B": "Carefully, c washes the chopsticks, spoons, and bowls by gently placing them in the sink and then thoroughly scrubbing them with the sponge.",
+   "C": "C meticulously washes the chopsticks, spoons, and bowls, carefully placing them in the sink and then gently rinsing them off.",
+   "D": "C carefully washes the chopsticks, spoons, and bowls by placing them in the sink, rinsing, and then efficiently placing them in the dishwasher for thorough cleaning.",
+   "E": "C washes the chopsticks, spoons, and bowls by placing them in the sink and then placing them in the oven."
+  },
+  "answer": "A",
+  "item": "egc103|f55b9e19-8dbf-49d1-aa0c-499adf0fa9d0"
+ },
+ {
+  "video_id": "049249dc-bdad-48c4-bdc0-511814c5781c",
+  "dim": "egoschema",
+  "stem": "What were the key steps c took in cleaning the dog mat from start to finish, and what tools were used in the process?",
+  "options": {
+   "A": "C picks up a dog mat, puts it in the sink, washes it with soap and water, and then dries it off.",
+   "B": "C picks up a dog mat, puts it in the sink, washes it with soap and water, and then puts it in the dryer.",
+   "C": "C picks up a dog mat, puts it in the sink, washes it with soap and water, and then puts it in the washing machine.",
+   "D": "C picks up a dog mat, puts it in the sink, washes it with soap and water, and then puts it in the dishwasher.",
+   "E": "C picks up a dog mat, puts it in the sink, washes it with soap and water, and then rinses it off."
+  },
+  "answer": "E",
+  "item": "egc104|049249dc-bdad-48c4-bdc0-511814c5781c"
+ },
+ {
+  "video_id": "011b8b73-0ce4-4843-95ef-33b79610d212",
+  "dim": "egoschema",
+  "stem": "What can be deduced about c's level of expertise in the task by observing the kind of adjustments made throughout the video?",
+  "options": {
+   "A": "C is a novice woodworker. he was not able to cut the wood to size and install it on the wall without making several adjustments.",
+   "B": "C is an expert woodworker. he was able to cut the wood to size and install it on the wall without making any adjustments.",
+   "C": "C is a professional woodworker. he was able to cut the wood to size and install it on the wall in a timely and efficient manner.",
+   "D": "C is an experienced woodworker. he was able to cut the wood to size and install it on the wall with few adjustments.",
+   "E": "C is an amateur woodworker. he was able to cut the wood to size and install it on the wall, but he took a long time to do so."
+  },
+  "answer": "D",
+  "item": "egc105|011b8b73-0ce4-4843-95ef-33b79610d212"
+ },
+ {
+  "video_id": "87555387-5ded-400b-b273-fe5b16c853e2",
+  "dim": "egoschema",
+  "stem": "What is the primary objective of c's actions throughout the video, and how do her activities contribute to achieving this goal?",
+  "options": {
+   "A": "C is cleaning grain.",
+   "B": "C is meticulously sorting grain with great attention.",
+   "C": "The container labeled c is currently storing grain securely inside.",
+   "D": "C is preparing grain to be cooked.",
+   "E": "Currently, person c is actively engaged in planting grain seeds."
+  },
+  "answer": "D",
+  "item": "egc106|87555387-5ded-400b-b273-fe5b16c853e2"
+ },
+ {
+  "video_id": "0f75f8eb-e104-4221-b4fc-8426367d2b63",
+  "dim": "egoschema",
+  "stem": "From the sequence of events, identify the most crucial moments in the video that indicate a shift in focus or a progression in the task being performed.",
+  "options": {
+   "A": "The most crucial moments in the video are when c collects potatoes from the bag, when the man washes the potatoes, and when c throws the potatoes into the sink.",
+   "B": "The most crucial moments in the video are when c and the man interact.",
+   "C": "The most crucial moments depicted in the video involve when character c and the man diligently clean up after cooking the potatoes together.",
+   "D": "The highly significant, most crucial moments in the video occur when both person c and the man partake in devouring the potatoes.",
+   "E": "In the video, the most crucial moments to observe are when both person c and the unidentified man carefully store the potatoes."
+  },
+  "answer": "A",
+  "item": "egc107|0f75f8eb-e104-4221-b4fc-8426367d2b63"
+ },
+ {
+  "video_id": "4c778f65-eeca-4280-a608-d17b0c9493c2",
+  "dim": "egoschema",
+  "stem": "After completing the painting task, what actions does c take to prepare for their next activities on the construction site?",
+  "options": {
+   "A": "C puts the paint brush and paint tin away, wipes his hands, and puts on his phone.",
+   "B": "Carefully, c puts the paint brush and paint tin away, thoroughly washes his hands, and then proceeds to puts on his phone.",
+   "C": "Carefully, c puts the paint brush and paint tin away, dries his hands thoroughly, and then puts on his phone without delay.",
+   "D": "Carefully, c puts the paint brush and paint tin away, thoroughly sanitizes his hands, and then puts on his phone to make a call.",
+   "E": "C puts the paint brush and paint tin away, lotions his hands, and puts on his phone."
+  },
+  "answer": "A",
+  "item": "egc108|4c778f65-eeca-4280-a608-d17b0c9493c2"
+ },
+ {
+  "video_id": "2b627c1c-73ea-4096-aa3b-9894291dffdb",
+  "dim": "egoschema",
+  "stem": "Describe the overall process that takes place in the kitchen in this video. what is the primary task being completed and how does it transition to other tasks?",
+  "options": {
+   "A": "C is making a pizza.",
+   "B": "Currently, c is in the kitchen enthusiastically making a delicious cake.",
+   "C": "C is preparing a flatbread.",
+   "D": "Currently, c is in the process of making a delicious pie.",
+   "E": "Currently, c is in the process of preparing a sandwich."
+  },
+  "answer": "C",
+  "item": "egc109|2b627c1c-73ea-4096-aa3b-9894291dffdb"
+ },
+ {
+  "video_id": "e00836f3-1506-4479-a028-e17f19cff0bf",
+  "dim": "egoschema",
+  "stem": "Based on the repetitive actions throughout the video, what would you say is c's primary task or goal in the given environment?",
+  "options": {
+   "A": "To move the chair.",
+   "B": "To clean the floor.",
+   "C": "To touch the shelf.",
+   "D": "To touch the cat.",
+   "E": "To move the guitar bag."
+  },
+  "answer": "B",
+  "item": "egc110|e00836f3-1506-4479-a028-e17f19cff0bf"
+ },
+ {
+  "video_id": "eb9074ae-88c5-4bab-b0da-7e02b9acfbc0",
+  "dim": "egoschema",
+  "stem": "In the process of accomplishing the primary task, c interacts with an air conditioning filter. what purpose did this interaction serve within the context of the task being performed?",
+  "options": {
+   "A": "C interacted with the air conditioning filter to get a better view of the wood.",
+   "B": "C carefully interacted with the air conditioning filter in order to effectively clean and maintain it.",
+   "C": "Casually, c interacted with the air conditioning filter, efficiently replacing it for improved functionality.",
+   "D": "C interacted with the air conditioning filter to move it.",
+   "E": "Curiously, participant c interacted gently with the air conditioning filter, successfully managing to open it."
+  },
+  "answer": "A",
+  "item": "egc111|eb9074ae-88c5-4bab-b0da-7e02b9acfbc0"
+ },
+ {
+  "video_id": "1f0ebef9-1ad7-41f1-951c-5309b1e55341",
+  "dim": "egoschema",
+  "stem": "What was the main purpose and objective of c's actions in the video?",
+  "options": {
+   "A": "Currently, individual c is diligently cleaning the laboratory space.",
+   "B": "C is preparing samples for testing.",
+   "C": "C is preparing a presentation.",
+   "D": "Currently, c is accurately taking inventory of the existing supplies in storage.",
+   "E": "Currently, c is in the process of preparing a delicious meal."
+  },
+  "answer": "B",
+  "item": "egc112|1f0ebef9-1ad7-41f1-951c-5309b1e55341"
+ },
+ {
+  "video_id": "8eed2026-9f16-4004-92dd-9a31eceefa32",
+  "dim": "egoschema",
+  "stem": "Identify the most significant sequences of actions in the video, highlighting their relevance to the character's main purpose. what conclusions can be drawn from these sequences?",
+  "options": {
+   "A": "In the video, the most significant sequences of actions primarily occur when the character deliberately opens and subsequently closes the drawer.",
+   "B": "The most significant sequences of actions in the video are when the character picks up a piece of clothing, folds it, and puts it away in the drawer.",
+   "C": "In the video, the most significant sequences of actions involve the character strategically moving clothes around on the bed.",
+   "D": "The most significant sequences of actions in the video are when the character picks up socks.",
+   "E": "The most significant sequences of actions showcased in the video occur when the main character selects and picks up a jumper."
+  },
+  "answer": "B",
+  "item": "egc113|8eed2026-9f16-4004-92dd-9a31eceefa32"
+ },
+ {
+  "video_id": "39423dd1-6c62-4927-b9f9-8252352847eb",
+  "dim": "egoschema",
+  "stem": "What notable similarities can be observed between the man and the woman's interactions with their cups throughout the video?",
+  "options": {
+   "A": "Both the man and the woman pick up their cups with their left hands, drink from them, and then place them back on the table.",
+   "B": "Simultaneously, both the man and woman proceed to pick up their cups using their right hands, take a sip, and subsequently place them back on their laps gently.",
+   "C": "Both the man and the woman pick up their cups with their right hands, drink from them, and then place them back on the table.",
+   "D": "Simultaneously, both the man and the woman pick up their respective cups with their left hands, carefully drink from them, and then gently place them back on their laps.",
+   "E": "Simultaneously, both the man and the woman carefully pick up their cups with their right hands, take a drink from them, and then deliberately throw them on the floor."
+  },
+  "answer": "C",
+  "item": "egc114|39423dd1-6c62-4927-b9f9-8252352847eb"
+ },
+ {
+  "video_id": "217fe8d0-dfc8-407b-86be-269378c5259a",
+  "dim": "egoschema",
+  "stem": "What is the primary objective of c's actions throughout the video, and how do his methods evolve over time to achieve it?",
+  "options": {
+   "A": "Currently, c is diligently attempting to skillfully repair a damaged basket.",
+   "B": "C is attempting to creatively embellish and adorn a woven basket.",
+   "C": "C is trying to break a basket.",
+   "D": "Cunningly, c is attempting to quietly steal a woven basket.",
+   "E": "C is trying to make a basket."
+  },
+  "answer": "E",
+  "item": "egc115|217fe8d0-dfc8-407b-86be-269378c5259a"
+ },
+ {
+  "video_id": "01a144a5-24d2-4a5a-af01-1f318d674bed",
+  "dim": "egoschema",
+  "stem": "What is the overall purpose of c's actions in this video? how do the actions of the man contribute to this purpose?",
+  "options": {
+   "A": "C is trying to build a tower out of tiles. the man's actions contribute to the purpose of the video by providing c with a steady surface to build on.",
+   "B": "C is trying to solve a puzzle. the man's actions contribute to the purpose of the video by providing c with clues to help solve the puzzle.",
+   "C": "C is trying to create a work of art. the man's actions contribute to the purpose of the video by providing c with inspiration and feedback.",
+   "D": "C is trying to teach the man how to play dominoes. the man's actions contribute to the purpose of the video by providing c with a willing student.",
+   "E": "C is playing a game of dominoes with a man. the man's actions contribute to the purpose of the video by providing c with an opponent to play against."
+  },
+  "answer": "E",
+  "item": "egc116|01a144a5-24d2-4a5a-af01-1f318d674bed"
+ },
+ {
+  "video_id": "f10119f9-631e-47d0-8921-9ce6859a3708",
+  "dim": "egoschema",
+  "stem": "After analyzing c's actions, what could be inferred about his approach to handling materials and ensuring safety in the process?",
+  "options": {
+   "A": "Carelessly, c does not take any essential precautions to steer clear of spills or contamination incidents. he avoids wearing gloves or utilizing a pipette, and he absolutely neglects to cover the glass tube securely with a lid.",
+   "B": "C takes precautions to avoid spills and contamination by wearing gloves and using a pipette to transfer the liquid. he also covers the glass tube with a lid when he is not using it.",
+   "C": "C takes precautions to avoid spills, but not contamination. he wears gloves and uses a pipette to transfer the liquid, but he does not cover the glass tube with a lid.",
+   "D": "Carefully, c takes essential precautions to avoid any contamination, but not spills. diligently, he wears gloves and securely covers the glass tube with a lid, however, he does not utilize a pipette for transferring the liquid safely.",
+   "E": "Carefully, c takes necessary precautions to both prevent spills and reduce contamination risks. diligently, he wears gloves, skillfully uses a pipette for transferring the liquid, and securely covers the glass tube with a fitted lid."
+  },
+  "answer": "B",
+  "item": "egc117|f10119f9-631e-47d0-8921-9ce6859a3708"
+ },
+ {
+  "video_id": "3127e6b0-83c8-4211-b695-3ee349d2f89b",
+  "dim": "egoschema",
+  "stem": "Provide a brief summarization of the significant steps c took to prepare the mango, highlighting only the key moments that contributed to the overall process.",
+  "options": {
+   "A": "C holds down the slice of mango on the chopping board with her right hand, then cuts it with the knife in her left hand. she then turns the slice of mango and cuts it again. she repeats this process until the mango is cut into small pieces.",
+   "B": "C holds down the slice of mango on the chopping board with her left hand, then cuts it with the knife in her right hand. she then turns the slice of mango and cuts it again. she repeats this process until the mango is cut into large pieces.",
+   "C": "C holds down the slice of mango on the chopping board with her left hand, then cuts it with the knife in her right hand. she then turns the slice of mango and cuts it again. she repeats this process until the mango is cut into small pieces.",
+   "D": "C holds down the slice of mango on the chopping board with her right hand, then cuts it with the knife in her left hand. she then turns the slice of mango and cuts it again. she repeats this process until the mango is cut into small pieces, but she does not remove the mango from the chopping board between cuts.",
+   "E": "C holds down the slice of mango on the chopping board with her left hand, then cuts it with the knife in her right hand. she then turns the slice of mango and cuts it again. she repeats this process until the mango is cut into small pieces, but she does not cut all the way through the mango on each cut."
+  },
+  "answer": "C",
+  "item": "egc118|3127e6b0-83c8-4211-b695-3ee349d2f89b"
+ },
+ {
+  "video_id": "3a94a8d4-9b0f-49d9-9479-80ccf3a9ac3a",
+  "dim": "egoschema",
+  "stem": "From the sequence of actions, identify a turning point or moment where c's focus shifts to a different task. explain why you believe this is the most significant part of the video.",
+  "options": {
+   "A": "The turning point is when c unfastens the hub axle.",
+   "B": "The crucial turning point occurs when character c picks up the screwdriver from the table.",
+   "C": "The pivotal turning point occurs when character c decides to put on the gloves.",
+   "D": "The turning point is when c removes the tire.",
+   "E": "The critical turning point occurs when character c successfully patches the hole, fixing it."
+  },
+  "answer": "A",
+  "item": "egc119|3a94a8d4-9b0f-49d9-9479-80ccf3a9ac3a"
+ },
+ {
+  "video_id": "532bcfc7-d64a-4bdd-ba30-76e95136674e",
+  "dim": "egoschema",
+  "stem": "Summarize and compare the techniques used by c to cut branches and interact with the environment, explaining the significance of using his left and right hands as well as both hands together.",
+  "options": {
+   "A": "C uses his left hand to hold branches and his right hand to use the pliers and cutter. he also uses both hands to pull branches out of the way.",
+   "B": "While working, c uses his left hand to hold branches securely and his right hand to skillfully utilize the pliers and cutter. additionally, he resourcefully uses his feet to pull obstructing branches out of the way.",
+   "C": "C skillfully uses his dominant right hand to grasp branches firmly, and his left hand to expertly wield the pliers and cutter. additionally, he cleverly employs his feet to pull any obstructive branches out of the way.",
+   "D": "C uses both hands to hold branches and his feet to use the pliers and cutter.",
+   "E": "Cleverly, c utilizes his feet to firmly hold branches, while skillfully employing his hands to effectively operate the pliers and cutter."
+  },
+  "answer": "A",
+  "item": "egc120|532bcfc7-d64a-4bdd-ba30-76e95136674e"
+ },
+ {
+  "video_id": "e614f1a5-7c7b-468f-9840-d7373f740255",
+  "dim": "egoschema",
+  "stem": "Considering c's various actions, what can be deduced about their main goal in this video?",
+  "options": {
+   "A": "C's main goal is to move objects around the room.",
+   "B": "C's main goal is to pick up objects.",
+   "C": "C's main goal is to clean the floor.",
+   "D": "C's main goal is to put objects away.",
+   "E": "C's main goal is to play with the dog doll."
+  },
+  "answer": "C",
+  "item": "egc121|e614f1a5-7c7b-468f-9840-d7373f740255"
+ },
+ {
+  "video_id": "83acbfe5-4c09-440c-ab8b-62479b2915df",
+  "dim": "egoschema",
+  "stem": "Compare and contrast c's interactions with the wooden mechanical model pieces and the instruction manual throughout the video. what do these interactions reveal about c's approach to the task?",
+  "options": {
+   "A": "C interacts with the instruction manual more frequently and carefully than with the wooden mechanical model pieces.",
+   "B": "C interacts with both the wooden mechanical model pieces and the instruction manual with equal frequency and care.",
+   "C": "C interacts with the wooden mechanical model pieces more frequently and carefully than with the instruction manual.",
+   "D": "C interacts with the wooden mechanical model pieces more frequently but less carefully than with the instruction manual.",
+   "E": "C interacts with the instruction manual more frequently but less carefully than with the wooden mechanical model pieces."
+  },
+  "answer": "C",
+  "item": "egc122|83acbfe5-4c09-440c-ab8b-62479b2915df"
+ },
+ {
+  "video_id": "22e620ee-82bc-44d5-adde-f555710585e2",
+  "dim": "egoschema",
+  "stem": "From a high-level perspective, how would you describe the interaction or relationship between c and the lady, and their respective roles in the process depicted in the video?",
+  "options": {
+   "A": "C is essentially the individual who supplies the dough paste; meanwhile, the lady acts as the person carefully wrapping the nylon paper around the freshly molten dough mixture.",
+   "B": "C and the lady, working together, are both jointly responsible for carefully wrapping the nylon paper around the hot, molten dough.",
+   "C": "Both c and the lady share equal responsibility for supplying the dough paste required.",
+   "D": "C and the lady are not related to each other.",
+   "E": "C is the person who wraps the nylon paper around the molten dough, while the lady is the person who provides the dough paste."
+  },
+  "answer": "E",
+  "item": "egc123|22e620ee-82bc-44d5-adde-f555710585e2"
+ },
+ {
+  "video_id": "f77fbf67-2b57-46ec-b850-d1ed65cf9d07",
+  "dim": "egoschema",
+  "stem": "Describe the role of communication between c and the child as it relates to the main action presented in the video.",
+  "options": {
+   "A": "The child interacts with c by talking to her and occasionally touching the scarf. this helps to keep c focused on her knitting and to make the process more enjoyable for both of them.",
+   "B": "The young child communicates with c by loudly yelling at her and, at times, hitting her. this approach fails to keep c concentrated on her knitting activity and makes the entire process highly stressful for both individuals.",
+   "C": "The child interacts with c by ignoring her and occasionally running away. this does not help to keep c focused on her knitting and makes the process more lonely for both of them.",
+   "D": "The child interacts with c by hugging her and occasionally kissing her. this helps to keep c focused on her knitting and to make the process more loving for both of them.",
+   "E": "The child actively interacts with c by enthusiastically playing with her and occasionally making her laugh heartily. this interaction helps to keep c attentively focused on her knitting task and to make the entire process more enjoyable for both of them."
+  },
+  "answer": "A",
+  "item": "egc124|f77fbf67-2b57-46ec-b850-d1ed65cf9d07"
+ },
+ {
+  "video_id": "f9a68735-7030-4fb5-95fd-cef0529611bf",
+  "dim": "egoschema",
+  "stem": "Analyze the sequence of events and identify the overarching process shown in the video. what is its purpose?",
+  "options": {
+   "A": "The video shows the process of making a sandwich. the purpose of this process is to create a quick and easy meal.",
+   "B": "The video shows the process of making a smoothie. the purpose of this process is to create a healthy and refreshing drink.",
+   "C": "The video shows the process of making a soup. the purpose of this process is to create a warm and comforting meal.",
+   "D": "The video shows the process of making a stir-fry. the purpose of this process is to create a quick and easy meal with lots of vegetables.",
+   "E": "The video shows the process of preparing a salad. the purpose of this process is to create a healthy and delicious meal."
+  },
+  "answer": "E",
+  "item": "egc125|f9a68735-7030-4fb5-95fd-cef0529611bf"
+ },
+ {
+  "video_id": "0b4529ac-5a4e-4d30-b6b6-c6504c509c0c",
+  "dim": "egoschema",
+  "stem": "How did c's behavior evolve throughout the video, and what stages of engagement with the tasks can you identify?",
+  "options": {
+   "A": "During the video, c's behavior gradually evolved as he became increasingly bored. initially, he began by looking at the laptop and typing on it; however, he soon started to fidget and look around the office space. additionally, he took a short break to drink some coffee and adjust the camera's position.",
+   "B": "C's behavior evolved throughout the video as he became more and more frustrated. he started out by looking at the laptop and typing on it, but then he started to make mistakes and erase his work. he also took a break to drink some coffee and adjust the camera.",
+   "C": "C's behavior evolved throughout the video as he became more and more engaged with his work. he started out by looking at the laptop and typing on it, but then he started to take notes and draw on the ipad. he also took a break to drink some coffee and adjust the camera.",
+   "D": "C's behavior evolved throughout the video as he became more and more excited. he started out by looking at the laptop and typing on it, but then he started to smile and laugh. he also took a break to drink some coffee and adjust the camera.",
+   "E": "Gradually, c's behavior evolved throughout the video as he became increasingly exhausted. initially, he started out by attentively looking at the laptop and typing on it, but eventually he began to yawn and stretch. he also took a brief break to drink some coffee and adjust the camera's position."
+  },
+  "answer": "C",
+  "item": "egc126|0b4529ac-5a4e-4d30-b6b6-c6504c509c0c"
+ },
+ {
+  "video_id": "5d15c716-f179-462c-84a6-fa94e9d14e94",
+  "dim": "egoschema",
+  "stem": "In the video, what was the main focus of c's activity, and how was it being executed in different ways in the garage?",
+  "options": {
+   "A": "C was cleaning the garage.",
+   "B": "One day, c was diligently organizing the cluttered garage space.",
+   "C": "Recently, c was diligently searching for something specific within the cluttered garage.",
+   "D": "Casually, c was taking a short break in the spacious garage.",
+   "E": "C was working on a wood project in the garage."
+  },
+  "answer": "E",
+  "item": "egc127|5d15c716-f179-462c-84a6-fa94e9d14e94"
+ },
+ {
+  "video_id": "08c5a715-ee90-4bba-8b8b-5f0834620f78",
+  "dim": "egoschema",
+  "stem": "How does c interact with the camera during the video and what might be the reason behind these adjustments?",
+  "options": {
+   "A": "Casually, c adjusts the camera angle skillfully to achieve a more visually appealing view of herself.",
+   "B": "C skillfully adjusts the camera angle to achieve a better, enhanced view of the entire room.",
+   "C": "Casually, c adjusts the camera angle to get a more improved, better view of the entrance door.",
+   "D": "C adjusts the camera to get a better view of the window.",
+   "E": "C adjusts the camera to get a better view of the bed and the cloths."
+  },
+  "answer": "E",
+  "item": "egc128|08c5a715-ee90-4bba-8b8b-5f0834620f78"
+ },
+ {
+  "video_id": "803c8ecf-9448-48b6-8bf2-debd052dbe43",
+  "dim": "egoschema",
+  "stem": "What was the primary joint activity the woman and c were engaged in throughout the video, and how did they collaborate in this process?",
+  "options": {
+   "A": "The woman and c were engaged in the joint activity of creating a mosaic.",
+   "B": "Together, the woman and c were actively engaged in the joint activity of cooking a meal.",
+   "C": "The woman and c were engaged in the joint activity of cleaning.",
+   "D": "The woman, along with c, were actively engaged together in the enjoyable joint activity of playing a game.",
+   "E": "The woman and person c were enthusiastically engaged in the joint, shared activity of watching an entertaining movie together."
+  },
+  "answer": "A",
+  "item": "egc129|803c8ecf-9448-48b6-8bf2-debd052dbe43"
+ },
+ {
+  "video_id": "68f6ddfd-bf42-4bee-b1c9-a48db428e586",
+  "dim": "egoschema",
+  "stem": "Based on the various steps undertaken by c, what is the primary goal of this video and how do the different actions contribute to achieving this goal?",
+  "options": {
+   "A": "C is cleaning the kitchen.",
+   "B": "C is doing the dishes.",
+   "C": "C is preparing a meal.",
+   "D": "C is taking out the trash.",
+   "E": "C is making a salad."
+  },
+  "answer": "C",
+  "item": "egc130|68f6ddfd-bf42-4bee-b1c9-a48db428e586"
+ },
+ {
+  "video_id": "57055009-9f69-4f1c-b4cf-7ac0a079e4ca",
+  "dim": "egoschema",
+  "stem": "Describe the overall process and purpose of c's actions throughout the video, focusing on the main steps she took in her activity.",
+  "options": {
+   "A": "C is cleaning a paintbrush.",
+   "B": "C is painting a picture.",
+   "C": "C is preparing a cup of water.",
+   "D": "C is resting her hand on the table.",
+   "E": "C is rubbing the bristles of the paintbrush."
+  },
+  "answer": "B",
+  "item": "egc131|57055009-9f69-4f1c-b4cf-7ac0a079e4ca"
+ },
+ {
+  "video_id": "93b1de09-2f89-4b4b-94ac-9d2d94df3d66",
+  "dim": "egoschema",
+  "stem": "Based on the video, identify the primary responsibility of the person referred to as \"c\" and describe how their activities contribute to the overall scene.",
+  "options": {
+   "A": "C is responsible for building the construction site.",
+   "B": "The individual, c, is responsible for the crucial task of maintaining the construction site efficiently.",
+   "C": "Person c is responsible for meticulously inspecting the construction site for safety and progress.",
+   "D": "C is responsible for keeping the construction site clean and free of debris.",
+   "E": "The individual, c, is duly responsible for meticulously repairing and maintaining the construction site."
+  },
+  "answer": "D",
+  "item": "egc132|93b1de09-2f89-4b4b-94ac-9d2d94df3d66"
+ },
+ {
+  "video_id": "1a48816e-0a15-4f4b-a181-df70568bb6ad",
+  "dim": "egoschema",
+  "stem": "What was the main purpose of the actions performed by both c and the man throughout the video, and how did their roles differ?",
+  "options": {
+   "A": "Casually, c and the man were enjoying a friendly game of catch. skillfully, c was tossing the railing towards the man, and the man was expertly catching it.",
+   "B": "Industriously, c and the man were diligently working together on a construction project. skillfully, c was building the sturdy frame of a house, while the man was carefully putting up the strong walls.",
+   "C": "In the garage, c and the man were diligently working on a car together. enthusiastically, c was changing the vehicle's oil, while the man was expertly changing its tires.",
+   "D": "C and the man were assembling a railing. c was responsible for gathering the tools and materials, while the man was responsible for welding the railing together.",
+   "E": "C and the man were working on a boat. c was painting the hull, and the man was fixing the engine."
+  },
+  "answer": "D",
+  "item": "egc133|1a48816e-0a15-4f4b-a181-df70568bb6ad"
+ },
+ {
+  "video_id": "619fdd7a-03df-49b6-995e-2bba10a3d7f5",
+  "dim": "egoschema",
+  "stem": "How did c's interaction with the man influence her crafting process and actions throughout the video?",
+  "options": {
+   "A": "Strikingly, c was deeply inspired by the artistic man to ingeniously create a beautiful flower-like red glitter paper design.",
+   "B": "C was annoyed by the man's presence and tried to ignore him.",
+   "C": "C's interaction with the man did not influence her crafting process or actions throughout the video.",
+   "D": "Confidently, c was attempting to impress the interested man by showcasing her exceptional crafting skills.",
+   "E": "In a creative manner, c was attempting to communicate with the man by expressing herself through her crafting skills."
+  },
+  "answer": "C",
+  "item": "egc134|619fdd7a-03df-49b6-995e-2bba10a3d7f5"
+ },
+ {
+  "video_id": "249a0fc4-ccf4-4e6f-9ca5-29f11cf5e1ad",
+  "dim": "egoschema",
+  "stem": "How would you summarize the primary objective c is trying to achieve throughout the video in one sentence, considering the recurring drilling and removing actions they performed?",
+  "options": {
+   "A": "Currently, c is attempting to carefully drill holes into the tile backer board's surface.",
+   "B": "C is attempting to carefully take off tile backer washers that are located on the tile backer board.",
+   "C": "C is trying to attach tile backer washers to the tile backer board.",
+   "D": "C is trying to clean the tile backer board.",
+   "E": "Currently, c is attempting to carefully paint the tile backer board surface."
+  },
+  "answer": "C",
+  "item": "egc135|249a0fc4-ccf4-4e6f-9ca5-29f11cf5e1ad"
+ },
+ {
+  "video_id": "5d744ae9-c7f7-43b0-b284-54de70ca1340",
+  "dim": "egoschema",
+  "stem": "What was the overall purpose of c's actions in the video, and how did he adapt his approach in order to achieve that purpose?",
+  "options": {
+   "A": "C's overall purpose in the video was to clean the wall. he adapted his approach by using a wet cloth to wipe down the wall. he also took breaks to look around and make sure that he was cleaning the entire wall.",
+   "B": "C's overall purpose in the video was to decorate the wall. he adapted his approach by using different colors of paint to create a design on the wall. he also took breaks to look around and make sure that the design was symmetrical.",
+   "C": "C's overall purpose in the video was to paint the wall. he adapted his approach by using a paint brush at first, and then switching to a paint roller. he also took breaks to look around and remove any drips from the wall.",
+   "D": "C's overall purpose in the video was to make the wall look more interesting. he adapted his approach by using different textures and patterns to create a visually appealing wall. he also took breaks to look around and make sure that the wall was balanced.",
+   "E": "C's overall purpose in the video was to make the wall look more professional. he adapted his approach by using high-quality paint and tools to create a smooth, even finish. he also took breaks to look around and make sure that the wall was free of imperfections."
+  },
+  "answer": "C",
+  "item": "egc136|5d744ae9-c7f7-43b0-b284-54de70ca1340"
+ },
+ {
+  "video_id": "55ea09ed-4590-4e59-8753-40a64d67abd9",
+  "dim": "egoschema",
+  "stem": "What is the central problem being addressed in the video, and how does c gradually progress to solve it?",
+  "options": {
+   "A": "C is adjusting the lawn mower's blade.",
+   "B": "C is adjusting the lawn mower's engine.",
+   "C": "C is adjusting the lawn mower's carburetor.",
+   "D": "C is adjusting the lawn mower's pulley.",
+   "E": "C is adjusting the lawn mower's spark plug."
+  },
+  "answer": "D",
+  "item": "egc137|55ea09ed-4590-4e59-8753-40a64d67abd9"
+ },
+ {
+  "video_id": "7431615c-e482-4669-8d5e-1d916af17d4d",
+  "dim": "egoschema",
+  "stem": "Describe the overarching process c is conducting in the laboratory, focusing on the purpose of their actions rather than the specific steps taken.",
+  "options": {
+   "A": "Currently, c is thoroughly cleaning and tidying the laboratory space.",
+   "B": "C is preparing for a presentation.",
+   "C": "Currently, person c is thoroughly inventorying supplies in stock.",
+   "D": "C is conducting an experiment to test the growth of seedlings.",
+   "E": "Currently, c is meticulously taking inventory of all the laboratory's essential equipment and tools."
+  },
+  "answer": "D",
+  "item": "egc138|7431615c-e482-4669-8d5e-1d916af17d4d"
+ },
+ {
+  "video_id": "00faf954-74f7-4aa3-8b29-4a5dff4f9518",
+  "dim": "egoschema",
+  "stem": "What is the primary sequence of actions performed by c throughout the video, and how do these actions relate to the overall task being performed?",
+  "options": {
+   "A": "C cleans brick mold with his hand.",
+   "B": "C scoops clay into the brick mold, removes clay from the brick mold, scoops mortar from a pile of mortar on the floor, slams mortar into the brick mold, scoops excess mortar from the brick mold, throws excess mortar on the pile of mortar in his front, adds clay from the floor on the brick mold, and drops brick from brick mold beside already made bricks on the floor. then, c cleans brick mold with his hand.",
+   "C": "C scoops clay into the brick mold, removes clay from the brick mold, scoops mortar from a pile of mortar on the floor, slams mortar into the brick mold, scoops excess mortar from the brick mold, throws excess mortar on the pile of mortar in his front, adds clay from the floor on the brick mold, drops brick from brick mold beside already made bricks on the floor. then, c takes a break.",
+   "D": "C scoops clay into the brick mold, removes clay from the brick mold, scoops mortar from a pile of mortar on the floor, slams mortar into the brick mold, scoops excess mortar from the brick mold, throws excess mortar on the pile of mortar in his front, adds clay from the floor on the brick mold, drops brick from brick mold beside already made bricks on the floor. then, c goes to sleep.",
+   "E": "C scoops clay into the brick mold, removes clay from the brick mold, scoops mortar from a pile of mortar on the floor, slams mortar into the brick mold, scoops excess mortar from the brick mold, throws excess mortar on the pile of mortar in his front, adds clay from the floor on the brick mold, and drops brick from brick mold beside already made bricks on the floor."
+  },
+  "answer": "E",
+  "item": "egc139|00faf954-74f7-4aa3-8b29-4a5dff4f9518"
+ },
+ {
+  "video_id": "77d42c88-589b-487f-84f3-b7631a8c9f2e",
+  "dim": "egoschema",
+  "stem": "Can you describe the relationship between c and the woman by analyzing their overall interactions throughout the video? provide a summary that clearly demonstrates your ability to compress information from the video.",
+  "options": {
+   "A": "Coincidentally, both c and the unidentified woman happen to be strangers to each other.",
+   "B": "Surprisingly, in this unusual situation, c and the woman are practically bitter enemies.",
+   "C": "C and the woman are lovers.",
+   "D": "C and the woman, both working together, are considered as coworkers in the workplace.",
+   "E": "C and the woman are friends."
+  },
+  "answer": "E",
+  "item": "egc140|77d42c88-589b-487f-84f3-b7631a8c9f2e"
+ },
+ {
+  "video_id": "07d7128e-0684-4c6b-81cb-3ecb76c2e6ec",
+  "dim": "egoschema",
+  "stem": "Summarize the overarching process demonstrated in this video, and compare the key similarities and differences between the various stages of the process.",
+  "options": {
+   "A": "The video shows a person painting a picture. the person starts by putting down their phone and rolling up their sleeves. they then dip their brush in water and apply paint to the paper. they continue to apply paint until the picture is complete.",
+   "B": "The video footage displays a person skillfully making a sandwich. initially, the individual starts by placing down their phone, proceeding to gather the necessary ingredients. following this, they meticulously assemble the sandwich before enjoying and consuming it.",
+   "C": "The video depicts a person engaged in doing their laundry. initially, the person starts by putting down their phone, and taking out the laundry. subsequently, they wash, dry, and neatly fold the laundry.",
+   "D": "The short video displays a person diligently cooking dinner. initially, the individual sets aside their phone, assembles all the necessary ingredients, proceeds to cook the meal skillfully, and finally enjoys eating it.",
+   "E": "The video shows a person cleaning their house. the person starts by putting down their phone and gathering the cleaning supplies. they then clean the house and put away the cleaning supplies."
+  },
+  "answer": "A",
+  "item": "egc141|07d7128e-0684-4c6b-81cb-3ecb76c2e6ec"
+ },
+ {
+  "video_id": "c6bf44c3-2163-4fbc-8ff7-c07a6e3e533b",
+  "dim": "egoschema",
+  "stem": "Taking into account the entire video, explain the main purpose of the various actions and interactions with the box and the paper.",
+  "options": {
+   "A": "The primary aim, involving the main purpose of the various actions and interactions with the box and the paper elements, is ultimately to clean and tidy the room.",
+   "B": "The main purpose of the various actions and interactions with the box and the paper is to create a craft project.",
+   "C": "The main purpose of the various actions and interactions with the box and the paper is to pack a suitcase.",
+   "D": "The primary objective of engaging in various actions and interactions with the box and the paper is to effectively create and establish a comprehensive model.",
+   "E": "The primary objective of the numerous actions and interactions involving the box and the paper is ultimately to engage in a playful game."
+  },
+  "answer": "B",
+  "item": "egc142|c6bf44c3-2163-4fbc-8ff7-c07a6e3e533b"
+ },
+ {
+  "video_id": "b4cc9985-97e8-423a-9737-22e5d9b4dbce",
+  "dim": "egoschema",
+  "stem": "In your own words, summarize the primary cooking process repeated throughout the video and identify its significance for achieving the final outcome.",
+  "options": {
+   "A": "C removes the cereals from the cooking pan with a coconut broom, picks them up with a scoop, pours them back into the pan, stirs them with the coconut broom stick, puts firewood in the fire, and stirs the cereals again. this process is repeated several times until the cereals are cooked through. however, c also looks around occasionally.",
+   "B": "C removes the cereals from the cooking pan with a coconut broom, picks them up with a scoop, pours them back into the pan, stirs them with the coconut broom stick, puts firewood in the fire, and stirs the cereals again. this process is repeated several times until the cereals are cooked through. however, c also sings while cooking.",
+   "C": "C removes the cereals from the cooking pan with a coconut broom, picks them up with a scoop, pours them back into the pan, stirs them with the coconut broom stick, puts firewood in the fire, and stirs the cereals again. this process is repeated several times until the cereals are cooked through. however, c also dances while cooking.",
+   "D": "C removes the cereals from the cooking pan with a coconut broom, picks them up with a scoop, pours them back into the pan, stirs them with the coconut broom stick, puts firewood in the fire, and stirs the cereals again. this process is repeated several times until the cereals are cooked through.",
+   "E": "C removes the cereals from the cooking pan with a coconut broom, picks them up with a scoop, pours them back into the pan, stirs them with the coconut broom stick, puts firewood in the fire, and stirs the cereals again. this process is repeated several times until the cereals are cooked through. however, c also talks to someone while cooking."
+  },
+  "answer": "D",
+  "item": "egc143|b4cc9985-97e8-423a-9737-22e5d9b4dbce"
+ },
+ {
+  "video_id": "f1d9d07c-fd79-44c3-9cd7-a4dc792b9828",
+  "dim": "egoschema",
+  "stem": "Analyze c's process of handling and preparing the dough at different stages, and identify the two major themes of her actions that reflect careful attention to detail and precision.",
+  "options": {
+   "A": "In the kitchen, c's process of handling, kneading, and preparing the dough appears to be quite careless and noticeably sloppy.",
+   "B": "C's process of handling and preparing the dough reflects careful attention to detail and precision.",
+   "C": "In the kitchen, c's process of handling and meticulously preparing the dough is quite haphazard, seemingly disorganized, and messy.",
+   "D": "The chef's process of handling, kneading, and preparing the dough in the kitchen is relatively inefficient and considerably time-consuming.",
+   "E": "C's process of handling and preparing the dough is creative and innovative."
+  },
+  "answer": "B",
+  "item": "egc144|f1d9d07c-fd79-44c3-9cd7-a4dc792b9828"
+ },
+ {
+  "video_id": "b53d2693-bbaa-4e50-b703-e7d70ecf827f",
+  "dim": "egoschema",
+  "stem": "What was the primary activity taking place in the video, and how did it lead to secondary activities related to it?",
+  "options": {
+   "A": "Currently, c is skillfully knitting a beautiful cloth by hand.",
+   "B": "Currently, person c is diligently sewing a piece of cloth.",
+   "C": "C is embroidering a cloth.",
+   "D": "C is crocheting a cloth.",
+   "E": "Currently, c is skillfully weaving a beautiful cloth fabric."
+  },
+  "answer": "D",
+  "item": "egc145|b53d2693-bbaa-4e50-b703-e7d70ecf827f"
+ },
+ {
+  "video_id": "057f8774-15c2-4e2e-b9fd-75f26d4b3b83",
+  "dim": "egoschema",
+  "stem": "What is the overall objective of the woman's actions throughout the video and how do her actions contribute to that objective?",
+  "options": {
+   "A": "The woman is making a fire.",
+   "B": "The woman is cleaning her house.",
+   "C": "The woman is cooking food.",
+   "D": "The woman is making dough.",
+   "E": "The woman is taking a break."
+  },
+  "answer": "D",
+  "item": "egc146|057f8774-15c2-4e2e-b9fd-75f26d4b3b83"
+ },
+ {
+  "video_id": "39b6ed4d-c5cb-4ad9-922b-6fda4e4a1531",
+  "dim": "egoschema",
+  "stem": "What can be inferred as the primary reason behind c's repeated actions involving the cards and their significance in the context of the video?",
+  "options": {
+   "A": "C is trying to impress the woman.",
+   "B": "C is trying to teach the woman how to play cards.",
+   "C": "C is trying to pass the time.",
+   "D": "C is trying to solve the puzzle.",
+   "E": "C is trying to win the card game."
+  },
+  "answer": "E",
+  "item": "egc147|39b6ed4d-c5cb-4ad9-922b-6fda4e4a1531"
+ },
+ {
+  "video_id": "7741f012-a2a4-4ca8-a6fc-a4ab51c98262",
+  "dim": "egoschema",
+  "stem": "What is the primary intention of the individual in the video, and how does the systematic process they follow contribute to that goal?",
+  "options": {
+   "A": "The individual is making a sculpture.",
+   "B": "In this scenario, the creative individual is diligently making an artistic vase by hand.",
+   "C": "The single person present is actively engaged in creating a ceramic pot.",
+   "D": "The single individual is currently involved in making a decorative plate.",
+   "E": "The individual is making a brick."
+  },
+  "answer": "E",
+  "item": "egc148|7741f012-a2a4-4ca8-a6fc-a4ab51c98262"
+ },
+ {
+  "video_id": "263666b2-3229-429a-b5a7-defc6433dc29",
+  "dim": "egoschema",
+  "stem": "Summarize the primary technique used by c to create and refine the flower pot. how did c utilize the tools and materials available to her?",
+  "options": {
+   "A": "C uses a hammer and chisel to shape the flower pot.",
+   "B": "C uses her hands to smoothen the flower pot and to add more clay to it. she also uses a cup of water to keep her hands wet.",
+   "C": "Skillfully, c uses a pottery wheel to carefully shape the beautiful flower pot with ease.",
+   "D": "Carefully, c employs a mold to accurately shape the flower pot's design.",
+   "E": "Creatively, c employs her hands to skillfully shape the flower pot, and subsequently utilizes a kiln to thoroughly bake it."
+  },
+  "answer": "B",
+  "item": "egc149|263666b2-3229-429a-b5a7-defc6433dc29"
+ },
+ {
+  "video_id": "3f61b913-9920-4fbd-ba0f-93f41c255279",
+  "dim": "egoschema",
+  "stem": "Identify and evaluate the most important activities that changed the course of events in the video and their potential implications.",
+  "options": {
+   "A": "The most crucial activities that altered the course of events in the video are c's decision to brush the cat, c's boredom with brushing the cat, and c's eventual choice to stop brushing the cat. these particular events serve to emphasize c's short attention span and their lack of perseverance.",
+   "B": "The most important activities that changed the course of events in the video are c's decision to play with the dog, c's exhaustion from playing with the dog, and c's eventual decision to take a break from playing with the dog. these events serve to highlight c's high energy levels and need for physical activity.",
+   "C": "The most significant and impactful activities that drastically changed the course of events in the video are c's decision to drink from the cup, c's clumsiness, and the following spilling of the cup, and c's eventual responsible decision to clean up the mess. these events effectively serve to emphasize and showcase c's lack of coordination and attention to detail.",
+   "D": "The most important activities that changed the course of events in the video are c's decision to play the card game, c's frustration with the game, and c's eventual abandonment of the game. these events serve to highlight c's playful and impulsive nature, as well as c's difficulty in focusing on tasks that require sustained attention.",
+   "E": "The most significant activities that drastically altered the course of events in the video are c's intentional decision to walk around the house, c's eventual boredom with wandering around the house, and c's subsequent choice to find something else to engage in. these impactful events serve to emphasize c's underlying restlessness and persistent need for stimulation."
+  },
+  "answer": "D",
+  "item": "egc150|3f61b913-9920-4fbd-ba0f-93f41c255279"
+ },
+ {
+  "video_id": "0437cf5f-5014-47d6-b4b3-f299380aa688",
+  "dim": "egoschema",
+  "stem": "While performing repetitive actions, were there any key deviations that had significant impact on the overall process? explain what was different about them and why they were important in the context of the video.",
+  "options": {
+   "A": "While performing repetitive actions, there were no key deviations that had significant impact on the overall process.",
+   "B": "While performing repetitive actions, there was a key deviation that had a significant impact on the overall process. the character accidentally dropped one of the books.",
+   "C": "While performing repetitive actions, there was a key deviation that had a significant impact on the overall process. the character ran out of cleaning supplies.",
+   "D": "While performing repetitive actions, there was a key deviation that had a significant impact on the overall process. the character got tired and had to take a break.",
+   "E": "While performing repetitive actions, there was a key deviation that had a significant impact on the overall process. the character found a book that they were interested in and started reading it."
+  },
+  "answer": "A",
+  "item": "egc151|0437cf5f-5014-47d6-b4b3-f299380aa688"
+ },
+ {
+  "video_id": "b5d7c421-2b86-4ed0-b314-ce810c778c47",
+  "dim": "egoschema",
+  "stem": "Identify the main action performed by c throughout the video and provide a brief explanation of the pattern of behavior exhibited by c over time?",
+  "options": {
+   "A": "Casually, c turns slightly towards the side direction.",
+   "B": "C paints a board with a paint brush.",
+   "C": "C holds paint brushes.",
+   "D": "Casually, c takes a few leisurely steps forward, walking.",
+   "E": "Casually, c glances over and examines the laptop screen closely."
+  },
+  "answer": "B",
+  "item": "egc152|b5d7c421-2b86-4ed0-b314-ce810c778c47"
+ },
+ {
+  "video_id": "61e8261b-3c01-4c25-b293-80fad4083edb",
+  "dim": "egoschema",
+  "stem": "Describe the main tasks that c is performing in this video and how these tasks are related to each other.",
+  "options": {
+   "A": "C is repairing a roof.",
+   "B": "C is cleaning a roof.",
+   "C": "C is installing a roof.",
+   "D": "C is painting a roof.",
+   "E": "C is installing solar panels on a roof."
+  },
+  "answer": "C",
+  "item": "egc153|61e8261b-3c01-4c25-b293-80fad4083edb"
+ },
+ {
+  "video_id": "a4bf0ad8-0ea8-40f5-bdf4-fc0a39a61d65",
+  "dim": "egoschema",
+  "stem": "Explain the primary purpose of the actions taken by c involving the test tubes, containers, and the sterilizer machine.",
+  "options": {
+   "A": "C was carefully cleaning up the area after conducting a laboratory experiment.",
+   "B": "C was storing a solution for future use.",
+   "C": "In the laboratory, scientist c was cautiously disposing of a potentially harmful chemical solution.",
+   "D": "In the lab, c was meticulously testing a potential solution.",
+   "E": "C was preparing a solution for a laboratory experiment."
+  },
+  "answer": "E",
+  "item": "egc154|a4bf0ad8-0ea8-40f5-bdf4-fc0a39a61d65"
+ },
+ {
+  "video_id": "478c970e-3ca2-492a-8af7-f442d8255971",
+  "dim": "egoschema",
+  "stem": "What were the primary steps c took to prepare and taste the paste in the blender before and after adding a new ingredient?",
+  "options": {
+   "A": "Casually, c added a specific powder to the blender, swiftly turned on the blender, carefully tasted the paste, and then added more powder as needed.",
+   "B": "C added a powder to the blender, turned on the blender, tasted the paste, and turned off the blender.",
+   "C": "Casually, c added a powder to the blender, then turned on the blender, carefully tasted the paste, and finally added more water.",
+   "D": "Casually, c added some powder to the blender, switched on the blender, tasted the semi-solid paste, and incorporated extra vegetables.",
+   "E": "C added a powder to the blender, turned on the blender, tasted the paste, and added more oil."
+  },
+  "answer": "B",
+  "item": "egc155|478c970e-3ca2-492a-8af7-f442d8255971"
+ },
+ {
+  "video_id": "abc71897-eb92-4236-a92b-ca2d0573aa45",
+  "dim": "egoschema",
+  "stem": "Provide a summary of the primary goal of the main character (c) in the video and identify the key events associated with the achievement of that goal.",
+  "options": {
+   "A": "The main character's principal objective, their primary goal, is to construct and build a house for themselves.",
+   "B": "Throughout the story, the main character's primary objective is to diligently fix a severely broken foundation.",
+   "C": "The main character's primary goal is to build a foundation. the key events associated with the achievement of that goal are:",
+   "D": "The primary objective of the main character is to create and complete a unique, artistic sculpture.",
+   "E": "The main character's primary goal is to play with the cement."
+  },
+  "answer": "C",
+  "item": "egc156|abc71897-eb92-4236-a92b-ca2d0573aa45"
+ },
+ {
+  "video_id": "455ec904-69ad-4f53-829b-c1eb2ffab59a",
+  "dim": "egoschema",
+  "stem": "What was the primary objective of c throughout the video, and how did the choice of tools evolve to accomplish this goal?",
+  "options": {
+   "A": "In the video, c's primary objective all along was essentially to plant a single tree successfully.",
+   "B": "C's primary objective throughout the video was to dig a hole.",
+   "C": "C's primary objective pursued throughout the entire video was to effectively remove unwanted weeds.",
+   "D": "Throughout the video, c's primary objective was to consistently level the ground effectively.",
+   "E": "C's primary objective throughout the video was to test the soil."
+  },
+  "answer": "B",
+  "item": "egc157|455ec904-69ad-4f53-829b-c1eb2ffab59a"
+ },
+ {
+  "video_id": "66ae46ba-63c5-41b1-ab18-33a5561660f9",
+  "dim": "egoschema",
+  "stem": "How did c's process in the kitchen reflect effective organization and management of items on the counter and inside the fridge? provide specific examples to support your answer.",
+  "options": {
+   "A": "C did not organize the items on the counter and inside the fridge. he simply placed them wherever he could find space.",
+   "B": "C organized the items on the counter and inside the fridge by placing them in logical locations. for example, he placed the flour on the steel wall cabinet, the water bottle on the sink top, and the chips on the shelf. he also placed the jug under the running tap, the bag of flour under the table, and the bin under the desk.",
+   "C": "Carefully, c organized the items on the counter and inside the fridge by color coordination. for instance, he placed the flour on the steel wall cabinet, the water bottle strategically on the sink top, and the chips neatly on the shelf. moreover, he also placed the jug under the running tap, the bag of flour securely under the table, and the bin conveniently under the desk.",
+   "D": "Carefully, c organized the items on the counter and inside the fridge by size. for instance, he placed the flour on the steel wall cabinet, the water bottle on the space-saving sink top, and the crunchy chips on the shelf. moreover, he strategically placed the jug under the running tap, the bag of flour under the sturdy table, and the bin under the wooden desk.",
+   "E": "Carefully, c organized the items on the counter and inside the fridge methodically by type. for instance, he deliberately placed the flour on the steel wall cabinet, the water bottle on the sink top, and the chips on the shelf. additionally, he also positioned the jug under the running tap, the bag of flour under the table, and the refuse bin under the desk."
+  },
+  "answer": "B",
+  "item": "egc158|66ae46ba-63c5-41b1-ab18-33a5561660f9"
+ },
+ {
+  "video_id": "95688752-a39c-4863-b6f6-58847cc04640",
+  "dim": "egoschema",
+  "stem": "Describe the overall process of preparing the dish in this video, focusing on the most important steps in creating the final product.",
+  "options": {
+   "A": "Carefully, c places the fresh cucumber, onion, and capsicum precisely in a mixing bowl.",
+   "B": "Carefully, c cuts the cucumber, onion, and capsicum, and then places them into a blender for mixing.",
+   "C": "C places the cucumber, onion, and capsicum in a frying pan.",
+   "D": "Carefully, c places the fresh cucumber, onion, and colorful capsicum into a large salad bowl.",
+   "E": "C cuts the cucumber, onion, and capsicum, and then places them on a plate."
+  },
+  "answer": "E",
+  "item": "egc159|95688752-a39c-4863-b6f6-58847cc04640"
+ }
+]

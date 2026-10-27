@@ -1,11 +1,14 @@
 """Unit tests for scripts/index_qa (TempCompass parsing, windows, answer parsing). No data or API needed."""
+import io
 import sys
+import zipfile
 from pathlib import Path
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
+from index_qa import egoschema as ego  # noqa: E402
 from index_qa import tempcompass as tc  # noqa: E402
 from index_qa.caption import GEMINI_LEAD, frame_clip, frames_prompt, prompt_for  # noqa: E402
 from index_qa import reader  # noqa: E402
@@ -331,3 +334,56 @@ def test_open_reader_is_c12_and_reads_own_folder():
     assert all(a.split(":")[0] == "qwen" for a in reader.C12_ARMS)
     assert {t[1] for t in reader.C12_TERMS} | {t[2] for t in reader.C12_TERMS} <= set(reader.C12_ARMS) | {
         "haiku:sonnetcaptions", "haiku:blind"}
+
+
+EGO_ID = "0074f737-11cb-497d-8d07-77c3a8127391"
+
+
+def test_egoschema_ids_route_to_their_own_files():
+    assert tc.is_ego(EGO_ID) and not tc.is_ego("1098153561_concat_0") and not tc.is_ego("123")
+    assert tc.video_path(EGO_ID) == tc.EGO / f"videos/{EGO_ID}.mp4"
+    assert tc.frame_path(EGO_ID, 35, 4) == tc.EGO / f"frames/{EGO_ID}/35_4.jpg"
+    assert tc.video_path("123") == tc.VIDEOS / "123.mp4"
+    assert len(tc.windows(180.0)) == 36 and sum(len(tc.frame_times(s, e)) for s, e in tc.windows(180.0)) == 180
+
+
+def test_egoschema_parse_row():
+    q = ego.parse_row(" What is C doing? ", ["A. C is cooking.", "B. C cleans.", "C. x", "D. y", "E. z"], "3")
+    assert q == {"stem": "What is C doing?", "options": {"A": "C is cooking.", "B": "C cleans.", "C": "x", "D": "y",
+                                                          "E": "z"}, "answer": "D"}
+    with pytest.raises(ValueError):
+        ego.parse_row("Q?", ["B. x", "A. y"], "0")  # letters out of order
+
+
+def test_egoschema_sets_are_disjoint_and_skip_the_pilot(monkeypatch):
+    monkeypatch.setattr(ego, "SIZES", {"ego_dev": 3, "ego_confirm": 5})
+    ids = [f"{k:08x}-0000-0000-0000-000000000000" for k in range(12)] + list(ego.EXCLUDED)
+    qs = [dict(video_id=v, dim="egoschema", stem="Q?", options={"A": "x"}, answer="A") for v in ids]
+    dev, conf = ego.sample(qs, "ego_dev"), ego.sample(qs, "ego_confirm")
+    assert len(dev) == 3 and len(conf) == 5
+    assert not {q["video_id"] for q in dev} & {q["video_id"] for q in conf}
+    assert not {q["video_id"] for q in dev + conf} & set(ego.EXCLUDED)
+    assert dev[0]["item"] == f"egd000|{dev[0]['video_id']}" and conf[4]["item"].startswith("egc004|")
+    assert ego.sample(list(reversed(qs)), "ego_dev") == dev  # the input order does not matter
+
+
+def test_http_range_reads_a_zip_member(tmp_path):
+    zpath = tmp_path / "v.zip"
+    with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED) as z:
+        z.writestr("videos/a.mp4", b"x" * 5000)
+        z.writestr("videos/b.mp4", bytes(range(256)) * 40)
+    data = zpath.read_bytes()
+
+    class Local(ego.HttpRange):
+        def __init__(self):
+            io.RawIOBase.__init__(self)
+            self.url, self.size, self.pos, self.calls = "local", len(data), 0, 0
+
+        def _get(self, start, end):
+            self.calls += 1
+            return data[start:end + 1]
+
+    f = Local()
+    z = zipfile.ZipFile(io.BufferedReader(f, buffer_size=64))
+    assert [i.filename for i in z.infolist()] == ["videos/a.mp4", "videos/b.mp4"]
+    assert z.read("videos/b.mp4") == bytes(range(256)) * 40 and f.calls > 1
