@@ -13,15 +13,34 @@ The newest session is at the top. Older sessions stay below because other docs l
 
 It stops itself on the quota guards and resumes after the 5-hour reset (`quota_wait.py`). Expect a few hours in all.
 
-**How to pick up:**
-1. `scripts/index_qa/run_e1.sh status` shows what is left. `pgrep -fa run_e1` shows whether it still runs.
-2. Logs: `logs/orchestrator_e1.log` (start, done, quota waits), `logs/e1_cap_{haiku,sonnet,whole}.log`, `logs/e1_read_{haiku,sonnet}.log`, `logs/run_e1.out`.
-3. If it stopped, for example after a reboot: run `setsid nohup scripts/index_qa/run_e1.sh run > logs/run_e1.out 2>&1 < /dev/null &` again. Everything resumes, because caption files are atomic and partial reader rows are rerun. `run_e1.sh stop` stops it.
-4. When the orchestrator log says "done", the next steps are:
-   - **Write the E1 analysis.** There's no `reader.py e1` yet. It should give accuracy per arm; E1's predicted terms with paired bootstrap CIs; the measured Q_BE at W = 36 against D5's projection; and the output and thinking tokens per arm against TempCompass. Note: the TempCompass analyses use `tc.video_type`, which raises on EgoSchema IDs, so the E1 analysis must not call them.
-   - Then write **E2** (`ego_confirm`, 160 questions; main tests with numeric predictions from E1). Commit it, push it, ask the user for the Software Heritage visit, and only then fetch the `ego_confirm` videos and frames (`egoschema.py fetch --set ego_confirm`, `tempcompass.py frames --set ego_confirm`; frames take ≈ 15 s per video) and run.
-   - **NExT-QA** is reassessed after E2 (`nextqa_plan.md`).
-5. Not committed yet: `scripts/index_qa/run_e1.sh`, E1's run notes in the log, and this handover.
+**Also running: E2's data, no calls** (started ≈ 13:45 UTC, detached).
+- It fetches the 160 `ego_confirm` videos (≈ 2.3 GB), then extracts their 28,800 frames (≈ 40–60 min).
+- The log is `logs/e2_prep.log`; its last line is "PREP DONE <time>" when finished.
+- If it stopped, run the same two commands again; both skip what is done:
+  `.venv/bin/python scripts/index_qa/egoschema.py fetch --set ego_confirm && .venv/bin/python scripts/index_qa/tempcompass.py frames --set ego_confirm`.
+- Fetching data before E2 is written is fine: no `ego_confirm` question has been read.
+
+**Runbook for the next session (in order):**
+
+1. **Is E1 done?**
+   - `scripts/index_qa/run_e1.sh status`: done when everything shows 0 left. `pgrep -fa run_e1` shows whether it still runs. `tail logs/orchestrator_e1.log` says "done" at the end, or shows the quota waits.
+   - If it stopped without finishing (a reboot, or the 7-day guard at 0.9), resume with `setsid nohup scripts/index_qa/run_e1.sh run > logs/run_e1.out 2>&1 < /dev/null &`. Caption files are atomic and partial reader rows are rerun. If the 7-day guard stopped it, ask the user before resuming. `run_e1.sh stop` stops everything.
+   - Logs: `logs/orchestrator_e1.log`, `logs/e1_cap_{haiku,sonnet,whole}.log`, `logs/e1_read_{haiku,sonnet}.log`. The reader logs fill only when each reader round ends, because grep buffers its output.
+2. **Measure E1's quota use** before deciding E2's size. Compare the first and last `util_7d` and `util_5h` in E1's rows (`results/index_qa/self_captions.jsonl` and `results/index_qa/claude/{haiku,sonnet}.jsonl`, items starting `egd`), and the list-price total. E2 at 160 videos costs ≈ 4× E1 (≈ $35 list).
+3. **Write the E1 analysis.** Add `cmd_e1` to `reader.py`, run it once, and save the output to `results/index_qa/reports/e1.txt`. It should report:
+   - accuracy per arm, with 95% paired bootstrap CIs (`paired_boot`, one question per video);
+   - E1's predicted terms against their predictions (the E1 table);
+   - Q_BE for Haiku on Sonnet captions vs. Sonnet on frames, measured at W = 36, against D5's 7.5, with `qstar_boot` (the code keeps its old name) and the index cost per video from `index_usd`;
+   - output and thinking tokens per arm, against TempCompass, to test D5's assumption that they stay constant.
+
+   Don't call the TempCompass analyses: `tc.video_type` raises on EgoSchema IDs. Write the result into log E1 (*Result*), then commit.
+4. **Decide E2 with the user:**
+   - its size: 160 videos as sampled, or the first N of `ego_confirm`, keeping its order. That is a pre-run decision, so it is allowed;
+   - or a cheaper Sonnet captioning setting. This is not recommended, because it changes the captioner against TempCompass.
+5. **Write E2** in the log: the arms (E1's); the main tests (captioner effect, Haiku's modality, the cap, at 98.33% for three); numeric predictions from E1; Q_BE; stop rules.
+   - Write `run_e2.sh`: copy `run_e1.sh` and change `ego_dev` to `ego_confirm` and `e1` to `e2`.
+   - Commit, push, and ask the user for the Software Heritage visit. Then start it with `setsid nohup` as above.
+6. **After E2:** analysis (`cmd_e2`), the paper section (length; the main text must stay at 8 pages), and reassess NExT-QA (`nextqa_plan.md`).
 
 **Quota (watch this).**
 - The first 3 minutes moved the 5-hour window from 0.11 to 0.20. That figure includes this session's own Opus use.

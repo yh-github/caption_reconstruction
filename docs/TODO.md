@@ -17,7 +17,8 @@ Paper: `docs/paper/acl2027/caption_index.tex` (source of truth; build with `late
   - [x] `egoschema.py`; samples `ego_dev` (40) and `ego_confirm` (160); E1 written and pushed (`00cf257`); Software Heritage visit requested by the user.
   - [ ] **E1 development run: RUNNING** since 2026-10-27 13:20 UTC (`scripts/index_qa/run_e1.sh status`; handover).
   - [ ] E1 analysis (`reader.py e1`, to write): accuracy per arm, predicted terms with CIs, Q_BE at W = 36 against D5.
-  - [ ] E2 entry (confirmatory, 160 questions) with numeric predictions from E1; commit, push, Software Heritage; then fetch, frames, run, analysis.
+  - [ ] E2 data: `ego_confirm` videos and frames, **running** since 2026-10-27 ≈ 13:45 UTC (`logs/e2_prep.log`; no calls).
+  - [ ] E2 entry (confirmatory; size decided from E1's quota use) with numeric predictions from E1; `run_e2.sh`; commit, push, Software Heritage; run; analysis. The step-by-step runbook is in the handover.
   - [ ] Reassess NExT-QA; query-ready captions (plan §4, stage C).
   - [ ] Paper: a length / second-benchmark section (the main text must stay at 8 pages).
 
