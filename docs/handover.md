@@ -11,8 +11,20 @@ The newest session is at the top. Older sessions stay below because other docs l
   - Claim 2a holds at the boundary: Qwen − Haiku on Sonnet captions −0.047 [−0.094, +0.000]; two-clip −0.29, stacked −0.17.
   - 49 refusals (2%) are scored as wrong; dropping them moves every term by ≤ 0.02 (log, labelled as added after the result).
 - **Paper (`caption_index.tex`):** Qwen is in the abstract, intro, contributions, Setup, §4.1, §4.2 and the cap, a new *open-weights reader* paragraph in §4.7, Table 2 (5 Qwen rows, no cost), limitations, and the bib (`qwen25vl`). The generated appendix table has Qwen's rows; `reader.py tables` now labels Qwen's `selfcaptions` as "Haiku captions". It compiles (15 pages). Fig. 3 does not show Qwen yet.
-- **Done by the user (2026-10-26):** TeX Live installed; the pre-registration archive made. Its link is still to be added to §2.4 and the release appendix.
-- **Next:** the review (draft review notes 2 and 4), then the main-text cut and prose.
+- **Done by the user (2026-10-26):** TeX Live installed. The pre-registration archive is Software Heritage: https://archive.softwareheritage.org/browse/origin/directory/?origin_url=https://github.com/yh-github/caption_reconstruction&visit_type=git
+  - Its only visit so far is 2026-10-26 17:20 UTC (snapshot `4fd5ea13…`, `main` = `0f5c2ae`), after every run including C12. So it proves the history existed by then, not that predictions came before runs. C12's pre-run evidence is the GitHub push at 13:11 UTC (activity API).
+  - **For any new entry:** push it, then request a Software Heritage "Save code now" visit before the run, so the entry gets a third-party timestamp.
+  - The URL names the GitHub account, so the paper says "identifier withheld for review" (§2.4 and Appendix F).
+- **Main-text cut done (2026-10-27; review notes 2 and 4, user's decisions: reconstruction phase to the appendix; Fig. 1 stays and the Q\* table goes to the appendix).** The main text ends on page 8 (Limitations starts page 9). Setup, Theory, Related work and Discussion are now prose; the Conclusion is written. A new Appendix "Additional results" (`app:extra`) holds the variant arms (Table `tab:variants`), Q\*, the Haiku headroom table, visual budget, 448 px frames, window length, resampling, P1, thinking, retention of every index, the open reader in detail, the audit by type, more on cost, and the reconstruction phase. TimeBlind is cited (arXiv 2602.00288). No overfull boxes.
+- **Still missing in the paper** (all appendix; `\pending` marks):
+  1. Appendix B: the development phase, and every term with its prediction and result (§2.4 promises it).
+  2. Appendix C: amendments and deviations (including C12's).
+  3. Appendix D: effects by video type with clustered CIs.
+  4. Appendix E: minimal-pair construction and results by group.
+  5. Appendix F: an anonymized code link for review.
+  - Optional: Qwen in Fig. 3. Before submission: repeat literature Q7.
+- `caption_index.tex` is now the source of truth; `caption_index_draft.md` keeps the claims table only.
+- **Next:** fill Appendices B–E from the log and the reports.
 
 # 2026-10-26 → C12 (open-weights reader) ready for Kaggle; ACL template; draft fixes
 

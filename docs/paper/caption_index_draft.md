@@ -301,7 +301,7 @@ In short, a caption index trades 0–9 points of accuracy against the strong rea
 
 ### Review notes on §4–5 (delete after review)
 
-Decided 2026-10-26 (the user accepted the recommendations): notes 1, 5 and 6 are applied; 2 and 4 wait until the main-text cut; 3 is done at assembly.
+Decided 2026-10-26 (the user accepted the recommendations): notes 1, 5 and 6 are applied; 2 and 4 wait until the main-text cut; 3 is done at assembly. **2026-10-27: notes 2, 3 and 4 are applied in `acl2027/caption_index.tex`** (main text cut to 8 pages; the Q\* table moved to the appendix), which is now the paper's source of truth.
 
 1. ~~**Headline numbers moved with C10 and C11.**~~ Applied: the claims table's headline, claim 3 and the abstract now say 23–26× and Q\* 1.2–3.7 (1/23 to 1/25 for the per-window indexes; 1/22 on Haiku's self-captions).
 2. **C11 is now reported in §4.5**, so §8.1 can keep the interpretation (the question-blind → task-aware → question-aware gradient) and drop the repeated numbers. *Waits for the main-text cut.*
