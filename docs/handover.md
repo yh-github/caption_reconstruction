@@ -2,6 +2,16 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
+# 2026-10-27 (late) → external review applied; Q\* by video length (log D5); planning a strengthening round
+
+- **Review:** `docs/new_direction/argon_review.md` (Gemini). The fixes applied are listed in log D5. The main text still ends on page 8, with 16 pages in total, no overfull boxes and no undefined references.
+- **New analysis (D5, no calls):** Q\* projected to longer videos. The saving per question grows with length, but Q\* doesn't fall. For the reader downgrade, Q\* rises from 1.8–3.7 to 4.5–8.9 at 1 min.
+- **Open with the user:** how to strengthen the paper before ARR:
+  - a second, natural benchmark;
+  - longer videos;
+  - smarter question-blind captions (structured, or listing anticipated questions) against the generic prompt.
+  - Not decided yet. Any run needs a log entry with predictions, pushed and archived on Software Heritage, before its first call.
+
 # 2026-10-27 (end) → paper complete except the review link; no experiments left
 
 **Start here: `docs/paper/acl2027/caption_index.pdf`** (build: `latexmk -pdf caption_index.tex` in `docs/paper/acl2027/`). The checklist is section C at the top of `docs/TODO.md`.

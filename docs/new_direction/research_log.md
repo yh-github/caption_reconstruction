@@ -1486,6 +1486,45 @@ No new calls. These analyses are descriptive: the point estimates of Table 5 (dr
 - **Haiku's retention by video type stays unreported,** as D3 decided (the stacked CI is unbounded); the paper's Haiku headroom table gives retention overall only.
 - **Number audit:** every decimal number in `caption_index.tex` appears in this log, in `results/index_qa/reports/*.txt`, or (for the reconstruction phase) in `docs/TODO.md`, except simple derivations (0.185 = 0.798 − 0.613; 1.76 = 2,676 / 1,520; 3.6 = 720 / 200; cost columns scaled by 10³ or 10⁴; 0.021 above).
 
+### D5 — Q\* by video length, and fixes from an external review (2026-10-27; no calls, logged tokens only)
+
+**Why.** An external review of the PDF (Gemini, `docs/new_direction/argon_review.md`) pointed out that on ~10 s clips the fixed reader prompt (≈ 1,025 tokens) dominates the input, so the same-reader savings and Q\* may not carry over to longer videos. The analysis was not predicted in advance; it is descriptive.
+
+**Method** (`reader.py cost`, function `qstar_by_length`; output in `results/index_qa/reports/cost.txt`):
+- An arm's cost per question at W windows is its measured mean plus its input tokens per window, at its input price, times (W − mean W).
+- The input tokens per window are the slope of input tokens on W. That slope is exact by construction: frames 200; captions 63–87.
+- Output and thinking tokens stay at their mean. This is an assumption. On these clips, output falls with W, but that is confounded with video type (stacked and two-clip videos are short).
+- The index costs its mean per window times W, since each window is its own call. The reader reads every window.
+- Check: at the mean W = 2.56 the projection reproduces the measured Q\* (202.7, 5.9, 2.3).
+
+**Results** (Q\* at W = 2.56 / 12 / 120 / ∞; cost per question, captions ÷ frames, at 2.56 / 12 / 120):
+
+| Index vs. frames | Q\* | cost ratio |
+|---|---|---|
+| Haiku on Gemini video captions vs. Haiku | 203 / 212 / 214 / 214 | 0.82 / 0.59 / 0.38 |
+| Sonnet on Gemini video captions vs. Sonnet | 5.9 / 9.1 / 10.5 / 10.7 | 0.70 / 0.53 / 0.37 |
+| Sonnet on own captions vs. Sonnet | 8.9 / 13.5 / 15.4 / 15.6 | 0.75 / 0.60 / 0.46 |
+| Haiku on Gemini video captions vs. Sonnet | 1.8 / 4.5 / 6.8 / 7.2 | 0.04 / 0.03 / 0.02 |
+| Haiku on Gemini frame-clip captions vs. Sonnet | 1.9 / 4.7 / 7.1 / 7.5 | 0.04 / 0.03 / 0.02 |
+| Haiku on Sonnet captions vs. Sonnet | 2.3 / 5.6 / 8.5 / 9.1 | 0.04 / 0.03 / 0.02 |
+| Haiku on Gemini frame captions vs. Sonnet | 3.7 / 8.9 / 13.6 / 14.5 | 0.04 / 0.03 / 0.02 |
+
+**Reading.**
+- The review was half right. The saving per question does grow with length. Q\* does not fall, because the captioning cost grows with every window too: Q\* → k / (s_f − s_τ).
+- Q\* rises for Sonnet and for the reader downgrade. Their short-clip savings partly came from per-question costs that don't scale with W: the expensive reader's fixed prompt, and its thinking.
+- Halving caption tokens would change s_f − s_τ by only ≈ 20–30%. The captioning cost k decides the long-video Q\*: thinking is ≈ 87% of a Gemini caption call.
+- A reader that retrieves a few windows saves less per question, so for it these Q\* are lower bounds.
+
+**Paper changes (same day):**
+- §2.3 now defines the four effects in prose.
+- §3 sets Propositions 1–3 apart, gives Q\* as a display equation, and adds its limit as W grows.
+- §5 has a short "Longer videos" paragraph; the full projection is in Appendix E.
+- The cost figure spans two columns with legible labels. The question-only points are dropped and given in the caption.
+- The abstract and intro state the plain-video result early (retention 0.95; index loss ≈ 0.01).
+- Limitations is now prose, without run codes, and says that every caption follows one generic prompt.
+- The symbol Q\* is now Q_BE (macro `\qbe`), named "the break-even quantity" where it is defined. Q\* usually means an optimal quantity (e.g. EOQ), and this is not one. This log and `reader.py` keep "Q\*".
+- Cuts to stay at 8 pages: Discussion merged into one section; the intro, open-reader, audit and Conclusion paragraphs shortened; the reference-similarity point is left to Appendix E.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
