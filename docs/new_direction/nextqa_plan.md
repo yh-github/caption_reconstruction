@@ -35,7 +35,7 @@ The CLI confound is already answered by the Qwen reader (C12), so it is not a go
 - Weak temporal headroom. Many NExT-QA questions can be answered from one frame: the ATP study (Buch et al., CVPR 2022) found this and defined an "ATP-hard" subset. We would stratify on it (the file still has to be found) and run a 1-frame arm to measure the headroom.
 
 **For length, the honest option is EgoSchema** (§5). It has 3-minute videos, 36 windows each, and is the standard long-form benchmark for caption pipelines (LLoVi, VideoTree).
-- An earlier concern was wrong: the API takes up to 600 images per request for 1M-context models (Haiku 5.5, Sonnet 5.5). Above 20 images, each must be ≤ 2000 px per side, and ours are 224 px. So 180 frames fit in one call, and the design where the captioner sees exactly the reader's frames still holds. Whether `claude -p` passes 180 images is the first thing a pilot checks.
+- An earlier concern was wrong: the API takes up to 600 images per request for 1M-context models (Haiku 5.5, Sonnet 5.5). Above 20 images, each must be ≤ 2000 px per side, and ours are 224 px. So 180 frames fit in one call, and the design where the captioner sees exactly the reader's frames still holds. A pilot call through `claude -p` confirmed it (§5, log D6).
 - Hour-long video (Video-MME long, LVBench) means thousands of frames. The frame arm would have to subsample, which changes the question to *coverage*: the index has seen frames the reader can't afford. That is a different paper, and the Limitations section should say so.
 
 ## 3. Which claims each result strengthens or weakens
@@ -91,10 +91,18 @@ Every row can come out against us. That is the point: the paper is stronger with
 - D5 says caption length barely moves Q_BE. So these designs should aim for coverage of facts that answer questions, not brevity.
 - The same two designs run on the 297 TempCompass questions too (≈ 600 Sonnet captions, ≈ 1,200 reads), to see whether they recover the stacked and reversed losses.
 
-## 5. Stage D: EgoSchema, the length test (optional, after B)
+## 5. Stage D: EgoSchema, the length test
+
+**Update (2026-10-27): the user chose EgoSchema first; NExT-QA is reassessed afterwards.**
+- Samples: `ego_dev` 40 and `ego_confirm` 160 (`egoschema.py`, seed 0).
+- Development run: log E1. Confirmatory: E2, written after E1's result.
 
 - `lmms-eval/egoschema`, MIT licence, ungated. The 500-question "Subset" has public answers (checked 2026-10-27). Every video is 180 s, so 36 windows.
-- The videos are in five zips of ≈ 21 GB each (106 GB). Fetch only the 150 videos we need by HTTP range requests into the zips. This is to be tested; the fallback is to download one chunk at a time.
+- The videos are in five zips of ≈ 21 GB each (106 GB). **Partial download works (tested 2026-10-27, log D6):** HTTP range requests read each zip's central directory in ≈ 2.5 s, all 500 subset videos are found (101/92/91/118/98 per chunk), and one video (14 MB) extracts in 3 s. So 200 videos is ≈ 3 GB and minutes, not 106 GB.
+- **A 180-image call works (D6):** one Haiku call through `claude -p`, with every frame of a 180 s video built like `reader.build`'s 5-frames arm.
+  - The video is 480×360, so the frames are 224×168, 48 tokens each.
+  - 180 images, a 3.6 MB message, 10,897 input tokens, 265 output tokens (254 of them thinking), 5 s, $0.0012 at list price. The answer was correct.
+  - That video (`8345d177-0ed4-4965-8455-bd17d2b42399`) is excluded from every sample.
 - Sample: 150 questions on 150 videos (one question per video). Arms: question only; 5 frames (180 images per call); self-captions; Sonnet captions; Haiku and Sonnet reading.
 - **What it tests:**
   - The cost model at W = 36. D5 projects Q_BE 7.5 for Haiku on Sonnet captions vs. Sonnet on frames, and a cost per question 1/30 of Sonnet's.

@@ -2,6 +2,16 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
+# 2026-10-27 (night) → EgoSchema first (user's decision); pipeline ready; E1 written
+
+**Start here: research log E1.**
+- **Pipeline.** `scripts/index_qa/egoschema.py` samples the question sets and fetches only the needed videos from the 106 GB of zips (HTTP range requests, ≈ 3 s per video). `tempcompass.py` routes UUID video IDs to `local/egoschema/`, so `self_caption.py` and `reader.py` work with `--set ego_dev` and `--set ego_confirm` unchanged. There are 4 new tests (41 pass).
+- **Samples.** `ego_dev` 40 and `ego_confirm` 160 are drawn and tracked in git. The dev videos and frames are on disk.
+- **Before E1's first call:**
+  - commit E1, push, and request a Software Heritage "Save code now" visit (the user's go is needed for the push and the archive request);
+  - then run Haiku and Sonnet captioning (≈ 2,920 calls) and the reads (360).
+- **NExT-QA** is reassessed after E2.
+
 # 2026-10-27 (late) → external review applied; Q\* by video length (log D5); planning a strengthening round
 
 - **Review:** `docs/new_direction/argon_review.md` (Gemini). The fixes applied are listed in log D5. The main text still ends on page 8, with 16 pages in total, no overfull boxes and no undefined references.

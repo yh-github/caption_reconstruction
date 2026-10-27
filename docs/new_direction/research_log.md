@@ -1525,6 +1525,67 @@ No new calls. These analyses are descriptive: the point estimates of Table 5 (dr
 - The symbol Q\* is now Q_BE (macro `\qbe`), named "the break-even quantity" where it is defined. Q\* usually means an optimal quantity (e.g. EOQ), and this is not one. This log and `reader.py` keep "Q\*".
 - Cuts to stay at 8 pages: Discussion merged into one section; the intro, open-reader, audit and Conclusion paragraphs shortened; the reference-similarity point is left to Appendix E.
 
+### D6 — EgoSchema feasibility: partial download and a 180-image call (2026-10-27; 1 Haiku call, not data)
+
+**Why.** These checks decide whether EgoSchema (3 min, 36 windows) can be the length test in `nextqa_plan.md`. The user approved one pilot call. It was a feasibility check, not an experiment, so there is no prediction. Its question is out of every future sample.
+
+- **Data.** `lmms-eval/egoschema` (redirected from `lmms-lab`), MIT licence, ungated. The "Subset" split has 500 questions with answers, one per video, with 5 options.
+- **Partial download.** HTTP range requests on the five zips (20–21 GB each, 5,031 mp4 in total).
+  - Each zip's central directory reads in ≈ 2.5 s (4 requests, 0.1 MB).
+  - All 500 subset videos are found: 101, 92, 91, 118 and 98 per chunk.
+  - One video (14.2 MB, deflate) extracted in 3.2 s, fetching 14.7 MB.
+  - The test script is in the session scratchpad; a repo version is to be written with the loader.
+- **The 180-image call.** One Haiku call (`claude -p`, effort medium, the reader's system prompt), with the frames arm built like `reader.build`'s `frames5`. Video `8345d177-0ed4-4965-8455-bd17d2b42399`:
+  - The video is 480×360, 30 fps, 180.0 s, so 36 windows and 180 frames of 224×168 (48 tokens each).
+  - The message was 3.6 MB.
+  - Return code 0; 10,897 input tokens; 265 output tokens (254 of them thinking); 5.0 s; CLI cost $0.00122.
+  - The answer was E, which is correct.
+- **Reading.** Both blockers are gone. Haiku on frames costs ≈ $0.0012 per question at W = 36. By D5's input slope, Sonnet would cost ≈ 20× that. **Video `8345d177-…` is excluded from every EgoSchema sample.**
+
+### E1 — EgoSchema development run (written 2026-10-27, committed before any E1 call)
+
+**Status.** A development run, as K0–K2 were for TempCompass. It fixes nothing in the prompts, which are TempCompass's, unchanged. It sets the numeric predictions of the confirmatory run (E2, a separate entry written after E1's result). The user chose EgoSchema first on 2026-10-27, with NExT-QA to be reassessed afterwards (`nextqa_plan.md`).
+
+**Why.** The paper's videos are short (2.6 windows on average). E1–E2 test the claims at 36 windows, where the reader must keep 180 frames apart and where D5's cost projection can be checked.
+
+**Data and sample** (`egoschema.py`, seed 0, drawn before any call on these videos):
+- `ego_dev`: 40 questions on 40 videos. `ego_confirm`: 160 questions on 160 other videos. Both are in git.
+- Every video is 180 s, so 36 windows of 5 frames: 1 per second, 224×168, 48 tokens each.
+- Five options per question; chance is 0.20. One question per video, so a paired bootstrap over questions is also over videos.
+- The D6 pilot video is excluded.
+
+**Arms** (TempCompass's prompts and settings: `claude -p`, effort medium, isolated calls):
+
+| Reader | Arms |
+|---|---|
+| Haiku | question only; 1 frame per window (36 images); 5 frames (180 images); self-captions; Sonnet captions; Sonnet whole-video caption |
+| Sonnet | question only; 5 frames; Sonnet captions (its own) |
+
+Captioning:
+- Haiku and Sonnet each caption every window from its 5 frames (`self_caption.py`): 1,440 calls each.
+- Sonnet also writes one whole-video caption per video from all 180 frames (`--whole`, 40 calls). C10's prompt allows up to 72 sentences and 1,620 words at W = 36.
+
+**Volume:** ≈ 2,920 captioning calls and 360 reads; ≈ 1,600 of them Sonnet. Quota guards: 5-hour 0.7, 7-day 0.9.
+
+**Predictions** (40 questions, so a paired 95% CI is about ±0.15; these are rough, from TempCompass and D5):
+
+| Term | Prediction | Reasoning |
+|---|---|---|
+| Question only, Haiku and Sonnet | 0.40 each | Text-only readers are known to do well above chance on EgoSchema |
+| Haiku, 5 frames | 0.60 | |
+| Sonnet, 5 frames | 0.72 | |
+| Captioner effect: Haiku on Sonnet captions − on own | +0.06 | TempCompass +0.064 |
+| Modality: Haiku own captions − frames | +0.03 | 180 frames are hard to keep apart; per-window captions help, as on two-clip videos |
+| Modality: Sonnet own captions − frames | −0.04 | Gist questions written from narrations should suit captions better than TempCompass's built videos (−0.088) |
+| The cap: Haiku − Sonnet on Sonnet captions | 0.00 | TempCompass −0.003 |
+| Whole-video − per-window Sonnet captions, Haiku reading | 0.00 | C10 +0.013 |
+| 1 frame − 5 frames, Haiku | −0.03 | Gist questions; little gain from the extra frames |
+| Q_BE, Haiku on Sonnet captions vs. Sonnet on frames | 7.5 (D5 at W = 36) | If outside [5, 10], D5's assumption of constant output and thinking tokens fails at length. The D6 pilot's 265 output tokens, against ≈ 90 on TempCompass, already hint at this |
+
+**Stop rules.** Stop on any isolation failure. Stop if the first 5-frames call errors or exceeds the 900 s time limit. Stop if more than 5% of 180-image calls fail.
+
+**Then.** Write E2 (`ego_confirm`, 160 questions): main tests, numeric predictions from E1, and their CIs. Commit, push and archive it before any `ego_confirm` call.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
