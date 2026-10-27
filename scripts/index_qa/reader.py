@@ -1108,7 +1108,9 @@ def cmd_tables(args):
         lines.append("\\midrule")
         for c in cols:
             vals = [*by_t.loc[c], *by_a.loc[c], wide[c].mean()]
-            lines.append(f"{model.capitalize()}, {PAPER_ARMS[c.split(':')[1]]} & "
+            # selfcaptions are Haiku's; only Claude readers read their own under that arm (an open reader's are its own arm)
+            label = "Haiku captions" if model in OPEN_MODELS and c.endswith(":selfcaptions") else PAPER_ARMS[c.split(':')[1]]
+            lines.append(f"{model.capitalize()}, {label} & "
                          + " & ".join(f"{v:.2f}" for v in vals) + " \\\\")
     n_t = vtype.value_counts().reindex(tc.VIDEO_TYPES)
     n_a = aspect.value_counts().reindex(aspects)
