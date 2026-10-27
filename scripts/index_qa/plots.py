@@ -38,9 +38,12 @@ LABEL = {"blind": "question only", "frame1": "1 frame", "frames5": "5 frames", "
 # Caption variants left out of Fig. 1 (robustness checks, in Table 1): C9's 448 px, C10's whole-video and C11's
 # aspect-aware captions
 FIG1_SKIP = {"sonnetcaptions448", "sonnetwhole", "sonnetaspects"}
-# Label offsets (points) in the Q = inf panel, where the caption arms crowd at one cost; Sonnet labels go left
-OFFSET = {("haiku", "captions"): (5, 4), ("haiku", "frameclipcaptions"): (5, 0), ("haiku", "sonnetcaptions"): (5, -11),
-          ("haiku", "selfcaptions"): (5, -6), ("sonnet", "frames5"): (-6, 4)}
+# Label offsets (points) and alignment in the Q = inf panel, where the caption arms crowd at one cost; Sonnet labels
+# go left by default
+OFFSET = {("haiku", "captions"): (5, 4, "left"), ("haiku", "frameclipcaptions"): (5, 0, "left"),
+          ("haiku", "sonnetcaptions"): (5, -6, "left"), ("haiku", "selfcaptions"): (-5, -10, "right"),
+          ("haiku", "describe5"): (5, -10, "left"), ("haiku", "frames5_448"): (5, -9, "left"),
+          ("sonnet", "frames5"): (-6, 4, "right"), ("sonnet", "sonnetcaptions"): (-6, -14, "right")}
 
 
 def arm_costs():
@@ -85,13 +88,17 @@ def cmd_cost(args):
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     from matplotlib.lines import Line2D
+    from matplotlib.ticker import NullFormatter
     t = arm_costs()
     t = t[(t.n >= 290) & ~t.arm.isin(FIG1_SKIP)]  # arms with (nearly) every confirmatory question
     print(t.round(6).to_string(index=False))
+    t = t[t.arm != "blind"]  # question only (0.41 for both readers) is in the caption, so the y axis can start at 0.55
     qs = [1, 10, None]
-    fig, axes = plt.subplots(1, 3, figsize=(11, 4.2), sharey=True, gridspec_kw={"width_ratios": [1, 1, 1.8]})
+    # Spans both columns (figure*, \textwidth ≈ 6.3 in), so 8.5 in prints at ≈ 0.74: 8-9 pt here is ≈ 6-7 pt there
+    fig, axes = plt.subplots(1, 3, figsize=(8.5, 2.7), sharey=True, gridspec_kw={"width_ratios": [1, 1, 1.8]})
     for ax, Q in zip(axes, qs):
         style(ax)
+        ax.tick_params(labelsize=9)
         x = t.usd + (t["index"] / Q if Q else 0)
         for (_, r), xi in zip(t.iterrows(), x):
             cap = r.arm in R.CAPTIONERS
@@ -99,20 +106,23 @@ def cmd_cost(args):
                        edgecolor="white", linewidth=1.5, zorder=3)
             if Q is None:
                 left = r.model == "sonnet"  # the right edge of the panel: label to the left
-                dx, dy = OFFSET.get((r.model, r.arm), (-6, -9) if left else (5, -3))
-                ax.annotate(("Sonnet, " if left else "") + LABEL.get(r.arm, r.arm), (xi, r.acc),
-                            xytext=(dx, dy), textcoords="offset points", fontsize=6.5, color=INK,
-                            ha="right" if left else "left")
+                dx, dy, ha = OFFSET.get((r.model, r.arm), (-6, -9, "right") if left else (5, -3, "left"))
+                label = LABEL.get(r.arm, r.arm).replace("captions", "capt.")
+                ax.annotate(("Sonnet, " if left else "") + label, (xi, r.acc),
+                            xytext=(dx, dy), textcoords="offset points", fontsize=8, color=INK, ha=ha)
         ax.set_xscale("log")
+        ax.set_xlim(left=1e-4)  # from the cheapest arm's decade, so every panel shows whole decades
+        ax.xaxis.set_minor_formatter(NullFormatter())
+        ax.set_ylim(top=0.82)  # room for the top labels under the title
         ax.set_title(f"Q = {Q} question{'s' if Q > 1 else ''} per video" if Q else "per question only (Q → ∞)",
-                     fontsize=9, color=INK)
-        ax.set_xlabel("list-price $ per question", fontsize=8, color=MUTED)
-    axes[0].set_ylabel("accuracy (297 questions)", fontsize=8, color=MUTED)
+                     fontsize=10, color=INK)
+        ax.set_xlabel("list-price $ per question", fontsize=9, color=MUTED)
+    axes[0].set_ylabel("accuracy (297 questions)", fontsize=9, color=MUTED)
     handles = [Line2D([], [], marker="o", ls="", color=READER_COLOR["haiku"], label="Haiku reads"),
                Line2D([], [], marker="o", ls="", color=READER_COLOR["sonnet"], label="Sonnet reads"),
                Line2D([], [], marker="o", ls="", color=MUTED, label="frames (no index)"),
                Line2D([], [], marker="s", ls="", color=MUTED, label="captions (index)")]
-    fig.legend(handles=handles, loc="upper center", ncol=4, fontsize=8, frameon=False)
+    fig.legend(handles=handles, loc="upper center", ncol=4, fontsize=9, frameon=False)
     fig.tight_layout(rect=(0, 0, 1, 0.92))
     FIG.mkdir(parents=True, exist_ok=True)
     for ext in ("png", "pdf"):
