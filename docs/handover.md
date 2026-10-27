@@ -2,6 +2,18 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
+# 2026-10-27 → C12 done; paper updated; next is the review and the main-text cut
+
+**Start here: the log's C12 *Result*.**
+- **C12 (Qwen2.5-VL-7B, greedy, Kaggle 2×T4, 74 min):** imported (every prompt equal to `reader.build`'s), `reader.py c12` run once, `results/index_qa/reports/c12.txt`.
+  - Claim 1 replicates, larger: Sonnet − Qwen captions +0.125, cl. [+0.070, +0.182].
+  - Claim 2 holds, with a cost as for Sonnet: Qwen captions − frames −0.121 (predicted −0.01). Qwen reads frames better than Haiku (0.657 vs. 0.613) and is the weakest captioner.
+  - Claim 2a holds at the boundary: Qwen − Haiku on Sonnet captions −0.047 [−0.094, +0.000]; two-clip −0.29, stacked −0.17.
+  - 49 refusals (2%) are scored as wrong; dropping them moves every term by ≤ 0.02 (log, labelled as added after the result).
+- **Paper (`caption_index.tex`):** Qwen is in the abstract, intro, contributions, Setup, §4.1, §4.2 and the cap, a new *open-weights reader* paragraph in §4.7, Table 2 (5 Qwen rows, no cost), limitations, and the bib (`qwen25vl`). The generated appendix table has Qwen's rows; `reader.py tables` now labels Qwen's `selfcaptions` as "Haiku captions". It compiles (15 pages). Fig. 3 does not show Qwen yet.
+- **Done by the user (2026-10-26):** TeX Live installed; the pre-registration archive made. Its link is still to be added to §2.4 and the release appendix.
+- **Next:** the review (draft review notes 2 and 4), then the main-text cut and prose.
+
 # 2026-10-26 → C12 (open-weights reader) ready for Kaggle; ACL template; draft fixes
 
 **Start here: the log's C12 entry** (predictions written, committed in `7a65fb1` before any call).

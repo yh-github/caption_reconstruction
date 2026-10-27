@@ -1447,6 +1447,38 @@ No new calls. These analyses are descriptive: the point estimates of Table 5 (dr
 - Added after this entry (2026-10-26, descriptive, while the run was going): the run's log showed Qwen captions over the prompt's 45-word limit (47 and 57 words), so `reader.py c12` also prints words per caption and the share over the limit for every captioner (`caption_lengths`). Before Qwen, on the 761 confirmatory windows: Haiku self-captions median 45 words, 0.47 over the limit; Sonnet 42, 0.16; Gemini video, frame-clip and frame captions 29–31, none over. The most useful captions are the shortest, so caption length does not explain the captioner effect.
 - Already checked without a GPU (2026-10-26): the full round trip with fake outputs (every prompt equal to `reader.build`'s, then `c12` runs), and the runner's code path on CPU with a tiny random Qwen2.5-VL test model.
 
+**Result (2026-10-27; `open_reader.py import`, then `reader.py c12` run once; output in `results/index_qa/reports/c12.txt`).**
+- **Run:** Kaggle, 2×T4, float16 (`fp32_vision` not needed), transformers 5.14.1, model commit `cc59489`. Captions 14:19–15:01 UTC, reads 15:01–15:33 UTC (Kaggle's clock): 74 min in all, well under the 2–5 h expected. The GitHub activity API shows the first push of this entry at 13:11 UTC, before the run whose outputs were imported.
+- **Import:** 761 captions, 2,376 reads, and every logged prompt equal to `reader.build`'s.
+- **Unparsed: 49 of 2,376 (2%), scored as wrong.** None hit the token limit; they are refusals ("not enough information", `{"answer": "None"}`). By arm: own captions 15, Haiku captions 11, question only 7, Gemini video 5, Sonnet 4, Gemini frame 4, frame-clip 3, frames 0. So the rule slightly penalizes the caption arms.
+- **Qwen's captions:** median 30 words, 0.10 over the 45-word limit (max 154), 2 at the 200-token limit, none empty or ERROR. Median 160 visual tokens per window.
+
+| Term | Prediction | Result (95% CI over questions; clustered) |
+|---|---|---|
+| Accuracy: question only / frames / own captions / Sonnet captions / Gemini video captions | 0.40 / 0.58 / 0.57 / 0.66 / 0.70 | 0.397 / **0.657** / **0.535** / 0.660 / 0.697 |
+| **C12a modality: Qwen captions − frames** | **−0.01** | **−0.121** [−0.172, −0.071]; [−0.170, −0.074]. Plain −0.11, two-clip +0.02, reversed −0.19, stacked −0.20 |
+| **C12b captioner, Sonnet − Qwen captions** | **+0.09** | **+0.125** [+0.074, +0.175]; [+0.070, +0.182]. Plain +0.11, two-clip +0.04, reversed +0.26, stacked +0.02 |
+| C12c captioner, Haiku − Qwen captions | +0.05 | +0.067 [+0.020, +0.114]; [+0.019, +0.118] |
+| C12d Gemini frame-clip − Qwen captions | +0.08 | +0.152 [+0.098, +0.205]; [+0.097, +0.208] |
+| C12e Gemini frame − Qwen captions | +0.14 | +0.178 [+0.125, +0.236]; [+0.122, +0.239] |
+| C12f Gemini video captions − frames | +0.12 | +0.040 [−0.010, +0.091]; [−0.007, +0.085]. Two-clip +0.18, stacked −0.10 |
+| C12g cap: Qwen − Haiku on Sonnet captions | −0.05 | **−0.047** [−0.094, +0.000]; [−0.094, +0.000]. Plain +0.01, **two-clip −0.29** [−0.40, −0.17], reversed +0.07, **stacked −0.17** [−0.28, −0.05] |
+| C12h question only: Qwen − Haiku | 0.00 | −0.013 [−0.077, +0.051]; [−0.076, +0.047] |
+| Retention (clustered): own / Sonnet / Gemini video captions | 0.95 / 1.40 / 1.60 | 0.53 [0.34, 0.70] / 1.01 [0.85, 1.20] / 1.16 [0.98, 1.37] |
+
+- **Reading (rules set in advance):**
+  - **Claim 1 holds for an open reader:** C12b's CI is above 0, and is larger than Claude's C3a (+0.064). Every other captioner also beats Qwen's own captions (C12c–e).
+  - **Claim 2 holds:** C12a's upper bound (−0.071) is far below +0.09. The prediction (−0.01) missed by 0.11. The sign is the one Sonnet showed (−0.088), not Haiku's (+0.030).
+  - **Claim 2a holds at the boundary.** |C12g| = 0.047 ≤ 0.05, and the CI's upper bound is exactly 0.000 (32 questions lost and 18 gained of 297), so it includes 0 only as its endpoint. The failure rule (≤ −0.08 with a CI below 0) is not met. **Say:** Qwen reaches the cap overall but not on two-clip and stacked videos, the types where the answer must be combined across windows or across the two copies. The cap is reached on the plain and reversed questions.
+  - **Frames help Qwen** (+0.26 over question only, more than Haiku's +0.20), so the terms against `frames5` measure the modality, not a reader that cannot use 30 small images.
+- **Where the predictions went wrong (descriptive):**
+  - The predictions treated Qwen as a weaker Haiku. In fact, Qwen on frames beats Haiku on frames (0.657 vs. 0.613; plain 0.86 vs. 0.80), while Qwen as captioner is the weakest captioner in the study. Its own captions are below Haiku's self-captions even for Qwen as reader (C12c), and lose most on reversed (0.26) and stacked (0.24) videos.
+  - So the modality effect's sign follows reader strength on frames relative to the index, not model size: Haiku +0.03, Qwen −0.12, Sonnet −0.09. This is the cap of claim 2a again: a reader's own captions help only a reader that sits below them on frames.
+  - It runs against *Caption This, Reason That* (a 7B model gained +22 to +29 points from its own captions, on images). Our 7B reader loses 12 points on video.
+  - C12f (+0.04) is a third of its prediction for the same reason: Qwen's frames are strong.
+- **Sensitivity without the 49 refusals (added after the result; descriptive):** every reading holds, and the effects shrink by 0.01–0.02. Clustered: C12a −0.103 [−0.152, −0.055], C12b +0.106 [+0.052, +0.164], C12g −0.041 [−0.090, +0.010], C12h +0.000, own-caption retention 0.62 [0.43, 0.79].
+- **For the paper:** the closed-reader limitation gets an answer. The captioner effect and the absence of a modality gain replicate on an open model run with greedy decoding that anyone can rerun. The cap is reached by a 7B reader overall, but cross-window reasoning on text needs at least Haiku. Qwen's rows go into Table 2 (accuracy only; no cost, since the GPU is free) and the generated appendix table.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
