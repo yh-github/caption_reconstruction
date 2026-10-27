@@ -161,13 +161,15 @@ def cmd_readers(args):
              ("sonnetcaptions", ARM_COLOR["haiku:sonnetcaptions"], "-"), ("blind", MUTED, ":")]
     names = {"frames5": "5 frames", "captions": "Gemini video captions", "sonnetcaptions": "Sonnet captions",
              "blind": "question only"}
-    fig, ax = plt.subplots(figsize=(4.2, 3.6))
+    # readers in order of their accuracy on frames; Qwen (C12) only once its rows exist
+    readers = [m for m in ("haiku", "qwen", "sonnet") if f"{m}:frames5" in wide]
+    fig, ax = plt.subplots(figsize=(2.1 + 1.05 * len(readers), 3.6))
     style(ax)
     ax.grid(False, axis="x")
     for i, (arm, color, ls) in enumerate(lines):
-        xs = [x + (i - 1.5) * 0.04 for x in (0, 1)]  # dodge, so the CIs at one reader do not overlap
+        xs = [x + (i - 1.5) * 0.04 for x in range(len(readers))]  # dodge, so the CIs at one reader do not overlap
         pts = []
-        for x, model in zip(xs, ("haiku", "sonnet")):
+        for x, model in zip(xs, readers):
             col = wide[f"{model}:{arm}"].dropna()
             est, lo, hi = R.cluster_boot(col.tolist(), clus[col.index].tolist())
             pts.append(est)
@@ -176,13 +178,14 @@ def cmd_readers(args):
         ax.plot(xs, pts, color=color, linestyle=ls, linewidth=2, marker="o", markersize=8,
                 markeredgecolor="white", markeredgewidth=1.5, zorder=3)
         dy = {"frames5": 7, "captions": -5}.get(arm, 0)  # Sonnet on frames and on Gemini captions end 0.01 apart
-        ax.annotate(f"{names[arm]} {pts[1]:.2f}", (1.1, pts[1]), xytext=(4, dy), textcoords="offset points",
+        last = len(readers) - 1
+        ax.annotate(f"{names[arm]} {pts[-1]:.2f}", (last + 0.1, pts[-1]), xytext=(4, dy), textcoords="offset points",
                     fontsize=7.5, color=INK, va="center")
         ax.annotate(f"{pts[0]:.2f}", (-0.1, pts[0]), xytext=(-4, 0), textcoords="offset points", fontsize=7.5,
                     color=INK, va="center", ha="right")
-    ax.set_xticks([0, 1])
-    ax.set_xticklabels(["Haiku reads", "Sonnet reads"], fontsize=8, color=INK)
-    ax.set_xlim(-0.35, 1.9)
+    ax.set_xticks(range(len(readers)))
+    ax.set_xticklabels([f"{m.capitalize()} reads" for m in readers], fontsize=8, color=INK)
+    ax.set_xlim(-0.35, len(readers) + 0.2)
     ax.set_ylim(0.3, 0.9)
     ax.set_ylabel("accuracy (297 questions)", fontsize=8, color=MUTED)
     ax.spines["bottom"].set_visible(False)
