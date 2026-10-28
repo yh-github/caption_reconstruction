@@ -21,9 +21,9 @@ Paper: `docs/paper/acl2027/caption_index.tex` (source of truth; build with `late
   - [x] E2 entry (all 160 `ego_confirm` questions, the user's choice; primary H1–H3 on Haiku and Q_BE), `run_e2.sh` and `reader.py e2`, written 2026-10-28.
   - [x] E2 started 2026-10-28 08:59 UTC, then **stopped at 09:52 UTC for contamination** (EgoSchema predates the readers' June 2026 cutoff; log E2 run notes). No result looked at.
   - [x] Paper repositioned against CapMem (2026-10-28): CapMem already varies the captioner on the same frames (Qwen only) and compares own captions with frames, so the related-work claim "none has a self-caption control" was wrong and is fixed. Added a Contamination limitation; main text still ends on page 8.
-  - [ ] Decide whether to add a post-cutoff benchmark (short video; long video stays out of scope).
-  - [ ] Reassess NExT-QA; query-ready captions (plan §4, stage C).
-  - [ ] Paper: a length / second-benchmark section (the main text must stay at 8 pages).
+  - [x] Contamination check on existing data (log A4, 2026-10-28; no calls). 197 of 297 confirmatory questions have the same text with another answer in TempCompass. On them the question alone is at chance, and every headline effect keeps its sign and is no smaller. The paper's Contamination paragraph cites it.
+  - [x] **Decided (user, 2026-10-28): no new benchmark for the ACL paper; only the minimum work to wrap it up.** No clean post-cutoff short-video benchmark exists, and A4 answers contamination. NExT-QA (2021) predates the cutoff too, so it is dropped, along with the second-benchmark section.
+  - Future work, not for ACL: a post-cutoff, manipulation-built task set. It would include masked-window fill-in with distractors as a function of gap length. The user's hypothesis: over long gaps (a wedding's vows, rings, pronouncement), script knowledge in text beats visual continuity, while frames win on short gaps (forced choice on 1 s gaps, 2026-10-08: frame copy 88%, Opus on captions 85%, Sonnet 77%).
 
 Full reasoning, verified numbers and the evaluation design are in the paper-readiness assessment (2026-10-05):
 https://claude.ai/code/artifact/26353452-f893-49df-85ac-d3a85c9becd2

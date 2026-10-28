@@ -1786,6 +1786,31 @@ Captioning:
 - If a term is clearly larger on text-unique questions, within aspect too, that term is reported as possibly inflated by remembered answers. The paper then cites its text-ambiguous estimate.
 - The paper's Contamination paragraph is updated with the result either way.
 
+**Result (2026-10-28; `reader.py a4`, run once after the entry was pushed in `b5064ad`; output in `results/index_qa/reports/a4.txt`).**
+
+1. **The question alone is at chance on the text-ambiguous questions.** All of C8's leakage is on the text-unique ones.
+
+| Question only, minus chance | Text-unique (100) | Text-ambiguous (197) | Ambiguous − unique | Within aspect |
+|---|---|---|---|---|
+| Haiku | +0.29 [+0.19, +0.39] | +0.02 [−0.04, +0.09] | −0.27 [−0.39, −0.16] | −0.16 [−0.37, +0.03] |
+| Sonnet | +0.36 [+0.27, +0.46] | −0.01 [−0.07, +0.06] | −0.37 [−0.48, −0.25] | −0.39 [−0.53, −0.25] |
+| Prediction | +0.20 | +0.04 | | |
+
+2–3. **Every term keeps its sign on the text-ambiguous questions, and none is smaller there:**
+
+| Term | All (297) | Text-ambiguous (197) | Text-unique (100) | 2. Ambiguous − unique | 3. Within aspect (237) |
+|---|---|---|---|---|---|
+| T1 captioner effect | +0.064 [+0.017, +0.111] | +0.081 [+0.020, +0.142] | +0.030 [−0.040, +0.100] | +0.05 [−0.04, +0.15] | **+0.17 [+0.05, +0.29]** |
+| T2 modality effect | +0.030 [−0.020, +0.081] | +0.061 [−0.010, +0.127] | −0.030 [−0.090, +0.040] | +0.09 [−0.00, +0.18] | −0.02 [−0.20, +0.14] |
+| T3 cap | −0.003 [−0.047, +0.040] | +0.015 [−0.041, +0.071] | −0.040 [−0.100, +0.010] | +0.06 [−0.03, +0.14] | +0.12 [−0.01, +0.25] |
+| T4 index vs. direct | −0.091 [−0.145, −0.040] | −0.107 [−0.178, −0.036] | −0.060 [−0.130, +0.010] | −0.05 [−0.15, +0.05] | +0.05 [−0.10, +0.20] |
+
+4. **Pair accuracy** (193 pairs, clip clusters): T1 +0.104 [+0.017, +0.190], T2 +0.093 [+0.028, +0.161], **T3 0.000 [−0.065, +0.058]** (new), T4 −0.176 [−0.276, −0.079].
+
+- **Predictions.** Question only: text-ambiguous held (+0.02 and −0.01 against +0.04). Text-unique was larger than predicted (+0.29 and +0.36 against +0.20). The "within ±0.06" prediction failed for 4 of the 8 differences: T1 within aspect (CI excludes 0), T2 overall, T3 within aspect and T4 overall (the last on the edge, −0.047). **Every miss but T4's has the text-ambiguous estimate larger,** the opposite of what remembered answers would do. T4 is more negative on the text-ambiguous questions, which is also not inflation: caption arms do worse there than Sonnet on frames.
+- **Reading (rules above).** No term is larger on the text-unique questions. Contamination is not the source of T1–T4. The text-unique questions are the ones the question alone half answers (Sonnet +0.36). Every arm scores high on them, which shrinks the differences between arms. T1's within-aspect difference rests on 40 text-unique questions.
+- **For the paper:** 197 of 297 confirmatory questions have the same text with another answer in TempCompass itself. On them, the question alone is at chance, and the captioner effect (+0.08), the cap (+0.02) and index vs. direct (−0.11) hold.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
