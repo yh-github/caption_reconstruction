@@ -1941,6 +1941,72 @@ This entry tests whether a score computed from the index itself (frames and capt
 2. `priors.py scores`: embed the frames and captions, check the gate, and record it here.
 3. `priors.py a6` once, with output in `results/index_qa/reports/a6.txt`, reported here in full.
 
+**Run notes.** The entry and `priors.py` were pushed in `af24612` before any score was computed. `priors.py scores` (output in `results/index_qa/reports/a6_scores.txt`):
+- **Gate passes.** Each caption is closer to its own window than to a random window of another video in 1.000 of windows, for both captioners. 10.8% of Haiku's captions and 0.8% of Sonnet's run over 64 tokens.
+- **Medians by type** (no outcome joined):
+
+| Type | Motion | Coverage, Haiku | Coverage, Sonnet |
+|---|---|---|---|
+| Plain | 0.042 | 0.161 | 0.162 |
+| Reversed | 0.037 | 0.159 | 0.159 |
+| Stacked | 0.029 | 0.173 | 0.172 |
+| Two-clip | 0.066 | 0.157 | 0.157 |
+
+**Result (2026-10-28; `priors.py a6`, run once; `results/index_qa/reports/a6.txt`).** 419 rows, 63 losses (Haiku 25, Sonnet 38), as stated in advance.
+
+1. **Both primary tests fail.** Neither score predicts a loss within video type.
+
+| | Score | Prediction | Stratified AUC [97.5% CI] |
+|---|---|---|---|
+| H1 | Motion (higher → loss) | 0.60 | **0.424 [0.281, 0.567]**, on the opposite side; CI includes 0.5 |
+| H2 | Coverage (lower → loss) | 0.58 | **0.525 [0.380, 0.669]** |
+
+2–4. **No secondary estimate excludes 0.5** (95% CIs).
+- **By reader:** motion 0.449 (Haiku) and 0.401 (Sonnet). Coverage 0.451 and 0.593.
+- **Deployment term:** motion 0.482, coverage 0.614 [0.481, 0.739].
+- **Plain videos:** motion 0.449, coverage 0.514, on 17 losses.
+
+5. **By aspect** (descriptive). Motion's sign depends on the aspect:
+- **Speed:** 0.636 [0.447, 0.784], with 27 losses. More motion, more losses.
+- **Direction:** 0.268 [0.109, 0.470], with 21 losses. Less motion, more losses; the only CI that excludes 0.5. In the tertile table, reversed videos lose 0.41 in the lowest motion tertile and 0.10 in the highest.
+- **Others:** action, order and attribute change have 3–9 losses each, so their CIs span most of [0, 1].
+
+6. **Gains:** motion 0.516, coverage 0.421, neither excluding 0.5.
+
+7. **The classifier** (out-of-fold AUC [95% CI]):
+
+| Model | AUC |
+|---|---|
+| A: aspect + reader | 0.751 [0.685, 0.815] |
+| B: A + motion + coverage | 0.785 [0.723, 0.847] |
+| C: A + video type | 0.782 [0.716, 0.843] |
+| D: C + motion + coverage | 0.794 [0.734, 0.853] |
+
+- **B − A = +0.034 [+0.011, +0.059]** (predicted +0.04).
+- **D − C = +0.013 [−0.005, +0.030]** (predicted +0.03; CI includes 0).
+- C − A (+0.031) is not larger than B − A, against the prediction.
+
+8. **Loss rate by motion tertile (low / mid / high):**
+
+| Type | Low | Mid | High |
+|---|---|---|---|
+| Plain | 0.10 | 0.06 | 0.06 |
+| Reversed | 0.41 | 0.30 | 0.10 |
+| Stacked | 0.48 | 0.36 | 0.75 (n = 8) |
+| Two-clip | 0.17 | 0.06 | 0.00 |
+
+By coverage tertile there is no monotone pattern in any type.
+
+**Reading (rules above).**
+- Both fail. **No question-blind score tested predicts a loss beyond the video's construction.**
+- The two scores add to aspect what TempCompass's label adds (B ≈ C), but nothing on top of it (D − C includes 0). They recover the construction:
+  - two-clip videos move most and lose least;
+  - stacked videos move least and lose most.
+- The one structured hint is exploratory and unpredicted:
+  - Motion cuts both ways by aspect. On speed questions, more motion means more losses. On direction questions, less motion means more losses: a slow reversed clip gives the caption little to commit a direction to.
+  - A predictor would need the aspect × motion interaction, fixed in advance and tested on new data.
+- **For the paper and the team:** video type and aspect remain the only predictors of when captions lose, and both are TempCompass's. A tool of the form "score y, so captions suit task T" is not supported by these scores on these videos. Its upper bound is a within-type AUC of 0.57 (motion) and 0.67 (coverage).
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
