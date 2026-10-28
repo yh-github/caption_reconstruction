@@ -1696,6 +1696,48 @@ Captioning:
   - Saved at the stop: 822 Haiku and 777 Sonnet window captions of 5,760 each, no whole-video captions, and 247 Haiku and 168 Sonnet reader rows.
   - **No E2 result was computed or looked at:** `reader.py e2` was not run on `ego_confirm`, and no reader row was read. E2 stays resumable (`run_e2.sh run`) with its design unchanged. If it is resumed, this stop is reported with it.
 
+### P1 — Reconstruction post-mortem: the prior-metric correlations, and do captions track frames? (2026-10-28; exploratory, not written in advance; no calls)
+
+**Why.** To explain to the team why reconstruction is future work, not a quick salvage. The team's main result was that the a-priori metrics predict which modality reconstructs a video better: the rank difference rank(Llama cos_sim) − rank(SigLIP interpolation cos_sim) over the 335 videos correlates with text dynamism (ρ up to +0.44) and visual dynamism (−0.37), p ≈ 1e-17 (`scripts/analyze_method_rank_differences.py`). Not written in advance; a post-mortem, not a test of a new claim.
+
+**Scripts and outputs.** `scripts/postmortem/prior_correlation_placebo.py` and `scripts/postmortem/change_tracking.py {wild,windows,nocut,ego}`, run from the repo root. Outputs: `results/postmortem/*.txt` (gitignored). The EgoSchema frame embeddings are cached in `local/egoschema/siglip2_windows/` (≈ 35 min on CPU to rebuild).
+
+**1. Placebo: copying reproduces the correlations.** Replace Llama by caption copy (no model) in the same rank difference, i = 29:
+
+| ρ at W = 6 | Llama (the team's result) | Caption copy | Caption mean |
+|---|---|---|---|
+| text_average_dynamism | +0.44 [+0.35, +0.53] | +0.52 [+0.44, +0.59] | +0.53 |
+| average_dynamism (visual) | −0.37 [−0.47, −0.26] | −0.41 [−0.51, −0.30] | −0.38 |
+| APCS_V | +0.25 | +0.38 | +0.35 |
+
+- The same pattern holds at W = 3 and 12. CIs are channel bootstrap.
+- Each prior predicts its own modality's copy score almost by definition: text dynamism vs. the caption copy score ρ = −0.67, visual dynamism vs. the SigLIP interpolation score ρ = −0.70. Both are cosine distances between neighbours in the same embedding space.
+- Copy's rank difference explains R² = 0.55 of Llama's. The four priors add 0.06.
+- Within-modality ranks are also zero-sum (`docs/theory/cross_modal_evaluation_metrics.md` §7.1), so "text wins" on about half the videos by construction.
+
+**2. Residual: priors vs. Llama − copy**, the only target that is about the model. Llama trails copy on average at every W (ahead on 23–41% of videos). Correlations are |ρ| ≤ 0.26. 7–8 of 36 survive a channel-bootstrap Bonferroni (the count moves with the bootstrap seed). All say one thing: Llama loses less to copy on visually static videos (APCS_V +0.18 to +0.26), where every caption is near the same.
+
+**3. Do caption changes track frame changes?** The 2026-10-07 audit found per-video Spearman ≈ 0 between the caption change curve and the frame change curve, at 1 s. At 5 s they track:
+
+| Data (5 s windows) | Caption set | ρ(caption change, frame change) | Frame split-half ceiling |
+|---|---|---|---|
+| Wild pilot, 30 videos × 12 pieces | Gemini isolated | +0.43 [+0.33, +0.53] | +0.79 |
+| | Gemini in-context | +0.22 [+0.09, +0.35] | |
+| | Old 1 s captions, joined per piece | +0.34 [+0.22, +0.45] | |
+| EgoSchema dev, 39 videos × 36 windows | Sonnet | +0.37 [+0.30, +0.44] | +0.66 |
+| | Haiku (same 5 frames) | +0.38 [+0.33, +0.44] | |
+
+- The 1 s result reproduces on the same 30 videos. The old captions' agreement rises with window size: 0.00, 0.12, 0.26, 0.33 at 1, 2, 3, 5 s, and 0.42 at 5 s with the +2 s lead corrected. At 1 s, wording changes swamp content changes.
+- It is not shot cuts. Dropping each video's largest frame change leaves +0.39, and dropping the top 3 leaves +0.30.
+- Two caption sets of the same windows agree with each other no more than with the frames (Gemini isolated vs. in-context 0.32, Sonnet vs. Haiku 0.35). The caption-side noise is wording.
+- Captions written with the whole clip in view track the frames about half as well as isolated ones (0.22 vs. 0.43). This fits the leak (Part 1).
+- SigLIP 2 text gives the same picture as MPNet, slightly lower. All-pairs distance agreement (RSA) is +0.38 to +0.56.
+
+**Decision.**
+- The prior-metric correlations are not a reconstruction result. They describe how continuous each video's captions and frames are, which the priors measure directly.
+- The "captions barely track frames" audit result is withdrawn as a finding. It belongs to the 1 s time scale.
+- Reconstruction stays future work. A repair needs new captions, a task with distractors that defeat copying, a visual arm that reconstructs, and a metric both modalities share.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).

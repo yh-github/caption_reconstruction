@@ -10,6 +10,12 @@ The newest session is at the top. Older sessions stay below because other docs l
 - **Next:** the user requests the Software Heritage "Save code now" visit. Then `scripts/index_qa/run_e2.sh check`, inspect it, and `setsid nohup scripts/index_qa/run_e2.sh run > logs/run_e2.out 2>&1 < /dev/null &`. It takes about 15–20 h with the quota waits. Then run `reader.py e2` once, save it to `results/index_qa/reports/e2.txt`, and write the result into log E2.
 - **Paper:** the anonymized repository link is in Appendix G. On 4open.science, add `post.runi.ac.il` to the anonymized terms (user).
 
+# 2026-10-28 → Reconstruction post-mortem (research log P1)
+
+- Written for the team, to explain why reconstruction is future work. Scripts: `scripts/postmortem/`. No calls.
+- **The prior-metric correlations are a placebo result.** Caption copy reproduces the rank-difference correlations, slightly stronger (ρ +0.52 vs. +0.44 with text dynamism).
+- **Correction to 2026-10-07 §3 Q3 below.** "Caption change does not track frame change" holds only at 1 s. At 5 s, ρ ≈ +0.4 on the wild pilot (Gemini) and on EgoSchema dev (Sonnet and Haiku). Don't cite the 1 s result as a finding.
+
 # 2026-10-27 (evening) → E1 (EgoSchema development run) is RUNNING, detached
 
 **Start here: research log E1 and its run notes.** Then `scripts/index_qa/run_e1.sh status`.
