@@ -45,6 +45,7 @@ A format failure gets one retry; after that the item scores as wrong.
     .venv/bin/python scripts/index_qa/reader.py types [--set dev]      # A3: by video type, clip-clustered CIs
     .venv/bin/python scripts/index_qa/reader.py run --set pairs --model haiku --arms frames5 ...   # C4's sibling reads
     .venv/bin/python scripts/index_qa/reader.py c4           # C4: minimal pairs
+    .venv/bin/python scripts/index_qa/reader.py a4           # A4: contamination check (text-ambiguous questions)
     .venv/bin/python scripts/index_qa/reader.py c5           # C5: describe, then answer
     .venv/bin/python scripts/index_qa/reader.py c6           # C6: 448 px frames
     .venv/bin/python scripts/index_qa/reader.py c8           # C8: Sonnet with the question only
@@ -1206,6 +1207,94 @@ def cmd_c4(args):
                 print(f"  {a}: {e:+.2f} [{l:+.2f}, {h:+.2f}] (n={len(d)})")
 
 
+# A4 (research log): the headline terms, split by whether TempCompass asks the same question text with another answer
+A4_TERMS = [("T1 captioner effect", "haiku:sonnetcaptions", "haiku:selfcaptions"),
+            ("T2 modality effect", "haiku:selfcaptions", "haiku:frames5"),
+            ("T3 cap", "haiku:sonnetcaptions", "sonnet:sonnetcaptions"),
+            ("T4 index vs. direct", "haiku:sonnetcaptions", "sonnet:frames5")]
+A4_PRED_BLIND = {"unique": +0.20, "ambiguous": +0.04}
+
+
+def text_ambiguous(qs: list[dict]) -> dict[str, bool]:
+    """Per question: does TempCompass hold a question with the same stem and option texts whose correct option text
+    differs? Then no answer remembered from the text alone can be right on both."""
+    import collections
+    key = lambda q: (q["stem"], frozenset(q["options"].values()))
+    answers = collections.defaultdict(set)
+    for q in tc.load_questions():
+        answers[key(q)].add(q["options"][q["answer"]])
+    return {q["item"]: len(answers[key(q)]) > 1 for q in qs}
+
+
+def strata_boot(d: "pd.Series", kind: "pd.Series", stratum: "pd.Series", n_boot: int = 10_000, seed: int = 0,
+                level: float = 0.95) -> tuple[float, float, float]:
+    """Within each stratum, mean(d) on kind True minus on kind False; the strata's differences weighted by their
+    question counts. Percentile CI from resampling questions within each stratum x kind cell."""
+    import numpy as np
+    rng = np.random.default_rng(seed)
+    strata = [s for s in sorted(stratum.unique()) if kind[stratum == s].nunique() == 2]
+    w = np.array([(stratum == s).sum() for s in strata], float)
+    w /= w.sum()
+    est, bs = 0.0, np.zeros(n_boot)
+    for wi, s in zip(w, strata):
+        a = d[(stratum == s) & kind].to_numpy(float)
+        b = d[(stratum == s) & ~kind].to_numpy(float)
+        est += wi * (a.mean() - b.mean())
+        bs += wi * (a[rng.integers(0, len(a), size=(n_boot, len(a)))].mean(1)
+                    - b[rng.integers(0, len(b), size=(n_boot, len(b)))].mean(1))
+    lo, hi = np.percentile(bs, [50 * (1 - level), 50 * (1 + level)])
+    return float(est), float(lo), float(hi)
+
+
+def cmd_a4(args):
+    """A4's statistics (research log): question-only excess over chance and the headline terms on text-ambiguous vs.
+    text-unique confirmatory questions, overall and within aspect; the terms on C4's pair accuracy. 95% CIs."""
+    import pandas as pd
+    qs, dim, wide = confirm_table()
+    amb = pd.Series(text_ambiguous(qs)).reindex(wide.index)
+    asp = pd.Series(dim).reindex(wide.index)
+    chance = pd.Series({q["item"]: 1 / len(q["options"]) for q in qs}).reindex(wide.index)
+    print(f"{len(wide)} confirmatory questions: {int(amb.sum())} text-ambiguous, {int((~amb).sum())} text-unique")
+    print(pd.crosstab(asp, amb.map({True: "ambiguous", False: "unique"})).to_string())
+    four = asp != "action"
+    print("\n1. question-only accuracy minus chance (95% CIs):")
+    for m in ("haiku", "sonnet"):
+        x = (wide[f"{m}:blind"] - chance).dropna()
+        k = amb[x.index]
+        parts = []
+        for name, sel in (("unique", ~k), ("ambiguous", k)):
+            e, l, h = paired_boot(x[sel].tolist())
+            parts.append(f"{name} {e:+.3f} [{l:+.3f}, {h:+.3f}] (n={int(sel.sum())}; prediction "
+                         f"{A4_PRED_BLIND[name]:+.2f})")
+        e, l, h = contrast_boot(x[k].tolist(), x[~k].tolist())
+        f = four[x.index]
+        se, sl, sh = strata_boot(x[f], k[f], asp[x.index][f])
+        print(f"  {m}: " + "; ".join(parts) + f"\n      ambiguous - unique {e:+.3f} [{l:+.3f}, {h:+.3f}]; "
+              f"within aspect (4 aspects) {se:+.3f} [{sl:+.3f}, {sh:+.3f}]")
+    print("\n2-3. terms by kind (95% CIs); prediction for both differences: within +-0.06, CI includes 0:")
+    for name, a, b in A4_TERMS:
+        d = (wide[a] - wide[b]).dropna()
+        k = amb[d.index]
+        e_all, l_all, h_all = paired_boot(d.tolist())
+        e_a, l_a, h_a = paired_boot(d[k].tolist())
+        e_u, l_u, h_u = paired_boot(d[~k].tolist())
+        e, l, h = contrast_boot(d[k].tolist(), d[~k].tolist())
+        f = four[d.index]
+        se, sl, sh = strata_boot(d[f], k[f], asp[d.index][f])
+        print(f"  {name} ({a} - {b}): all {e_all:+.3f} [{l_all:+.3f}, {h_all:+.3f}] (n={len(d)})\n"
+              f"      ambiguous {e_a:+.3f} [{l_a:+.3f}, {h_a:+.3f}] (n={int(k.sum())}); "
+              f"unique {e_u:+.3f} [{l_u:+.3f}, {h_u:+.3f}] (n={int((~k).sum())})\n"
+              f"      2. ambiguous - unique {e:+.3f} [{l:+.3f}, {h:+.3f}]; "
+              f"3. within aspect {se:+.3f} [{sl:+.3f}, {sh:+.3f}] (n={int(f.sum())})")
+    both, same, orig, sib, group, clus, pchance = pair_frame()
+    print(f"\n4. terms on pair accuracy ({len(both)} minimal pairs, chance {pchance.mean():.3f}), "
+          "95% CIs over clip clusters:")
+    for name, a, b in A4_TERMS:
+        d = (both[a] - both[b]).dropna()
+        e, l, h = cluster_boot(d.tolist(), clus[d.index].tolist())
+        print(f"  {name}: {both[a].mean():.3f} - {both[b].mean():.3f} = {e:+.3f} [{l:+.3f}, {h:+.3f}] (n={len(d)})")
+
+
 # Claude list prices, $ per million input / output tokens (thinking bills as output), from the claude-api skill's
 # model table (cached 2026-10-06); Haiku's hold for prompts up to 100K tokens. The CLI's costUSD should match them.
 PRICES = {"haiku": (0.10, 0.50), "sonnet": (2.00, 10.00)}
@@ -1590,13 +1679,13 @@ def main():
     sub.add_parser("cost")
     ty = sub.add_parser("types")
     ty.add_argument("--set", dest="set_", choices=list(tc.SETS), default="confirm")
-    for name in ("c4", "c5", "c6", "c8", "c9", "c10", "c11", "c12", "headroom", "tables", "e1"):
+    for name in ("c4", "a4", "c5", "c6", "c8", "c9", "c10", "c11", "c12", "headroom", "tables", "e1"):
         sub.add_parser(name)
     e2 = sub.add_parser("e2")
     e2.add_argument("--set", dest="set_", choices=list(tc.SETS), default="ego_confirm")
     args = ap.parse_args()
     {"run": cmd_run, "check": cmd_check, "confirm": cmd_confirm, "c2": cmd_c2, "c3": cmd_c3,
-     "thinking": cmd_thinking, "cost": cmd_cost, "types": cmd_types, "c4": cmd_c4, "c5": cmd_c5,
+     "thinking": cmd_thinking, "cost": cmd_cost, "types": cmd_types, "c4": cmd_c4, "a4": cmd_a4, "c5": cmd_c5,
      "c6": cmd_c6, "c8": cmd_c8, "c9": cmd_c9, "c10": cmd_c10, "c11": cmd_c11, "c12": cmd_c12,
      "headroom": cmd_headroom, "tables": cmd_tables, "e1": cmd_e1, "e2": cmd_e2}[args.cmd](args)
 

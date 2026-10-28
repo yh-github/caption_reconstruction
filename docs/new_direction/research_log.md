@@ -1748,6 +1748,44 @@ Captioning:
 - The "captions barely track frames" audit result is withdrawn as a finding. It belongs to the 1 s time scale.
 - Reconstruction stays future work. A repair needs new captions, a task with distractors that defeat copying, a visual arm that reconstructs, and a metric both modalities share.
 
+### A4 — Contamination check on TempCompass (written 2026-10-28, before running; no calls)
+
+**Why.** TempCompass (March 2024) predates the readers' training data (June 2026). The question alone scores 0.11 above chance (C8). Do the headline effects rest on remembered answers? The user approved this check on 2026-10-28, instead of a new benchmark first (no clean post-cutoff short-video benchmark was found; see `docs/TODO.md`).
+
+**Idea.** A remembered answer is a function of the question text. TempCompass's conflicting videos ask the same question, with the same options, of videos with different answers. On such a question, the text cannot tell which answer is right.
+- **Text-ambiguous question:** TempCompass contains a question with the same stem and the same set of option texts whose correct option text differs. Computed from the data before this entry: **197 of the 297 confirmatory questions** (speed 42 of 60, direction 53, order 45, attribute change 57, action 0). All 193 C4 pairs are text-ambiguous. The other 100 are the **text-unique** questions (action 60, speed 18, order 12, direction 7, attribute change 3).
+- If remembered answers drive an effect, the effect sits in the text-unique questions and shrinks on the text-ambiguous ones.
+- Pair accuracy (C4) is immune by construction: an answer that depends only on the text is the same on both videos, so it gets at most one right. The pair-accuracy terms were computed in C4 and are restated here, not predicted. The cap's pair-accuracy CI is new (C4 printed only the two arms' means, both 0.430).
+
+**Terms** (per question accuracy; the paper's headline differences):
+
+| Term | Arms |
+|---|---|
+| T1 captioner effect | Haiku on Sonnet captions − Haiku on self-captions |
+| T2 modality effect | Haiku on self-captions − Haiku on 5 frames |
+| T3 cap | Haiku on Sonnet captions − Sonnet on Sonnet captions |
+| T4 index vs. direct | Haiku on Sonnet captions − Sonnet on 5 frames |
+
+**Outcomes** (`reader.py a4`, committed with this entry; output to `results/index_qa/reports/a4.txt`):
+1. Question-only accuracy minus chance (1 / number of options), Haiku and Sonnet, on text-ambiguous and text-unique questions, and the difference (95% CI, questions resampled within each group).
+2. T1–T4 on text-ambiguous questions, on text-unique ones, and the difference (95% CIs as in 1).
+3. The same difference within aspect, on the four aspects that have both kinds (speed, direction, order, attribute change; 40 text-unique questions): the per-aspect differences weighted by the aspect's question count, CI from resampling within each aspect × kind cell. This removes action, which is all text-unique.
+4. T1–T4 on pair accuracy, 95% CIs over clip clusters (C4's method).
+
+**Predictions.**
+
+| Outcome | Prediction |
+|---|---|
+| 1. Question-only excess over chance, text-unique (both models) | +0.20 |
+| 1. Question-only excess over chance, text-ambiguous (both models) | +0.04 |
+| 2. T1–T4, text-ambiguous − text-unique | each within ±0.06, CI includes 0 |
+| 3. T1–T4, the same within aspect | each within ±0.06, CI includes 0 |
+
+**Reading.**
+- Contamination is ruled out as the source of a term if the term on text-ambiguous questions has the sign of its full-set estimate and the 2/3 differences' CIs include 0. With 100 (and 40) text-unique questions, a null difference is weak evidence alone. Outcome 4 is the strong evidence.
+- If a term is clearly larger on text-unique questions, within aspect too, that term is reported as possibly inflated by remembered answers. The paper then cites its text-ambiguous estimate.
+- The paper's Contamination paragraph is updated with the result either way.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
