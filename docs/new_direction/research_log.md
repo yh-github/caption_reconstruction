@@ -1685,6 +1685,11 @@ Captioning:
 3. Stop on any isolation failure. Stop if the first 5-frame call errors or exceeds the 900 s time limit. Stop if more than 5% of 180-image calls fail. If the 7-day guard stops the run, ask the user before resuming.
 4. No decision depends on interim accuracy. `reader.py e2` (committed with this entry) is run once, when all arms are complete, and its output is reported here in full (`results/index_qa/reports/e2.txt`).
 
+**Run notes** (added after the start; facts only, no results):
+- **Pre-run evidence.** E2 was pushed to GitHub on 2026-10-28 (`a9f1fea`). The user then requested a Software Heritage "Save code now" visit, before the first E2 call.
+- **Check (08:58 UTC):** `run_e2.sh check` ran 3 Haiku and 3 Sonnet window captions (video `c50c237d-…`, windows 0–2) and one 180-image Haiku read (`egc000`, 5 frames). All succeeded, with isolation confirmed (no tools, no MCP, 1 turn, the model as requested). The captions describe their frames, and input tokens match E1's (1,417 Haiku, 1,396 Sonnet; the read 10,587). Quota was 5-hour 43% and 7-day 4%.
+- **Full run** started at 08:59 UTC: `setsid nohup scripts/index_qa/run_e2.sh run`, detached from the session.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
