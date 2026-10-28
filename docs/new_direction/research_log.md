@@ -1733,8 +1733,18 @@ Captioning:
 - Captions written with the whole clip in view track the frames about half as well as isolated ones (0.22 vs. 0.43). This fits the leak (Part 1).
 - SigLIP 2 text gives the same picture as MPNet, slightly lower. All-pairs distance agreement (RSA) is +0.38 to +0.56.
 
+**4. The same checks on Claude's fills** (`scripts/postmortem/claude_recon_priors.py`, added the same day; partial correlations computed inline when the result was read, not yet in the script). Sonnet on 50 videos, Opus on 32, gaps at W = 1, 4, 8, 16. Gain = copy's rank − Claude's rank.
+- **Raw:** Claude's gain over copy does correlate with the priors, more than Llama's. The largest values are under lenient text scoring: APCS_V +0.57 to +0.59, APCS_T +0.54 to +0.56, visual dynamism −0.43 to −0.50. Claude gains most on static, repetitive videos.
+- **Why:** those are the videos where copy fails. When all captions look alike, copy's rank drops toward chance. The gain correlates with copy's own score at ρ = −0.32 to −0.66.
+- **Copy's score held fixed** (rank partial correlation, channel bootstrap; Sonnet and Opus × text rank, text order-free, text segment c, frame rank × 4 priors = 32 tests):
+  - the correlations shrink to −0.36 to +0.37, e.g. Opus text rank, APCS_V +0.40 → +0.02; Sonnet order-free, APCS_V +0.59 → +0.37 [−0.05, +0.67];
+  - 1 of 32 CIs excludes 0 (Opus frame rank, text dynamism +0.37 [+0.00, +0.66]), about the chance rate.
+  - With 32–50 videos the CIs are about ±0.4. This is an underpowered null, not evidence of no effect.
+- **Stability:** a video's gain over copy barely repeats across W: mean ρ between widths +0.02 to +0.18 under strict scoring, up to +0.36 under lenient. Sonnet's and Opus's gains on the same 120 gaps correlate at +0.62 (text) and +0.74 (frame), but both contain the same copy term (each correlates +0.39 to +0.43 with copy's failure).
+
 **Decision.**
 - The prior-metric correlations are not a reconstruction result. They describe how continuous each video's captions and frames are, which the priors measure directly.
+- For Claude, the priors' link to the gain over copy runs through copy's own score. What remains is not detectable with 32–50 videos. Testing it needs a frontier run on all 335 videos with the analysis fixed in advance.
 - The "captions barely track frames" audit result is withdrawn as a finding. It belongs to the 1 s time scale.
 - Reconstruction stays future work. A repair needs new captions, a task with distractors that defeat copying, a visual arm that reconstructs, and a metric both modalities share.
 
