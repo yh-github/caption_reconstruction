@@ -4,6 +4,7 @@
     .venv/bin/python scripts/index_qa/plots.py cost    # Figure 1: accuracy vs. list-price $ per question
     .venv/bin/python scripts/index_qa/plots.py types   # Figure 2: accuracy by video type
     .venv/bin/python scripts/index_qa/plots.py readers # Figure 3: accuracy by reader (claim 2a)
+    .venv/bin/python scripts/index_qa/plots.py design  # design figure: the arms Haiku reads and the four effects
 
 Figure 1 has one panel per number of questions per video Q, with the one-time captioning cost spread over Q
 questions (Q = inf: the per-question cost alone). Costs are computed as in reader.py cost (list prices from the
@@ -206,11 +207,74 @@ def cmd_readers(args):
     print(f"-> {FIG / 'caption_index_fig3_readers.png'}")
 
 
+# Design figure: the arms Haiku reads, as (arm, box centre in axes units, title, what the captioner sees, captioner);
+# the captioner sets the box colour (a model keeps its hue from Figs. 1-3), None for the frames arm
+DESIGN_BOXES = [("frames5", (1.0, 1.9), "5 frames", "Haiku reads the frames\n200 tok./window", None),
+                ("selfcaptions", (4.2, 1.9), "Self-captions", "Haiku captions\nthe 5 frames, 200 tok.", "haiku"),
+                ("sonnetcaptions", (7.4, 3.3), "Sonnet captions", "Sonnet captions\nthe 5 frames, 200 tok.",
+                 "sonnet"),
+                ("frameclipcaptions", (7.4, 0.5), "Gemini frame-clip", "the 5 frames as a\n1 fps clip, ≈ 300 tok.",
+                 "gemini"),
+                ("framecaptions", (10.6, 1.9), "Gemini frame", "the 5 frames as\nimages, ≈ 5,500 tok.", "gemini"),
+                ("captions", (10.6, -0.5), "Gemini video", "the original window\nat 1 fps, ≈ 330 tok.", "gemini")]
+# (from arm, to arm, effect, what the arrow holds fixed)
+DESIGN_EDGES = [("frames5", "selfcaptions", "modality", "same model,\nsame pixels"),
+                ("selfcaptions", "sonnetcaptions", "captioner", "same pixels\nand tokens"),
+                ("selfcaptions", "frameclipcaptions", "captioner", "same pixels,\n≈ matched tokens"),
+                ("frameclipcaptions", "framecaptions", "visual budget", "same pixels,\n18× tokens"),
+                ("frameclipcaptions", "captions", "source", "≈ same tokens")]
+CAPTIONER_COLOR = {"haiku": READER_COLOR["haiku"], "sonnet": READER_COLOR["sonnet"],
+                   "gemini": ARM_COLOR["haiku:captions"]}
+
+
+def cmd_design(args):
+    """The design figure: every box is an arm Haiku reads (accuracy on the 297 confirmatory questions), and every
+    arrow changes one thing, labelled with its effect (the accuracy difference). Numbers come from the logged rows."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    wide, _, _ = R.confirm_frame()
+    acc = {a: wide[f"haiku:{a}"].mean() for a, *_ in DESIGN_BOXES}
+    fig, ax = plt.subplots(figsize=(6.3, 2.6))
+    ax.set_xlim(-0.05, 11.7)
+    ax.set_ylim(-1.15, 3.95)
+    ax.axis("off")
+    pos = {a: xy for a, xy, *_ in DESIGN_BOXES}
+    w, h = 1.95, 1.15
+    for a, (x, y), title, sees, cap in DESIGN_BOXES:
+        color = CAPTIONER_COLOR[cap] if cap else MUTED
+        ax.add_patch(matplotlib.patches.FancyBboxPatch((x - w / 2, y - h / 2), w, h,
+                                                       boxstyle="round,pad=0.02,rounding_size=0.12",
+                                                       facecolor="white", edgecolor=color, linewidth=1.6, zorder=2))
+        ax.text(x, y + 0.33, title, ha="center", va="center", fontsize=7, color=INK, weight="bold", zorder=3)
+        ax.text(x, y - 0.03, sees, ha="center", va="center", fontsize=6.3, color=MUTED, linespacing=1.15, zorder=3)
+        ax.text(x, y - 0.42, f"{acc[a]:.3f}", ha="center", va="center", fontsize=7.5, color=color, weight="bold",
+                zorder=3)
+    for a, b, effect, fixed in DESIGN_EDGES:
+        (x0, y0), (x1, y1) = pos[a], pos[b]
+        # from the right side of one box to the left side of the next; the label sits in the gap between columns
+        start, end = (x0 + w / 2, y0), (x1 - w / 2, y1)
+        ax.annotate("", xy=end, xytext=start, zorder=1,
+                    arrowprops=dict(arrowstyle="-|>", color=INK, linewidth=1, shrinkA=1, shrinkB=1))
+        # a little before the midpoint, so a label clears the box the arrow points to
+        mx, my = start[0] + 0.45 * (end[0] - start[0]), start[1] + 0.45 * (end[1] - start[1])
+        d = acc[b] - acc[a]
+        print(f"{effect}: {b} - {a} = {d:+.3f}")
+        ax.text(mx, my + 0.08, f"{effect}\n{d:+.3f}", ha="center", va="bottom", fontsize=6.5, color=INK, zorder=4,
+                weight="bold", linespacing=1.1, bbox=dict(facecolor="white", edgecolor="none", pad=0.3))
+        ax.text(mx, my - 0.08, fixed, ha="center", va="top", fontsize=5.9, color=MUTED, style="italic", zorder=4,
+                linespacing=1.1, bbox=dict(facecolor="white", edgecolor="none", pad=0.3))
+    fig.tight_layout(pad=0.1)
+    for ext in ("png", "pdf"):
+        fig.savefig(FIG / f"caption_index_fig0_design.{ext}", dpi=200)
+    print(f"-> {FIG / 'caption_index_fig0_design.png'}")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("cmd", choices=["cost", "types", "readers"])
+    ap.add_argument("cmd", choices=["cost", "types", "readers", "design"])
     args = ap.parse_args()
-    {"cost": cmd_cost, "types": cmd_types, "readers": cmd_readers}[args.cmd](args)
+    {"cost": cmd_cost, "types": cmd_types, "readers": cmd_readers, "design": cmd_design}[args.cmd](args)
 
 
 if __name__ == "__main__":
