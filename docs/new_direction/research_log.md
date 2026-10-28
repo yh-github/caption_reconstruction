@@ -1811,6 +1811,68 @@ Captioning:
 - **Reading (rules above).** No term is larger on the text-unique questions. Contamination is not the source of T1–T4. The text-unique questions are the ones the question alone half answers (Sonnet +0.36). Every arm scores high on them, which shrinks the differences between arms. T1's within-aspect difference rests on 40 text-unique questions.
 - **For the paper:** 197 of 297 confirmatory questions have the same text with another answer in TempCompass itself. On them, the question alone is at chance, and the captioner effect (+0.08), the cap (+0.02) and index vs. direct (−0.11) hold.
 
+### A5 — Does the cap hold on every shared index? And costs without the CLI's fixed prompt (written 2026-10-28, before running; no calls)
+
+**Why.** The draft review (2026-10-28) found two claims that rest on less than they say.
+- **The cap.** The paper says that a question-blind caption bounds accuracy "whatever the reader". The evidence is one index: Haiku and Sonnet tie on Sonnet's captions (−0.003, C3/A4 T3). On Gemini's video captions, the means differ by +0.054 (Sonnet 0.791, Haiku 0.737), and no CI was ever computed.
+- **Cost.** Every Claude call carries the CLI's fixed prompt. An API deployment would not, or would cache it. The paper blames the small single-reader saving on that prompt, so it should show what changes without it.
+
+**Not a prediction test for the means.** Every reader-gap mean below can be read off the paper's tables already. This entry fixes the terms and the reading rule before any CI is computed.
+
+**Outcome 1: reader gaps on each index that two readers read** (`reader.py a5`; paired bootstrap 95% CI, and over clip clusters; by video type over clip clusters):
+
+| Term | Arms | Mean (known) |
+|---|---|---|
+| G1 | Sonnet − Haiku, Sonnet captions | −0.003 (A4 T3, restated) |
+| G2 | Sonnet − Haiku, Sonnet captions 448 px | +0.021 |
+| G3 | Sonnet − Haiku, Sonnet whole-video | 0.000 |
+| G4 | Sonnet − Haiku, Sonnet aspect-aware | +0.014 |
+| G5 | Sonnet − Haiku, Gemini video captions | +0.054 |
+| G6 | Qwen − Haiku, Gemini video captions | −0.040 |
+| G7 | Qwen − Haiku, Gemini frame-clip captions | (not in the paper's tables) |
+| G8 | Qwen − Haiku, Gemini frame captions | (not in the paper's tables) |
+| G9 | Qwen − Haiku, Haiku's captions | (not in the paper's tables) |
+
+- **Expectation (not a test):** G5's CI excludes 0, narrowly (≈ ±0.045 at a 15% discordance rate). G1–G4 include 0.
+- **Reading.** If G5's CI excludes 0, the paper drops "whatever the reader". The cap is then stated as index-dependent: on Sonnet's captions, the 17× cheaper reader loses nothing measurable; on Gemini's video captions, the stronger reader reads more. If every Sonnet − Haiku CI includes 0, the paper says so for the five shared indexes, and still narrows the claim to what was tested.
+
+**Outcome 2: cost without the CLI's fixed prompt** (descriptive).
+- **F, the CLI's overhead per call.** The smallest Claude question-only call has 1,003 input tokens. Its whole text (our 139-character system prompt, the reader template and the question) is ≈ 120–150 tokens; Qwen reads the same question-only text in 121 tokens (median). So the CLI adds ≈ 850–900 tokens to every call. Main value **F = 850**, sensitivity at 700 and 1,000.
+- **Method.** Remove F input tokens from every Claude reader call and every Claude caption call (per window, or per video for the whole-video captioner), and reprice them at list price. Gemini calls are unchanged. Recompute, for every QSTAR_PAIRS pair: $ per question, the per-question cost ratio, and Q_BE with its 95% CI.
+- **Expectations (algebra, not a test).**
+  - For one reader with a Gemini index, Q_BE does not change, since F cancels in c_f − c_τ. Only the percentage saving rises (Haiku 18% → ≈ 30%, Sonnet 30% → ≈ 50%).
+  - For the reader downgrade, the denominator falls by F × ($2.00 − $0.10) per million ≈ $0.0016 of ≈ $0.0039. So Q_BE rises ≈ 1.7× for Gemini indexes (1.8–3.7 → ≈ 3–6.5). It rises less for Claude-captioned indexes, whose caption calls also lose F (Sonnet captions 2.3 → ≈ 2–3).
+  - The downgrade's per-question ratio stays within 1/20–1/30 of Sonnet on frames.
+- **Reading.** The paper reports the measured costs as the main account. It adds this check to the cost section, and fixes the single-reader paragraph: the fixed prompt explains the small *percentage* saving, while the slow break-even comes from the small absolute saving in content tokens.
+
+**Result (2026-10-28; `reader.py a5`, run once; output in `results/index_qa/reports/a5.txt`).** The analysis at F = 0 reproduces every Q_BE in the paper (`cost.txt`).
+
+1. **The cap is index-dependent.** On the four Sonnet-written indexes, Sonnet and Haiku read equally. On Gemini's video captions, Sonnet reads more.
+
+| Term | S − H (or Q − H) | 95% CI | Clip clusters |
+|---|---|---|---|
+| G1 Sonnet captions | +0.003 | [−0.040, +0.047] | [−0.042, +0.050] |
+| G2 Sonnet captions 448 px | +0.020 | [−0.024, +0.064] | [−0.016, +0.057] |
+| G3 Sonnet whole-video | +0.000 | [−0.040, +0.040] | [−0.043, +0.043] |
+| G4 Sonnet aspect-aware | +0.013 | [−0.024, +0.051] | [−0.023, +0.048] |
+| **G5 Gemini video** | **+0.054** | **[+0.017, +0.091]** | **[+0.023, +0.084]** |
+| G6 Q − H, Gemini video | −0.040 | [−0.088, +0.003] | [−0.081, +0.000] |
+| G7 Q − H, Gemini frame-clip | −0.037 | [−0.081, +0.007] | [−0.072, +0.000] |
+| G8 Q − H, Gemini frame | −0.077 | [−0.125, −0.030] | [−0.119, −0.035] |
+| G9 Q − H, Haiku captions | −0.040 | [−0.091, +0.013] | [−0.089, +0.013] |
+
+- G5 is spread over the types (plain +0.07 [+0.02, +0.11]; the others +0.04 to +0.05, CIs include 0).
+- Qwen trails Haiku on every shared index, almost all of it on two-clip videos (−0.18 to −0.29, every CI excludes 0); on plain videos it is level (−0.01 to +0.03).
+- **Reading (rule above).** G5's CI excludes 0, so the paper drops "whatever the reader". The tie holds on the four indexes Sonnet wrote. A Sonnet-written index is also Sonnet's own words, so "the reader gains nothing from the index's author's own captions" and "the index holds less than Sonnet can read" are not separated here.
+
+2. **Cost without the CLI's fixed prompt (F = 850; 700 and 1,000 in brackets where they matter).**
+- One reader, Gemini index: Q_BE is unchanged (Haiku 202, Sonnet 5.8), as the algebra says. The percentage saving per question rises: Haiku 18% → 30%, Sonnet 30% → 52%.
+- One reader, Sonnet's own captions: Q_BE 8.9 → 4.6 [3.9 at 1,000; 5.4 at 700], because the captioning calls lose F too.
+- Reader downgrade (Haiku on an index vs. Sonnet on frames): Gemini indexes 1.8–3.7 → 3.1–6.3 [2.8–5.6; 3.6–7.1]; Claude-written indexes 1.2–3.0 → 1.4–3.2. Over all seven indexes, 1.2–3.7 → **1.4–6.3**.
+- The per-question ratio moves from 1/23–1/26 to **1/25–1/34** (Haiku's fixed share falls more than Sonnet's).
+- **Predictions.** The 1.7× rise for Gemini indexes held (1.7×). Sonnet captions moved 2.3 → 2.0, inside the predicted 2–3. The ratio predicted within 1/20–1/30 went past 1/30 for the whole-video and aspect-aware indexes (1/34, 1/31).
+- **For the paper:** without the CLI's prompt, the reader downgrade costs 1/25–1/34 per question and repays within 1.4–6.3 questions per video. The conclusion holds; the break-even roughly doubles for Gemini indexes.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).

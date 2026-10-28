@@ -1295,6 +1295,51 @@ def cmd_a4(args):
         print(f"  {name}: {both[a].mean():.3f} - {both[b].mean():.3f} = {e:+.3f} [{l:+.3f}, {h:+.3f}] (n={len(d)})")
 
 
+# A5 (research log): reader gaps on indexes that two readers read, as (name, arm, arm subtracted, prediction); the
+# means are known from the paper's tables, so the prediction column holds the known mean or 0
+A5_GAPS = [("G1 S - H, Sonnet captions", "sonnet:sonnetcaptions", "haiku:sonnetcaptions", -0.003),
+           ("G2 S - H, Sonnet 448 px", "sonnet:sonnetcaptions448", "haiku:sonnetcaptions448", 0.021),
+           ("G3 S - H, Sonnet whole-video", "sonnet:sonnetwhole", "haiku:sonnetwhole", 0.000),
+           ("G4 S - H, Sonnet aspect-aware", "sonnet:sonnetaspects", "haiku:sonnetaspects", 0.014),
+           ("G5 S - H, Gemini video", "sonnet:captions", "haiku:captions", 0.054),
+           ("G6 Q - H, Gemini video", "qwen:captions", "haiku:captions", -0.040),
+           ("G7 Q - H, Gemini frame-clip", "qwen:frameclipcaptions", "haiku:frameclipcaptions", 0.0),
+           ("G8 Q - H, Gemini frame", "qwen:framecaptions", "haiku:framecaptions", 0.0),
+           ("G9 Q - H, Haiku captions", "qwen:selfcaptions", "haiku:selfcaptions", 0.0)]
+A5_DROPS = [850, 700, 1000]  # the CLI's fixed prompt, input tokens per Claude call: main value, then sensitivity
+
+
+def cmd_a5(args):
+    """A5's statistics (research log): reader gaps on shared indexes (95% CIs over questions and clip clusters, by
+    video type); then $ per question, the per-question ratio and Q* for QSTAR_PAIRS, as measured and without the
+    CLI's fixed prompt (A5_DROPS input tokens removed from every Claude reader and caption call)."""
+    import pandas as pd
+    qs, _, wide = confirm_table()
+    q = {x["item"]: x for x in qs}
+    vtype = pd.Series({i: tc.video_type(q[i]["video_id"]) for i in wide.index})
+    clus = pd.Series(dict(zip(wide.index, clip_clusters([q[i]["video_id"] for i in wide.index]))))
+    print(f"1. reader gaps on shared indexes ({len(wide)} questions; 'prediction' = the mean already known, or 0):")
+    type_effects(wide, A5_GAPS, vtype, clus)
+    df = call_frame("confirm")
+    vid = {x["item"]: x["video_id"] for x in qs}
+    print("\n2. cost as measured (drop 0) and without the CLI's fixed prompt (drop F input tokens per Claude call):")
+    for drop in [0] + A5_DROPS:
+        usd = df.assign(usd=[list_usd(m, u, drop) for m, u in zip(df.model, df.usage)]).pivot_table(
+            index="question_item", columns="arm", values="usd", aggfunc="first")
+        print(f"  F = {drop}:")
+        for a, b in QSTAR_PAIRS:
+            if a not in usd or b not in usd:
+                continue
+            cap = a.split(":")[1]
+            idx = index_per_video(cap, set(vid.values()), drop)
+            ok = [i for i in usd.index if pd.notna(usd.at[i, a]) and pd.notna(usd.at[i, b])
+                  and idx.get(vid[i]) is not None]
+            est, lo, hi, never = qstar_boot([idx[vid[i]] for i in ok], usd.loc[ok, a].tolist(), usd.loc[ok, b].tolist())
+            ca, cb = usd.loc[ok, a].mean(), usd.loc[ok, b].mean()
+            print(f"    {a} vs. {b}: $/q {ca:.6f} vs. {cb:.6f} (ratio {ca / cb:.3f} = 1/{cb / ca:.1f}); index "
+                  f"${sum(idx[vid[i]] for i in ok) / len(ok):.5f}/video; Q* = {est:.1f} [{lo:.1f}, {hi:.1f}]")
+
+
 # Claude list prices, $ per million input / output tokens (thinking bills as output), from the claude-api skill's
 # model table (cached 2026-10-06); Haiku's hold for prompts up to 100K tokens. The CLI's costUSD should match them.
 PRICES = {"haiku": (0.10, 0.50), "sonnet": (2.00, 10.00)}
@@ -1314,16 +1359,17 @@ QSTAR_PAIRS = [("haiku:captions", "haiku:frames5"), ("sonnet:captions", "sonnet:
                ("haiku:sonnetaspects", "sonnet:frames5"), ("sonnet:sonnetaspects", "sonnet:frames5")]
 
 
-def list_usd(model: str, usage: dict | None) -> float:
-    """A Claude call's list-price cost from its usage (prompt caching is off in every call)."""
+def list_usd(model: str, usage: dict | None, drop: int = 0) -> float:
+    """A Claude call's list-price cost from its usage (prompt caching is off in every call), optionally without
+    `drop` input tokens (A5: the CLI's fixed prompt)."""
     u = usage or {}
     p_in, p_out = PRICES[model]
-    return (u.get("input_tokens", 0) * p_in + u.get("output_tokens", 0) * p_out) / 1e6
+    return (max(u.get("input_tokens", 0) - drop, 0) * p_in + u.get("output_tokens", 0) * p_out) / 1e6
 
 
-def index_usd(arm: str) -> dict[tuple[str, int], float]:
+def index_usd(arm: str, drop: int = 0) -> dict[tuple[str, int], float]:
     """$ per (video_id, window) to caption a caption arm's window once: the latest successful call per window (window
-    0 only, for a whole-video captioner)."""
+    0 only, for a whole-video captioner). `drop` removes input tokens from each Claude caption call (A5)."""
     kind, key = INDEX_SOURCE[arm]
     out = {}
     if kind == "gemini":
@@ -1334,7 +1380,7 @@ def index_usd(arm: str) -> dict[tuple[str, int], float]:
     else:
         for f in (CAPTIONS / CAPTIONERS[arm]).glob("*/*.json"):
             d = json.loads(f.read_text())
-            out[d["video_id"], d["window"]] = list_usd(key, d.get("usage"))
+            out[d["video_id"], d["window"]] = list_usd(key, d.get("usage"), drop)
     return out
 
 
@@ -1487,9 +1533,10 @@ def call_frame(set_: str):
     return df
 
 
-def index_per_video(arm: str, videos) -> dict[str, float | None]:
-    """One-time captioning $ per video for a caption arm (None if a window has no logged call)."""
-    per_win = index_usd(arm)
+def index_per_video(arm: str, videos, drop: int = 0) -> dict[str, float | None]:
+    """One-time captioning $ per video for a caption arm (None if a window has no logged call); `drop` as in
+    index_usd."""
+    per_win = index_usd(arm, drop)
     out = {}
     for v in videos:
         w = [per_win.get((v, p)) for p in range(len(caption_windows(v, CAPTIONERS[arm])))]
@@ -1679,14 +1726,14 @@ def main():
     sub.add_parser("cost")
     ty = sub.add_parser("types")
     ty.add_argument("--set", dest="set_", choices=list(tc.SETS), default="confirm")
-    for name in ("c4", "a4", "c5", "c6", "c8", "c9", "c10", "c11", "c12", "headroom", "tables", "e1"):
+    for name in ("c4", "a4", "a5", "c5", "c6", "c8", "c9", "c10", "c11", "c12", "headroom", "tables", "e1"):
         sub.add_parser(name)
     e2 = sub.add_parser("e2")
     e2.add_argument("--set", dest="set_", choices=list(tc.SETS), default="ego_confirm")
     args = ap.parse_args()
     {"run": cmd_run, "check": cmd_check, "confirm": cmd_confirm, "c2": cmd_c2, "c3": cmd_c3,
-     "thinking": cmd_thinking, "cost": cmd_cost, "types": cmd_types, "c4": cmd_c4, "a4": cmd_a4, "c5": cmd_c5,
-     "c6": cmd_c6, "c8": cmd_c8, "c9": cmd_c9, "c10": cmd_c10, "c11": cmd_c11, "c12": cmd_c12,
+     "thinking": cmd_thinking, "cost": cmd_cost, "types": cmd_types, "c4": cmd_c4, "a4": cmd_a4, "a5": cmd_a5,
+     "c5": cmd_c5, "c6": cmd_c6, "c8": cmd_c8, "c9": cmd_c9, "c10": cmd_c10, "c11": cmd_c11, "c12": cmd_c12,
      "headroom": cmd_headroom, "tables": cmd_tables, "e1": cmd_e1, "e2": cmd_e2}[args.cmd](args)
 
 
