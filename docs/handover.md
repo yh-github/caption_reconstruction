@@ -12,7 +12,8 @@ The newest session is at the top. Older sessions stay below because other docs l
   - Added: an Ethics Statement (two `\draftnote`s for the author), Socratic Models, VideoAgent and RouteLLM, and Qwen's three missing arms.
 - **A5 (log; `reader.py a5`; `results/index_qa/reports/a5.txt`).** Sonnet − Haiku on Gemini video captions is +0.054 [+0.017, +0.091]; on the four Sonnet-written indexes, every CI includes 0. Without the CLI's ≈ 850-token prompt, the downgrade costs 1/25–1/34 per question and Q_BE is 1.4–6.3.
 - **Pages:** the main text ends ¾ down page 9's left column. Trim after the first feedback.
-- **Nothing is committed yet.**
+- **Committed and pushed** (`661090a` A5, `62cf19e` paper). The A5 entry was written before its run but committed after it.
+- **Room (user, 2026-10-28):** don't cut yet. Write more than needed and decide what to cut later.
 
 # 2026-10-28 (late) → Wrap-up: no new data; next session reviews the draft
 
