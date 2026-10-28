@@ -2,6 +2,14 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
+# 2026-10-28 → E1 done; E2 written, waiting for the Software Heritage visit
+
+**Start here: research log E1 (*Result*) and E2.**
+- **E1** finished on 2026-10-28 at 06:56 UTC, after a reboot killed the run during a quota wait (resumed unchanged). Result: Sonnet scores 0.72 from the question alone, as high as on frames, so E2's primary tests are on Haiku (H1 captioner effect, H2 Haiku's modality) and on Q_BE (H3, 6.3 in E1).
+- **E2** (`ego_confirm`, all 160, the user's choice) is written with `run_e2.sh` and `reader.py e2`, and committed and pushed before any call.
+- **Next:** the user requests the Software Heritage "Save code now" visit. Then `scripts/index_qa/run_e2.sh check`, inspect it, and `setsid nohup scripts/index_qa/run_e2.sh run > logs/run_e2.out 2>&1 < /dev/null &`. It takes about 15–20 h with the quota waits. Then run `reader.py e2` once, save it to `results/index_qa/reports/e2.txt`, and write the result into log E2.
+- **Paper:** the anonymized repository link is in Appendix G. On 4open.science, add `post.runi.ac.il` to the anonymized terms (user).
+
 # 2026-10-27 (evening) → E1 (EgoSchema development run) is RUNNING, detached
 
 **Start here: research log E1 and its run notes.** Then `scripts/index_qa/run_e1.sh status`.

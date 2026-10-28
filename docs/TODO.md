@@ -18,7 +18,8 @@ Paper: `docs/paper/acl2027/caption_index.tex` (source of truth; build with `late
   - [x] E1 development run: done 2026-10-28 06:56 UTC (interrupted by a reboot, resumed unchanged).
   - [x] E1 analysis (`reader.py e1`; `results/index_qa/reports/e1.txt`; log E1 *Result*). Sonnet question-only = 0.72, as high as on frames; Q_BE = 6.3.
   - [x] E2 data: `ego_confirm` videos and frames on disk (2026-10-27 14:28; no calls).
-  - [ ] E2 entry (confirmatory; size decided from E1's quota use) with numeric predictions from E1; `run_e2.sh`; commit, push, Software Heritage; run; analysis. The step-by-step runbook is in the handover.
+  - [x] E2 entry (all 160 `ego_confirm` questions, the user's choice; primary H1–H3 on Haiku and Q_BE), `run_e2.sh` and `reader.py e2`, written 2026-10-28.
+  - [ ] E2: Software Heritage visit (user), then `run_e2.sh check` and `run`; then `reader.py e2`, run once.
   - [ ] Reassess NExT-QA; query-ready captions (plan §4, stage C).
   - [ ] Paper: a length / second-benchmark section (the main text must stay at 8 pages).
 

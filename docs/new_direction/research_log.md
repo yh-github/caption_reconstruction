@@ -1630,6 +1630,61 @@ Captioning:
 - **Output tokens did not stay constant, but they fell instead of rising.** Against TempCompass, mean output per read is 0.59–0.78× for Haiku's frame and caption arms and for Sonnet on frames. It is 1.57× for Sonnet on its captions (72 vs. 46). The D6 pilot's 265 tokens were not typical. Input tokens grow with length as expected: 10.6K for 5 frames, 4.5K for window captions.
 - **Spend.** List price $7.9: captions $6.5, reads $1.4. Quota: 7-day +0.06 on 2026-10-27 and +0.03 on 2026-10-28, ≈ 0.09 in all, account-wide. E2 at 160 videos, ≈ 4×, is ≈ 0.36 of a 7-day window.
 
+### E2 — EgoSchema confirmatory run (written 2026-10-28, committed before any E2 call)
+
+**Status.** Confirmatory, after E1 (development). The user chose all 160 `ego_confirm` questions on 2026-10-28. Its result goes in the paper as the length test, next to C1.
+
+**Why.** E1 had 39 questions, so every paired CI was about ±0.15. E2 tests, on 160 new questions on new videos, the claims E1 can only suggest at 36 windows: the captioner effect, Haiku's modality effect and the break-even.
+
+**What E1 changes in the design.** Sonnet scored 0.72 from the question alone, the same as from frames (0.69). Its answers differ between those two arms on 44% of the questions, so it does use the video, but its net accuracy gains nothing. Sonnet's modality term and the cap therefore can't separate the representations here, and they move to the secondary terms. The primary tests are on Haiku as the reader, where the video adds +0.26 over the question alone, and on the cost model.
+
+**Items.** `ego_confirm`: 160 questions on 160 videos, seed 0, drawn with `ego_dev` before any E1 call (`egoschema.py`), in git. No overlap with `ego_dev`. Every video is 180 s, so 36 windows, and 5 options per question, so chance is 0.20. The videos and frames are on disk (2026-10-27), and no `ego_confirm` question has been read.
+
+**Arms and settings.** Exactly E1's: the same 9 arms, prompts, `claude -p` isolation, effort medium, captioners and `--whole` caption (`run_e2.sh` is `run_e1.sh` with `ego_dev` → `ego_confirm` and `e1` → `e2`). A failed or invalid read counts as wrong.
+
+**Exclusion rule, fixed in advance.** As in C1's amendment 2 and E1's amendment 1, a question with a window that a captioner answered "ERROR" or left without a caption is dropped from every arm, and recorded as an amendment before any reader call on that question's captions.
+
+**Primary hypotheses** (Bonferroni over three: 98.33% CIs, paired bootstrap over questions, one per video; a pass needs the CI to exclude 0 on the predicted side). The predictions take E1's value toward TempCompass's, since E1's CIs are wide.
+
+| | Hypothesis | Statistic | Prediction | E1 | TempCompass |
+|---|---|---|---|---|---|
+| H1 | A stronger captioner adds usable information at length | Haiku: Sonnet captions − own captions | +0.08 | +0.13 | +0.064 |
+| H2 | At length, Haiku's own captions lose against its frames | Haiku: own captions − 5 frames | −0.05 | −0.10 | +0.03 |
+| H3 | D5's cost model holds at 36 windows | Q_BE, Haiku on Sonnet captions vs. Sonnet on 5 frames: 98.33% CI inside [5, 10] | 6.3 | 6.3 [6.1, 6.4] | 2.3 (W = 2.6) |
+
+**Secondary** (95% CIs, estimates rather than tests):
+
+| | Term | Prediction | E1 |
+|---|---|---|---|
+| S1 | Question only, Haiku; Sonnet | 0.41; 0.68 | 0.41; 0.72 |
+| S2 | Video use, Sonnet: 5 frames − question only | 0.00 | −0.03 |
+| S3 | Video use, Haiku: 5 frames − question only | +0.25 | +0.26 |
+| S4 | Modality, Sonnet: own captions − 5 frames | −0.03 | 0.00 |
+| S5 | The cap: Haiku − Sonnet on Sonnet captions | 0.00 | 0.00 |
+| S6 | Whole-video − per-window Sonnet captions, Haiku reading | 0.00 | 0.00 |
+| S7 | 1 frame − 5 frames, Haiku | −0.04 | −0.05 |
+| S8 | Haiku on Sonnet captions − Sonnet on 5 frames | −0.02 | 0.00 |
+| S9 | Q_BE, Haiku on Sonnet's whole-video caption vs. Sonnet on 5 frames | 1.2 | 1.2 |
+| S10 | Output tokens per read against TempCompass | below 1× for Haiku's frame and window-caption arms and Sonnet's frames; above 1× for Sonnet on its captions | 0.59–0.78×; 1.57× |
+
+**Exploratory, no predictions.** The video-needed subset: the questions Sonnet answers wrongly from the question alone (E1: 11 of 39). The non-Sonnet-blind terms above are reported on it, with 95% CIs. It conditions on an arm that never sees the video, so it can't be biased by the representations. But it's chosen by an outcome, so it's descriptive only.
+
+**Power, stated in advance.** E1's discordant pairs were 26–31% of questions, so a paired difference on 160 questions has SE ≈ 0.043, and the 98.33% CI is ≈ ±0.10. H1 at +0.08 then has ≈ 30% power, and H2 at −0.05 ≈ 11%. **A H1 or H2 that does not pass is not evidence of no effect**; we would report the estimate and CI as a bound. H3's CI is narrow (±0.2 on E1's 39 questions), so it tests the cost model, not accuracy. There are no more `ego_confirm` questions in the sample, and n is not increased after seeing results.
+
+**What each outcome means for the paper.**
+- H1 passes: the captioner effect holds at 3 minutes, about twice as large as on TempCompass, if E1's size holds.
+- H2 passes: at length, a weak reader's own captions lose against its frames. TempCompass's +0.03 then turns negative with length, so the modality effect's sign depends on the length as well as the reader.
+- H3 passes: the paper's cost projection (D5) holds on real 3-minute videos.
+- S2 near 0: on EgoSchema a frontier reader gains no net accuracy from the video, a property of the benchmark that we report next to the results, not a finding about captions.
+
+**Volume and quota.** 11,520 window captions (5,760 per captioner), 160 whole-video captions and 1,440 reads, ≈ 13,100 calls. List price ≈ $32. Quota ≈ 0.35–0.40 of a 7-day window, which was 0.03 at the end of E1. About 4 five-hour windows, so ≈ 15–20 hours with the waits.
+
+**Run order and stop rules.**
+1. `run_e2.sh check`: 3 window captions per captioner and one 180-image read. Its calls count as data, as in E1.
+2. `run_e2.sh run`, detached. 5-hour guard 0.99 (E1's final setting, at the user's request), 7-day guard 0.9. It resumes itself after each 5-hour reset.
+3. Stop on any isolation failure. Stop if the first 5-frame call errors or exceeds the 900 s time limit. Stop if more than 5% of 180-image calls fail. If the 7-day guard stops the run, ask the user before resuming.
+4. No decision depends on interim accuracy. `reader.py e2` (committed with this entry) is run once, when all arms are complete, and its output is reported here in full (`results/index_qa/reports/e2.txt`).
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
