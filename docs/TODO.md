@@ -19,7 +19,9 @@ Paper: `docs/paper/acl2027/caption_index.tex` (source of truth; build with `late
   - [x] E1 analysis (`reader.py e1`; `results/index_qa/reports/e1.txt`; log E1 *Result*). Sonnet question-only = 0.72, as high as on frames; Q_BE = 6.3.
   - [x] E2 data: `ego_confirm` videos and frames on disk (2026-10-27 14:28; no calls).
   - [x] E2 entry (all 160 `ego_confirm` questions, the user's choice; primary H1–H3 on Haiku and Q_BE), `run_e2.sh` and `reader.py e2`, written 2026-10-28.
-  - [ ] E2: Software Heritage visit (user), then `run_e2.sh check` and `run`; then `reader.py e2`, run once.
+  - [x] E2 started 2026-10-28 08:59 UTC, then **stopped at 09:52 UTC for contamination** (EgoSchema predates the readers' June 2026 cutoff; log E2 run notes). No result looked at.
+  - [x] Paper repositioned against CapMem (2026-10-28): CapMem already varies the captioner on the same frames (Qwen only) and compares own captions with frames, so the related-work claim "none has a self-caption control" was wrong and is fixed. Added a Contamination limitation; main text still ends on page 8.
+  - [ ] Decide whether to add a post-cutoff benchmark (short video; long video stays out of scope).
   - [ ] Reassess NExT-QA; query-ready captions (plan §4, stage C).
   - [ ] Paper: a length / second-benchmark section (the main text must stay at 8 pages).
 
