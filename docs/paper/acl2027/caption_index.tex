@@ -347,6 +347,13 @@ all (297) & 0.41 & 0.80 & 0.71 & 0.20 [0.15, 0.26] & +0.09 [+0.04, +0.14] & 0.77
 \textbf{What the benchmark tests when the captioner is also misled.} A low score might only mean that TempCompass's built videos fooled the captioner, but the arms separate the two causes: the same model also reads the same pixels with the question in view. Table~\ref{tab:headroom} (descriptive) splits Sonnet's headroom into a perception shortfall, 1 − frames, and an index loss, frames − own captions (seen when asked, not written down blind). On plain and two-clip videos the index loss is ≈ 0, and the index keeps 0.95--1.00 of the frames' gain. On reversed videos Sonnet is misled even with the question in view (shortfall 0.36), and writing blind loses another 0.18; on stacked videos it sees the comparison when asked (0.66), but its blind captions keep little of it (retention 0.21, wide CI). For Haiku the index loss is negative (−0.09; Appendix~\ref{app:extra}).
 \textbf{Why the baselines are needed.} The same captions help Haiku and cost Sonnet (retention 1.47, 0.77): without self-caption, frames and question-only arms, a ``caption effect'' mixes captioner, modality and prior.
 
+\textbf{Future work.} Three extensions follow.
+\begin{itemize}
+\item \textbf{Contamination.} A test set built from videos released after the readers' training data, with answers made by editing the videos (reversal, order, splicing), would leave nothing to remember.
+\item \textbf{Long gaps.} Masking a span and asking which candidate fills it, with distractors from the same video, recasts reconstruction as a question with a metric that both modalities share. Over a 1\,s gap, frame continuity wins (Appendix~\ref{app:extra}). Over long gaps we expect the opposite. One can guess the missing twenty minutes of a wedding (vows, rings, the pronouncement) from what usually happens, but not what they looked like.
+\item \textbf{Long videos.} The same experiment on long videos would test where captioning everything stops paying, together with readers that retrieve a few windows.
+\end{itemize}
+
 \section{Conclusion}
 Given exactly the reader's frames, a stronger captioner's question-blind captions make Claude Haiku and an open 7B reader more accurate, while no reader gains more than 0.09 from its own captions. The index pays through the cheaper reader. It loses what a captioner does not write without the question: comparisons between two copies of a clip, and reversals.
 

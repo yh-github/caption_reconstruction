@@ -1,5 +1,16 @@
 # TODO
 
+## ⚠ Before submitting the ACL paper (ARR, January 2027): read this list first
+
+Decided 2026-10-28: no new data. Only the minimum work to wrap up.
+
+1. [ ] **Review the draft** (next session). The main text now runs onto page 9 (Future work was added). Trim it back to 8 pages after the first feedback.
+2. [ ] **Repeat the literature search** (query Q7, new work since 2026-10-21; `related_work_caption_index.md` §10.3) in the week before submission. Check for new post-cutoff short-video benchmarks too.
+3. [ ] **Final read by the author.**
+4. [ ] **Refresh the anonymized copy** at https://anonymous.4open.science/r/dense_captions-26B/ after the last push. Its masked terms are already set.
+5. [ ] **Check the exact ARR January 2027 deadline,** then submit.
+6. [ ] **At camera-ready:** add the Software Heritage identifier to §2.4 and Appendix G. It is withheld for review because the URL names the account; the URL is in `docs/handover.md` (2026-10-27).
+
 ## C. Caption-index paper (current direction since 2026-10-18; target ACL 2027 via ARR, January 2027)
 
 Paper: `docs/paper/acl2027/caption_index.tex` (source of truth; build with `latexmk -pdf caption_index.tex` in that folder). Experiments, predictions and results: `docs/new_direction/research_log.md` (K0–C12). Session state: top of `docs/handover.md`.
@@ -7,10 +18,9 @@ Paper: `docs/paper/acl2027/caption_index.tex` (source of truth; build with `late
 - [x] Experiments K0–K2 (development), C1 (pre-registered) and C2–C12 (exploratory, each predicted before its run); all analyses run once, reports in `results/index_qa/reports/`.
 - [x] Main text within 8 pages; Appendices A–G written (A prompts, B predictions vs. results for all 50 terms, C amendments and deviations, D tables by type and aspect, E additional results, F minimal pairs, G release).
 - [x] Every number in the paper traced to the log or a report (2026-10-27; log D4).
-- [x] **Anonymized code link for review** (Appendix G): https://anonymous.4open.science/r/dense_captions-26B/ (2026-10-28). Names, usernames and paths are masked. Still to do: add `post.runi.ac.il` to its anonymized terms (it shows in `CITATION.cff` and `pyproject.toml`), and refresh the copy before submission.
-- [ ] **Software Heritage identifier:** add it to §2.4 and Appendix G at camera-ready (withheld for review; the URL names the account). URL in `docs/handover.md` (2026-10-27).
-- [ ] Repeat literature query Q7 (new work since Oct 21) in the week before submission (`related_work_caption_index.md` §10.3).
-- [ ] Final read by the author; then submit to ARR (January 2027 cycle; check the exact date).
+- [x] **Anonymized code link for review** (Appendix G): https://anonymous.4open.science/r/dense_captions-26B/ (2026-10-28). Names, usernames and paths are masked, and `post.runi.ac.il` was added to its anonymized terms (user, 2026-10-28). The copy is refreshed before submission (checklist at the top).
+- [x] Short Future work paragraph in Discussion (2026-10-28): post-cutoff edited videos, long gaps (masked-span multiple choice; the wedding example), long videos. The main text now runs onto page 9. The user accepted this until the first feedback.
+- [ ] The submission checklist at the top of this file.
 - [x] External review (Gemini, `docs/new_direction/argon_review.md`) applied; Q\* renamed Q_BE; Q_BE by video length (log D5).
 - [ ] **Strengthening round (user, 2026-10-27): EgoSchema first, NExT-QA reassessed afterwards** (`docs/new_direction/nextqa_plan.md`). Any new run needs a log entry committed and pushed, plus a Software Heritage "Save code now" visit, before its first call.
   - [x] Feasibility (log D6): partial download from the zips; a 180-image `claude -p` call.

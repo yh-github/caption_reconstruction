@@ -2,7 +2,20 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
-# 2026-10-28 → E1 done; E2 written, waiting for the Software Heritage visit
+# 2026-10-28 (late) → Wrap-up: no new data; next session reviews the draft
+
+**Start here: the checklist at the top of `docs/TODO.md`.** Next session: review the draft (`docs/paper/acl2027/caption_index.pdf`).
+- **E2 (EgoSchema) is stopped for good, not waiting.** It was stopped at 09:52 UTC for contamination: EgoSchema predates the readers' June 2026 cutoff. No result was looked at. The section below is superseded.
+- **Contamination is answered with existing data (log A4).** 197 of 297 confirmatory questions have the same text with another answer in TempCompass itself. On them the question alone is at chance, and every headline effect keeps its sign and is no smaller. The paper's Limitations paragraph cites it.
+- **No new benchmark for ACL (user's decision).**
+  - No clean post-cutoff short-video MCQ benchmark exists.
+  - The Claude 3.x models are retired, and Haiku 4.5 / Sonnet 4.5 postdate TempCompass, so an older reader can't fix contamination.
+  - NExT-QA is dropped (2021).
+- **Paper:** the Future work paragraph was added to Discussion. The main text runs onto page 9, which the user accepted until the first feedback.
+- **Future work (not for ACL):** a post-cutoff set built by editing videos, and masked-span multiple choice as a function of gap length. The user's hypothesis is that over long gaps (a wedding: vows, rings) script knowledge in text beats visual continuity.
+- **Status line:** a subagent set `statusLine` in `~/.claude/settings.json` to show the working directory. The user only wanted the quota (`/usage`) and hasn't said whether to keep it.
+
+# 2026-10-28 → E1 done; E2 written, waiting for the Software Heritage visit (superseded: E2 stopped)
 
 **Start here: research log E1 (*Result*) and E2.**
 - **E1** finished on 2026-10-28 at 06:56 UTC, after a reboot killed the run during a quota wait (resumed unchanged). Result: Sonnet scores 0.72 from the question alone, as high as on frames, so E2's primary tests are on Haiku (H1 captioner effect, H2 Haiku's modality) and on Q_BE (H3, 6.3 in E1).
