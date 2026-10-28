@@ -1873,6 +1873,74 @@ Captioning:
 - **Predictions.** The 1.7× rise for Gemini indexes held (1.7×). Sonnet captions moved 2.3 → 2.0, inside the predicted 2–3. The ratio predicted within 1/20–1/30 went past 1/30 for the whole-video and aspect-aware indexes (1/34, 1/31).
 - **For the paper:** without the CLI's prompt, the reader downgrade costs 1/25–1/34 per question and repays within 1.4–6.3 questions per video. The conclusion holds; the break-even roughly doubles for Gemini indexes.
 
+### A6 — Can a question-blind score of a video predict where its captions lose? (written 2026-10-28, before any score is computed; no calls)
+
+**Why.** The team (Prof. Gail) asked for a predictive tool: "video X has score Y = y, so captions are more (or less) likely to serve task type T on it". The draft has no such tool.
+- **Question aspect** was the only predictor fixed in advance (P1), and it failed.
+- **Video type** predicts (A3, C3 Amendment 1), but it is TempCompass's construction label (reversed, stacked, two-clip). No real video carries it.
+- **The reconstruction phase's priors** were placebo (P1 post-mortem).
+
+This entry tests whether a score computed from the index itself (frames and captions, before any question) predicts where captions lose the frames' answer, **beyond video type**.
+
+**Scores** (`scripts/index_qa/priors.py`, committed with this entry; SigLIP 2 throughout, as in P1). None has been computed on these videos.
+- **Motion:** the mean SigLIP 2 cosine distance between consecutive frames, 1 s apart, over the whole video (the reader's 224 px frames). **Prediction:** more motion means more losses. A caption compresses each 5 s window into one or two sentences, and what changes from second to second is what it can drop. In C7's audit, captions failed mostly by omission: no speed comparison on stacked clips, no committed direction on reversed ones.
+- **Coverage:** per captioner, the mean over windows of the SigLIP 2 cosine between the window's caption (text tower `google/siglip2-base-patch16-224`, in the frames' space, 64-token truncation) and the mean of its frames. **Prediction:** lower coverage means more losses. A caption that matches its frames less has left more of them out (the Omission rule as a score).
+- **Not tested: window count.** C10 already showed it descriptively (Sonnet loses most on one-window videos), confounded with type. It enters only the classifier (outcome 7).
+
+**Coverage gate** (`priors.py scores`, run before any reader row is joined).
+- **Check:** each window's caption is compared with its own frames and with a random window of another video (seed 0).
+- **Pass:** the caption is closer to its own window in ≥ 0.85 of windows, for each captioner.
+- **If it fails:** SigLIP does not read these captions well enough for coverage to measure anything. Coverage is then reported but not tested, and the Bonferroni divisor stays at 2. The share of captions over 64 tokens is reported too.
+
+**Target.** A **loss** is a question where a reader answers right from its 5 frames and wrong from its own captions of the same frames (Haiku: self-captions; Sonnet: its own captions). Only the modality changes; the reader and the pixels stay fixed.
+- Conditioning on the frames' answer being right keeps difficulty out. A hard video that both arms fail is not a loss.
+- **Rows:** both readers pooled, one row per (reader, question) with the frames answer right. From known accuracies: about 182 Haiku and 237 Sonnet rows, with 25 and 38 losses.
+- **What was known before this entry:** these counts and the means by type. No score has been joined to them.
+
+**Statistic.** A **stratified AUC**: over pairs of a loss and a kept answer from the same video type and the same reader, the share where the loss has the higher score (lower, for coverage), with ties counted as ½. 0.5 means no prediction.
+- Stratifying by type is the point. A score that only rediscovers TempCompass's labels scores 0.5.
+- **CIs:** percentile bootstrap over the 156 clip clusters, 4,000 resamples, seed 0.
+
+**Primary tests** (Bonferroni over 2: 97.5% CIs; a pass needs the CI to exclude 0.5 on the predicted side).
+
+| | Score | Predicted direction | Prediction |
+|---|---|---|---|
+| H1 | Motion | higher → more losses | AUC 0.60 |
+| H2 | Coverage | lower → more losses | AUC 0.58 |
+
+**Secondary** (95% CIs; estimates, not tests):
+- **2. By reader:** Haiku and Sonnet separately, stratified by type.
+- **3. Deployment term:** Sonnet answers right from frames, and Haiku is wrong on Sonnet's captions. This is the paper's index vs. direct, and coverage here uses Sonnet's captions.
+- **4. Plain videos only:** the closest thing here to unedited video, stratified by reader. Few losses, so descriptive.
+- **5. By aspect:** the "task type T" of the question, stratified by type × reader within each aspect. Descriptive.
+- **6. Gains:** a frames answer wrong and a captions answer right. Same scores and signs, descriptive, no prediction.
+- **7. The classifier:** what the team asked for, in usable form.
+  - Out-of-fold P(loss) from an L2 logistic regression (C = 1, standardized numeric features, one-hot categoricals), 10 folds grouped by clip cluster. Plain AUC of the out-of-fold predictions.
+  - Feature sets:
+    - A: aspect + reader
+    - B: A + motion + coverage
+    - C: A + video type
+    - D: C + motion + coverage
+  - Report B − A and D − C, with 95% CIs over clip clusters.
+  - **Predictions:** B − A +0.04. D − C +0.03. C − A larger than B − A, because the construction label carries more than any score.
+- **8. The table a user would read:** loss rate by score tertile (low / mid / high) and video type.
+
+**Power, stated in advance.** 419 rows, 63 losses. The Hanley–McNeil SE at AUC 0.60 is ≈ 0.040. With strata and clusters it is ≈ 0.045, so the 97.5% CI is ≈ ±0.10.
+- H1 at 0.60 then has ≈ 50% power, and an AUC of 0.65 ≈ 85%.
+- **A failed H1 or H2 is not evidence of no effect.** The CI's upper end bounds how well the score can predict on TempCompass.
+- There are no more confirmatory questions, and n is not increased.
+
+**Reading.**
+- **H1 or H2 passes:** the paper gets a usable rule. Its form is "a video whose motion score is in the top third loses a caption answer x% of the time, against y% in the bottom third, within the same kind of video", from outcome 8. Outcomes 4–5 say whether it holds on plain videos and for which aspects. The rule is from TempCompass alone: 297 short videos, five aspects.
+- **Significant on the opposite side:** reported as against the prediction, not as a pass.
+- **Both fail:** the paper says that no question-blind score tested predicts a loss beyond the video's construction. Video type and aspect then remain the only predictors, and both are benchmark-specific. This is the answer to the team either way.
+- **A wider test is not possible now.** EgoSchema was stopped for contamination (E2), and its development set has 39 questions. A post-cutoff benchmark is the place for one (`docs/TODO.md`).
+
+**Run order.**
+1. Commit and push this entry with `priors.py`.
+2. `priors.py scores`: embed the frames and captions, check the gate, and record it here.
+3. `priors.py a6` once, with output in `results/index_qa/reports/a6.txt`, reported here in full.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
