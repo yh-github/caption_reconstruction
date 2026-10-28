@@ -1367,6 +1367,105 @@ def qstar_by_length(df, vid: dict[str, str]):
               + "; ".join(cells))
 
 
+# E1 (research log): predicted terms as (label, arm, arm subtracted or None for an accuracy, prediction)
+E1_TERMS = [("question only, Haiku", "haiku:blind", None, 0.40),
+            ("question only, Sonnet", "sonnet:blind", None, 0.40),
+            ("Haiku, 5 frames", "haiku:frames5", None, 0.60),
+            ("Sonnet, 5 frames", "sonnet:frames5", None, 0.72),
+            ("captioner effect (Haiku: Sonnet - own captions)", "haiku:sonnetcaptions", "haiku:selfcaptions", 0.06),
+            ("modality, Haiku (own captions - frames)", "haiku:selfcaptions", "haiku:frames5", 0.03),
+            ("modality, Sonnet (own captions - frames)", "sonnet:sonnetcaptions", "sonnet:frames5", -0.04),
+            ("the cap (Haiku - Sonnet on Sonnet captions)", "haiku:sonnetcaptions", "sonnet:sonnetcaptions", 0.00),
+            ("whole-video - per-window Sonnet captions, Haiku", "haiku:sonnetwhole", "haiku:sonnetcaptions", 0.00),
+            ("1 frame - 5 frames, Haiku", "haiku:frame1", "haiku:frames5", -0.03)]
+E1_QSTAR = [("haiku:sonnetcaptions", "sonnet:frames5"), ("haiku:selfcaptions", "sonnet:frames5"),
+            ("haiku:sonnetwhole", "sonnet:frames5"), ("sonnet:sonnetcaptions", "sonnet:frames5"),
+            ("haiku:sonnetcaptions", "haiku:frames5"), ("haiku:selfcaptions", "haiku:frames5")]
+E1_QSTAR_PRED = 7.5  # D5's projection at W = 36 for the first pair
+
+
+def call_frame(set_: str):
+    """One row per (model:arm, question) on a set: correct, tokens and list-price $ (as in cmd_cost)."""
+    import pandas as pd
+    keep = {q["item"] for q in tc.items(set_)}
+    rows = [r for m in PRICES for r in latest(m).values() if r["question_item"] in keep]
+    df = pd.DataFrame(rows)
+    df["arm"] = df.model + ":" + df.arm
+    df["in_tok"] = [(u or {}).get("input_tokens", 0) for u in df.usage]
+    df["out_tok"] = [(u or {}).get("output_tokens", 0) for u in df.usage]
+    df["think"] = [thinking_tokens(r) for r in rows]
+    df["usd"] = [list_usd(r["model"], r["usage"]) for r in rows]
+    return df
+
+
+def index_per_video(arm: str, videos) -> dict[str, float | None]:
+    """One-time captioning $ per video for a caption arm (None if a window has no logged call)."""
+    per_win = index_usd(arm)
+    out = {}
+    for v in videos:
+        w = [per_win.get((v, p)) for p in range(len(caption_windows(v, CAPTIONERS[arm])))]
+        out[v] = sum(w) if all(c is not None for c in w) else None
+    return out
+
+
+def cmd_e1(args):
+    """E1 (research log): EgoSchema development run on ego_dev. Accuracy per arm, the predicted terms with 95% paired
+    bootstrap CIs, Q_BE at W = 36 against D5, output and thinking tokens against TempCompass, and spend."""
+    import pandas as pd
+    qs = tc.items("ego_dev")
+    vid = {q["item"]: q["video_id"] for q in qs}
+    df = call_frame("ego_dev")
+    print(f"{len(qs)} ego_dev questions (excluded: {sorted(k for k in tc.EXCLUDED if k.startswith('egd'))}); "
+          f"{len(df)} reads; status counts: {df.status.value_counts().to_dict()}")
+    cor = df.pivot_table(index="question_item", columns="arm", values="correct", aggfunc="first").astype(float)
+    usd = df.pivot_table(index="question_item", columns="arm", values="usd", aggfunc="first")
+    print("\naccuracy per arm (95% bootstrap CI over questions; chance 0.20):")
+    for arm in cor:
+        e, lo, hi = paired_boot(cor[arm].dropna().tolist())
+        print(f"  {arm:24s} {e:.3f} [{lo:.3f}, {hi:.3f}] (n={cor[arm].notna().sum()})")
+    print("\npredicted terms (prediction; result with 95% paired bootstrap CI; inside the CI?):")
+    for label, a, b, pred in E1_TERMS:
+        d = (cor[a] - cor[b]) if b else cor[a]
+        e, lo, hi = paired_boot(d.dropna().tolist())
+        print(f"  {label}: predicted {pred:+.2f}; {e:+.3f} [{lo:+.3f}, {hi:+.3f}] (n={d.notna().sum()}); "
+              f"{'inside' if lo <= pred <= hi else 'OUTSIDE'}")
+    idx = {arm: index_per_video(arm, set(vid.values())) for arm in ("selfcaptions", "sonnetcaptions", "sonnetwhole")}
+    print("\none-time captioning list $ per video (mean over videos):")
+    for arm, d in idx.items():
+        c = [x for x in d.values() if x is not None]
+        print(f"  {arm}: ${sum(c) / len(c):.4f} ({len(c)} videos)")
+    print(f"\nQ_BE at W = 36, 95% CI over questions (D5's projection for the first pair: {E1_QSTAR_PRED}); with the "
+          "accuracy difference, captions - frames:")
+    for a, b in E1_QSTAR:
+        cap = a.split(":")[1]
+        q = [i for i in usd.index if pd.notna(usd.at[i, a]) and pd.notna(usd.at[i, b])
+             and idx[cap].get(vid[i]) is not None]
+        est, lo, hi, never = qstar_boot([idx[cap][vid[i]] for i in q], usd.loc[q, a].tolist(), usd.loc[q, b].tolist())
+        dacc, dlo, dhi = paired_boot((cor.loc[q, a] - cor.loc[q, b]).tolist())
+        print(f"  {a} vs. {b}: Q_BE = {est:.1f} [{lo:.1f}, {hi:.1f}] (never in {never:.0%} of resamples; n={len(q)}); "
+              f"$/question {usd.loc[q, a].mean():.5f} vs. {usd.loc[q, b].mean():.5f}; accuracy {dacc:+.3f} "
+              f"[{dlo:+.3f}, {dhi:+.3f}]")
+    tcf = call_frame("confirm")
+    print("\ntokens per read, EgoSchema (E1) against TempCompass (confirmatory): median input; mean output (incl. "
+          "thinking) and thinking; mean list $:")
+    rows = []
+    for arm in sorted(df.arm.unique()):
+        e, t = df[df.arm == arm], tcf[tcf.arm == arm]
+        rows.append(dict(arm=arm, in_ego=e.in_tok.median(), in_tc=t.in_tok.median() if len(t) else None,
+                         out_ego=e.out_tok.mean(), out_tc=t.out_tok.mean() if len(t) else None,
+                         think_ego=e.think.mean(), think_tc=t.think.mean() if len(t) else None,
+                         usd_ego=e.usd.mean(), usd_tc=t.usd.mean() if len(t) else None))
+    tok = pd.DataFrame(rows).set_index("arm")
+    tok["out_ratio"] = tok.out_ego / tok.out_tc
+    print(tok.round({"out_ego": 1, "out_tc": 1, "think_ego": 1, "think_tc": 1, "usd_ego": 5, "usd_tc": 5,
+                     "out_ratio": 2}).to_string())
+    reads = df.usd.sum()
+    caps = sum(x for d in idx.values() for x in d.values() if x is not None)
+    print(f"\nlist-price spend on ego_dev: reads ${reads:.2f} (incl. egd017's: "
+          f"${sum(list_usd(m, r['usage']) for m in PRICES for r in latest(m).values() if r['item'].startswith('egd017')):.2f}"
+          f"), captions ${caps:.2f} (the {len(vid)} kept videos)")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -1395,13 +1494,13 @@ def main():
     sub.add_parser("cost")
     ty = sub.add_parser("types")
     ty.add_argument("--set", dest="set_", choices=list(tc.SETS), default="confirm")
-    for name in ("c4", "c5", "c6", "c8", "c9", "c10", "c11", "c12", "headroom", "tables"):
+    for name in ("c4", "c5", "c6", "c8", "c9", "c10", "c11", "c12", "headroom", "tables", "e1"):
         sub.add_parser(name)
     args = ap.parse_args()
     {"run": cmd_run, "check": cmd_check, "confirm": cmd_confirm, "c2": cmd_c2, "c3": cmd_c3,
      "thinking": cmd_thinking, "cost": cmd_cost, "types": cmd_types, "c4": cmd_c4, "c5": cmd_c5,
      "c6": cmd_c6, "c8": cmd_c8, "c9": cmd_c9, "c10": cmd_c10, "c11": cmd_c11, "c12": cmd_c12,
-     "headroom": cmd_headroom, "tables": cmd_tables}[args.cmd](args)
+     "headroom": cmd_headroom, "tables": cmd_tables, "e1": cmd_e1}[args.cmd](args)
 
 
 if __name__ == "__main__":

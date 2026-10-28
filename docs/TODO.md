@@ -7,7 +7,7 @@ Paper: `docs/paper/acl2027/caption_index.tex` (source of truth; build with `late
 - [x] Experiments K0–K2 (development), C1 (pre-registered) and C2–C12 (exploratory, each predicted before its run); all analyses run once, reports in `results/index_qa/reports/`.
 - [x] Main text within 8 pages; Appendices A–G written (A prompts, B predictions vs. results for all 50 terms, C amendments and deviations, D tables by type and aspect, E additional results, F minimal pairs, G release).
 - [x] Every number in the paper traced to the log or a report (2026-10-27; log D4).
-- [ ] **Anonymized code link for review** (Appendix G, the one remaining `\pending`): e.g. anonymous.4open.science on the GitHub repo. Needs the user's login.
+- [x] **Anonymized code link for review** (Appendix G): https://anonymous.4open.science/r/dense_captions-26B/ (2026-10-28). Names, usernames and paths are masked. Still to do: add `post.runi.ac.il` to its anonymized terms (it shows in `CITATION.cff` and `pyproject.toml`), and refresh the copy before submission.
 - [ ] **Software Heritage identifier:** add it to §2.4 and Appendix G at camera-ready (withheld for review; the URL names the account). URL in `docs/handover.md` (2026-10-27).
 - [ ] Repeat literature query Q7 (new work since Oct 21) in the week before submission (`related_work_caption_index.md` §10.3).
 - [ ] Final read by the author; then submit to ARR (January 2027 cycle; check the exact date).
@@ -15,9 +15,9 @@ Paper: `docs/paper/acl2027/caption_index.tex` (source of truth; build with `late
 - [ ] **Strengthening round (user, 2026-10-27): EgoSchema first, NExT-QA reassessed afterwards** (`docs/new_direction/nextqa_plan.md`). Any new run needs a log entry committed and pushed, plus a Software Heritage "Save code now" visit, before its first call.
   - [x] Feasibility (log D6): partial download from the zips; a 180-image `claude -p` call.
   - [x] `egoschema.py`; samples `ego_dev` (40) and `ego_confirm` (160); E1 written and pushed (`00cf257`); Software Heritage visit requested by the user.
-  - [ ] **E1 development run: RUNNING** since 2026-10-27 13:20 UTC (`scripts/index_qa/run_e1.sh status`; handover).
-  - [ ] E1 analysis (`reader.py e1`, to write): accuracy per arm, predicted terms with CIs, Q_BE at W = 36 against D5.
-  - [ ] E2 data: `ego_confirm` videos and frames, **running** since 2026-10-27 ≈ 13:45 UTC (`logs/e2_prep.log`; no calls).
+  - [x] E1 development run: done 2026-10-28 06:56 UTC (interrupted by a reboot, resumed unchanged).
+  - [x] E1 analysis (`reader.py e1`; `results/index_qa/reports/e1.txt`; log E1 *Result*). Sonnet question-only = 0.72, as high as on frames; Q_BE = 6.3.
+  - [x] E2 data: `ego_confirm` videos and frames on disk (2026-10-27 14:28; no calls).
   - [ ] E2 entry (confirmatory; size decided from E1's quota use) with numeric predictions from E1; `run_e2.sh`; commit, push, Software Heritage; run; analysis. The step-by-step runbook is in the handover.
   - [ ] Reassess NExT-QA; query-ready captions (plan §4, stage C).
   - [ ] Paper: a length / second-benchmark section (the main text must stay at 8 pages).

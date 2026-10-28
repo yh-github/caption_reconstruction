@@ -1608,6 +1608,27 @@ Captioning:
   - Its question-only and frame reads (Haiku: question only, 1 frame, 5 frames; Sonnet: question only, 5 frames) were already made. They are dropped as well.
   - E1 now has 39 questions.
 - **Fix to `self_caption.py`.** Its "first call failed" stop now fires only on a CLI failure, not on an "ERROR" caption. Before the fix, this video's windows stopped 3 of the 6 shards. Restarted at 13:51 UTC.
+- **Interruption.** The run reached the 0.99 guard at ≈ 13:58 UTC and waited for the reset. The machine rebooted at 17:29 UTC, during the wait, and that killed the run. It was resumed unchanged on 2026-10-28 at 06:39 UTC and finished at 06:56 UTC.
+
+**Result** (`reader.py e1`, run once; `results/index_qa/reports/e1.txt`). 39 questions, 351 reads, all `ok`: no errors, timeouts or invalid answers, so no stop rule fired.
+
+| Term | Predicted | Result [95% CI] |
+|---|---|---|
+| Question only, Haiku | 0.40 | 0.41 [0.26, 0.56] |
+| Question only, Sonnet | 0.40 | **0.72 [0.56, 0.85]**, outside |
+| Haiku, 5 frames | 0.60 | 0.67 [0.51, 0.82] |
+| Sonnet, 5 frames | 0.72 | 0.69 [0.54, 0.82] |
+| Captioner effect, Haiku | +0.06 | +0.13 [−0.03, +0.28] |
+| Modality, Haiku | +0.03 | −0.10 [−0.28, +0.08] |
+| Modality, Sonnet | −0.04 | 0.00 [−0.13, +0.13] |
+| The cap | 0.00 | 0.00 [−0.13, +0.15] |
+| Whole-video − per-window, Haiku | 0.00 | 0.00 [−0.13, +0.13] |
+| 1 frame − 5 frames, Haiku | −0.03 | −0.05 [−0.18, +0.08] |
+
+- **Sonnet gains nothing from the video here.** Question only, it scores 0.72, as high as on frames (0.69) or its captions (0.69). Its modality and cap terms are therefore 0 with no information about the representations. Haiku does need the video (question only 0.41, against 0.67 on frames).
+- **Q_BE, Haiku on Sonnet captions vs. Sonnet on frames: 6.3 [6.1, 6.4]**, inside [5, 10] and near D5's 7.5. Captioning costs $0.131 per video, and a read costs $0.00049 vs. $0.0215. Haiku on Sonnet's whole-video caption gives the same accuracy (0.69) with a $0.027 index, so Q_BE = 1.2.
+- **Output tokens did not stay constant, but they fell instead of rising.** Against TempCompass, mean output per read is 0.59–0.78× for Haiku's frame and caption arms and for Sonnet on frames. It is 1.57× for Sonnet on its captions (72 vs. 46). The D6 pilot's 265 tokens were not typical. Input tokens grow with length as expected: 10.6K for 5 frames, 4.5K for window captions.
+- **Spend.** List price $7.9: captions $6.5, reads $1.4. Quota: 7-day +0.06 on 2026-10-27 and +0.03 on 2026-10-28, ≈ 0.09 in all, account-wide. E2 at 160 videos, ≈ 4×, is ≈ 0.36 of a 7-day window.
 
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
