@@ -1689,6 +1689,12 @@ Captioning:
 - **Pre-run evidence.** E2 was pushed to GitHub on 2026-10-28 (`a9f1fea`). The user then requested a Software Heritage "Save code now" visit, before the first E2 call.
 - **Check (08:58 UTC):** `run_e2.sh check` ran 3 Haiku and 3 Sonnet window captions (video `c50c237d-…`, windows 0–2) and one 180-image Haiku read (`egc000`, 5 frames). All succeeded, with isolation confirmed (no tools, no MCP, 1 turn, the model as requested). The captions describe their frames, and input tokens match E1's (1,417 Haiku, 1,396 Sonnet; the read 10,587). Quota was 5-hour 43% and 7-day 4%.
 - **Full run** started at 08:59 UTC: `setsid nohup scripts/index_qa/run_e2.sh run`, detached from the session.
+- **Stopped at 09:52 UTC (the user's decision, during the first 5-hour wait), for a reason outside the data: contamination.**
+  - The readers' training data runs to June 2026, and EgoSchema has been public since 2023.
+  - KAIROS (arXiv 2609.08755, September 2026) measures a question-only frontier model at +33.6 points above chance on EgoSchema, and E1 measured +52 for Sonnet.
+  - The quota is kept for a benchmark released after the readers' cutoff.
+  - Saved at the stop: 822 Haiku and 777 Sonnet window captions of 5,760 each, no whole-video captions, and 247 Haiku and 168 Sonnet reader rows.
+  - **No E2 result was computed or looked at:** `reader.py e2` was not run on `ego_confirm`, and no reader row was read. E2 stays resumable (`run_e2.sh run`) with its design unchanged. If it is resumed, this stop is reported with it.
 
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
