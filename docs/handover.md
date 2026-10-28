@@ -2,6 +2,18 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
+# 2026-10-28 (night) → Draft reviewed and fixed; A5 run (no calls)
+
+- **Review → fixes in the paper.**
+  - "The cap" is narrowed to a readers' tie on Sonnet-written indexes. Prop. 3 became an "Omission" reading rule; the describe-then-answer arm still has the frames, so "not a limit of text" is dropped.
+  - The source effect is scoped to Gemini's 1 fps sampling. "Stronger captioner" is defined. Table 2's Gemini column adds up along two paths. The failed predictions (P1, P2's sign) are now in the intro.
+  - Structure: the four effects moved into a new §3 Framework, and the headroom analysis moved from Discussion into §4.3. Discussion gained "Using an index".
+  - Terminology: "self-captions" throughout; "index loss" is now the modality effect.
+  - Added: an Ethics Statement (two `\draftnote`s for the author), Socratic Models, VideoAgent and RouteLLM, and Qwen's three missing arms.
+- **A5 (log; `reader.py a5`; `results/index_qa/reports/a5.txt`).** Sonnet − Haiku on Gemini video captions is +0.054 [+0.017, +0.091]; on the four Sonnet-written indexes, every CI includes 0. Without the CLI's ≈ 850-token prompt, the downgrade costs 1/25–1/34 per question and Q_BE is 1.4–6.3.
+- **Pages:** the main text ends ¾ down page 9's left column. Trim after the first feedback.
+- **Nothing is committed yet.**
+
 # 2026-10-28 (late) → Wrap-up: no new data; next session reviews the draft
 
 **Start here: the checklist at the top of `docs/TODO.md`.** Next session: review the draft (`docs/paper/acl2027/caption_index.pdf`).

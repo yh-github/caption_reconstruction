@@ -4,7 +4,7 @@
 
 Decided 2026-10-28: no new data. Only the minimum work to wrap up.
 
-1. [ ] **Review the draft** (next session). The main text now runs onto page 9 (Future work was added). Trim it back to 8 pages after the first feedback.
+1. [x] **Review the draft** (2026-10-28, structure and claims; fixes applied, log A5). Still open: the main text ends ¾ down page 9's left column (≈ 40 lines over); trim it to 8 pages after the first feedback. Fill the two `\draftnote`s in the Ethics Statement (Kaggle GPU hours; the AI-assistance wording).
 2. [ ] **Repeat the literature search** (query Q7, new work since 2026-10-21; `related_work_caption_index.md` §10.3) in the week before submission. Check for new post-cutoff short-video benchmarks too.
 3. [ ] **Final read by the author.**
 4. [ ] **Refresh the anonymized copy** at https://anonymous.4open.science/r/dense_captions-26B/ after the last push. Its masked terms are already set.
