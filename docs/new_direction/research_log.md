@@ -2079,6 +2079,57 @@ The headroom is small because only ≈ 20% of rows disagree. For Haiku on Gemini
 - **Either way, A8** is written and pushed before its first call. It covers the 641 confirmatory-video questions not yet used (all five aspects, every video type), whose indexes already exist, so only reads are needed. The reads are Haiku on frames, its own captions, Sonnet's captions and Gemini's video captions: ≈ 2,560 Haiku calls. A8 holds the frozen formula's predicted AUC and decision gain.
 - **The limits are stated now:** every row is TempCompass, the five aspects are its own, and the videos in A8 are the same videos. A new-video test needs a post-cutoff benchmark.
 
+**Result (2026-10-31; `decide.py a7`, run once after the entry was pushed in `7c0e10a`; output in `results/index_qa/reports/a7.txt`).** It ran without a bug fix. 4,455 rows over the 15 pairs; 898 disagree (expected ≈ 850), and the index won 513 of them.
+
+0. **Descriptive.**
+- The index wins most disagreements for Haiku on every index (34–67 against 14–25) and for Qwen on Gemini's indexes. Frames win for Sonnet on its own captions (12 / 38 and 14 / 34) and for Qwen on Qwen's and Haiku's captions (14 / 50, 20 / 36). Sonnet on Gemini video captions (24 / 26) and Qwen on Sonnet captions (26 / 25) are even.
+- A cut at 0.20 is in 60% of two-clip videos and 7–15% of the others, so cuts mostly recover the two-clip construction.
+- Mention: Claude's captions use the aspect's wording more often than Gemini's and Qwen's in every aspect (speed 0.35–0.36 against 0.14–0.19; direction 0.70–0.73 against 0.30–0.58).
+
+1. **Out-of-fold AUC** [95% CI over clip clusters]:
+
+| Model | Clusters only | Pair held out |
+|---|---|---|
+| M1 task + pair | **0.756 [0.705, 0.803]** | 0.715 [0.659, 0.763] |
+| M2 M1 + video | 0.758 [0.706, 0.807] | 0.727 [0.670, 0.779] |
+| M3 M1 + captions | 0.751 [0.700, 0.799] | 0.711 [0.653, 0.759] |
+| M4 M1 + video + captions | 0.754 [0.702, 0.802] | 0.721 [0.664, 0.772] |
+| M5 M4 + interactions | 0.735 [0.678, 0.787] | 0.703 [0.643, 0.758] |
+| MT M1 + video type (reference) | 0.764 [0.712, 0.813] | 0.733 [0.679, 0.783] |
+
+- **Selection rule:** the highest is M2 (0.758). M1 is within 0.01, so **M1 is chosen**.
+- Video and caption features add at most +0.002 (M2 − M1) and M4 − M1 = −0.002. The aspect × motion interaction (M5) lowers the AUC by 0.02. TempCompass's video type adds +0.008.
+
+2. **Decision accuracy** (M1, over all 4,455 rows):
+- Against always frames: **+0.056 [+0.039, +0.074]**. Against always the index: +0.028 [+0.015, +0.041].
+- **Against the best fixed choice per pair: +0.005 [−0.003, +0.014]** (clusters only), and +0.000 [−0.009, +0.010] with the pair held out.
+- **Headroom captured: 0.08** (clusters only) and 0.00 (pair held out), out of an oracle 0.064 above the best fixed choice.
+- Per pair (descriptive, no CIs): the policy is "always the index" for Haiku on Gemini's indexes and close to "always frames" for Sonnet. It gains where a pair is close: Qwen on Sonnet captions +0.030 over its best fixed choice, Haiku's self-captions +0.024, Qwen on Gemini's indexes +0.013 to +0.017. It loses 0.007–0.013 for Haiku on Sonnet captions.
+
+3. **The formula (M1, all disagreeing rows; standardized coefficients [95% CI]):** intercept +0.35; speed **−0.57 [−0.93, −0.19]**, order +0.30 [−0.04, +0.75], direction −0.05, attribute change +0.02 (action is the reference); Qwen reader −0.41 [−0.67, −0.10], Sonnet reader **−0.60 [−0.88, −0.32]** (Haiku the reference); Haiku captioner −0.35, Qwen captioner −0.53, Sonnet captioner −0.22, each CI excluding 0 (Gemini the reference). The means and SDs for applying it are in `a7.txt`.
+
+4. **Cut threshold:** M2's AUC is 0.756 at 0.15 and 0.759 at 0.30, as at 0.20.
+
+5. **By aspect** (descriptive): attribute change 0.80, order 0.74, direction 0.66, action 0.63, speed 0.62. **By video type:** 0.62 (stacked) to 0.72 (reversed).
+
+**Against expectations.**
+
+| Quantity | Expectation | Result |
+|---|---|---|
+| M1 AUC, clusters only | 0.72 | 0.756 |
+| M4 − M1 | +0.03 | −0.002 |
+| Holding the pair out | −0.02 | −0.041 (M1) |
+| MT | ≈ M4 | 0.764 against 0.754 |
+| Decision accuracy − best fixed per pair | +0.01, CI may include 0 | +0.005 [−0.003, +0.014] |
+| Headroom captured | 0.2–0.3 | 0.08 |
+
+**Reading (rules above).**
+- **M1 is chosen.** What we know about the video (motion, cuts, length) and about its captions (whether they use the aspect's wording, how well they cover the frames) adds nothing to the task type and the model pair.
+- **The AUC of 0.76 is mostly between pairs:** it learns which reader and captioner tend to win. A fixed choice per pair already captures almost all of that, so the formula's decision gain over it is +0.005, with a CI that includes 0.
+- **The one within-pair signal is the aspect.** Speed questions favour the frames (−0.57; M1 has no aspect × pair term, so this is one shift for all pairs), and order questions lean to the index. That signal pays only where a pair is close to even: +0.02–0.03 for Haiku's self-captions and Qwen on Sonnet's captions.
+- **For the team:** the formula is "pick by reader and captioner, then send speed questions to the frames". Video and caption scores do not improve it on TempCompass. Holding the pair out costs 0.04 AUC, so the rule does not transfer fully to a new model pair.
+- **For A8:** the frozen model is M1. Its gain over the best fixed choice is expected to be about 0, so A8 can test M1's AUC and the speed rule, but not a decision gain large enough to detect at 641 questions.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).

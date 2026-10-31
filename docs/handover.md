@@ -2,7 +2,7 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
-# 2026-10-31 → A predictive tool for the team: A6 done (null); A7 written, NOT run
+# 2026-10-31 → A predictive tool for the team: A6 done (null); A7 done (M1: task + pair); A8 undecided
 
 **Start here: research log A6 (*Result*) and A7.** The team (Prof. Gail) worries that the paper is exploratory and applied. She wants a predictive tool: a formula combining what is known about the video, its captions and the task, which says whether captions should be used.
 
@@ -21,11 +21,12 @@ The newest session is at the top. Older sessions stay below because other docs l
   - **Features:** video (motion, cuts, windows), captions (aspect-word mention, coverage), task (aspect), pair (reader, captioner family).
   - **Models:** M1–M5 plus the reference MT, scored out of fold and selected by a fixed rule.
   - **Cost:** no calls. CPU only; the frame embeddings are cached in `local/tempcompass/siglip2_frames/`.
+- **A7 done (2026-10-31; pushed `7c0e10a` before the run; result in log A7, `results/index_qa/reports/a7.txt`).** No bug fix needed.
+  - **M1 (task + pair) is chosen.** AUC 0.756 [0.705, 0.803]; video and caption features add ≤ +0.002; holding the pair out costs 0.04.
+  - **Decision gain over the best fixed choice per pair: +0.005 [−0.003, +0.014]**, headroom captured 0.08. The only within-pair signal is the aspect: speed → frames (−0.57).
 - **Next steps.**
-  1. Commit and push the A7 entry and `decide.py`, but only when the user says so.
-  2. Run `.venv/bin/python scripts/index_qa/decide.py a7 > results/index_qa/reports/a7.txt` once.
-  3. Write the result into log A7.
-  4. Write A8, which freezes the chosen model and pre-registers its predictions on the 641 unused confirmatory-video questions. Their indexes already exist, so only reads are needed: Haiku on frames, self-captions, Sonnet captions and Gemini video captions, ≈ 2,560 Haiku calls. Push A8 before any call, and pilot with `--limit`.
+  1. Decide with the user whether A8 is still worth ≈ 2,560 Haiku calls, given that M1's expected decision gain is ≈ 0.
+  2. If so, write A8, which freezes the chosen model and pre-registers its predictions on the 641 unused confirmatory-video questions. Their indexes already exist, so only reads are needed: Haiku on frames, self-captions, Sonnet captions and Gemini video captions, ≈ 2,560 Haiku calls. Push A8 before any call, and pilot with `--limit`.
 - **Not in the paper yet:** A6 (and A7). The paper draft is unchanged since 2026-10-28.
 
 # 2026-10-28 (night) → Draft reviewed and fixed; A5 run (no calls)
