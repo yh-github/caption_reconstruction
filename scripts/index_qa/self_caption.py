@@ -38,21 +38,23 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import caption_pieces as cp  # noqa: E402
 from index_qa import tempcompass as tc  # noqa: E402
-from index_qa.caption import (ASPECTS, WHOLE, caption_path, end_line, frames_prompt as prompt_for,  # noqa: E402
-                              whole_prompt, with_aspects)
+from index_qa.caption import (ASPECTS, QUESTION, WHOLE, caption_path, end_line,  # noqa: E402
+                              frames_prompt as prompt_for, whole_prompt, with_aspects, with_question)
 from unshuffle.claude_reader import EFFORT, MODELS, call_claude  # noqa: E402
 
 LOG = tc.OUT / "self_captions.jsonl"
 
 
-def captioner(model: str, long_edge: int = tc.LONG_EDGE, whole: bool = False, aspects: bool = False) -> str:
+def captioner(model: str, long_edge: int = tc.LONG_EDGE, whole: bool = False, aspects: bool = False,
+              question: bool = False) -> str:
     """The captions folder of a Claude captioner. Haiku keeps K2's name ("-self": it captions for itself as the
     reader); other models caption for another reader, named like Gemini's frame captions ("-frames"). Frames at
-    another size than the reader's add it to the name (C9: "-frames448"); the aspect bullet adds ASPECTS (C11); one
-    caption per video adds WHOLE last (C10)."""
+    another size than the reader's add it to the name (C9: "-frames448"); the aspect bullet adds ASPECTS (C11); the
+    question bullet adds QUESTION (C13); one caption per video adds WHOLE last (C10)."""
     name = "claude-haiku-5-5-self" if model == "haiku" else f"{MODELS[model]}-frames"
     name = name if long_edge == tc.LONG_EDGE else f"{name}{long_edge}"
     name = f"{name}{ASPECTS}" if aspects else name
+    name = f"{name}{QUESTION}" if question else name
     return f"{name}{WHOLE}" if whole else name
 
 
@@ -78,6 +80,9 @@ def main() -> None:
                     help="frame size (C9: 448, frames from tempcompass.py frames --long-edge 448)")
     ap.add_argument("--whole", action="store_true", help="one caption per video from all its frames (C10)")
     ap.add_argument("--aspects", action="store_true", help="add the aspect bullet (C11; with --whole)")
+    ap.add_argument("--question", action="store_true",
+                    help="add the question bullet: each window is captioned with its video's one question in view "
+                         "(C13; per window; the set must have one question per video)")
     ap.add_argument("--shard", default="0/1",
                     help="K/N: only the windows (or videos) whose stable hash is K mod N, so N processes can caption "
                          "the same set in parallel without overlap")
@@ -87,10 +92,16 @@ def main() -> None:
     args = ap.parse_args()
     if args.aspects and not args.whole:
         sys.exit("--aspects is defined for whole-video captions only (C11): add --whole")
-    model_id, name = MODELS[args.model], captioner(args.model, args.long_edge, args.whole, args.aspects)
+    if args.question and (args.whole or args.aspects):
+        sys.exit("--question is defined for per-window captions without the aspect bullet (C13)")
+    model_id = MODELS[args.model]
+    name = captioner(args.model, args.long_edge, args.whole, args.aspects, args.question)
 
+    qs = tc.first_per_dim(tc.items(args.set_), args.per_dim)
+    if args.question and len({q["video_id"] for q in qs}) != len(qs):
+        sys.exit("--question needs one question per video: a caption folder holds one caption set per video")
     jobs = []
-    for q in tc.first_per_dim(tc.items(args.set_), args.per_dim):
+    for q in qs:
         v = q["video_id"]
         wins, wframes = tc.windows(tc.duration_s(v)), tc.window_frames(v, args.long_edge)
         for p, frames in enumerate(wframes):
@@ -104,7 +115,8 @@ def main() -> None:
             continue
         for p, ((s, e), frames) in enumerate(zip(wins, wframes)):
             if not caption_path(name, v, p).exists():
-                jobs.append((v, p, s, e, frames, prompt_for(len(frames), e - s)))
+                prompt = prompt_for(len(frames), e - s)
+                jobs.append((v, p, s, e, frames, with_question(prompt, q) if args.question else prompt))
     k, n_shards = map(int, args.shard.split("/"))
     jobs = [j for j in jobs if shard_of(j[0], j[1], n_shards) == k][: args.limit]
     print(f"{len(jobs)} {'videos' if args.whole else 'windows'} to caption with {model_id} (effort {args.effort}) "

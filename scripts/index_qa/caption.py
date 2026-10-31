@@ -51,6 +51,12 @@ ASPECT_BULLET = ("* The description will be used later to answer questions about
                  "movements, the direction of the movements, the order of the events, and changes in the attributes "
                  "of things (such as size, colour, shape or state). State these whenever the frames show them.")
 LAST_BULLET = '* If a description cannot be generated, write "ERROR".'
+# C13: a bullet, added before the prompt's last one, that gives the captioner the one question its video will be
+# asked (stem and options), so the window's caption is written with the question in view. Nothing else changes.
+QUESTION = "-question"  # suffix of a captioner folder whose captions were written with QUESTION_BULLET (C13)
+QUESTION_BULLET = ("* The description will be used, together with descriptions of the other parts of the same "
+                   "video, to answer this question about the video: {stem} The options are: {options}. Describe what "
+                   "these frames show that bears on the question.")
 
 
 def prompt_for(base: str, dur: float) -> str:
@@ -84,6 +90,14 @@ def with_aspects(prompt: str) -> str:
     if LAST_BULLET not in prompt:
         sys.exit("the caption prompt changed; update LAST_BULLET")
     return prompt.replace(LAST_BULLET, f"{ASPECT_BULLET}\n{LAST_BULLET}")
+
+
+def with_question(prompt: str, q: dict) -> str:
+    """A caption prompt with QUESTION_BULLET for question q inserted before its last bullet (C13)."""
+    if LAST_BULLET not in prompt:
+        sys.exit("the caption prompt changed; update LAST_BULLET")
+    opts = "; ".join(f"{k}. {v}" for k, v in q["options"].items())
+    return prompt.replace(LAST_BULLET, f"{QUESTION_BULLET.format(stem=q['stem'].strip(), options=opts)}\n{LAST_BULLET}")
 
 
 def frames_content(frames: list[Path], prompt: str):

@@ -70,13 +70,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import caption_pieces as cp  # noqa: E402
 from index_qa import tempcompass as tc  # noqa: E402
-from index_qa.caption import (ASPECTS, CAPTIONS, MODE, WHOLE, caption_path, caption_windows, captions,  # noqa: E402
-                              end_line, visual_tokens)
+from index_qa.caption import (ASPECTS, CAPTIONS, MODE, QUESTION, WHOLE, caption_path, caption_windows,  # noqa: E402
+                              captions, end_line, visual_tokens)
 from unshuffle.claude_reader import EFFORT, MODELS, call_claude  # noqa: E402
 
 ARMS = ["blind", "captions", "frame1", "frames5", "selfcaptions", "framecaptions", "frameclipcaptions",
         "sonnetcaptions", "describe5", "frames5_448", "sonnetcaptions448", "sonnetwhole", "sonnetaspects",
-        "qwencaptions"]
+        "qwencaptions", "selfqcaptions", "sonnetqcaptions", "selfcaptions_rerun"]
 K0_ARMS = ARMS[:4]
 # Open-weights readers (C12): run on Kaggle by qwen_kaggle.py, never by cmd_run
 OPEN_MODELS = {"qwen": "Qwen/Qwen2.5-VL-7B-Instruct"}
@@ -88,12 +88,18 @@ CAPTIONERS = {"captions": "gemini-3.8-flash", "selfcaptions": "claude-haiku-5-5-
               "sonnetcaptions": "claude-sonnet-5-5-frames", "sonnetcaptions448": "claude-sonnet-5-5-frames448",
               "sonnetwhole": f"claude-sonnet-5-5-frames{WHOLE}",
               "sonnetaspects": f"claude-sonnet-5-5-frames{ASPECTS}{WHOLE}",
-              "qwencaptions": "qwen2.5-vl-7b-instruct-self"}
+              "qwencaptions": "qwen2.5-vl-7b-instruct-self",
+              # C13: per-window captions written with the video's question in view (self_caption.py --question)
+              "selfqcaptions": f"claude-haiku-5-5-self{QUESTION}",
+              "sonnetqcaptions": f"claude-sonnet-5-5-frames{QUESTION}",
+              # C14: a second read of the same self-captions, with today's CLI (run-to-run drift and reader noise)
+              "selfcaptions_rerun": "claude-haiku-5-5-self"}
 # caption.py --input that writes each Gemini caption arm, and self_caption.py --model (and --long-edge, --whole,
 # --aspects) for each Claude one
 CAPTION_INPUT = {"captions": "video", "framecaptions": "frames", "frameclipcaptions": "frameclip"}
 CLAUDE_CAPTIONER = {"selfcaptions": "haiku", "sonnetcaptions": "sonnet", "sonnetcaptions448": "sonnet",
-                    "sonnetwhole": "sonnet", "sonnetaspects": "sonnet"}
+                    "sonnetwhole": "sonnet", "sonnetaspects": "sonnet", "selfqcaptions": "haiku",
+                    "sonnetqcaptions": "sonnet", "selfcaptions_rerun": "haiku"}
 CAPTIONER_LONG_EDGE = {"sonnetcaptions448": 448}
 OPEN_CAPTIONER = {"qwencaptions": "qwen"}
 # Frame arms that show every frame of a window, with the frame size and the answer template
@@ -144,7 +150,8 @@ def build(item: dict, image=_image) -> tuple[list[dict], str]:
             sys.exit(f"{CAPTIONERS[arm]} captions missing for {v}: run scripts/index_qa/"
                      + (f"self_caption.py --model {CLAUDE_CAPTIONER[arm]} --long-edge "
                         f"{CAPTIONER_LONG_EDGE.get(arm, tc.LONG_EDGE)}{' --whole' if whole else ''}"
-                        f"{' --aspects' if ASPECTS in CAPTIONERS[arm] else ''} first"
+                        f"{' --aspects' if ASPECTS in CAPTIONERS[arm] else ''}"
+                        f"{' --question' if QUESTION in CAPTIONERS[arm] else ''} first"
                         if arm in CLAUDE_CAPTIONER else "qwen_kaggle.py, then open_reader.py import"
                         if arm in OPEN_CAPTIONER else f"caption.py --input {CAPTION_INPUT[arm]} first"))
         body = "\n".join(f"{P['window_label'].format(start=s, end=round(e, 1))} {c}"
@@ -1487,7 +1494,9 @@ def qstar_by_length(df, vid: dict[str, str]):
             slope = np.polyfit(d.W, d.in_tok, 1)[0]
             cost[arm] = (d.usd.mean(), slope * PRICES[arm.split(":")[0]][0] / 1e6, slope)
         if cap not in per_win:
-            per_win[cap] = float(np.mean(list(index_usd(cap).values())))
+            # only this set's videos: the Claude captioners' folders also hold EgoSchema windows (E1, E2)
+            vids = set(vid.values())
+            per_win[cap] = float(np.mean([c for (v, _), c in index_usd(cap).items() if v in vids]))
         k = per_win[cap]
         cells = []
         for w in [w_bar] + LENGTHS:

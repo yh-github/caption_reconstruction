@@ -2270,6 +2270,124 @@ The policy reads the frames where P < 0.5: speed questions with Haiku's or Sonne
 
 The paper now gives these numbers.
 
+### C13 — Question-aware captions read without the frames (written 2026-10-31, committed before any C13 call)
+
+**Why.** The paper's account of the stacked and reversed losses is an *omission*: the captioner could see the fact (the same model answers from the frames with the question in view) but did not write it without the question. The paper says twice (§3 *Omission*, Limitations) that whether text can carry the fact needs a question-aware caption read without the frames, which was not run. C5's describe-then-answer arm still had the frames. C13 runs it.
+
+**Arms** (confirmatory set, 297 questions, 761 windows; one question per video, so a caption set per video is a caption set per question):
+- **Captions.** Haiku and Sonnet each caption every window from its 5 frames, exactly as for `selfcaptions` and `sonnetcaptions` (same frames, prompt, effort, isolation), with one bullet added before the last one (`caption.QUESTION_BULLET`): "The description will be used, together with descriptions of the other parts of the same video, to answer this question about the video: {stem} The options are: {A. …; B. …}. Describe what these frames show that bears on the question." The 45-word limit is unchanged. `self_caption.py --question`; folders `claude-haiku-5-5-self-question` and `claude-sonnet-5-5-frames-question`.
+- **Reads.** The reader prompt is exactly the captions arm's. It does not tell the reader that the captioner knew the question, so only the captions' content differs from `selfcaptions` / `sonnetcaptions`. Haiku reads both question-aware sets (`selfqcaptions`, `sonnetqcaptions`), and Sonnet reads its own (`sonnetqcaptions`).
+- **Not an index.** These captions are written per question. They bound what a question-aware text description can carry, not what a reusable index can.
+
+**Terms** (95% CIs over questions and over clip clusters; by video type over clip clusters, descriptive). The arm accuracies predicted are Haiku 0.68 on its question-aware captions, Haiku 0.75 on Sonnet's, and Sonnet 0.76 on its own.
+
+| Term | Arms | Prediction |
+|---|---|---|
+| C13a | Haiku: question-aware − blind self-captions | +0.04 |
+| C13b | Sonnet: question-aware − blind own captions | +0.05 |
+| **C13c** | **Sonnet: question-aware own captions − 5 frames** | **−0.04** |
+| C13d | Haiku on Sonnet's question-aware captions − Sonnet on 5 frames | −0.05 |
+| C13e | Haiku: question-aware self-captions − describe, then answer (C5) | 0.00 |
+| C13f | Haiku: Sonnet's question-aware − blind captions | +0.04 |
+
+- **By type, C13c:** stacked −0.11 (blind: −0.27), reversed −0.09 (blind: −0.18), plain 0.00, two-clip 0.00.
+- **Also reported:** each set's median caption length, and the share of captions that contain an option letter ("A.", "(A)", "option A"). A caption may state the answer in words; that is text carrying the fact, which is what C13 measures.
+
+**Reading rules.**
+1. **Stacked (the paper's open question).** C13c on stacked videos against the blind captions' −0.27:
+   - ≥ −0.10: the gap more than halves. The paper says that question-aware text carries most of the stacked comparison Sonnet sees, so the blind loss is an omission of question-blind captioning, not a limit of text.
+   - ≤ −0.20: the paper says that even question-aware text does not carry it, and the omission account weakens to "partly".
+   - Between: partial, with the number.
+   - Descriptive (41 questions, ±0.15).
+2. **Overall.** If C13c's CI includes 0, question-aware text is not measurably worse than the frames for Sonnet.
+3. **C13e.** If it includes 0, splitting C5's call into caption-then-read loses nothing measurable. If it excludes 0 (negative), the separate text step loses part of what the one-call arm uses.
+
+**Stop rules.** As C3 and C11: isolation, model and format checks on every call. Stop at > 2% missing windows. Captions `--max-5h 0.7 --max-7d 0.5`, reads `--max-5h 0.8`. A 3-call check per captioner first (`run_c13_c14.sh check`), inspected before the run.
+
+**Volume.** 1,522 caption calls (761 of them Sonnet) and 891 reads (297 Sonnet); ≈ $3.5 at list price.
+
+**Analysis.** `followups.py c13`, run once after every arm is complete; output to `results/index_qa/reports/c13.txt`.
+
+### C14 — Sonnet reads Haiku's and Gemini's captions; a re-read for drift (written 2026-10-31, committed before any C14 call)
+
+**Why.** Haiku and Sonnet read Sonnet's four indexes equally well (−0.003 to +0.020; A5). The paper cannot tell whether this "tie" comes from the index or from Sonnet reading its own words: every index Sonnet read was Sonnet-written, except Gemini's video captions (Sonnet +0.054). C14 makes a reader × captioner grid within Claude (Haiku, Sonnet × Haiku, Sonnet captions) and adds two more Gemini indexes.
+
+**Arms** (confirmatory set; existing captions, no new captioning):
+- **Sonnet reads** `selfcaptions` (Haiku's), `framecaptions` and `frameclipcaptions` (Gemini's), with the confirmatory prompts.
+- **Haiku re-reads its self-captions** (`selfcaptions_rerun`: the same captions and prompt). Every new read uses today's CLI, whose built-in system prompt changed after the October 20 runs (E1's run notes); the comparison arms were read on October 20. The re-read measures that drift plus reader noise.
+
+**Terms** (95% CIs over questions and clip clusters; by type over clusters, descriptive). The arm accuracies predicted are Sonnet 0.673 on Haiku's captions, 0.84 on Gemini frame captions and 0.77 on frame-clip captions.
+
+| Term | Arms | Prediction |
+|---|---|---|
+| C14a | Sonnet − Haiku, on Haiku's self-captions | +0.03 |
+| C14b | Sonnet − Haiku, on Gemini frame captions | +0.05 |
+| C14c | Sonnet − Haiku, on Gemini frame-clip captions | +0.05 |
+| C14d | Own-words interaction: (Sonnet − Haiku on Sonnet's captions) − (Sonnet − Haiku on Haiku's captions) | −0.03 |
+| C14e | Sonnet: Sonnet's − Haiku's captions (the captioner effect for a Sonnet reader) | +0.04 |
+| C14f | Haiku: re-read − first read of its self-captions | 0.00; answer-change rate 0.08 |
+| C14g | Sonnet: Gemini frame captions − 5 frames | +0.04 |
+
+Retention for Sonnet on each index (clustered) is also reported.
+
+**Reading rules.**
+1. **C14a's CI includes 0, and C14b or C14c excludes 0 (positive).** The readers tie on Haiku's captions too, so the tie is not Sonnet reading its own words. It holds on Claude-written captions and not on Gemini's. The paper replaces "we cannot tell whether the tie comes from the index or from Sonnet reading its own words" with this.
+2. **C14a and C14b–c all include 0.** The tie extends to every index tested except Gemini's video captions.
+3. **C14a excludes 0 (positive) and C14d excludes 0 (negative).** Sonnet reads others' captions better than Haiku but not its own: an own-words effect. The paper reports it.
+4. **C14f.** If the re-read differs by more than ±0.03, or changes more than 15% of answers, cross-date comparisons (C13, C14 and A8 against C1) carry a stated drift caveat with the number.
+
+**Stop rules.** As C13 (reads `--max-5h 0.8`).
+
+**Volume.** 891 Sonnet reads and 297 Haiku reads; ≈ $3 at list price.
+
+**Analysis.** `followups.py c14`, run once; output to `results/index_qa/reports/c14.txt`.
+
+### A9 — D5's long-video cost projection against E1's measured costs (written 2026-10-31, before computing; no calls)
+
+**Why.** The paper's longer-video costs (§5, Appendix) are projections from short clips (D5). E1 measured costs on 39 EgoSchema videos of 36 windows each. Its one pre-stated cost check was Q_BE for Haiku on Sonnet captions vs. Sonnet on frames: 6.3 [6.1, 6.4], against D5's 7.5 and inside the stated [5, 10] band. The paper does not report that check. Contamination does not bear on costs, so E1's costs are usable even though its accuracies are not. **E1 (`ego_dev`) only: E2 was stopped for contamination, and its rows are not read.**
+
+**Method** (`followups.py a9`). D5's projection is evaluated at W = 36 from the TempCompass confirmatory measurements, in two variants:
+- **As published:** TempCompass's input tokens per window.
+- **Frame size:** EgoSchema's frames are 224×168, so 48 image tokens against 40. The known extra is 8 per frame, added to the frame arms and to the Claude caption calls.
+
+Projected against measured, for each pair of E1 with a per-window index (Haiku on Sonnet's and on its own captions vs. Sonnet on frames, Sonnet on its own captions vs. Sonnet on frames, Haiku on either caption set vs. Haiku on frames):
+- per-question cost of each arm;
+- index cost per video;
+- Q_BE;
+- input and output tokens per read (where an error comes from).
+
+**Expectations** (frame-size variant):
+- Per-question cost of frame arms within ±15% of measured.
+- Caption arms within ±25%: Haiku's EgoSchema captions run longer, and E1 found output tokens 0.6–1.6× TempCompass's.
+- Index cost within ±10%.
+- **Q_BE of the three downgrade pairs within ±30%.**
+- Same-reader pairs within ±50%, since there Q_BE is a ratio of small differences.
+
+**Reading rule.**
+- **If all three downgrade Q_BEs fall within ±30%:** the paper reports the measured-against-projected values at 36 windows. Limitations then says that the projection was checked once, on 3-minute videos.
+- **Otherwise:** the paper reports the size of the miss and its source (input, output or index), and the projections carry that caveat.
+
+### A10 — A8's direction shift and the number of options (written 2026-10-31, before computing; no calls)
+
+**Why.** On A8's questions, Haiku's frames scored 0.552 on direction against C1's 0.283. On the same videos, the reworded direction questions gave 0.50 against 0.30. A8 noted that C1's direction questions more often have four options (49 of 60, against 104 of 163), "which explains part of the gap", without measuring it. The paper says the index's value for a weak reader "depends on the question set". This entry measures how much of that is the number of options.
+
+**Data.** Haiku on 5 frames, C1 (297) and A8 (738), with each question's number of options k. The sets share videos, so clip clusters are resampled jointly for both (5,000 resamples).
+
+**Terms** (A8 − C1; 95% CIs over clip clusters):
+
+| Term | Definition | Prediction |
+|---|---|---|
+| A10a | Direction, raw | +0.269 (known) |
+| A10b | Direction, standardized by k (within-k differences weighted by both sets' k mix) | +0.18 |
+| A10c | Direction, chance-corrected accuracy, (correct − 1/k) / (1 − 1/k) | +0.25 |
+| A10d | Direction, same-video pairs: all pairs (known ≈ +0.20), and pairs with equal k | +0.15 (equal k) |
+| A10e | All aspects, raw (+0.086, known) and standardized by (aspect, k) | +0.06 (standardized) |
+
+**Reading rule.**
+- **If A10b's and A10d's (equal k) CIs exclude 0:** the shift survives the option count. The paper says the wording, not only the number of options, moves Haiku's frames.
+- **If both include 0:** the paper attributes the shift mainly to the number of options and drops "depends on how the questions are worded".
+- **Mixed:** the paper gives both numbers.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
