@@ -2218,6 +2218,7 @@ The policy reads the frames where P < 0.5: speed questions with Haiku's or Sonne
 - **Exploratory, not pre-registered (added after the result).**
   - On the same videos, Haiku's frames score 0.50 on A8's reworded direction questions against 0.30 on C1's. Every other aspect matches within 0.02, so the shift is in the questions, not the videos.
   - C1's direction questions more often have four options (49 of 60, against 104 of 163). That explains only part of the gap.
+  - **The captioner effect on A8's questions** (computed after the result, for the paper; 95% CIs over the 156 clip clusters; `reader.cluster_boot`): Sonnet captions − self-captions **+0.072 [+0.027, +0.119]** (C1's C3a: +0.064); Gemini video captions − self-captions +0.122 [+0.068, +0.177]; Gemini video − Sonnet captions +0.050 [+0.011, +0.088]. The captioner effect replicates on new questions about the same videos.
   - Hindsight check: the best fixed choice per pair on A8's own rows would be frames, index and index. It scores 0.721, above the policy's 0.713. It could not have been chosen in advance, because A7's choice was the index for all three.
 
 **Reading (rules above).**
