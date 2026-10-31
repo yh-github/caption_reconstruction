@@ -2007,6 +2007,78 @@ By coverage tertile there is no monotone pattern in any type.
   - A predictor would need the aspect × motion interaction, fixed in advance and tested on new data.
 - **For the paper and the team:** video type and aspect remain the only predictors of when captions lose, and both are TempCompass's. A tool of the form "score y, so captions suit task T" is not supported by these scores on these videos. Its upper bound is a within-type AUC of 0.57 (motion) and 0.67 (coverage).
 
+### A7 — A decision formula: when should a reader read the index instead of its frames? (written 2026-10-31, before running; development, no calls)
+
+**Status.** Development, as K0–K2 and E1 were. It chooses and freezes a formula. The test is a separate pre-registered entry (A8) on questions no reader has seen. The features, word lists, models, selection rule and outputs below are fixed before `decide.py` is run, before any caption is searched for a word, and before any new score is joined to an outcome.
+
+**Why.** The team (Prof. Gail) wants a formula that combines what is known about the video, its captions and the task, and says whether to use the captions.
+- A6 found no single question-blind video score that predicts a loss within video type.
+- The user relaxed the question (2026-10-30): caption features may enter, and so may the task type, as long as it is known before the question is read.
+- The dilemma exists on the confirmatory set. For a cheap reader, the index and the frames each win many of the questions where they disagree: Haiku's self-captions win 34 and lose 25, Qwen on Sonnet's captions wins 26 and loses 25, and every video type has both.
+
+**Rows.** 15 (reader, index) pairs, each index read against the same reader's 5 frames:
+- Haiku reading: self-captions, Sonnet captions, Sonnet captions at 448 px, and Gemini's video, frame and frame-clip captions.
+- Sonnet reading: Sonnet captions, Sonnet captions at 448 px, and Gemini video captions.
+- Qwen reading: Qwen captions, Haiku's captions, Sonnet captions, and Gemini's video, frame and frame-clip captions.
+
+Each pair gives one row per question with both answers. The whole-video and aspect-aware indexes are left out, because their captions are not per window.
+
+The model is fit on the **disagreeing rows** only, about 850 from known counts. The target is whether the index won. Agreeing rows score the same under any choice.
+
+**Features.** Everything is known before the question is read.
+- **Video:**
+  - motion (A6's score);
+  - cuts: log(1 + the number of consecutive-frame SigLIP 2 distances above 0.20), with sensitivity at 0.15 and 0.30;
+  - log of the window count.
+- **Captions of this index:**
+  - **mention:** the share of windows whose caption uses the wording of the question's aspect, from fixed word lists in `decide.MENTION`. Examples: speed has "fast", "slowly" and "gradually"; direction has "left", "upward" and "toward"; order has "then", "after" and "finally"; attribute change has "becomes", "turns" and "fades". It is 0 for action questions, where the aspect term carries the difference. This is the Omission rule as a number: C7 found that captions fail mostly by leaving the fact out.
+  - coverage (A6's score, for this index's captions).
+- **Task:** the question's aspect, which is TempCompass's label of the kind of question.
+- **Pair:** the reader, and the captioner family (Haiku, Sonnet, Gemini, Qwen).
+
+**Models** (L2 logistic regression with C = 1, standardized numeric features and one-hot categories):
+
+| Model | Features |
+|---|---|
+| M1 | task + pair |
+| M2 | M1 + video |
+| M3 | M1 + captions |
+| M4 | M1 + video + captions |
+| M5 | M4 + aspect × motion and aspect × cuts (A6 §5's hint) |
+| MT | M1 + video type. TempCompass's label, a reference only, never selected |
+
+**Outputs** (`decide.py a7`; output in `results/index_qa/reports/a7.txt`):
+- **0. Descriptive:** the counts per pair. Video scores and the share of videos with a cut, by type. Mention by aspect and captioner family.
+- **1. Out-of-fold AUC** on the disagreeing rows, under two schemes, each with 95% CIs over clip clusters:
+  - 10 folds grouped by clip cluster;
+  - the same with the test row's pair also held out of training. This tests a new model pair as well as new videos.
+- **Selection rule:** take the highest clusters-only AUC among M1–M5. If a smaller model is within 0.01 of it, take the smallest such model, in the order M1 < M2 < M3 < M4 < M5. The chosen model is the one A8 freezes.
+- **2. Decision accuracy** over all rows. The index is chosen when P(index won) > 0.5.
+  - Compared with always frames, always the index, and the best fixed choice per pair (in sample, so it favours the baseline), with 95% CIs over clip clusters.
+  - Also the share of the headroom captured: (policy − best fixed) / (oracle − best fixed), plus per-pair accuracies.
+- **3. The formula:** the chosen model fit on all disagreeing rows, with standardized coefficients and 95% CIs from 1,000 clip-cluster resamples, plus each feature's mean and SD so that it can be applied to new rows.
+- **4. Cut threshold sensitivity.**
+- **5. AUC by aspect and by video type** (descriptive).
+
+**Expectations** (development, so not tests; they are written so that A8's predictions can be checked against how well development predicted):
+
+| Quantity | Expectation |
+|---|---|
+| M1 AUC, clusters only | 0.72 |
+| M4 − M1 | +0.03 |
+| Holding the pair out | −0.02 against clusters only |
+| MT | ≈ M4 |
+| Decision accuracy − best fixed per pair | +0.01, CI may include 0 |
+| Headroom captured | 0.2–0.3 |
+
+The headroom is small because only ≈ 20% of rows disagree. For Haiku on Gemini frame captions, the oracle is only +0.047 above always choosing the index.
+
+**What A7 decides.**
+- **M1 chosen:** the decision depends on the task and the model pair alone. The answer to the team is then that what we know about the video and its captions adds nothing to the task type. A8 then tests M1 as the rule.
+- **M2–M5 chosen:** A8 freezes those coefficients, which is the formula the team asked for.
+- **Either way, A8** is written and pushed before its first call. It covers the 641 confirmatory-video questions not yet used (all five aspects, every video type), whose indexes already exist, so only reads are needed. The reads are Haiku on frames, its own captions, Sonnet's captions and Gemini's video captions: ≈ 2,560 Haiku calls. A8 holds the frozen formula's predicted AUC and decision gain.
+- **The limits are stated now:** every row is TempCompass, the five aspects are its own, and the videos in A8 are the same videos. A new-video test needs a post-cutoff benchmark.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
