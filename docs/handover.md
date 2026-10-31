@@ -31,10 +31,17 @@ The newest session is at the top. Older sessions stay below because other docs l
   - **Policy − always index +0.013 [+0.002, +0.026]** (secondary; predicted to include 0). It doesn't beat always frames.
   - **Unpredicted:** Haiku's frames are stronger on these questions (0.699 vs. 0.613 in C1, mostly direction: 0.50 vs. 0.30 on the same videos, reworded), so self-captions now lose to frames (−0.064).
   - On the 67 rows asking an aspect C1 didn't ask of that video, the formula fails (AUC 0.40, descriptive).
+  - Exploratory, after the run: the captioner effect replicates on A8's questions (Sonnet − self-captions +0.072, cl. [+0.027, +0.119]; Gemini video − self +0.122).
+- **User rule (2026-10-31): every result goes into the paper, an appendix if minor; err on too much, cut later.**
+- **Paper updated with A6–A8.**
+  - New §4.6 "When to read the index: a decision rule" and a new Appendix "The decision rule in detail" (`app:decide`, Tables `tab:a7`, `tab:a8rule`).
+  - A8's replications are in §4.1 (captioner) and §4.2 (modality, −0.064).
+  - Also: abstract, intro and a fifth contribution; Discussion (fourth rule); Conclusion; Limitations (same videos, wording effect); §2.3 (97.5% tests).
+  - `tab:preds` gains the A6 and A8 blocks, with recounted summary numbers (41/56 inside, 39/47 after C1, 47/50 signs, median 0.024). The bib gains SigLIP 2, checked on arXiv. Ethics now says ≈ 22,150 calls, ≈ $22.
+  - **Pages:** 21 in all. The main text now ends at the foot of page 10's left column (it ended ¾ down page 9's left column), and Limitations starts in the right column.
 - **Next steps.**
   1. Tell the team: the tested rule is task + model pair (Gemini captions → index; Claude captions → frames on speed). Video and caption scores add nothing (A6, A7).
-  2. Decide with the user whether A6–A8 go into the paper (appendix, or a short §4 paragraph), and whether the direction-question shift needs a word in C1's discussion.
-- **Not in the paper yet:** A6–A8. The paper draft is unchanged since 2026-10-28.
+  2. Cutting for room comes after the first feedback (user).
 
 # 2026-10-28 (night) → Draft reviewed and fixed; A5 run (no calls)
 
