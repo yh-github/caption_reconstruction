@@ -126,24 +126,33 @@ UUID = __import__("re").compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-")
 def cmd_compute(args):
     """Claude calls and list-price dollars per study, from every logged call (one row per call, retries included):
     reads (claude/*.jsonl), captions (self_captions.jsonl) and the audit judge (audit/sonnet.jsonl). EgoSchema rows
-    have items starting "eg" (reads) or UUID video IDs (captions)."""
+    have items starting "eg" (reads) or UUID video IDs (captions); they are split into E1 (ego_dev: items "egd", its
+    videos) and the stopped E2 (ego_confirm). Only counts and tokens are read, no answers."""
     import collections
     import json
+    dev_videos = {q["video_id"] for q in tc.items("ego_dev")}
     n, usd = collections.Counter(), collections.Counter()
     files = [(tc.OUT / "claude" / "haiku.jsonl", "read"), (tc.OUT / "claude" / "sonnet.jsonl", "read"),
              (tc.OUT / "self_captions.jsonl", "caption"), (tc.OUT / "audit" / "sonnet.jsonl", "audit")]
     for path, kind in files:
         for line in path.read_text().splitlines():
             r = json.loads(line)
-            fam = "haiku" if "haiku" in str(r.get("model")) else "sonnet"
+            # reads log "model"; caption rows log "model_reported" and "captioner" (no "model")
+            who = " ".join(str(r.get(k)) for k in ("model", "model_reported", "captioner"))
+            fam = "haiku" if "haiku" in who else "sonnet"
+            if "haiku" in who and "sonnet" in who:
+                sys.exit(f"ambiguous model in {path.name}: {who}")
             item = str(r.get("question_item") or r.get("video_id") or "")
             study = "egoschema" if item.startswith("eg") or UUID.match(item) else "tempcompass"
+            if study == "egoschema":
+                dev = item.startswith("egd") if item.startswith("eg") else item in dev_videos
+                study = "egoschema E1 (ego_dev)" if dev else "egoschema E2 (ego_confirm, stopped)"
             u = r.get("usage") or {}
             tin = sum(u.get(k) or 0 for k in ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens"))
             pin, pout = LIST_USD[fam]
             n[study, kind] += 1
             usd[study, kind] += (tin * pin + (u.get("output_tokens") or 0) * pout) / 1e6
-    for study in ("tempcompass", "egoschema"):
+    for study in sorted({k[0] for k in n}, key=lambda s: (s != "tempcompass", s)):
         ks = sorted(k for k in n if k[0] == study)
         print(f"{study}: {sum(n[k] for k in ks)} Claude calls, ${sum(usd[k] for k in ks):.2f} at list price; "
               + ", ".join(f"{k[1]} {n[k]} (${usd[k]:.2f})" for k in ks))
