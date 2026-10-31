@@ -93,26 +93,50 @@ def index_scores(vids: list[str]) -> dict[tuple[str, str], dict]:
     return out
 
 
-def rows(cut: float = CUT):
-    """All (reader, index, question) rows with both answers: index right, frames right, and the features."""
+def set_frame(set_: str):
+    """Correctness per question (rows) and model:arm (columns) on a TempCompass set, with each question's video type
+    and clip cluster (reader.confirm_frame for any set)."""
     import pandas as pd
-    wide, vtype, clus = R.confirm_frame()
-    q = {x["item"]: x for x in tc.items("confirm")}
+    if set_ == "confirm":
+        return R.confirm_frame()
+    qs = {x["item"]: x for x in tc.items(set_)}
+    rs = [r for m in ("haiku", "sonnet", *R.OPEN_MODELS) for r in R.latest(m).values() if r["question_item"] in qs]
+    if not rs:
+        sys.exit(f"no rows on set {set_}")
+    df = pd.DataFrame(rs)
+    df["arm"] = df.model + ":" + df.arm
+    wide = df.pivot_table(index="question_item", columns="arm", values="correct", aggfunc="first").astype(float)
+    vtype = pd.Series({i: tc.video_type(qs[i]["video_id"]) for i in wide.index})
+    clus = pd.Series(dict(zip(wide.index, R.clip_clusters([qs[i]["video_id"] for i in wide.index]))))
+    return wide, vtype, clus
+
+
+def rows(cut: float = CUT, set_: str = "confirm", pairs=PAIRS, scores: bool = True):
+    """All (reader, index, question) rows with both answers: index right, frames right, and the features (without
+    the video and caption scores when scores is False)."""
+    import pandas as pd
+    wide, vtype, clus = set_frame(set_)
+    q = {x["item"]: x for x in tc.items(set_)}
     vids = sorted({q[i]["video_id"] for i in wide.index})
-    vs, ix = video_scores(vids), index_scores(vids)
+    vs, ix = (video_scores(vids), index_scores(vids)) if scores else ({}, None)
     out = []
-    for reader, arm in PAIRS:
+    for reader, arm in pairs:
         a, f = f"{reader}:{arm}", f"{reader}:frames5"
+        if a not in wide or f not in wide:
+            continue
         for i in wide.index:
             v = q[i]["video_id"]
-            if np.isnan(wide.at[i, a]) or np.isnan(wide.at[i, f]) or (arm, v) not in ix:
+            if np.isnan(wide.at[i, a]) or np.isnan(wide.at[i, f]) or (scores and (arm, v) not in ix):
                 continue
             dim = q[i]["dim"]
-            out.append({"pair": a, "reader": reader, "family": FAMILY[arm], "item": i, "video_id": v, "dim": dim,
-                        "type": vtype[i], "cluster": clus[i], "index_ok": int(wide.at[i, a]),
-                        "frames_ok": int(wide.at[i, f]), "motion": vs[v]["motion"], "cuts": vs[v][f"cuts@{cut}"],
-                        "log_windows": vs[v]["log_windows"], "coverage": ix[arm, v]["coverage"],
-                        "mention": ix[arm, v][f"mention_{dim}"] if dim in MENTION else 0.0})
+            r = {"pair": a, "reader": reader, "family": FAMILY[arm], "item": i, "video_id": v, "dim": dim,
+                 "type": vtype[i], "cluster": clus[i], "index_ok": int(wide.at[i, a]),
+                 "frames_ok": int(wide.at[i, f])}
+            if scores:
+                r.update(motion=vs[v]["motion"], cuts=vs[v][f"cuts@{cut}"], log_windows=vs[v]["log_windows"],
+                         coverage=ix[arm, v]["coverage"],
+                         mention=ix[arm, v][f"mention_{dim}"] if dim in MENTION else 0.0)
+            out.append(r)
     df = pd.DataFrame(out)
     df["won"] = df.index_ok
     return df, vs
@@ -159,14 +183,14 @@ def oof(dis, features: list[str], leave_pair: bool) -> np.ndarray:
     return p
 
 
-def cluster_ci(stat, clusters, n_boot: int = 2000, seed: int = 0):
-    """Percentile 95% CI of stat(rows) over clip-cluster resamples; stat takes an index array."""
+def cluster_ci(stat, clusters, n_boot: int = 2000, seed: int = 0, level: float = 0.95):
+    """Percentile CI of stat(rows) over clip-cluster resamples; stat takes an index array."""
     clusters = np.asarray(clusters)
     keys = np.unique(clusters)
     at = {k: np.flatnonzero(clusters == k) for k in keys}
     rng = np.random.default_rng(seed)
     bs = [stat(np.concatenate([at[k] for k in rng.choice(keys, len(keys))])) for _ in range(n_boot)]
-    return stat(np.arange(len(clusters))), *np.nanpercentile(bs, [2.5, 97.5])
+    return stat(np.arange(len(clusters))), *np.nanpercentile(bs, [50 * (1 - level), 50 * (1 + level)])
 
 
 def cmd_a7(args):
@@ -261,12 +285,112 @@ def cmd_a7(args):
                 print(f"  {col} {k:18s} {roc_auc_score(g.won, p[g.index]):.3f} (n={len(g)}, index won {g.won.sum()})")
 
 
+# A8 (research log): Haiku reads one per-window index per captioner family, and its frames, on the "rest" set
+A8_PAIRS = [("haiku", a) for a in ("selfcaptions", "sonnetcaptions", "captions")]
+A8_M1 = "M1 task + pair"
+
+
+def cmd_a8(args):
+    """A8's statistics, exactly as listed in the research log. With --dev, the same statistics on A7's rows of the
+    three A8 pairs, with A7's out-of-fold M1 probabilities: the source of A8's predictions."""
+    from sklearn.metrics import roc_auc_score
+    a7 = rows(scores=False)[0]
+    if len(a7) != 4455:
+        sys.exit(f"A7 has {len(a7)} rows, not 4,455")
+    dis7 = a7[a7.index_ok != a7.frames_ok].reset_index(drop=True)
+    X7 = design(dis7, MODELS[A8_M1])
+    predict = fit(X7.to_numpy(), dis7.won.to_numpy())[0]
+    names = [f"{r}:{a}" for r, a in A8_PAIRS]
+    fixed7 = a7.groupby("pair")[["index_ok", "frames_ok"]].mean().pipe(lambda t: t.index_ok > t.frames_ok)
+    if not fixed7[names].all():
+        sys.exit("A7's best fixed choice is not the index for every A8 pair; the entry assumes it is")
+    print("Frozen M1 (fit on A7's 898 disagreeing rows): P(index won), Haiku reading, by aspect and captioner family:")
+    cells = [dict(dim=d, reader="haiku", family=FAMILY[a]) for d in tc.DIMS for _, a in A8_PAIRS]
+    import pandas as pd
+    grid = pd.DataFrame(cells)
+    grid["p"] = predict(design(grid, MODELS[A8_M1], ref=X7.columns).to_numpy())
+    print(grid.pivot(index="dim", columns="family", values="p").reindex(tc.DIMS).round(3).to_string())
+
+    if args.dev:
+        print("\n--dev: A7's rows of the three A8 pairs, with A7's out-of-fold M1 probabilities (clusters only)")
+        df = a7[a7.pair.isin(names)].reset_index(drop=True)
+        p7 = pd.Series(oof(dis7, MODELS[A8_M1], False), index=pd.MultiIndex.from_frame(dis7[["pair", "item"]]))
+    else:
+        df = rows(set_="rest", pairs=A8_PAIRS, scores=False)[0]
+        print(f"\nA8: {len(df)} rows over {df.pair.nunique()} pairs; arms answered "
+              f"{df.groupby('pair').size().to_dict()}")
+    dis = df[df.index_ok != df.frames_ok].reset_index(drop=True)
+    if args.dev:
+        p = p7.loc[list(zip(dis.pair, dis.item))].to_numpy()
+    else:
+        p = predict(design(dis, MODELS[A8_M1], ref=X7.columns).to_numpy())
+    y, cl = dis.won.to_numpy(), dis.cluster.to_numpy()
+    print(f"{len(dis)} disagreeing rows, index won {y.sum()}; per pair (index won / frames won):")
+    for k, g in dis.groupby("pair"):
+        print(f"  {k:24s} {g.won.sum():3d} / {(1 - g.won).sum():3d}")
+
+    def auc(i):
+        return roc_auc_score(y[i], p[i]) if len(set(y[i])) > 1 else np.nan
+
+    spd = (dis.dim == "speed").to_numpy()
+
+    def shift(i):
+        s, o = i[spd[i]], i[~spd[i]]
+        return y[s].mean() - y[o].mean() if len(s) and len(o) else np.nan
+
+    print("\nPrimary (97.5% CIs over clip clusters, Bonferroni over two):")
+    e, lo, hi = cluster_ci(auc, cl, level=0.975)
+    print(f"  H1 frozen M1's AUC on the disagreeing rows: {e:.3f} [{lo:.3f}, {hi:.3f}]")
+    e, lo, hi = cluster_ci(shift, cl, level=0.975)
+    print(f"  H2 speed shift, P(index won | speed) - P(index won | other aspects): {e:+.3f} [{lo:+.3f}, {hi:+.3f}]"
+          f"  ({y[spd].mean():.3f} on {spd.sum()} speed rows, {y[~spd].mean():.3f} on {(~spd).sum()} others)")
+
+    print("\nSecondary (95% CIs over clip clusters):")
+    allcl = df.cluster.to_numpy()
+    fr, ix = df.frames_ok.to_numpy(), df.index_ok.to_numpy()
+    key = dict(zip(zip(dis.pair, dis.item), p))
+    use = np.array([key.get((a, i), 0.0) > 0.5 for a, i in zip(df.pair, df.item)])
+    pol = np.where(use, ix, fr)
+    rule = np.where((df.dim == "speed").to_numpy(), fr, ix)
+    oracle = np.maximum(fr, ix)
+    print("  S1 index - frames accuracy, per pair:")
+    for k in names:
+        m = (df.pair == k).to_numpy()
+        e, lo, hi = cluster_ci(lambda i: ix[m][i].mean() - fr[m][i].mean(), allcl[m])
+        print(f"    {k:24s} {e:+.3f} [{lo:+.3f}, {hi:+.3f}]  (index {ix[m].mean():.3f}, frames {fr[m].mean():.3f}, "
+              f"n={m.sum()})")
+    for name, a, b in (("S2 M1 policy - always index", pol, ix), ("S2 M1 policy - always frames", pol, fr),
+                       ("S3 speed rule (frames on speed, else index) - always index", rule, ix)):
+        e, lo, hi = cluster_ci(lambda i: a[i].mean() - b[i].mean(), allcl)
+        print(f"  {name}: {e:+.4f} [{lo:+.4f}, {hi:+.4f}]")
+    print(f"    accuracy: policy {pol.mean():.4f}, speed rule {rule.mean():.4f}, index {ix.mean():.4f}, frames "
+          f"{fr.mean():.4f}, oracle {oracle.mean():.4f}; headroom captured by the policy "
+          f"{(pol.mean() - ix.mean()) / (oracle.mean() - ix.mean()):.2f}; index chosen on "
+          f"{use[(fr != ix)].mean():.2f} of disagreeing rows")
+    print("  S4 by pair: AUC and speed shift on the disagreeing rows")
+    for k in names:
+        m = (dis.pair == k).to_numpy()
+        i = np.flatnonzero(m)
+        print(f"    {k:24s} AUC {auc(i):.3f}  speed shift {shift(i):+.3f}  (n={m.sum()})")
+    if not args.dev:
+        conf = {(q["video_id"], q["dim"]) for q in tc.items("confirm")}
+        new = np.array([(v, d) not in conf for v, d in zip(dis.video_id, dis.dim)])
+        i = np.flatnonzero(new)
+        print(f"  S5 on aspects the confirm set did not ask on that video ({new.sum()} disagreeing rows, "
+              f"descriptive): AUC {auc(i):.3f}, speed shift {shift(i):+.3f}")
+    print("  S6 accuracy by aspect (descriptive):")
+    t = df.assign(frames=fr).groupby(["dim", "pair"]).agg(index=("index_ok", "mean"), frames=("frames", "mean"))
+    print(t.unstack("pair").reindex(tc.DIMS).round(3).to_string())
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("a7")
+    a8 = sub.add_parser("a8")
+    a8.add_argument("--dev", action="store_true", help="the statistics on A7's rows (A8's predictions)")
     args = ap.parse_args()
-    {"a7": cmd_a7}[args.cmd](args)
+    {"a7": cmd_a7, "a8": cmd_a8}[args.cmd](args)
 
 
 if __name__ == "__main__":

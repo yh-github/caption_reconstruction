@@ -41,6 +41,8 @@ results/index_qa/*
 # and the EgoSchema samples (egoschema.py, nextqa_plan.md §5)
 !results/index_qa/ego_dev_items.json
 !results/index_qa/ego_confirm_items.json
+# and A8's questions: the unused TempCompass questions on the confirmatory videos
+!results/index_qa/rest_items.json
 # the user's 40 hand labels that validate the C7 audit judge (κ in research_log.md C7)
 !results/index_qa/audit/
 results/index_qa/audit/*

@@ -10,11 +10,12 @@ t = 5p + k s (k = 0..4, t < duration), the 1 fps instants the captioner samples,
 Question sets (docs/new_direction/research_log.md): "dev", the 100 development questions (K0-K2); "confirm", 60 per
 aspect on the 310 videos the dev set does not use (C1); and "pairs", C4's minimal pairs: each confirmatory question
 asked, with its own wording and option order, on a sibling video (one built from the same filmed clip) whose correct
-option differs (sample_pairs). "ego_dev" and "ego_confirm" are EgoSchema questions (egoschema.py samples them); a
+option differs (sample_pairs). "rest" is A8's: every TempCompass question on a confirmatory video that the confirm
+set does not ask (sample_rest). "ego_dev" and "ego_confirm" are EgoSchema questions (egoschema.py samples them); a
 video ID that is a UUID is an EgoSchema video, with its video and frames under local/egoschema/, so windows, frames,
 captions and reads work the same for both benchmarks.
 
-    .venv/bin/python scripts/index_qa/tempcompass.py sample [--set confirm|pairs]   # writes the set's items file
+    .venv/bin/python scripts/index_qa/tempcompass.py sample [--set confirm|pairs|rest]   # writes the set's items file
     .venv/bin/python scripts/index_qa/tempcompass.py frames [--set confirm] [--long-edge 448]   # the set's frames
 """
 from __future__ import annotations
@@ -38,7 +39,8 @@ FRAMES = TC / "frames"
 EGO = ROOT / "local/egoschema"
 OUT = ROOT / "results/index_qa"
 SETS = {"dev": OUT / "kill_test_items.json", "confirm": OUT / "confirm_items.json", "pairs": OUT / "pairs_items.json",
-        "ego_dev": OUT / "ego_dev_items.json", "ego_confirm": OUT / "ego_confirm_items.json"}
+        "ego_dev": OUT / "ego_dev_items.json", "ego_confirm": OUT / "ego_confirm_items.json",
+        "rest": OUT / "rest_items.json"}
 EGO_SETS = {"ego_dev", "ego_confirm"}
 UUID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
 ITEMS = SETS["dev"]
@@ -117,6 +119,19 @@ def sample_confirm() -> list[dict]:
     short = {d: n for d in DIMS if (n := sum(q["dim"] == d for q in out)) < 60}
     if short:
         sys.exit(f"too few unused videos for 60 questions per aspect: {short}")
+    return out
+
+
+def sample_rest(seed: int = 2) -> list[dict]:
+    """A8: every question on a confirmatory video other than the one the confirm set asks there (the same aspect
+    reworded, or another aspect), in a seeded shuffle so that a --limit pilot spans the aspects."""
+    conf = items("confirm")
+    videos = {q["video_id"] for q in conf}
+    asked = {(q["video_id"], q["dim"], q["stem"]) for q in conf}
+    out = [q for q in load_questions() if q["video_id"] in videos and (q["video_id"], q["dim"], q["stem"]) not in asked]
+    random.Random(seed).shuffle(out)
+    for i, q in enumerate(out):
+        q["item"] = f"tcr{i:03d}|{q['video_id']}|{q['dim']}"
     return out
 
 
@@ -296,7 +311,7 @@ def main():
             from index_qa.caption import captions
             qs = sample_pairs(lambda v: captions(v) is not None)
         else:
-            qs = sample() if args.set_ == "dev" else sample_confirm()
+            qs = sample() if args.set_ == "dev" else sample_rest() if args.set_ == "rest" else sample_confirm()
         path.write_text(json.dumps(qs, indent=1))
         n_win = sum(len(windows(duration_s(q["video_id"]))) for q in qs)
         print(f"{len(qs)} items on {len({q['video_id'] for q in qs})} videos, {n_win} windows -> {path.relative_to(ROOT)}")

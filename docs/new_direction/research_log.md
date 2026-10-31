@@ -2130,6 +2130,70 @@ The headroom is small because only ≈ 20% of rows disagree. For Haiku on Gemini
 - **For the team:** the formula is "pick by reader and captioner, then send speed questions to the frames". Video and caption scores do not improve it on TempCompass. Holding the pair out costs 0.04 AUC, so the rule does not transfer fully to a new model pair.
 - **For A8:** the frozen model is M1. Its gain over the best fixed choice is expected to be about 0, so A8 can test M1's AUC and the speed rule, but not a decision gain large enough to detect at 641 questions.
 
+### A8 — Does the frozen A7 formula predict on new questions? (written 2026-10-31, before any call; Haiku reads only)
+
+**Why.** A7 chose M1 (task + pair) and found one within-pair signal, the aspect: speed questions favour the frames. A8 tests both on questions no reader has seen, as A7 required. The user asked for more Haiku runs (2026-10-31).
+
+**Questions: the "rest" set (`tempcompass.py sample --set rest`; `results/index_qa/rest_items.json`, tracked in git).**
+- It holds every TempCompass question on the 297 confirmatory videos other than the one C1 asked there: **738 questions**, in a seeded shuffle (seed 2) so that a `--limit` pilot spans the aspects. A7 said 641; that count does not reproduce, and 738 is the sampler's.
+- By aspect: action 165, direction 163, speed 139, order 139, attribute change 132. By type: plain 414, reversed 152, two-clip 90, stacked 82.
+- **The limit, stated now:** 618 of the 738 ask the same aspect on the same video as a C1 question, mostly reworded. So A8 tests new questions on A7's videos, not new videos. Outcomes will correlate with A7's, and A8 is closer to a replication than to an independent test. S5 reports the 120 on an aspect C1 did not ask on that video.
+- **Indexes:** all exist, so no captioning is needed. One per-window index per captioner family is used: Haiku's self-captions, Sonnet's captions (224 px) and Gemini's video captions.
+
+**Reads:** Haiku (`claude-haiku-5-5`, effort medium, as in C1) on `frames5`, `selfcaptions`, `sonnetcaptions` and `captions`. That is 4 × 738 = **2,952 calls**; the prompts are C1's (`reader.build`).
+- **Pilot:** `--limit 20` (5 questions × 4 arms). Check isolation, the reported model and parsing, then run the rest.
+- **Cost:** ≈ $1.5 at list price (≈ $0.001 per frame read, less per caption read), and ≈ 2.5 h at ≈ 3 s per call.
+- **Stop rules:**
+  - stop if the CLI reports another model or isolation fails (`reader.py` exits);
+  - stop and report if more than 2% of an arm's calls end in error, timeout or an invalid answer after one `--retry error timeout`;
+  - a failed call counts as wrong.
+  - The 5-hour guard is `--max-5h 0.8` (resume after the reset). Ask the user before resuming if the 7-day use passes 0.9.
+
+**The frozen formula.** M1, fit on A7's 898 disagreeing rows (`decide.py a8` refits it from A7's rows, which are fixed). P(the index wins a disagreement), Haiku reading:
+
+| Aspect | Gemini video captions | Haiku self-captions | Sonnet captions |
+|---|---|---|---|
+| Action | 0.832 | 0.634 | 0.756 |
+| Speed | 0.583 | **0.328** | **0.466** |
+| Direction | 0.818 | 0.610 | 0.737 |
+| Order | 0.915 | 0.790 | 0.871 |
+| Attribute change | 0.838 | 0.643 | 0.763 |
+
+The policy reads the frames where P < 0.5: speed questions with Haiku's or Sonnet's captions. Elsewhere it reads the index. A7's best fixed choice is the index for all three pairs.
+
+**Statistics (`decide.py a8`, run once; output in `results/index_qa/reports/a8.txt`).** The rows are disagreeing (reader, index, question) rows, as in A7. CIs are over clip clusters, because a video now has 2.5 questions on average.
+- **Primary** (97.5% CIs, Bonferroni over two):
+  - **H1:** frozen M1's AUC on A8's disagreeing rows. It passes if the lower bound is > 0.5.
+  - **H2:** the speed shift, P(index won | speed) − P(index won | the other four aspects). It passes if the upper bound is < 0.
+- **Secondary** (95% CIs):
+  - S1: index − frames accuracy per pair (C1's modality effect on new questions);
+  - S2: the M1 policy − always the index, and − always the frames; the headroom captured;
+  - S3: the speed rule ("frames on speed, else the index") − always the index;
+  - S4: AUC and speed shift per pair;
+  - S5: H1 and H2 on the 120 questions on an aspect C1 did not ask on that video (descriptive);
+  - S6: accuracy by aspect and arm (descriptive).
+
+**Predictions.** The development values come from `decide.py a8 --dev`: the same code on A7's rows of these three pairs, with A7's out-of-fold M1. The predictions shrink the primary terms toward the null, because the formula was chosen on those rows.
+
+| Term | Development (A7) | Prediction |
+|---|---|---|
+| H1 AUC | 0.701 [0.592, 0.794] | **0.68** |
+| H2 speed shift | −0.320 [−0.541, −0.082] (0.449 vs. 0.769) | **−0.25** |
+| Disagreeing rows | 196 of 891 | ≈ 480 of 2,214 |
+| S1 self-captions − frames | +0.030 | +0.03 |
+| S1 Sonnet captions − frames | +0.094 | +0.09 |
+| S1 Gemini video captions − frames | +0.125 | +0.12 |
+| S2 policy − always index | +0.006 [−0.006, +0.017] | +0.005, CI includes 0 |
+| S2 policy − always frames | +0.089 | +0.08 |
+| S3 speed rule − always index | +0.006 | +0.005, CI includes 0 |
+| Headroom captured | 0.08 | ≤ 0.1 |
+
+**What A8 decides.**
+- **H1 and H2 pass:** the formula carries over to new questions. For Haiku the decision is "read the index, except send speed questions to the frames when Claude wrote the captions". The answer to the team is then a tested rule whose inputs are the task and the model pair, and which has no video or caption score.
+- **H1 passes and H2 fails:** the ranking comes from the captioner family alone.
+- **H1 fails:** A7's formula does not hold on new questions, and the team's answer is the best fixed choice per pair.
+- **Either way, S2 is expected not to exclude 0.** A gain over always reading the index is not claimed unless S2 excludes 0.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
