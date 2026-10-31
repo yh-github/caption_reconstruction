@@ -2256,6 +2256,12 @@ The policy reads the frames where P < 0.5: speed questions with Haiku's or Sonne
 - **Expectation.** 0.70–0.85 for wrong answers, and similar for omissions.
 - **Reading.** The abstract's "mostly on stress-test videos" stays only if every arm's share of wrong answers on built videos is above 0.5. Otherwise the abstract states the range.
 
+**Result** (2026-10-31, committed `aba19c6` before the run; `results/index_qa/reports/d7.txt`). The run reproduces A7's M1 AUC (0.756) and the audit's counts of wrong answers.
+- **Outcome 1, as expected.** On confirmatory accuracy, 6 of 378 arm pairs disagree (1.6%), and each has an endpoint within 0.003 of 0. The median width ratio is 1.00 (IQR 0.95–1.05). On minimal pairs, 0 of 15 disagree, and the cluster CIs are wider (ratio 1.17). **One reported term disagrees: C11b** (Sonnet: aspect-aware − whole-video captions), +0.040 [+0.003, +0.081], clustered [0.000, +0.081]. The other five are pairs the paper does not report. By the rule, §2.3 says "on every reported term but one" and §4.5 gives both CIs for C11b.
+- **Outcome 2, as expected.** Qwen − Haiku on frames is +0.044 [−0.010, +0.101] (clustered [−0.009, +0.097]), so the two are not separated. Sonnet − Qwen is +0.141 [+0.084, +0.199], and Sonnet − Haiku +0.185 [+0.131, +0.239]. The paper's order of readers on frames becomes a point-estimate statement.
+- **Outcome 3.** Pair only gives 0.695 [0.640, 0.749], aspect only 0.602 [0.522, 0.673], and M1 within pair 0.599 [0.510, 0.676]. Pair only is below 0.716, so the paper does not say "mostly from the pair". It gives the numbers: the pair alone ranks at 0.70, the aspect alone at 0.60, and the two together at 0.76.
+- **Outcome 4, as expected.** 0.74–0.84 of each arm's wrong answers, and 0.70–0.82 of its omissions, are on built videos (54% of the questions). The abstract's wording stays.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
