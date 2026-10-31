@@ -2,6 +2,24 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
+# 2026-10-31 (evening) → Paper review passes; D7, C13, C14, A9, A10 done and in the paper
+
+**Start here: research log D7, C13, C14, A9 and A10 (*Result*).** Every one was written and committed before it ran (`d6a733e` for C13–A10). All 17 point predictions of C13, C14 and A10 fell inside their CIs.
+
+- **C13: question-aware captions, read without the frames** (`self_caption.py --question`).
+  - Stacked: Sonnet's gap to its frames shrinks from −0.27 to −0.10, so the stacked loss is an omission of blind writing.
+  - Reversed: the gap barely moves (−0.18 to −0.15); the reversal is lost even with the question.
+  - Overall: −0.071 [−0.114, −0.027] against frames.
+- **C14: Sonnet on others' captions.**
+  - Sonnet does not read Haiku's captions measurably better than Haiku (+0.034 [−0.010, +0.081]), and the own-words interaction is −0.030 [−0.088, +0.027]. The readers' tie is not Sonnet reading its own words.
+  - Sonnet beats Haiku on Gemini frame-clip captions (+0.064) but not on frame captions (+0.020).
+  - Re-read drift: −0.013, with 10.8% of answers changed; no caveat needed.
+- **A9: cost projection checked on E1's EgoSchema costs** (no calls). With the larger frames counted, the measured cost per question is 1.04–1.11× the projection and the measured Q_BE 0.93–1.00×.
+- **A10: A8's direction shift is not the option count** (no calls). +0.261 [+0.129, +0.385] standardized by k; +0.202 on the same videos with the same k.
+- **Compute recount fixed** (log D7, *Correction*). Haiku caption calls had been priced as Sonnet, and EgoSchema mixed E1 with the stopped E2. Now: TempCompass 17,962 calls / $28.22; E1 3,203 / $7.94; stopped E2 2,107 / $5.31.
+- **Paper:** all of the above are added (§1, §2, §4.2, §4.4–4.6, §5, Limitations, Ethics, `tab:arms`, `tab:variants`, `tab:preds` and its counts, and appendices). The PDF has been rebuilt: 23 pages, no overfull boxes or undefined references.
+- **Quota:** C13 and C14 together took more than one 5-hour window (paused 15:00–18:30 UTC) for ≈ $7 list.
+
 # 2026-10-31 → A predictive tool for the team: A6 done (null); A7 done (M1: task + pair); A8 done (H1 passes, H2 fails narrowly)
 
 **Start here: research log A6, A7 and A8 (*Result*).** The team (Prof. Gail) worries that the paper is exploratory and applied. She wants a predictive tool: a formula combining what is known about the video, its captions and the task, which says whether captions should be used.
