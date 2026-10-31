@@ -119,10 +119,41 @@ def cmd_d7(args):
               f"on built {np.mean(om):.2f}")
 
 
+LIST_USD = {"haiku": (0.10, 0.50), "sonnet": (2.0, 10.0)}  # $ per 1M input / output (thinking billed as output)
+UUID = __import__("re").compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-")
+
+
+def cmd_compute(args):
+    """Claude calls and list-price dollars per study, from every logged call (one row per call, retries included):
+    reads (claude/*.jsonl), captions (self_captions.jsonl) and the audit judge (audit/sonnet.jsonl). EgoSchema rows
+    have items starting "eg" (reads) or UUID video IDs (captions)."""
+    import collections
+    import json
+    n, usd = collections.Counter(), collections.Counter()
+    files = [(tc.OUT / "claude" / "haiku.jsonl", "read"), (tc.OUT / "claude" / "sonnet.jsonl", "read"),
+             (tc.OUT / "self_captions.jsonl", "caption"), (tc.OUT / "audit" / "sonnet.jsonl", "audit")]
+    for path, kind in files:
+        for line in path.read_text().splitlines():
+            r = json.loads(line)
+            fam = "haiku" if "haiku" in str(r.get("model")) else "sonnet"
+            item = str(r.get("question_item") or r.get("video_id") or "")
+            study = "egoschema" if item.startswith("eg") or UUID.match(item) else "tempcompass"
+            u = r.get("usage") or {}
+            tin = sum(u.get(k) or 0 for k in ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens"))
+            pin, pout = LIST_USD[fam]
+            n[study, kind] += 1
+            usd[study, kind] += (tin * pin + (u.get("output_tokens") or 0) * pout) / 1e6
+    for study in ("tempcompass", "egoschema"):
+        ks = sorted(k for k in n if k[0] == study)
+        print(f"{study}: {sum(n[k] for k in ks)} Claude calls, ${sum(usd[k] for k in ks):.2f} at list price; "
+              + ", ".join(f"{k[1]} {n[k]} (${usd[k]:.2f})" for k in ks))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("d7").set_defaults(fn=cmd_d7)
+    sub.add_parser("compute").set_defaults(fn=cmd_compute)
     args = ap.parse_args()
     args.fn(args)
 

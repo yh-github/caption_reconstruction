@@ -2262,6 +2262,14 @@ The policy reads the frames where P < 0.5: speed questions with Haiku's or Sonne
 - **Outcome 3.** Pair only gives 0.695 [0.640, 0.749], aspect only 0.602 [0.522, 0.673], and M1 within pair 0.599 [0.510, 0.676]. Pair only is below 0.716, so the paper does not say "mostly from the pair". It gives the numbers: the pair alone ranks at 0.70, the aspect alone at 0.60, and the two together at 0.76.
 - **Outcome 4, as expected.** 0.74–0.84 of each arm's wrong answers, and 0.70–0.82 of its omissions, are on built videos (54% of the questions). The abstract's wording stays.
 
+**Addendum (2026-10-31, second review; not planned in advance).** The paper's compute line ("about 22,150 Claude calls, ≈ $22") had no recorded derivation. `review_checks.py compute` counts every logged call (`results/index_qa/reports/compute.txt`):
+- **TempCompass:** 14,361 Claude calls at $25.44 list: 10,719 reads, 3,199 captions and 443 audit labels.
+- **EgoSchema development run:** 5,310 calls at $23.00.
+- **Cross-check:** the reads' list price equals the sum of the CLI's own `costUSD` ($13.50 over 11,490 reads).
+- **Gemini:** TempCompass captioning is $9.67 in `calls.jsonl` (modes `tc_isolated*`).
+
+The paper now gives these numbers.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
