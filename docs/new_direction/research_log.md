@@ -2231,6 +2231,31 @@ The policy reads the frames where P < 0.5: speed questions with Haiku's or Sonne
   - No video or caption score improved it (A6, A7).
 - **Limits:** every A8 video is an A7 video, and on the 67 rows that ask a new aspect of a video the formula fails (descriptive). A new-video test still needs a post-cutoff benchmark.
 
+### D7 — Checks for claims the paper makes without a computed basis (written 2026-10-31, before running; no calls)
+
+**Why.** The paper review of 2026-10-31 (commit `9f06bc8`) found four claims with no analysis behind them. The review softened their wording; this entry computes them, so that the paper can state each one or drop it. Every mean below is known from the paper's tables, so these are not prediction tests. The terms, expectations and reading rules are fixed here, before any CI is computed. Script: `scripts/index_qa/review_checks.py d7`, output to `results/index_qa/reports/d7.txt`.
+
+**Outcome 1: do question-level and clip-cluster CIs agree "throughout" (§2.3)?**
+- **Terms.** Every pair of arms read on the 297 confirmatory questions, across all readers (accuracy differences); and every pair of Haiku and Sonnet arms on the 193 minimal pairs (pair-accuracy differences). For each, a 95% paired bootstrap CI over questions (or pairs) and one over clip clusters (10,000 resamples, seed 0, `reader.paired_boot` and `reader.cluster_boot`). A8 is out of scope: it has 2.5 questions per video, so only clustered CIs are valid there, and only those are reported.
+- **Agreement** means the two CIs lead to the same decision on whether 0 is excluded.
+- **Expectation.** The median width ratio (cluster / question) is ≈ 1.05, since 297 questions fall into 156 clusters, mostly of one or two questions. At most 5% of the arm pairs disagree, and in each one that does, an endpoint lies within 0.01 of 0.
+- **Reading.** If every arm pair agrees, §2.3 keeps "the two agree throughout". If only arm pairs that the paper does not report disagree, it says "on every reported term, and on N of M arm pairs". If a reported term disagrees, the paper names it where it is reported and gives both CIs.
+
+**Outcome 2: readers' accuracy on frames.** Qwen − Haiku (+0.044, known), Sonnet − Qwen (+0.141) and Sonnet − Haiku (+0.185) on 5 frames, with both CIs.
+- **Expectation.** Qwen − Haiku includes 0 (≈ ±0.06); the other two exclude it.
+- **Reading.** If Qwen − Haiku includes 0, §4.2 states the readers' order on frames as point estimates and says that Qwen and Haiku are not separated. "The reader that scores lowest on frames (Haiku)" is then kept only with that qualifier.
+
+**Outcome 3: how much of A7's AUC is the pair?** On A7's 898 disagreeing rows, with A7's folds (10 by clip cluster) and A7's fitting code:
+- (a) out-of-fold AUC of pair only (reader + captioner family) and of aspect only;
+- (b) M1's within-pair AUC: the out-of-fold M1 predictions ranked only against rows of the same (reader, index) pair, pooled over pairs (stratified AUC).
+- 95% CIs over clip clusters, as in A7.
+- **Expectation.** Pair only ≈ 0.70, aspect only ≈ 0.62, M1 within pair ≈ 0.60.
+- **Reading.** If pair only is within 0.04 of M1 (≥ 0.716), §4.6 may say "the AUC comes mostly from the pair". Otherwise it gives the three numbers without that sentence.
+
+**Outcome 4: are the errors mostly on stress-test videos (abstract)?** For each of the audit's seven reader arms (C7): the share of its wrong answers that are on built videos (reversed, stacked or two-clip), and the same share among its omission-labelled wrong answers. Built videos are 54% of the questions. Descriptive.
+- **Expectation.** 0.70–0.85 for wrong answers, and similar for omissions.
+- **Reading.** The abstract's "mostly on stress-test videos" stays only if every arm's share of wrong answers on built videos is above 0.5. Otherwise the abstract states the range.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).
