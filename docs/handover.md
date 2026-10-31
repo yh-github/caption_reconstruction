@@ -2,6 +2,32 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
+# 2026-10-31 → A predictive tool for the team: A6 done (null); A7 written, NOT run
+
+**Start here: research log A6 (*Result*) and A7.** The team (Prof. Gail) worries that the paper is exploratory and applied. She wants a predictive tool: a formula combining what is known about the video, its captions and the task, which says whether captions should be used.
+
+- **A6 (done; `scripts/index_qa/priors.py`; pushed `af24612` and `35f2c0d`).**
+  - **Test:** two question-blind video scores, motion and caption coverage, as predictors of where captions lose the frames' answer within video type.
+  - **Result:** both fail. Motion AUC 0.42 [0.28, 0.57], coverage 0.53 [0.38, 0.67].
+  - The scores recover TempCompass's video type and add nothing on top of it.
+  - Exploratory hint: motion cuts opposite ways by aspect (speed vs. direction).
+- **User's view (2026-10-30).**
+  - **Reconstruction is not to be revived:** it has no visual arm that reconstructs and no downstream task.
+  - **The predictive tool may use caption features and the task type,** not only video features. The target is a formula, so that it reads as rigorous.
+  - **The user wants a real dilemma,** a task where captions sometimes beat frames. One exists on the confirmatory set for a cheap reader: Haiku's self-captions win 34 and lose 25 against Haiku's frames, and Qwen on Sonnet's captions wins 26 and loses 25.
+- **A7 (written 2026-10-31, NOT committed and NOT run; the user asked to wait because of a reboot).** A development run to choose and freeze a decision formula.
+  - **Script:** `scripts/index_qa/decide.py a7`. It is syntax-checked only and has never been executed, so expect first-run bugs. Fixing a bug is fine; changing the design is not.
+  - **Rows:** disagreeing rows of 15 (reader, index) pairs.
+  - **Features:** video (motion, cuts, windows), captions (aspect-word mention, coverage), task (aspect), pair (reader, captioner family).
+  - **Models:** M1–M5 plus the reference MT, scored out of fold and selected by a fixed rule.
+  - **Cost:** no calls. CPU only; the frame embeddings are cached in `local/tempcompass/siglip2_frames/`.
+- **Next steps.**
+  1. Commit and push the A7 entry and `decide.py`, but only when the user says so.
+  2. Run `.venv/bin/python scripts/index_qa/decide.py a7 > results/index_qa/reports/a7.txt` once.
+  3. Write the result into log A7.
+  4. Write A8, which freezes the chosen model and pre-registers its predictions on the 641 unused confirmatory-video questions. Their indexes already exist, so only reads are needed: Haiku on frames, self-captions, Sonnet captions and Gemini video captions, ≈ 2,560 Haiku calls. Push A8 before any call, and pilot with `--limit`.
+- **Not in the paper yet:** A6 (and A7). The paper draft is unchanged since 2026-10-28.
+
 # 2026-10-28 (night) → Draft reviewed and fixed; A5 run (no calls)
 
 - **Review → fixes in the paper.**
