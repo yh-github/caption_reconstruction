@@ -2194,6 +2194,42 @@ The policy reads the frames where P < 0.5: speed questions with Haiku's or Sonne
 - **H1 fails:** A7's formula does not hold on new questions, and the team's answer is the best fixed choice per pair.
 - **Either way, S2 is expected not to exclude 0.** A gain over always reading the index is not claimed unless S2 excludes 0.
 
+**Run notes (2026-10-31).** The user requested the Software Heritage visit after the push (`876749a`). The pilot (`--limit 20`) was clean: 20 `ok`, model `claude-haiku-5-5`, isolation confirmed, no quota movement. The full run (2,932 calls, detached) went without a stop. 5-hour quota use rose from 11% to 19%; 7-day stayed at 19%.
+- 2,951 of 2,952 rows are `ok`. One frames read (`tcr250`, direction) was invalid on both tries and counts as wrong. There were no errors or timeouts, so no `--retry` was run.
+
+**Result (2026-10-31; `decide.py a8`, run once; output in `results/index_qa/reports/a8.txt`).** 2,214 rows over the 3 pairs; 492 disagree (predicted ≈ 480), and the index won 247.
+- Per pair (index won / frames won): Gemini video captions 102 / 59, Sonnet captions 76 / 70, self-captions **69 / 116**. In A7 the index won all three pairs' disagreements.
+
+| Term | Prediction | Result | |
+|---|---|---|---|
+| **H1** frozen M1's AUC | 0.68 | **0.666 [0.587, 0.743]** (97.5%) | **passes** |
+| **H2** speed shift | −0.25 | **−0.148 [−0.320, +0.007]** (97.5%; 0.394 on 132 speed rows vs. 0.542 on 360) | **fails** (upper bound > 0) |
+| S1 self-captions − frames | +0.03 | **−0.064 [−0.114, −0.014]** | opposite sign |
+| S1 Sonnet captions − frames | +0.09 | +0.008 [−0.026, +0.042] | |
+| S1 Gemini video captions − frames | +0.12 | +0.058 [+0.017, +0.098] | |
+| S2 policy − always index | +0.005, CI includes 0 | **+0.013 [+0.002, +0.026]** | excludes 0 |
+| S2 policy − always frames | +0.08 | +0.014 [−0.013, +0.041] | |
+| S3 speed rule − always index | +0.005 | +0.013 [−0.002, +0.028] | |
+| Headroom captured | ≤ 0.1 | 0.12 | |
+
+- **S4 by pair:** AUC 0.557 (self-captions), 0.695 (Sonnet), 0.684 (Gemini). The speed shift is −0.063, −0.241 and −0.170, the same sign in all three.
+- **S5** (the 67 disagreeing rows on an aspect C1 did not ask on that video, descriptive): AUC 0.397, speed shift +0.277. The sample is small, but the formula does not hold there.
+- **S6:** the frames are stronger on these questions than in C1. Haiku on frames scores 0.699 against 0.613 in C1, mostly from direction (0.552 against 0.283). The indexes rose less (+0.00 to +0.02).
+- **Exploratory, not pre-registered (added after the result).**
+  - On the same videos, Haiku's frames score 0.50 on A8's reworded direction questions against 0.30 on C1's. Every other aspect matches within 0.02, so the shift is in the questions, not the videos.
+  - C1's direction questions more often have four options (49 of 60, against 104 of 163). That explains only part of the gap.
+  - Hindsight check: the best fixed choice per pair on A8's own rows would be frames, index and index. It scores 0.721, above the policy's 0.713. It could not have been chosen in advance, because A7's choice was the index for all three.
+
+**Reading (rules above).**
+- **H1 passes and H2 fails, narrowly:** the entry's second case. **The formula's ranking carries over to new questions (AUC 0.67).** It comes from the captioner family and from the aspects as a whole, more than from speed alone. Within a pair the formula varies only by aspect, and it still ranks at 0.68–0.70 for Sonnet's and Gemini's captions: order and attribute change favour the index (order 0.83–0.89 against frames 0.70). The speed shift keeps its sign in every pair but is half its development value, and its CI reaches 0.
+- **The policy beats always reading the index by +0.013**, a CI that excludes 0, against a prediction that it would not. This is a secondary term at 95%. The gain is from sending speed questions to the frames when Claude wrote the captions, and from A8's frames being stronger than A7's: always reading the index is a worse baseline here than in A7. The policy does not beat always reading the frames (+0.014, CI includes 0).
+- **The modality effect moved toward the frames by 0.06–0.09 in every pair.** It is unpredicted and comes from the questions, mostly the direction questions. **Haiku's self-captions lose to its frames on A8 (−0.064)**, where C1 had them ahead (+0.030, CI including 0). Gemini's video captions still beat the frames (+0.058).
+- **For the team:**
+  - The tested rule has the task and the model pair as inputs: with Gemini's captions read the index; with Claude's, read the frames on speed questions. On new questions it ranks winners at AUC 0.67, and it gains +0.013 over always reading the index.
+  - Its gain depends on how hard the question set is for the frames: the same videos, worded differently, moved Haiku's frames by 0.2 on direction.
+  - No video or caption score improved it (A6, A7).
+- **Limits:** every A8 video is an A7 video, and on the 67 rows that ask a new aspect of a video the formula fails (descriptive). A new-video test still needs a post-cutoff benchmark.
+
 ### N2a — Novelty check for the captioner effect (Q5 of `final_search_brief.md`; partial, 2026-10-20)
 
 **Scope.** Only Q5 (has anyone shown that a stronger captioner adds usable information from identical input?), done while C3 ran, because it decides the novelty of the draft's claim 1. Five web searches. It does not replace the full pass (G6, N2).

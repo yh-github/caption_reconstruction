@@ -2,9 +2,9 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
-# 2026-10-31 → A predictive tool for the team: A6 done (null); A7 done (M1: task + pair); A8 written, not run
+# 2026-10-31 → A predictive tool for the team: A6 done (null); A7 done (M1: task + pair); A8 done (H1 passes, H2 fails narrowly)
 
-**Start here: research log A6 (*Result*) and A7.** The team (Prof. Gail) worries that the paper is exploratory and applied. She wants a predictive tool: a formula combining what is known about the video, its captions and the task, which says whether captions should be used.
+**Start here: research log A6, A7 and A8 (*Result*).** The team (Prof. Gail) worries that the paper is exploratory and applied. She wants a predictive tool: a formula combining what is known about the video, its captions and the task, which says whether captions should be used.
 
 - **A6 (done; `scripts/index_qa/priors.py`; pushed `af24612` and `35f2c0d`).**
   - **Test:** two question-blind video scores, motion and caption coverage, as predictors of where captions lose the frames' answer within video type.
@@ -25,12 +25,16 @@ The newest session is at the top. Older sessions stay below because other docs l
   - **M1 (task + pair) is chosen.** AUC 0.756 [0.705, 0.803]; video and caption features add ≤ +0.002; holding the pair out costs 0.04.
   - **Decision gain over the best fixed choice per pair: +0.005 [−0.003, +0.014]**, headroom captured 0.08. The only within-pair signal is the aspect: speed → frames (−0.57).
 - **User (2026-10-31):** the null for video scores is "a negative find, but still a find". More Haiku runs are approved.
-- **A8 written and pushed before any call** (log A8). It tests frozen M1 (H1, AUC) and the speed shift (H2) on the "rest" set: 738 unused questions on the confirmatory videos (A7's "641" was wrong). Haiku reads frames5, selfcaptions, sonnetcaptions and captions: 2,952 calls.
+- **A8 done (2026-10-31; pushed `876749a` before any call; SWH visit requested by the user; result in log A8, `results/index_qa/reports/a8.txt`).** 738 unused questions on the confirmatory videos (A7's "641" was wrong); Haiku on frames5, selfcaptions, sonnetcaptions, captions; 2,951/2,952 ok.
+  - **H1 passes:** frozen M1's AUC 0.666 [0.587, 0.743] (predicted 0.68).
+  - **H2 fails narrowly:** speed shift −0.148 [−0.320, +0.007] (predicted −0.25); same sign in all three pairs.
+  - **Policy − always index +0.013 [+0.002, +0.026]** (secondary; predicted to include 0). It doesn't beat always frames.
+  - **Unpredicted:** Haiku's frames are stronger on these questions (0.699 vs. 0.613 in C1, mostly direction: 0.50 vs. 0.30 on the same videos, reworded), so self-captions now lose to frames (−0.064).
+  - On the 67 rows asking an aspect C1 didn't ask of that video, the formula fails (AUC 0.40, descriptive).
 - **Next steps.**
-  1. Software Heritage "Save code now" visit (user), then the pilot: `.venv/bin/python scripts/index_qa/reader.py run --model haiku --set rest --arms frames5 selfcaptions sonnetcaptions captions --limit 20`.
-  2. Full run, detached: the same command without `--limit`, through `setsid nohup ... > logs/a8_read.log 2>&1 < /dev/null &`. Then `--retry error timeout` once.
-  3. `.venv/bin/python scripts/index_qa/decide.py a8 > results/index_qa/reports/a8.txt` once, and write the result into log A8.
-- **Not in the paper yet:** A6 (and A7). The paper draft is unchanged since 2026-10-28.
+  1. Tell the team: the tested rule is task + model pair (Gemini captions → index; Claude captions → frames on speed). Video and caption scores add nothing (A6, A7).
+  2. Decide with the user whether A6–A8 go into the paper (appendix, or a short §4 paragraph), and whether the direction-question shift needs a word in C1's discussion.
+- **Not in the paper yet:** A6–A8. The paper draft is unchanged since 2026-10-28.
 
 # 2026-10-28 (night) → Draft reviewed and fixed; A5 run (no calls)
 
