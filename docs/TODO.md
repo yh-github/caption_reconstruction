@@ -4,12 +4,16 @@
 
 Decided 2026-10-28: no new data. Only the minimum work to wrap up.
 
-1. [x] **Review the draft** (2026-10-28, structure and claims; fixes applied, log A5). Still open: the main text ends ¾ down page 9's left column (≈ 40 lines over); trim it to 8 pages after the first feedback. Fill the two `\draftnote`s in the Ethics Statement (Kaggle GPU hours; the AI-assistance wording).
-2. [ ] **Repeat the literature search** (query Q7, new work since 2026-10-21; `related_work_caption_index.md` §10.3) in the week before submission. Check for new post-cutoff short-video benchmarks too.
+1. [x] **Review the draft** (2026-10-28, structure and claims; fixes applied, log A5).
+   - [x] **Main text within 8 pages** (2026-11-02, log N3 *Applied*). Tables, figures and detail moved to the appendix; nothing dropped (checked with `scripts/paper_numbers.py`). Limitations starts in page 8's right column, so there are about 30 lines of slack for edits after the final read. The author-notes appendix is removed. The Kaggle GPU minutes are filled in (74).
+   - [ ] **The author confirms the AI-assistance wording** in the Ethics Statement (it was a `\draftnote` in the removed notes appendix).
+2. [x] **Literature pass against the current paper** (2026-11-02; `docs/new_direction/related_work_paper.md`, log N3). No scoop. REEL, *Compression Is Not Evaluation-Neutral*, *Revisiting Caption Gains* and *Read First, Look on Doubt* are close.
+   - [x] **Apply the paper changes** in `related_work_paper.md` §5 (2026-11-02). REEL and *Compression* are in the main text, along with *Revisiting* (Visual7W only) and *Read First*. The rest is in the new appendix "Further related work". There are 8 new bib entries.
+   - [ ] **Repeat pass in the week before submission** (≈ Dec 28–Jan 1): `scripts/lit_search/run_pass.sh 2026-10-28 <scratch dir>`, then screen the titles and write §8 of `related_work_paper.md` and log N4 (its §7). Check for new post-cutoff short-video benchmarks too.
 3. [ ] **Final read by the author.**
 4. [ ] **Refresh the anonymized copy** at https://anonymous.4open.science/r/dense_captions-26B/ after the last push. Its masked terms are already set.
-5. [ ] **Check the exact ARR January 2027 deadline,** then submit.
-6. [ ] **At camera-ready:** add the Software Heritage identifier to §2.4 and Appendix G. It is withheld for review because the URL names the account; the URL is in `docs/handover.md` (2026-10-27).
+5. [ ] **Check the exact ARR January 2027 deadline,** then submit. One secondary source (2026-11-02) gives January 4, 2027 AoE; confirm it at 2027.aclweb.org/calls/main/.
+6. [ ] **At camera-ready:** add the Software Heritage identifier to the Release appendix (`app:release`; §2.3 now points there). It is withheld for review because the URL names the account; the URL is in `docs/handover.md` (2026-10-27).
 
 ## C. Caption-index paper (current direction since 2026-10-18; target ACL 2027 via ARR, January 2027)
 

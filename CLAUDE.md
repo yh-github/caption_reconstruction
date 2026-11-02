@@ -8,6 +8,8 @@ Research codebase for a paper on *caption reconstruction*: mask a contiguous gap
 
 **New direction (2026-10-13): unshuffling.** The main study is moving from generation to ordering: 12 pieces of 5 s per clip, re-captioned in isolation by Gemini, ordered from captions vs. frames. The master plan (theory, hypotheses, experiments E1–E10, statistics, budget) is `docs/new_direction/paper_plan.md`, positioned by the literature review in `docs/new_direction/related_work.md`. Why generation was demoted and how captions are made: `docs/new_direction/new_plan.md`. Captioning commands, gates and stop rules: `docs/new_direction/experiment_kickoff_plan.md`. The code is `scripts/unshuffle/` (puzzles, free arms, the Claude listwise reader with frames, analysis; tests in `tests/test_unshuffle.py`), and the pilot's results are in `docs/new_direction/unshuffle_pilot_results.md`. Gemini only writes captions; Claude through `claude -p` is the reader. Where the work stands and what comes next is at the top of `docs/handover.md`.
 
+**Current paper (since 2026-10-18): the caption index** (ACL 2027 via ARR). The source of truth is `docs/paper/acl2027/caption_index.tex`; build it with `latexmk -pdf caption_index.tex` in that folder. Experiments, predictions and results are in `docs/new_direction/research_log.md`; the pre-submission checklist is at the top of `docs/TODO.md`. The literature review the paper is written from is `docs/new_direction/related_work_paper.md`, organized by claim. `scripts/lit_search/run_pass.sh` re-runs its searches.
+
 ## Commands
 
 All commands run from the repo root, because config paths such as `config/system.yaml` and `config/recon/...` are relative. Use the project venv (`.venv/bin/python`, Python 3.13; the package requires >=3.11).

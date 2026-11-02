@@ -1,5 +1,7 @@
 # Caption once, query cheaply: literature review (third pass)
 
+> **For the paper, use `related_work_paper.md` (fifth pass, 2026-11-02).** It is organized by the paper's current claims and adds the newer close work (REEL, *Compression Is Not Evaluation-Neutral*, *Revisiting Caption Gains*, *Read First, Look on Doubt*). This file stays as background: the state of the art by thread (§1–9, 2026-10-15) and the fourth pass (§10, 2026-10-21).
+
 Second pass written 2026-10-14, after the Gate 1 pilot (`unshuffle_pilot_results.md`). Expanded on 2026-10-15 into a full review: the state of the art in each thread the idea touches, the gaps, and the niche. The research plan built on it is `research_plan_caption_index.md`.
 
 **The question.** A video is captioned once, independently of any question, and the captions are kept as an index. Later questions are answered from the index instead of from the frames. When does this pay, in accuracy per unit of query cost, and in total cost once the captioning is counted? What does the language channel keep and lose?

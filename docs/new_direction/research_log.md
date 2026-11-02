@@ -2539,3 +2539,47 @@ Claim 1 must be worded as the controlled decomposition, not as "a better caption
 2. Cite MotionBlind, TimeBlind and TempCompass's conflicting videos as precedent for minimal pairs. Ours applies the pairs to representations.
 3. Contrast C5 with *Seeing and Solving*: there, a one-call "state first" prompt did not help untuned open models on charts, while ours helps a frontier reader on video (+0.07).
 4. Repeat Q7 in the week before submission.
+
+### N3 — Literature pass, fifth, against the current paper (2026-11-02)
+
+**Scope.** The questions were rebuilt around the paper's five contributions as of `047ea80`, R1–R9:
+- the decomposition and the information control; the captioner effect; the modality effect; the readers' tie;
+- cost and Q_BE; what question-blind captions lose and question-aware recovery; the decision rule; contamination;
+- new work since 2026-10-18.
+
+The October 19 brief's Q3 (aspects) is dropped, because P1 failed. The review is `docs/new_direction/related_work_paper.md`, now the paper's literature review. New sources: ICLR 2027 submissions on OpenReview, now public, and citation chases of TempCompass, LLoVi and CaptionQA. No model calls. The scripts are in `scripts/lit_search/`.
+
+**Verdicts:**
+- **R1, the decomposition: open, narrower.** REEL (WACV 2027, arXiv Oct 28) gives a self-written text record, cached visual tokens and a cached KV prefix exactly the frames of the frame path, on long video with six open models. That is our information control for self-captions. It has no captioner swap, so no captioner, source or visual-budget term, and no cheaper reader.
+- **R2, the captioner effect: close, not scooped.** The new related papers are OACap and *Many Captioners or One?*
+- **R3, the modality effect: close (images, long video); the sign varies with the reader.**
+  - REEL: Text and Frames flip 20–29% of answers at nearly equal mean accuracy.
+  - *Revisiting Caption Gains* (ICLR 2027 submission): self-written question-blind captions keep most of the accuracy when the image is removed.
+  - *Semantic Serialization*: the text interface helps small readers and reverses at 0.5B.
+- **R4, the readers' tie: close in text RAG, open for video.**
+  - *Compression Is Not Evaluation-Neutral* (arXiv June 2026, not found in N2): one fixed compressed text shrinks the reader upgrade from 31.8 to 7.8 points, and weaker readers gain more.
+  - MemoryTax and *What a Memory Can and Cannot Carry* are related; the second finds no author effect, as in C14.
+- **R5, cost and Q_BE with a reader downgrade: open.** REEL amortizes GPU time for one model.
+- **R6, what blind captions lose: open on video.** *Beyond Visual Token Count* offers the terms target inclusion vs. reader recovery.
+- **R7, the decision rule: close on long video.** *Read First, Look on Doubt* (ICLR 2027 submission) reads a textual memory first and looks only when two derivations disagree. Our form, a frozen formula tested on new questions with a null for video scores, is open. EARS agrees with A6's null.
+- **R8, contamination: related only.** The A4 design was not found elsewhere.
+- **No scoop on any claim.**
+
+**Changes to the paper (not yet applied; review §5):**
+1. Cite REEL next to CapMem as the closest work, and say our control extends theirs to a captioner other than the reader.
+2. Frame the readers' tie with *Compression Is Not Evaluation-Neutral*. It predates us.
+3. Add *Revisiting Caption Gains* and *Semantic Serialization* to "Text or pixels", and *Read First* and EARS to the decision rule, in an appendix paragraph if room is short. *(Superseded by the full-text update below; see review §5 items 3–4.)*
+
+**Repeat pass** in the week before submission: `scripts/lit_search/run_pass.sh 2026-10-28 <dir>` (review §7), as N4.
+
+**Full-text update (same day).** The author downloaded the two close ICLR 2027 PDFs in a browser, because OpenReview shows scripts a verification page. They are in `local/papers/iclr2027/`, which is gitignored. The other 10 arXiv papers that had been read only as abstracts now have full text. Sci-Hub was not used: it would be piracy, and it does not hold these papers anyway. No verdict changes and no level rises. Three readings change:
+- *Revisiting Caption Gains*: the headline is about a caption *next to* the image (at most +0.35 over length-matched neutral text). The close part is its image-removal replay. On Visual7W, each of seven open VLMs, on its own question-blind caption, loses accuracy without the image (−11.3 points on average, history delivery; caption + image is within 0.8 of the image alone). On SLAKE one model gains slightly without the image (its Figure 4; corrected the same day, the first note said every model on both datasets). That supports R3 on images. Cite the replay, on Visual7W only, not the headline.
+- *Read First, Look on Doubt*: its memory is mostly speech (diarized ASR) plus 10 s captions. The "+14.6 → −13.7" marginal value of vision is subtitles vs. frames, not captions, so do not cite it as a caption result. The routing result stands: frames only when two text answers disagree. The gated look is worth +8.1 on the questions the gate picks and 0 on the rest (EgoLife, MiniMax-M3). That suggests answer-time instability as a signal our A7 rule lacks within a pair. We did not test it.
+- *Semantic Serialization*: the text is a deterministic serializer of detector output in the task's own vocabulary, not a caption. It moves from close to related.
+- Confirmed in full: *Compression Is Not Evaluation-Neutral* (retention 4.5–84% across 13 panels) and MemoryTax. MemoryTax's readers tie on a weak writer's store (43/43/45%) and spread on a strong writer's (66/71/87%), and it gives a build break-even of 372–596 questions with one model writing and reading.
+- EARS's routing null is per video, between frame selectors (not text vs. frames).
+
+**Applied, and the paper cut to 8 pages (same day; user: "make the paper peer review ready by pushing more stuff into the appendix").** No new data, no calls.
+- Literature (review §5, items 1–5): REEL is co-closest with CapMem in "Caption, then reason"; *Compression Is Not Evaluation-Neutral* is cited in §4.2 and in a new §6 paragraph, "Readers on a fixed text"; *Revisiting Caption Gains* is in "Text or pixels" (Visual7W only); *Read First* is in §4.6 and in Future work. A new Appendix, "Further related work", holds MemoryTax, *Semantic Serialization*, *Beyond Visual Token Count*, the *Read First* gate, EARS and the cost papers. There are 8 new bib entries.
+- Moved to the appendix: the arms table (Appendix A, now "Arms and prompts"), the effects table, the readers and video-type figures, the headroom and audit tables, and the cost figure. Qwen's main arms moved from Table 1 to the variants table. A new appendix, "Main results in detail", holds the moved text in the main text's order. The Discussion and Conclusion are one section, and Future work is the last paragraph of Limitations. The author-notes appendix is gone.
+- Check: `scripts/paper_numbers.py` against the pre-cut snapshot loses only the author notes' "22150". The only added numbers are the new citations' (11.3, 13, 19.7, 28.7, 31.8, 4.5, 7.8, 83.6) and one repeat of "5". The main text ends in page 8's right column, and Limitations starts there. The PDF has 24 pages and no undefined references.

@@ -35,6 +35,18 @@ Verified for `docs/new_direction/related_work.md`, which has the links, what eac
 | TVBench / Lost in Time (arXiv 2410.07752) | Cores et al. | BMVC 2025 | — |
 | Seeing the Arrow of Time in Large Multimodal Models (arXiv 2506.03340) | Xue, Luo, Grauman | arXiv 2025 | — |
 
+## Caption-index paper (2026-11-02)
+
+The paper's current literature review is `docs/new_direction/related_work_paper.md` (fifth pass, by claim). The closest work it adds:
+
+| Paper | Authors | Venue | Local PDF |
+|---|---|---|---|
+| REEL: Same Frames, Different Answers and Different Costs (arXiv 2610.38158) | Liang, He | WACV 2027 | — |
+| Compression Is Not Evaluation-Neutral: Fixed RAG Compression Can Distort Reader Comparisons (arXiv 2606.21807) | Panthi, Abdelfattah | arXiv 2026 | — |
+| Revisiting Caption Gains When the Image Remains Available (OpenReview imjcY1Z6JP) | Anonymous | ICLR 2027 submission | `local/papers/iclr2027/37891_Revisiting_Caption_Gains.pdf` (gitignored; under review) |
+| Read First, Look on Doubt: A Text-First Framework for Long-Video QA (OpenReview 6FPJ94irae) | Anonymous | ICLR 2027 submission | `local/papers/iclr2027/10493_Read_First_Look_on_Doubt.pdf` (gitignored; under review) |
+| Free the Language Model From the Vision Encoder: Semantic Serialization (arXiv 2609.29601; related, not close, after the full-text check) | Xu, Sankar | arXiv 2026 | — |
+
 ## Caption-index direction (2026-10-15)
 
 Verified for `docs/new_direction/related_work_caption_index.md` (third pass), which has the links, findings and how we differ. Closest first; background papers are listed only in that file.

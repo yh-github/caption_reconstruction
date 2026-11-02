@@ -2,6 +2,36 @@
 
 The newest session is at the top. Older sessions stay below because other docs link to their sections (for example "§1" means the 2026-10-07 section 1).
 
+# 2026-11-02 → Readiness check; fifth literature pass (no scoop; four close papers); paper cut to 8 pages
+
+**Start here: `docs/new_direction/related_work_paper.md` §1 and §5, and log N3.** That file is now the paper's literature review. `related_work_caption_index.md` is background.
+
+- **Paper now fits ARR's 8 pages (later the same day; user: "make the paper peer review ready by pushing more stuff into the appendix").** Details in log N3, *Applied*.
+  - The literature changes are in: REEL, *Compression*, *Revisiting* (Visual7W only) and *Read First* in the main text, with the rest in a new appendix, "Further related work". There are 8 bib entries.
+  - New appendix "Main results in detail" (`app:detail`). It holds the effects table, the readers and video-type figures, the headroom and audit tables, and the text cut from §4. The arms table is in Appendix A, the cost figure in "Additional results", and Qwen's main arms in the variants table.
+  - Discussion and Conclusion are merged into one section. Future work is the last paragraph of Limitations, and the author-notes appendix is gone.
+  - `paper_numbers.py` against the pre-cut snapshot loses only the notes' "22150". Limitations starts in page 8's right column, with about 30 lines of slack.
+  - **Correction to the review:** *Revisiting*'s image-removal loss holds for every model on Visual7W only. On SLAKE one model gains slightly (its Figure 4). The bullet below said "all seven VLMs".
+  - Still open: the author's confirmation of the AI-assistance wording, the final read, and the prose pass on the new sentences (style guide). Nothing is committed yet.
+
+- **Readiness (user asked "is the paper ready?"). Not yet:**
+  - The main text ends at the top of page 12, against ARR's 8 pages (≈ 3¼ pages over).
+  - The last appendix, "Notes for the author", must go. Its AI-assistance note needs the author.
+  - Still open: the TODO checklist (final read, refresh the 4open.science copy, the ARR deadline, the Responsible NLP checklist on OpenReview).
+  - Fine: the build (24 pages, no overfull boxes, no undefined references), anonymity (PDF text and metadata), the Limitations section.
+  - The committed PDF was already current (built 14 s after the last `.tex` save and committed with it in `047ea80`), so there was nothing to push. My first answer wrongly called it stale.
+- **ARR deadline:** one secondary source gives January 4, 2027 AoE, not yet confirmed on the official CFP.
+- **Literature pass (fifth; no model calls).** The questions were rebuilt around the paper's five contributions (R1–R9 in the review), not the October 19 brief's Q1–Q7. New sources this time: ICLR 2027 submissions, which are now public on OpenReview, and Semantic Scholar chases of TempCompass, LLoVi and CaptionQA since October 10.
+  - **Close:**
+    - REEL (WACV 2027, Oct 28): the same frames for self-written text, visual and KV memories, on long video; Text flips 20–29% of answers. It shares our information control for self-captions, but has no captioner swap and no cheaper reader.
+    - *Compression Is Not Evaluation-Neutral* (arXiv June 2026): a fixed compressed text shrinks reader upgrades from 31.8 to 7.8 points, the text-RAG analogue of our readers' tie. It predates us, so it must be cited.
+    - *Revisiting Caption Gains When the Image Remains Available* (ICLR 2027 submission; images). Cite its image-removal replay: all seven VLMs lose accuracy on their own question-blind captions without the image. Its headline, a caption next to the image, is not our question.
+    - *Read First, Look on Doubt* (ICLR 2027 submission; long video). Frames only when two text answers disagree. Its memory is mostly speech, and its "+14.6 → −13.7" figure is subtitles vs. frames, so don't cite that as a caption result.
+  - **No scoop** on any claim.
+  - **Full-text update (later the same day).** The user downloaded the two ICLR PDFs; scripts get a browser check from OpenReview. They are in `local/papers/iclr2027/` (gitignored). The other arXiv papers were fetched in full. No level rose. *Semantic Serialization* went from close to related (detector-to-text code, not captions). Details: review "Full-text update" and log N3. Sci-Hub was declined (piracy; it doesn't have these papers anyway).
+- **Paper edited later the same day** (top bullet). The review's §5 records what was applied.
+- **New: `scripts/lit_search/`**: arXiv, Semantic Scholar and OpenReview clients, plus `run_pass.sh SINCE OUTDIR`, which re-runs every query and chase of this pass. Use it for the repeat pass in the week before submission.
+
 # 2026-10-31 (evening) → Paper review passes; D7, C13, C14, A9, A10 done and in the paper
 
 **Start here: research log D7, C13, C14, A9 and A10 (*Result*).** Every one was written and committed before it ran (`d6a733e` for C13–A10). All 17 point predictions of C13, C14 and A10 fell inside their CIs.

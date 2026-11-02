@@ -2,6 +2,8 @@
 
 2026-10-19
 
+> **Superseded for later passes (2026-11-02).** The fifth pass rebuilt the questions around the paper's five contributions (R1–R9 in `related_work_paper.md`); Q3 here was dropped because P1 failed. The repeat pass before submission follows `related_work_paper.md` §7 and `scripts/lit_search/run_pass.sh`. The levels (scoop, close, related) and the stop rule below still apply.
+
 ## Purpose and what the study claims
 
 The search must establish that no paper published or posted up to submission already makes our three claims on video. If one does, it must tell us which claim is lost. It replaces the quick novelty pass of 2026-10-18 (N1 in `docs/new_direction/research_log.md`: 7 web searches, not a full review).
