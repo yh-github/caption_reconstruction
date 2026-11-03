@@ -6,13 +6,20 @@ The newest session is at the top. Older sessions stay below because other docs l
 
 **Start here: `docs/new_direction/related_work_paper.md` §1 and §5, and log N3.** That file is now the paper's literature review. `related_work_caption_index.md` is background.
 
+- **Style pass (last thing this day).** More "we", varied sentence lengths, fewer CIs in the running text, and a 200-word abstract with four quantities. Details and before/after metrics are in log N3, *Style pass*. `paper_numbers.py` loses only the abstract's 297. **The main text now fills page 8 exactly** (Limitations starts at the top of page 9), so anything added to the main text needs a matching cut. Not committed yet.
+- **Ethics rewritten (2026-11-03; user: the draft "reads really bad", and it ignored the hand-written code and Antigravity).**
+  - The section is now *Ethical considerations*, with two paragraphs: Data (licence, people in the clips, captions only) and AI assistance (facts confirmed by the author).
+  - Compute moved to the Release appendix. "No human subjects" is dropped, and the checklist form covers it.
+  - Checklist answers and camera-ready steps are in `docs/paper/acl2027/ethics_statement_draft.md`.
+  - The git history backs the credit: 704 of 889 commits (from 2025-07-01) come before the first Claude Code commit (2026-10-06).
+
 - **Paper now fits ARR's 8 pages (later the same day; user: "make the paper peer review ready by pushing more stuff into the appendix").** Details in log N3, *Applied*.
   - The literature changes are in: REEL, *Compression*, *Revisiting* (Visual7W only) and *Read First* in the main text, with the rest in a new appendix, "Further related work". There are 8 bib entries.
   - New appendix "Main results in detail" (`app:detail`). It holds the effects table, the readers and video-type figures, the headroom and audit tables, and the text cut from §4. The arms table is in Appendix A, the cost figure in "Additional results", and Qwen's main arms in the variants table.
   - Discussion and Conclusion are merged into one section. Future work is the last paragraph of Limitations, and the author-notes appendix is gone.
-  - `paper_numbers.py` against the pre-cut snapshot loses only the notes' "22150". Limitations starts in page 8's right column, with about 30 lines of slack.
+  - `paper_numbers.py` against the pre-cut snapshot loses only the notes' "22150". Limitations started in page 8's right column, with about 30 lines of slack, before the style pass used them up.
   - **Correction to the review:** *Revisiting*'s image-removal loss holds for every model on Visual7W only. On SLAKE one model gains slightly (its Figure 4). The bullet below said "all seven VLMs".
-  - Still open: the author's confirmation of the AI-assistance wording, the final read, and the prose pass on the new sentences (style guide). Nothing is committed yet.
+  - Still open: the author's confirmation of the AI-assistance wording and the final read. The cut was committed in `2275264` and `3b88166`, and the prose pass is the style pass above.
 
 - **Readiness (user asked "is the paper ready?"). Not yet:**
   - The main text ends at the top of page 12, against ARR's 8 pages (≈ 3¼ pages over).

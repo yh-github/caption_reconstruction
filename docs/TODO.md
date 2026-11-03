@@ -5,13 +5,15 @@
 Decided 2026-10-28: no new data. Only the minimum work to wrap up.
 
 1. [x] **Review the draft** (2026-10-28, structure and claims; fixes applied, log A5).
-   - [x] **Main text within 8 pages** (2026-11-02, log N3 *Applied*). Tables, figures and detail moved to the appendix; nothing dropped (checked with `scripts/paper_numbers.py`). Limitations starts in page 8's right column, so there are about 30 lines of slack for edits after the final read. The author-notes appendix is removed. The Kaggle GPU minutes are filled in (74).
-   - [ ] **The author confirms the AI-assistance wording** in the Ethics Statement (it was a `\draftnote` in the removed notes appendix).
+   - [x] **Main text within 8 pages** (2026-11-02, log N3 *Applied*). Tables, figures and detail moved to the appendix; nothing dropped (checked with `scripts/paper_numbers.py`). The author-notes appendix is removed. The Kaggle GPU minutes are filled in (74). **After the style pass the main text fills page 8 exactly** (Limitations starts at the top of page 9), so any addition to the main text needs a matching cut.
+   - [x] **AI-assistance wording** (2026-11-03). The facts are confirmed by the author, and the section is now *Ethical considerations* (Data, AI assistance). Compute moved to the Release appendix. The author will revise the wording again during the final read.
+   - [ ] **Fill in the Responsible NLP checklist** on OpenReview. Draft answers for A2, C1, D and E1 are in `docs/paper/acl2027/ethics_statement_draft.md`.
+   - [ ] **At camera-ready:** move the AI-assistance paragraph into an Acknowledgements section. Review versions must not have one (`formatting.md`, line 47).
 2. [x] **Literature pass against the current paper** (2026-11-02; `docs/new_direction/related_work_paper.md`, log N3). No scoop. REEL, *Compression Is Not Evaluation-Neutral*, *Revisiting Caption Gains* and *Read First, Look on Doubt* are close.
    - [x] **Apply the paper changes** in `related_work_paper.md` §5 (2026-11-02). REEL and *Compression* are in the main text, along with *Revisiting* (Visual7W only) and *Read First*. The rest is in the new appendix "Further related work". There are 8 new bib entries.
    - [ ] **Repeat pass in the week before submission** (≈ Dec 28–Jan 1): `scripts/lit_search/run_pass.sh 2026-10-28 <scratch dir>`, then screen the titles and write §8 of `related_work_paper.md` and log N4 (its §7). Check for new post-cutoff short-video benchmarks too.
 3. [ ] **Final read by the author.**
-4. [ ] **Refresh the anonymized copy** at https://anonymous.4open.science/r/dense_captions-26B/ after the last push. Its masked terms are already set.
+4. [ ] **Refresh the anonymized copy** at https://anonymous.4open.science/r/dense_captions-26B/ after the last push. Its masked terms are already set. Check that they cover the author's name, GitHub handle and both email addresses, which occur in 152 tracked files (including `CITATION.cff`, `LICENSE` and `README.md`; counted 2026-11-02).
 5. [ ] **Check the exact ARR January 2027 deadline,** then submit. One secondary source (2026-11-02) gives January 4, 2027 AoE; confirm it at 2027.aclweb.org/calls/main/.
 6. [ ] **At camera-ready:** add the Software Heritage identifier to the Release appendix (`app:release`; §2.3 now points there). It is withheld for review because the URL names the account; the URL is in `docs/handover.md` (2026-10-27).
 

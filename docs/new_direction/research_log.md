@@ -2583,3 +2583,16 @@ The October 19 brief's Q3 (aspects) is dropped, because P1 failed. The review is
 - Literature (review §5, items 1–5): REEL is co-closest with CapMem in "Caption, then reason"; *Compression Is Not Evaluation-Neutral* is cited in §4.2 and in a new §6 paragraph, "Readers on a fixed text"; *Revisiting Caption Gains* is in "Text or pixels" (Visual7W only); *Read First* is in §4.6 and in Future work. A new Appendix, "Further related work", holds MemoryTax, *Semantic Serialization*, *Beyond Visual Token Count*, the *Read First* gate, EARS and the cost papers. There are 8 new bib entries.
 - Moved to the appendix: the arms table (Appendix A, now "Arms and prompts"), the effects table, the readers and video-type figures, the headroom and audit tables, and the cost figure. Qwen's main arms moved from Table 1 to the variants table. A new appendix, "Main results in detail", holds the moved text in the main text's order. The Discussion and Conclusion are one section, and Future work is the last paragraph of Limitations. The author-notes appendix is gone.
 - Check: `scripts/paper_numbers.py` against the pre-cut snapshot loses only the author notes' "22150". The only added numbers are the new citations' (11.3, 13, 19.7, 28.7, 31.8, 4.5, 7.8, 83.6) and one repeat of "5". The main text ends in page 8's right column, and Limitations starts there. The PDF has 24 pages and no undefined references.
+
+**Style pass (same day; user: "all four changes, especially more varying sentences ... prioritize flow and clarity").** Prose only, no new numbers. It follows the voice comparison with the author's 2012 paper and the ACL exemplars, which found our "we" rate, sentence-length spread and number density off.
+- Abstract: 200 words. It keeps four quantities (0.15, 1/23 to 1/26, four questions, 9 points) and drops "297" and "two of three lose".
+- Main text: more "we" as the subject, long sentences split, short topic sentences added ("P3 has a catch.", "Omissions dominate.", "Not every index ties."). The tie paragraph now asks "Could the tie come from Sonnet reading its own words?". §4.5 has a paragraph per arm.
+- Secondary CIs are cut from the running text where the appendix or Table preds already gives them. Clip-cluster CIs that only the main text had moved to "Main results in detail": the captioner effect in both chains, and the modality effect for Sonnet and Qwen. The headline CIs stay: P2, P3, the bold +0.064, the readers' tie, the A6 and A8 primary tests, and the −0.091 downgrade.
+- Setup now says "Where a result was not predicted, we say so."
+- Fixed while rewriting: the two-clip "+0.33" is Haiku's accuracy gain on Sonnet's captions, not its pair-accuracy gain.
+- Metrics (main text incl. Limitations; `style_compare.py`):
+  - mean sentence length 20.4 → 18.5 words;
+  - sentences under 12 words 19% → 25%, over 30 words 14% → 9%;
+  - numbers per 100 words 9.0 → 8.0;
+  - "we/our" per 1k words 8.8 → 11.0.
+- Check: `paper_numbers.py` against the pre-pass snapshot loses only the abstract's 297, and nothing occurs more often. The Discussion now ends at the bottom of page 8, and Limitations starts at the top of page 9. That is within ARR's limit but leaves no slack, so any later addition to the main text needs a matching cut.
